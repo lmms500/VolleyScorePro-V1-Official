@@ -60,7 +60,7 @@ const MenuButton = ({
       transition={{ delay: delay * 0.05, type: "spring", stiffness: 300, damping: 25 }}
       onClick={onClick} 
       className={`
-        group w-full flex items-center gap-4 p-4 rounded-2xl relative overflow-hidden
+        group w-full flex items-center gap-4 p-4 rounded-xl relative overflow-hidden
         bg-white dark:bg-white/5
         border border-black/5 dark:border-white/5
         ${theme.border}
@@ -124,7 +124,8 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = ({
             exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30, mass: 1 }}
             className={`
-              fixed top-0 right-0 h-full w-full sm:w-[22rem] max-w-[100vw] z-[70]
+              fixed top-0 right-0 h-full z-[70]
+              w-full sm:w-[22rem] landscape:w-[30rem] max-w-[100vw]
               bg-[#f8fafc]/95 dark:bg-[#0f172a]/95
               backdrop-blur-2xl 
               border-l border-white/20 dark:border-white/10 
@@ -146,8 +147,8 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = ({
               </button>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 px-4 py-2 space-y-3 overflow-y-auto custom-scrollbar">
+            {/* Content - Optimized for Landscape with Grid */}
+            <div className="flex-1 px-4 py-2 overflow-y-auto custom-scrollbar space-y-3 landscape:space-y-0 landscape:grid landscape:grid-cols-2 landscape:gap-3">
               
               <MenuButton 
                 onClick={() => { onClose(); onOpenRoster(); }}
@@ -167,23 +168,25 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = ({
                 delay={2}
               />
 
-              <MenuButton 
-                onClick={() => { onClose(); onOpenSettings(); }}
-                icon={Settings}
-                label={t('controls.settings')}
-                subLabel={t('settings.title')}
-                themeColor="indigo"
-                delay={3}
-              />
+              <div className="landscape:col-span-2">
+                <MenuButton 
+                    onClick={() => { onClose(); onOpenSettings(); }}
+                    icon={Settings}
+                    label={t('controls.settings')}
+                    subLabel={t('settings.title')}
+                    themeColor="indigo"
+                    delay={3}
+                />
+              </div>
 
             </div>
 
-            {/* Footer */}
-            <div className="p-6 space-y-6 shrink-0 bg-gradient-to-t from-white/50 via-white/20 to-transparent dark:from-black/40 dark:via-black/10 pb-safe-bottom">
+            {/* Footer - Condensed for Landscape */}
+            <div className="p-6 landscape:p-4 space-y-6 landscape:space-y-3 shrink-0 bg-gradient-to-t from-white/50 via-white/20 to-transparent dark:from-black/40 dark:via-black/10 pb-safe-bottom">
                  
                  <div className="h-px bg-black/5 dark:bg-white/5 w-full" />
 
-                 {/* Theme Toggle (Identical to SettingsModal) */}
+                 {/* Theme Toggle */}
                  <div className="flex flex-col gap-2">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Appearance</span>
                     <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl">
@@ -205,7 +208,7 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = ({
                  <button 
                     onClick={() => { onClose(); onExitFullscreen(); }} 
                     className="
-                      w-full flex items-center justify-center gap-2 p-4 rounded-2xl 
+                      w-full flex items-center justify-center gap-2 p-4 rounded-xl 
                       bg-rose-500/10 hover:bg-rose-500/20
                       text-rose-600 dark:text-rose-400 
                       border border-rose-500/20

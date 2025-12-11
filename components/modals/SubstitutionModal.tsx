@@ -8,6 +8,7 @@ import { RefreshCw, User, Hash, ArrowRight, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useHaptics } from '../../hooks/useHaptics';
 import { resolveTheme } from '../../utils/colors';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 interface SubstitutionModalProps {
   isOpen: boolean;
@@ -135,6 +136,7 @@ const PlayerCardBlock = memo(({
 export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({ 
   isOpen, onClose, team, onConfirm 
 }) => {
+  const { t } = useTranslation();
   // Pairs: List of { outId, inId }
   const [pairs, setPairs] = useState<SubPair[]>([]);
   // Pending Out: A player selected from court, waiting for a bench player
@@ -215,7 +217,7 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
     <Modal 
         isOpen={isOpen} 
         onClose={onClose} 
-        title="Tactical Changes" 
+        title={t('substitution.title')} 
         maxWidth="max-w-md"
         backdropClassName="bg-black/30 dark:bg-black/60 backdrop-blur-sm"
     >
@@ -228,7 +230,7 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
                 </h2>
                 <div className={`h-1 w-12 rounded-full mt-2 ${theme.halo} opacity-80`} />
                 <p className="text-[10px] text-slate-400 mt-2 font-medium">
-                    Tap <span className="text-rose-500 font-bold">Court Player</span> then <span className="text-emerald-500 font-bold">Bench Player</span> to link.
+                    {t('substitution.subtitle')}
                 </p>
             </div>
 
@@ -238,7 +240,7 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
                 <div className="space-y-2">
                     <div className="flex items-center gap-2 px-1 mb-1">
                         <div className="p-1 rounded bg-rose-500/10 text-rose-500"><ArrowRight size={12} strokeWidth={3} /></div>
-                        <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Out (Court)</h3>
+                        <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('substitution.outCourt')}</h3>
                     </div>
 
                     <div className="flex flex-col gap-2">
@@ -255,7 +257,7 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
                             />
                         ))}
                         {courtPlayers.length === 0 && (
-                            <div className="py-6 text-center text-[10px] text-slate-400 italic bg-slate-50 dark:bg-white/5 rounded-xl border border-dashed border-slate-200 dark:border-white/10">Empty Court</div>
+                            <div className="py-6 text-center text-[10px] text-slate-400 italic bg-slate-50 dark:bg-white/5 rounded-xl border border-dashed border-slate-200 dark:border-white/10">{t('substitution.emptyCourt')}</div>
                         )}
                     </div>
                 </div>
@@ -264,7 +266,7 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
                 <div className="space-y-2">
                     <div className="flex items-center gap-2 px-1 mb-1">
                         <div className="p-1 rounded bg-emerald-500/10 text-emerald-500"><ArrowLeft size={12} strokeWidth={3} /></div>
-                        <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">In (Bench)</h3>
+                        <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">{t('substitution.inBench')}</h3>
                     </div>
 
                     <div className="flex flex-col gap-2">
@@ -283,7 +285,7 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
                         {benchPlayers.length === 0 && (
                             <div className="py-6 flex flex-col items-center justify-center text-slate-400/60 gap-1 border-2 border-dashed border-slate-200 dark:border-white/5 rounded-xl bg-slate-50/50 dark:bg-white/[0.01]">
                                 <User size={16} />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">Empty</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider">{t('substitution.emptyBench')}</span>
                             </div>
                         )}
                     </div>
@@ -306,7 +308,7 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
                     <div className="flex items-center justify-center gap-3">
                         <RefreshCw size={16} /> 
                         <span>
-                            {pairs.length > 0 ? `Confirm ${pairs.length} Subs` : 'Select Players'}
+                            {pairs.length > 0 ? t('substitution.confirm', {count: pairs.length}) : t('substitution.select')}
                         </span>
                     </div>
                 </Button>

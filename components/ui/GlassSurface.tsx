@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { motion, HTMLMotionProps, Transition } from 'framer-motion';
 
@@ -21,18 +22,22 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
 }) => {
   
   // Standard Glass Styles
+  // Default is overflow-hidden unless overridden by className prop containing 'overflow-visible'
+  const allowOverflow = className.includes('overflow-visible');
+  const overflowClass = allowOverflow ? '' : 'overflow-hidden';
+
   const intensityMap = {
-    low: 'overflow-hidden bg-white/40 dark:bg-[#0f172a]/40 backdrop-blur-md border border-white/20 dark:border-white/5 shadow-2xl shadow-black/5 dark:shadow-black/20 ring-1 ring-white/20 dark:ring-white/5 inset-ring',
-    medium: 'overflow-hidden bg-white/60 dark:bg-[#0f172a]/60 backdrop-blur-xl border border-white/20 dark:border-white/5 shadow-2xl shadow-black/5 dark:shadow-black/20 ring-1 ring-white/20 dark:ring-white/5 inset-ring',
-    high: 'overflow-hidden bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-2xl border border-white/20 dark:border-white/5 shadow-2xl shadow-black/5 dark:shadow-black/20 ring-1 ring-white/20 dark:ring-white/5 inset-ring',
+    low: `${overflowClass} bg-white/40 dark:bg-[#0f172a]/40 backdrop-blur-md border border-white/20 dark:border-white/5 shadow-2xl shadow-black/5 dark:shadow-black/20 ring-1 ring-white/20 dark:ring-white/5 inset-ring`,
+    medium: `${overflowClass} bg-white/60 dark:bg-[#0f172a]/60 backdrop-blur-xl border border-white/20 dark:border-white/5 shadow-2xl shadow-black/5 dark:shadow-black/20 ring-1 ring-white/20 dark:ring-white/5 inset-ring`,
+    high: `${overflowClass} bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-2xl border border-white/20 dark:border-white/5 shadow-2xl shadow-black/5 dark:shadow-black/20 ring-1 ring-white/20 dark:ring-white/5 inset-ring`,
     transparent: 'bg-transparent border-none shadow-none ring-0 backdrop-blur-none'
   };
 
   // Low Graphics Overrides (No blur, higher opacity)
   const lowGraphicsMap = {
-    low: 'overflow-hidden bg-slate-100/90 dark:bg-slate-900/90 border border-white/10 shadow-lg',
-    medium: 'overflow-hidden bg-slate-100/95 dark:bg-slate-900/95 border border-white/10 shadow-lg',
-    high: 'overflow-hidden bg-slate-100 dark:bg-slate-900 border border-white/10 shadow-lg',
+    low: `${overflowClass} bg-slate-100/90 dark:bg-slate-900/90 border border-white/10 shadow-lg`,
+    medium: `${overflowClass} bg-slate-100/95 dark:bg-slate-900/95 border border-white/10 shadow-lg`,
+    high: `${overflowClass} bg-slate-100 dark:bg-slate-900 border border-white/10 shadow-lg`,
     transparent: 'bg-transparent border-none shadow-none'
   };
 

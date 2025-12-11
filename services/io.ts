@@ -18,22 +18,21 @@ export const downloadJSON = async (filename: string, data: any): Promise<void> =
     const jsonString = JSON.stringify(data, null, 2);
 
     if (Capacitor.isNativePlatform()) {
-        await Filesystem.writeFile({
+        const savedFile = await Filesystem.writeFile({
             path: safeFilename,
             data: jsonString,
             directory: Directory.Cache,
             encoding: Encoding.UTF8
         });
 
-        const uriResult = await Filesystem.getUri({
-            path: safeFilename,
-            directory: Directory.Cache
-        });
-
         await Share.share({
             title: 'VolleyScore Backup',
-            url: uriResult.uri,
+            url: savedFile.uri,
             dialogTitle: 'Export Match Data'
+        }).catch(e => {
+            if (e.message !== 'Share canceled') {
+                console.error("Native Share failed:", e);
+            }
         });
 
     } else {
@@ -170,17 +169,19 @@ export const exportMatchesToCSV = async (matches: Match[]): Promise<void> => {
         const filename = `volleyscore_export_${Date.now()}.csv`;
 
         if (Capacitor.isNativePlatform()) {
-            await Filesystem.writeFile({
+            const savedFile = await Filesystem.writeFile({
                 path: filename,
                 data: csvContent,
                 directory: Directory.Cache,
                 encoding: Encoding.UTF8
             });
-            const uriResult = await Filesystem.getUri({ path: filename, directory: Directory.Cache });
+            
             await Share.share({
                 title: 'VolleyScore Stats',
-                url: uriResult.uri,
+                url: savedFile.uri,
                 dialogTitle: 'Export CSV'
+            }).catch(e => {
+                if (e.message !== 'Share canceled') console.error("CSV Share failed:", e);
             });
         } else {
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

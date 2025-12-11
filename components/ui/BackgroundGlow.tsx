@@ -1,3 +1,4 @@
+
 import React, { memo } from 'react';
 import { motion, Transition } from 'framer-motion';
 import { TeamColor } from '../../types';
@@ -33,9 +34,11 @@ export const BackgroundGlow: React.FC<BackgroundGlowProps> = memo(({ isSwapped, 
   // OTIMIZAÇÃO: Android odeia blurs gigantes.
   // Modo Normal: Reduzido de 160px para 90px para aliviar GPU fill-rate.
   // Modo LowPower: Sem blur, apenas opacidade baixa (muito mais rápido).
+  // FIX: Blend modes adjusted for Light Mode visibility (Multiply instead of Screen)
+  // UPDATED: Increased opacity significantly for light mode (opacity-60) vs dark mode (opacity-30)
   const blurClass = lowPowerMode 
     ? 'opacity-10' 
-    : 'blur-[80px] opacity-30 mix-blend-screen saturate-150';
+    : 'blur-[80px] opacity-60 dark:opacity-30 mix-blend-multiply dark:mix-blend-screen saturate-200';
 
   return (
     <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden select-none bg-slate-50 dark:bg-[#020617]" aria-hidden="true">

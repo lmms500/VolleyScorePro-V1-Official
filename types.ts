@@ -43,6 +43,7 @@ export interface GameConfig {
   voiceGender: 'male' | 'female'; // New: TTS Voice Preference
   announcementFreq: 'all' | 'critical_only'; // New: TTS Verbosity
   lowGraphics: boolean; // Optimization for low-end devices
+  reducedMotion: boolean; // Disable non-essential animations
   userApiKey?: string; // BYOK: User Provided Gemini Key
 }
 
@@ -89,6 +90,14 @@ export interface DeletedPlayerRecord {
   timestamp: number;
 }
 
+// SNAPSHOT FOR ROSTER RESTORATION
+export interface RosterSnapshot {
+    teamARoster: Team;
+    teamBRoster: Team;
+    queue: Team[];
+    rotationReport: RotationReport | null;
+}
+
 export type ActionLog = 
   | { 
       type: 'POINT'; 
@@ -108,7 +117,12 @@ export type ActionLog =
       prevTimeoutsA: number;
       prevTimeoutsB: number;
       timestamp?: number;
-    };
+    }
+  | {
+      type: 'ROTATION';
+      snapshot: RosterSnapshot;
+      timestamp?: number;
+  };
 
 export interface GameState {
   // Names

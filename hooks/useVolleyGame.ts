@@ -2,13 +2,12 @@
 import { useCallback, useEffect, useReducer, useMemo } from 'react';
 import { GameState, TeamId, GameConfig, SkillType, PlayerProfile, TeamColor, RotationMode } from '../types';
 import { DEFAULT_CONFIG, SETS_TO_WIN_MATCH } from '../constants';
-import { SecureStorage } from '../services/SecureStorage';
 import { gameReducer } from '../reducers/gameReducer';
 import { usePlayerProfiles } from './usePlayerProfiles';
 import { createPlayer } from '../utils/rosterLogic';
 import { useTimer } from '../contexts/TimerContext';
 
-const STORAGE_KEY = 'action_log';
+const STORAGE_KEY = 'volleyscore_game_state_v2';
 
 const INITIAL_STATE: GameState = {
   teamAName: 'Home',
@@ -45,13 +44,17 @@ export const useVolleyGame = () => {
   const { profiles, upsertProfile, deleteProfile, isReady: profilesReady } = usePlayerProfiles();
   const { setSeconds, start: startTimer, stop: stopTimer, reset: resetTimer, getTime } = useTimer();
 
-  // --- PERSISTENCE: Load ---
+  // --- PERSISTENCE: Load from LocalStorage ---
   useEffect(() => {
-    const loadGame = async () => {
+    const loadGame = () => {
       try {
-        const savedState = await SecureStorage.load<GameState>(STORAGE_KEY);
+        if (typeof window === 'undefined') return;
         
-        if (savedState) { 
+        const savedString = localStorage.getItem(STORAGE_KEY);
+        
+        if (savedString) { 
+          const savedState = JSON.parse(savedString);
+          
           // Schema Migration & Defaults
           if(!savedState.config) savedState.config = DEFAULT_CONFIG;
           else {
@@ -60,6 +63,9 @@ export const useVolleyGame = () => {
                if (savedState.config.enableSound === undefined) savedState.config.enableSound = true;
                if (savedState.config.lowGraphics === undefined) savedState.config.lowGraphics = false;
                if (savedState.config.announceScore === undefined) savedState.config.announceScore = false;
+               if (savedState.config.reducedMotion === undefined) {
+                   savedState.config.reducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+               }
           }
 
           if(!Array.isArray(savedState.queue)) savedState.queue = [];
@@ -74,7 +80,6 @@ export const useVolleyGame = () => {
           if (savedState.teamARoster && savedState.teamARoster.hasActiveBench === undefined) savedState.teamARoster.hasActiveBench = false;
           if (savedState.teamBRoster && savedState.teamBRoster.hasActiveBench === undefined) savedState.teamBRoster.hasActiveBench = false;
           
-          // Cleanup legacy actions
           savedState.actionLog = savedState.actionLog.filter((action: any) => action.type !== 'TOGGLE_SERVE');
           savedState.matchLog = savedState.matchLog.filter((action: any) => action.type !== 'TOGGLE_SERVE');
           
@@ -87,20 +92,32 @@ export const useVolleyGame = () => {
           }
 
           dispatch({ type: 'LOAD_STATE', payload: savedState });
+        } else {
+            // Load initial reduced motion preference if no save exists
+            if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                dispatch({ type: 'APPLY_SETTINGS', config: { ...DEFAULT_CONFIG, reducedMotion: true }, shouldReset: false });
+            }
         }
       } catch (e) {
-        console.error("Failed to load game state.", e);
+        console.error("Failed to load game state from localStorage.", e);
       }
     };
     loadGame();
   }, [setSeconds, startTimer]);
 
-  // --- PERSISTENCE: Save (Sync Timer) ---
+  // --- PERSISTENCE: Save to LocalStorage (Sync Timer) ---
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const { lastSnapshot, ...stateToSave } = state;
     // INJECT CURRENT TIMER VALUE FOR STORAGE
     stateToSave.matchDurationSeconds = getTime();
-    SecureStorage.save(STORAGE_KEY, stateToSave);
+    
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
+    } catch(e) {
+        console.error("Failed to save game state to localStorage", e);
+    }
   }, [state, getTime]);
 
   // --- TIMER CONTROL ---
@@ -225,8 +242,6 @@ export const useVolleyGame = () => {
           
           const profile = upsertProfile(nameToUse, skillToUse, p.profileId, extras);
           
-          // CRITICAL FIX: Ensure the player instance is updated with the profile ID AND the latest data
-          // This creates the link (sync) between the roster player and the profile db
           dispatch({ 
               type: 'ROSTER_UPDATE_PLAYER', 
               playerId, 

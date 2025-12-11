@@ -38,10 +38,18 @@ const ErrorContent: React.FC<{ error: Error | null, onReload: () => void }> = ({
 };
 
 export class ErrorBoundary extends React.Component<Props, State> {
-  public state: State = {
-    hasError: false,
-    error: null,
-  };
+  // Explicit declarations to fix TS errors in some environments
+  public state: State;
+  public props: Props;
+
+  constructor(props: Props) {
+    super(props);
+    this.props = props;
+    this.state = {
+      hasError: false,
+      error: null,
+    };
+  }
 
   public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };

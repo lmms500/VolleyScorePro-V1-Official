@@ -10,8 +10,14 @@ interface ScoreTickerProps {
 }
 
 /**
- * ScoreTicker (3D Animated Tumbler)
- * Uses transform perspective to create a mechanical tumbling number effect.
+ * ScoreTicker 2.4 (Glow-Safe Container)
+ * 
+ * CRITICAL UPDATE:
+ * Significantly increased vertical height and padding to ensure that when
+ * text-shadow/drop-shadow is applied (Match Point Glow), it is NOT clipped
+ * by the `mask-image` used for the scrolling effect.
+ * 
+ * The mask gradient now starts/ends much further out to allow the glow to fade naturally.
  */
 export const ScoreTicker: React.FC<ScoreTickerProps> = memo(({ value, className, style }) => {
   const prevValue = useRef(value);
@@ -20,9 +26,9 @@ export const ScoreTicker: React.FC<ScoreTickerProps> = memo(({ value, className,
   useEffect(() => {
     if (value !== prevValue.current) {
       if (value > prevValue.current) {
-        setDirection(1); // Moving UP (Next number comes from below)
+        setDirection(1); 
       } else {
-        setDirection(-1); // Moving DOWN (Next number comes from above)
+        setDirection(-1); 
       }
       prevValue.current = value;
     }
@@ -30,12 +36,22 @@ export const ScoreTicker: React.FC<ScoreTickerProps> = memo(({ value, className,
 
   return (
     <div 
-        className={`relative inline-grid place-items-center ${className}`} 
+        className={`relative inline-flex justify-center items-center ${className}`} 
         style={{ 
             ...style,
-            perspective: '600px', // Adds depth for the rotation
-            transformStyle: 'preserve-3d',
-            isolation: 'isolate' 
+            // Expanded height (~2.5x font size) to allow huge shadow bloom without clipping
+            height: '2.5em', 
+            // Min width prevents layout shift on narrow numbers
+            minWidth: '1.2em', 
+            // CRITICAL: Large padding ensures the drop-shadow (glow) fits inside the mask area
+            padding: '0.8em',
+            // Negative margin to counteract the padding for correct layout flow in parent
+            margin: '-0.8em',
+            isolation: 'isolate',
+            // Relaxed Mask: Fades out only at the very edges (top/bottom 15%)
+            maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
+            overflow: 'visible' // Explicitly allow overflow logic where supported
         }}
     >
       <AnimatePresence mode="popLayout" custom={direction} initial={false}>
@@ -46,12 +62,11 @@ export const ScoreTicker: React.FC<ScoreTickerProps> = memo(({ value, className,
           initial="enter"
           animate="center"
           exit="exit"
-          className="block w-full text-center leading-none backface-hidden"
+          className="block text-center leading-none origin-center absolute inset-0 flex items-center justify-center"
           style={{ 
               willChange: "transform, opacity, filter", 
-              backfaceVisibility: "hidden", // Clean rotation
-              WebkitBackfaceVisibility: "hidden",
-              transformOrigin: "50% 50% -0.5em" // Pivot inside the element for volume
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden"
           }} 
         >
           {value}

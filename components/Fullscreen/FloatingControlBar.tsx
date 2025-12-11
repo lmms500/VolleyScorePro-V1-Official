@@ -1,6 +1,4 @@
 
-
-
 import React, { useEffect, useState } from 'react';
 import { Undo2, ArrowLeftRight, RotateCcw, Menu, ChevronDown, ChevronUp, Mic, MicOff } from 'lucide-react';
 import { useTranslation } from '../../contexts/LanguageContext';
@@ -61,7 +59,7 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = ({
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 40, opacity: 0, scale: 0.9 }}
             transition={springSnappy}
-            className={`flex items-center gap-2 p-1.5 rounded-[2rem] ${glassContainer}`}
+            className={`flex items-center gap-2 p-1.5 rounded-2xl ${glassContainer}`}
           >
             <button 
               onClick={onUndo} 

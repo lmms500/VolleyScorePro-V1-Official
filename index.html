@@ -9,13 +9,13 @@
     
     <!-- Security: Content Security Policy -->
     <meta http-equiv="Content-Security-Policy" content="
-      default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;
-      script-src * 'unsafe-inline' 'unsafe-eval' data: blob:;
-      connect-src * 'unsafe-inline' data: blob:;
-      img-src * data: blob:;
-      frame-src * data: blob:;
+      default-src * 'unsafe-inline' 'unsafe-eval' data: blob: filesystem: about: ws: wss:;
+      script-src * 'unsafe-inline' 'unsafe-eval' data: blob: filesystem: about:;
+      connect-src * 'unsafe-inline' 'unsafe-eval' data: blob: filesystem: about: ws: wss:;
+      img-src * data: blob: filesystem: about:;
+      frame-src * data: blob: filesystem: about:;
       style-src * 'unsafe-inline';
-      worker-src * data: blob:;
+      worker-src * data: blob: filesystem: about:;
       font-src * data:;
     ">
 
@@ -131,6 +131,20 @@
       .no-scrollbar {
         -ms-overflow-style: none;
         scrollbar-width: none;
+      }
+
+      /* Mask Utilities for Scroll Indicators (Gradient Fade) */
+      .mask-linear-fade-sides {
+        -webkit-mask-image: linear-gradient(to right, transparent 0%, black 15px, black calc(100% - 15px), transparent 100%);
+        mask-image: linear-gradient(to right, transparent 0%, black 15px, black calc(100% - 15px), transparent 100%);
+      }
+      .mask-linear-fade-right {
+        -webkit-mask-image: linear-gradient(to right, black calc(100% - 20px), transparent 100%);
+        mask-image: linear-gradient(to right, black calc(100% - 20px), transparent 100%);
+      }
+      .mask-linear-fade-left {
+        -webkit-mask-image: linear-gradient(to left, black calc(100% - 20px), transparent 100%);
+        mask-image: linear-gradient(to left, black calc(100% - 20px), transparent 100%);
       }
     </style>
   <script type="importmap">

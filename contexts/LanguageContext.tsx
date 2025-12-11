@@ -1,4 +1,6 @@
+
 import React, { createContext, useState, useEffect, useContext, useCallback, useMemo } from 'react';
+import { Preferences } from '@capacitor/preferences';
 
 type Language = 'en' | 'pt' | 'es';
 
@@ -20,13 +22,19 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [translations, setTranslations] = useState<Record<Language, any> | null>(null);
 
   useEffect(() => {
-    const savedLang = localStorage.getItem('volleyscore-lang') as Language;
-    const browserLang = navigator.language.split('-')[0];
-    if (savedLang && ['en', 'pt', 'es'].includes(savedLang)) {
-      setLanguageState(savedLang);
-    } else if (['pt', 'es'].includes(browserLang)) {
-        setLanguageState(browserLang as Language);
-    }
+    const loadSavedLanguage = async () => {
+        const { value } = await Preferences.get({ key: 'volleyscore-lang' });
+        
+        if (value && ['en', 'pt', 'es'].includes(value)) {
+            setLanguageState(value as Language);
+        } else {
+            const browserLang = navigator.language.split('-')[0];
+            if (['pt', 'es'].includes(browserLang)) {
+                setLanguageState(browserLang as Language);
+            }
+        }
+    };
+    loadSavedLanguage();
   }, []);
 
   useEffect(() => {
@@ -48,7 +56,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const setLanguage = useCallback((lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem('volleyscore-lang', lang);
+    Preferences.set({ key: 'volleyscore-lang', value: lang });
   }, []);
 
   const t = useCallback((key: string, options?: Record<string, string | number>): string => {

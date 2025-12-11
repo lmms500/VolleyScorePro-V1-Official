@@ -126,8 +126,8 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
         showCloseButton={false}
         persistent={true}
       >
-        {/* Confetti Background - Lower Z-Index */}
-        <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none z-0 opacity-40">
+        {/* Confetti Background */}
+        <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none z-0 opacity-40">
             <Confetti color={winnerColorKey} />
         </div>
 
@@ -158,14 +158,14 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
           </div>
 
           {/* Score Display */}
-          <div className="flex items-center gap-8 text-5xl font-black font-inter bg-white/60 dark:bg-black/40 px-10 py-5 rounded-[2rem] border border-white/40 dark:border-white/10 shadow-xl backdrop-blur-xl z-20">
+          <div className="flex items-center gap-8 text-5xl font-black font-inter bg-white/60 dark:bg-black/40 px-10 py-5 rounded-2xl border border-white/40 dark:border-white/10 shadow-xl backdrop-blur-xl z-20">
               <span className={isA ? `${winnerTheme.text} ${winnerTheme.textDark} drop-shadow-lg` : 'text-slate-400 dark:text-slate-600 opacity-60'}>{state.setsA}</span>
               <div className="h-10 w-[3px] bg-slate-300 dark:bg-slate-700 rounded-full opacity-30 rotate-12"></div>
               <span className={!isA ? `${winnerTheme.text} ${winnerTheme.textDark} drop-shadow-lg` : 'text-slate-400 dark:text-slate-600 opacity-60'}>{state.setsB}</span>
           </div>
 
           {report && (
-              <div className="w-full bg-slate-50/80 dark:bg-white/[0.03] rounded-2xl p-4 text-left border border-black/5 dark:border-white/5 space-y-3 backdrop-blur-md shadow-sm z-20">
+              <div className="w-full bg-slate-50/80 dark:bg-white/[0.03] rounded-xl p-4 text-left border border-black/5 dark:border-white/5 space-y-3 backdrop-blur-md shadow-sm z-20">
                   <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-2">
                        <h3 className="font-bold text-slate-500 dark:text-slate-500 uppercase text-[10px] tracking-widest">{t('matchOver.rotationReport.title')}</h3>
                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">{t('matchOver.rotationReport.entering', { teamName: report.incomingTeam.name })}</span>

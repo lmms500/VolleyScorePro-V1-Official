@@ -5,6 +5,7 @@ import { Team, SkillType, TeamColor } from '../../types';
 import { Swords, Shield, Target, AlertTriangle, X, User, ChevronLeft } from 'lucide-react';
 import { motion, AnimatePresence, PanInfo, useDragControls, Transition } from 'framer-motion';
 import { resolveTheme } from '../../utils/colors';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 interface ScoutModalProps {
   isOpen: boolean;
@@ -36,6 +37,7 @@ export const ScoutModal: React.FC<ScoutModalProps> = ({
     onConfirm,
     colorTheme 
 }) => {
+    const { t } = useTranslation();
     const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
     const [isReadyToClose, setIsReadyToClose] = useState(false);
     
@@ -71,10 +73,10 @@ export const ScoutModal: React.FC<ScoutModalProps> = ({
     };
 
     const skills: { id: SkillType, label: string, icon: any }[] = [
-        { id: 'attack', label: 'Attack', icon: Swords },
-        { id: 'block', label: 'Block', icon: Shield },
-        { id: 'ace', label: 'Ace', icon: Target },
-        { id: 'opponent_error', label: 'Opp. Error', icon: AlertTriangle },
+        { id: 'attack', label: t('scout.skills.attack'), icon: Swords },
+        { id: 'block', label: t('scout.skills.block'), icon: Shield },
+        { id: 'ace', label: t('scout.skills.ace'), icon: Target },
+        { id: 'opponent_error', label: t('scout.skills.opponent_error'), icon: AlertTriangle },
     ];
 
     const theme = resolveTheme(colorTheme);
@@ -139,10 +141,10 @@ export const ScoutModal: React.FC<ScoutModalProps> = ({
                         >
                             <div className="flex flex-col">
                                 <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">
-                                    {selectedPlayerId ? 'Step 2' : 'Step 1'}
+                                    {selectedPlayerId ? t('scout.step2') : t('scout.step1')}
                                 </span>
                                 <h3 className="font-black text-slate-800 dark:text-white text-2xl leading-none tracking-tight">
-                                    {selectedPlayerId ? 'Select Action' : 'Who Scored?'}
+                                    {selectedPlayerId ? t('scout.selectAction') : t('scout.whoScored')}
                                 </h3>
                             </div>
                             <button 
@@ -197,7 +199,7 @@ export const ScoutModal: React.FC<ScoutModalProps> = ({
                                                 className="col-span-2 flex items-center justify-center gap-3 p-4 rounded-2xl border border-dashed border-slate-300 dark:border-white/10 text-slate-500 hover:text-slate-800 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5 transition-all"
                                             >
                                                 <User size={16} />
-                                                <span className="font-bold text-xs uppercase tracking-wider">Unknown Player</span>
+                                                <span className="font-bold text-xs uppercase tracking-wider">{t('scout.unknownPlayer')}</span>
                                             </button>
                                         </div>
                                     </motion.div>
@@ -239,7 +241,7 @@ export const ScoutModal: React.FC<ScoutModalProps> = ({
                                                 onClick={() => setSelectedPlayerId(null)}
                                                 className="w-full flex items-center justify-center gap-2 text-xs font-bold text-slate-400 hover:text-slate-700 dark:hover:text-white uppercase tracking-widest py-4 transition-colors"
                                             >
-                                                <ChevronLeft size={16} /> Back to Players
+                                                <ChevronLeft size={16} /> {t('scout.back')}
                                             </button>
                                         </div>
                                     </motion.div>

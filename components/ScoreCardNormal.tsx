@@ -60,11 +60,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
 
   const handleAddWrapper = useCallback(() => {
     if (isInteractionLocked) return;
-    
-    // Tap Feedback (Immediate UI feedback only)
-    // The orchestration of game event sounds (Score, Match Point, etc.) is handled by useSensoryFX hook
     audio.playTap();
-
     if (config.enablePlayerStats) {
         haptics.impact('light');
         setShowScout(true);
@@ -75,12 +71,10 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
 
   const handleScoutConfirm = useCallback((pid: string, skill: SkillType) => {
     onAdd(teamId, pid, skill);
-    // Audio handled by state change in useSensoryFX
   }, [onAdd, teamId]);
 
   const handleSubtractWrapper = useCallback(() => {
       onSubtract();
-      // Undo audio handled by App.tsx wrapper usually, but redundancy here is fine as it's a specific gesture
   }, [onSubtract]);
 
   const handleTouchStart = useCallback((e: React.PointerEvent) => {
@@ -137,9 +131,11 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
         transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1 }}
         className={`
             flex flex-col flex-1 relative h-full select-none
-            rounded-[2.5rem] overflow-visible
+            rounded-2xl min-h-0 my-2
+            !bg-transparent !border-none !shadow-none !ring-0
             transition-[opacity,filter] duration-300
             ${isLocked ? 'opacity-40 grayscale' : ''} 
+            !overflow-visible
         `}
         style={{ overflow: 'visible' }}
         lowGraphics={config.lowGraphics}
@@ -149,7 +145,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
       <div className="flex flex-col h-full w-full relative z-10 py-1 px-2 justify-between items-center overflow-visible">
         
         {/* HEADER: Sets & Name */}
-        <div className="flex flex-col items-center justify-center w-full flex-none order-1 mt-3 space-y-1 relative z-30">
+        <div className="flex flex-col items-center justify-center w-full flex-none order-1 mt-2 space-y-1 relative z-30">
             <div className="flex gap-2 mb-1">
                 {[...Array(setsNeededToWin)].map((_, i) => (
                     <motion.div 
@@ -170,14 +166,14 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
 
             <motion.div 
                 layout 
-                className="w-full flex items-center justify-center gap-2 cursor-pointer group px-4 py-1.5 rounded-2xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors max-w-full overflow-hidden"
+                className="w-full flex items-center justify-center gap-2 cursor-pointer group px-4 py-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors max-w-full overflow-hidden"
                 onClick={(e) => { 
                     e.stopPropagation(); 
                     onSetServer(); 
                     haptics.impact('light');
                 }}
             >
-                <motion.h2 layout className="font-black uppercase text-center text-lg md:text-xl text-slate-800 dark:text-slate-200 tracking-wider truncate min-w-0">
+                <motion.h2 layout className="font-black uppercase text-center text-base md:text-xl text-slate-800 dark:text-slate-200 tracking-wider truncate min-w-0">
                     {team?.name || ''}
                 </motion.h2>
                 <AnimatePresence>
@@ -197,13 +193,13 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
         </div>
 
         {/* BADGE AREA */}
-        <div className="order-2 min-h-[30px] flex items-center justify-center w-full my-1 flex-none">
+        <div className="order-2 min-h-[24px] flex items-center justify-center w-full my-1 flex-none">
             <AnimatePresence mode="wait">
                 {badgeConfig && (
                     <motion.div 
                         variants={stampVariants}
                         initial="hidden" animate="visible" exit="exit"
-                        className={`px-3 py-1.5 rounded-xl border backdrop-blur-md font-bold uppercase tracking-widest text-[9px] flex items-center gap-1.5 shadow-sm ${badgeConfig.className}`}
+                        className={`px-3 py-1 rounded-xl border backdrop-blur-md font-bold uppercase tracking-widest text-[9px] flex items-center gap-1.5 shadow-sm ${badgeConfig.className}`}
                     >
                         <badgeConfig.icon size={10} strokeWidth={3} />
                         {badgeConfig.text}
@@ -221,7 +217,6 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
         >
             <GestureHint isVisible={isTouching} />
 
-            {/* Tap Ripple Effect (Behind Number) */}
             <AnimatePresence>
                 {ripple && (
                     <motion.div
@@ -241,8 +236,8 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                 )}
             </AnimatePresence>
 
-            <div className="grid place-items-center w-full h-full relative z-10 pointer-events-none">
-                {/* HALO */}
+            <div className="grid place-items-center w-full h-full relative z-10 pointer-events-none overflow-visible">
+                {/* HALO BACKGROUND */}
                 <motion.div 
                     layout 
                     className={`
@@ -250,7 +245,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                         rounded-full pointer-events-none z-0 aspect-square
                         will-change-[transform,opacity]
                         ${haloColorClass}
-                        ${config.lowGraphics ? 'blur-[40px]' : 'blur-[60px] md:blur-[80px] mix-blend-screen'}
+                        ${config.lowGraphics ? 'blur-[40px]' : 'blur-[80px] mix-blend-multiply dark:mix-blend-screen'}
                     `}
                     style={{ 
                         width: 'auto',
@@ -263,7 +258,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                         opacity: isCritical ? 0.6 : (isServing ? 0.3 : 0),
                         scale: 1
                     } : { 
-                        opacity: isCritical ? [0.4, 0.8, 0.4] : (isServing ? 0.35 : 0),
+                        opacity: isCritical ? [0.6, 0.9, 0.6] : (isServing ? 0.5 : 0),
                         scale: isCritical ? [1, 1.15, 1] : 1,
                     }}
                     transition={config.lowGraphics ? undefined : { 
@@ -274,20 +269,20 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                 />
                 
                 {/* ANIMATED NUMBER */}
-                <div className="col-start-1 row-start-1 relative z-20 w-full flex justify-center items-center h-full">
+                <div className="col-start-1 row-start-1 relative z-20 w-full flex justify-center items-center h-full overflow-visible">
                     <motion.div
                         layout
                         variants={config.lowGraphics ? undefined : pulseHeartbeat}
                         animate={(!config.lowGraphics && isCritical) ? "pulse" : "idle"}
-                        className="flex items-center justify-center w-full"
+                        className="flex items-center justify-center w-full overflow-visible"
                     >
                         <ScoreTicker 
                             value={score}
                             className={`
                                 font-black tracking-tighter outline-none select-none
-                                text-8xl md:text-9xl lg:text-[10rem] leading-none
+                                text-[20vw] sm:text-[15vw] md:text-9xl landscape:text-7xl landscape:xl:text-9xl leading-none
                                 text-slate-900 dark:text-white
-                                ${isMatchPoint ? 'drop-shadow-[0_0_30px_rgba(251,191,36,0.5)]' : ''}
+                                ${isMatchPoint ? 'drop-shadow-[0_0_30px_rgba(251,191,36,0.8)]' : ''}
                             `}
                         />
                     </motion.div>
@@ -296,27 +291,35 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
         </div>
 
         {/* FOOTER: Timeouts */}
-        <div className="order-4 w-full flex justify-center pb-4 flex-none">
+        <div className="order-4 w-full flex justify-center pb-2 flex-none">
            <button 
              type="button"
              onClick={(e) => { 
                  e.stopPropagation(); 
                  if(!timeoutsExhausted) {
                      onTimeout();
-                     // Standard light tap feedback only. Warning feedback/sound handled by SensoryFX on state change.
                      haptics.impact('light');
                  }
              }}
              disabled={timeoutsExhausted}
              className={`
-                flex items-center gap-3 px-4 py-2 rounded-2xl transition-all border border-transparent
-                ${timeoutsExhausted ? 'opacity-20 grayscale cursor-not-allowed' : 'hover:bg-white/50 dark:hover:bg-white/10 hover:border-black/5 dark:hover:border-white/5 active:scale-95'}
+                flex items-center gap-3 px-4 py-2 rounded-xl transition-all border border-transparent
+                ${timeoutsExhausted ? 'opacity-50 grayscale' : 'hover:bg-white/50 dark:hover:bg-white/10 hover:border-black/5 dark:hover:border-white/5 active:scale-95'}
              `}
            >
               <Timer size={14} className="text-slate-400 dark:text-slate-500" strokeWidth={2} />
               <div className="flex gap-1.5">
                 {[1, 2].map(t => (
-                    <div key={t} className={`w-1.5 h-1.5 rounded-full transition-all ${t <= timeouts ? 'bg-slate-300 dark:bg-slate-700' : `${theme.halo} shadow-[0_0_5px_currentColor]`}`} />
+                    <div 
+                      key={t} 
+                      className={`
+                        w-4 h-1.5 rounded-full transition-all duration-300
+                        ${t > timeouts 
+                            ? `${theme.halo} shadow-[0_0_5px_currentColor]` 
+                            : 'bg-slate-200 dark:bg-slate-700'
+                        }
+                      `} 
+                    />
                 ))}
               </div>
            </button>

@@ -2,182 +2,233 @@
 import { Variants, Transition } from "framer-motion";
 
 /**
- * VolleyScore Pro Motion System 2.2
- * Physics-based configuration for a premium, tactile feel.
- * Refined for "Apple-like" fluidity: High stiffness, critical damping.
+ * VolleyScore Pro - Liquid Motion System 3.2 (Accessibility Aware)
+ * 
+ * Manages global motion preferences.
  */
 
-// --- PHYSICS CONFIGS ---
+let isReducedMotion = false;
 
-// "Premium Spring": Standard for screen transitions and large elements.
-// Fluid, weighty, no bounce.
-export const springPremium: Transition = {
-  type: "spring",
-  stiffness: 380, // Tighter
-  damping: 40,    // Critical damping (no wobble)
-  mass: 1
+export const setGlobalReducedMotion = (enabled: boolean) => {
+  isReducedMotion = enabled;
 };
 
-// "Snappy Spring": For micro-interactions (buttons, toggles).
-// Instant response, very subtle overshoot.
-export const springSnappy: Transition = {
-  type: "spring",
-  stiffness: 600,
-  damping: 45, // Crisp stop
-  mass: 1
+// --- ADAPTIVE TRANSITIONS ---
+
+const getTransition = (standard: Transition): Transition => {
+  if (isReducedMotion) {
+    return { duration: 0 }; // Instant
+  }
+  return standard;
 };
 
-// "Ticker Spring": Optimized for fast number tumbling
-export const springTicker: Transition = {
+// "Liquid Spring": Fluid, responsive.
+export const liquidSpring: Transition = {
+  type: "spring",
+  stiffness: 400,
+  damping: 35,
+  mass: 0.8
+};
+
+// "Soft Bounce": Playful elements.
+export const softBounce: Transition = {
   type: "spring",
   stiffness: 300,
-  damping: 30,
+  damping: 20,
   mass: 1
 };
 
-// --- REUSABLE VARIANTS ---
+// "Ticker Slide": Fast numbers.
+export const tickerSpring: Transition = {
+  type: "spring",
+  stiffness: 250,
+  damping: 25,
+  mass: 0.5
+};
 
-// Modal / Drawer
+// "Snappy": Quick UI toggles.
+export const springSnappy: Transition = {
+  type: "spring",
+  stiffness: 400,
+  damping: 25,
+  mass: 1
+};
+
+// "Premium": Standard interaction.
+export const springPremium: Transition = {
+  type: "spring",
+  stiffness: 300,
+  damping: 20,
+  mass: 0.8
+};
+
+// --- CORE VARIANTS (Dynamic) ---
+
+// 1. Modal Entrance
 export const modalVariants: Variants = {
   hidden: { 
-    y: 24, 
     opacity: 0,
-    scale: 0.96,
-    filter: "blur(8px)",
-    transition: { duration: 0.2, ease: "easeOut" } 
+    scale: 0.92,
+    y: 20,
+    filter: "blur(4px)",
+    transition: { duration: 0.2 }
   },
   visible: { 
-    y: 0, 
     opacity: 1,
     scale: 1,
+    y: 0,
     filter: "blur(0px)",
-    transition: springPremium
+    transition: isReducedMotion ? { duration: 0.1 } : liquidSpring
   },
   exit: { 
-    y: 12, 
     opacity: 0, 
-    scale: 0.98,
+    scale: 0.96,
+    y: 10,
     filter: "blur(4px)",
-    transition: { duration: 0.15, ease: "easeIn" }
+    transition: { duration: 0.2, ease: "easeIn" }
   }
 };
 
-// Backdrop Fade
+// 2. Staggered Container
+export const staggerContainer: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: isReducedMotion ? 0 : 0.05,
+      delayChildren: isReducedMotion ? 0 : 0.05
+    }
+  },
+  exit: {
+    opacity: 0,
+    transition: { staggerChildren: isReducedMotion ? 0 : 0.02, staggerDirection: -1 }
+  }
+};
+
+// 3. Staggered Item
+export const staggerItem: Variants = {
+  hidden: { 
+    opacity: 0, 
+    y: 15, 
+    scale: 0.95 
+  },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    transition: isReducedMotion ? { duration: 0 } : liquidSpring 
+  },
+  exit: { 
+    opacity: 0, 
+    scale: 0.9, 
+    transition: { duration: 0.15 } 
+  }
+};
+
+// 4. Backdrop Fade
 export const overlayVariants: Variants = {
   hidden: { opacity: 0 },
   visible: { 
     opacity: 1, 
-    transition: { duration: 0.35, ease: "easeOut" } 
+    transition: { duration: isReducedMotion ? 0.1 : 0.4, ease: "easeOut" } 
   },
   exit: { 
     opacity: 0, 
-    transition: { duration: 0.2, ease: "easeIn" } 
+    transition: { duration: 0.1, ease: "easeIn" } 
   }
 };
 
-// Button Tap Feedback - Optimized for glass feel
+// 5. Button Press
 export const buttonTap: Variants = {
   idle: { scale: 1, filter: "brightness(1)" },
   tap: { 
-    scale: 0.94, 
+    scale: isReducedMotion ? 1 : 0.94, 
     filter: "brightness(1.1)", 
-    transition: { type: "spring", stiffness: 800, damping: 20 } 
+    transition: { type: "spring", stiffness: 800, damping: 15 } 
   },
   hover: { 
-    scale: 1.02, 
+    scale: isReducedMotion ? 1 : 1.02, 
     transition: { type: "spring", stiffness: 400, damping: 25 } 
   }
 };
 
-// List Items (Staggered)
-export const listItemVariants: Variants = {
-  hidden: { opacity: 0, y: 15, scale: 0.98 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    scale: 1,
-    transition: springSnappy
-  },
-  exit: { 
-    opacity: 0, 
-    scale: 0.95,
-    transition: { duration: 0.15 }
-  }
-};
-
-// 3D Score Ticker Variants (Tumbler Effect)
+// 6. Liquid Ticker
 export const tickerVariants: Variants = {
   enter: (direction: number) => ({
-    y: direction > 0 ? "100%" : "-100%",
-    rotateX: direction > 0 ? -90 : 90,
+    y: isReducedMotion ? 0 : (direction > 0 ? "60%" : "-60%"), 
     opacity: 0,
-    scale: 0.8,
-    filter: "blur(4px)",
-    zIndex: 1
+    scale: isReducedMotion ? 1 : 0.5,
+    filter: isReducedMotion ? "blur(0px)" : "blur(10px)",
+    position: "absolute"
   }),
   center: {
     y: "0%",
-    rotateX: 0,
     opacity: 1,
     scale: 1,
     filter: "blur(0px)",
-    zIndex: 2,
-    transition: springTicker
+    position: "relative",
+    zIndex: 1,
+    transition: isReducedMotion ? { duration: 0 } : tickerSpring
   },
   exit: (direction: number) => ({
-    y: direction > 0 ? "-100%" : "100%",
-    rotateX: direction > 0 ? 90 : -90,
+    y: isReducedMotion ? 0 : (direction > 0 ? "-60%" : "60%"),
     opacity: 0,
-    scale: 0.8,
-    filter: "blur(4px)",
+    scale: isReducedMotion ? 1 : 0.5,
+    filter: isReducedMotion ? "blur(0px)" : "blur(10px)",
+    position: "absolute",
     zIndex: 0,
-    transition: { duration: 0.25, ease: "circIn" }
+    transition: { duration: isReducedMotion ? 0 : 0.25 }
   })
 };
 
-// Critical Event Pulse (Heartbeat)
+// 7. Pulse
 export const pulseHeartbeat: Variants = {
   idle: { scale: 1, opacity: 1 },
   pulse: {
-    scale: [1, 1.05, 1],
-    opacity: [1, 0.9, 1],
-    filter: ["brightness(1)", "brightness(1.1)", "brightness(1)"],
+    scale: isReducedMotion ? 1 : [1, 1.05, 1],
+    opacity: [1, 0.8, 1],
     transition: {
-      duration: 1.2,
+      duration: 1.5,
       repeat: Infinity,
       ease: "easeInOut"
     }
   }
 };
 
-// Stamp Effect
+// 8. Stamp
 export const stampVariants: Variants = {
-  hidden: { scale: 1.2, opacity: 0, y: 4, filter: "blur(4px)" },
+  hidden: { scale: 2, opacity: 0, filter: "blur(10px)" },
   visible: { 
     scale: 1, 
     opacity: 1, 
-    y: 0,
     filter: "blur(0px)",
-    transition: springSnappy
+    transition: isReducedMotion ? { duration: 0 } : softBounce
   },
   exit: { 
-    opacity: 0,
-    scale: 0.95,
-    filter: "blur(2px)",
-    transition: { duration: 0.15 }
+    opacity: 0, 
+    scale: 0.8,
+    filter: "blur(5px)",
+    transition: { duration: 0.2 } 
   }
 };
 
-// Vignette Pulse
+// 9. Vignette
 export const vignettePulse: Variants = {
   hidden: { opacity: 0 },
   pulse: {
-    opacity: [0.1, 0.8],
+    opacity: [0.2, 0.6],
     transition: {
-      duration: 0.8,
+      duration: 1,
       repeat: Infinity,
       repeatType: "reverse",
       ease: "easeInOut"
     }
   }
+};
+
+// 10. List Item
+export const listItemVariants: Variants = {
+  hidden: { opacity: 0, scale: 0.9, x: -10 },
+  visible: { opacity: 1, scale: 1, x: 0, transition: isReducedMotion ? { duration: 0 } : liquidSpring },
+  exit: { opacity: 0, scale: 0.9, transition: { duration: 0.2 } }
 };

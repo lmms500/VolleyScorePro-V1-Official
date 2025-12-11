@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
@@ -6,10 +7,17 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { Capacitor } from '@capacitor/core';
 
 // Only register Service Worker if NOT native
+// Wrapped in try-catch to prevent crashing app if CSP blocks dynamic import or script loading
 if (!Capacitor.isNativePlatform()) {
-  import('virtual:pwa-register').then(({ registerSW }) => {
-    registerSW({ immediate: true });
-  }).catch(() => {});
+  try {
+    import('virtual:pwa-register').then(({ registerSW }) => {
+      registerSW({ immediate: true });
+    }).catch(e => {
+      console.warn("PWA registration failed:", e);
+    });
+  } catch (e) {
+    console.warn("PWA module import failed:", e);
+  }
 }
 
 const rootElement = document.getElementById('root');

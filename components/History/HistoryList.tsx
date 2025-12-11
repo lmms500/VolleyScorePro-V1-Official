@@ -173,7 +173,7 @@ const HistoryCard: React.FC<{
                 layout
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="group relative rounded-3xl bg-white dark:bg-white/[0.03] backdrop-blur-md border border-black/5 dark:border-white/5 overflow-hidden shadow-sm hover:shadow-md transition-all"
+                className="group relative rounded-2xl bg-white dark:bg-white/[0.03] backdrop-blur-md border border-black/5 dark:border-white/5 overflow-hidden shadow-sm hover:shadow-md transition-all"
             >
                 {isWinnerA && (
                     <div 
@@ -398,16 +398,16 @@ export const HistoryList: React.FC = () => {
             />
 
             <div className="sticky top-0 z-30 mb-6 -mx-1 px-1">
-                <div className="bg-slate-100/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-white/5 rounded-3xl p-3 shadow-lg shadow-black/5 dark:shadow-black/20">
+                <div className="bg-slate-100/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-white/5 rounded-2xl p-3 shadow-lg shadow-black/5 dark:shadow-black/20">
                     <div className="flex gap-2 mb-2">
                         <div className="relative flex-1 group">
-                            <div className="absolute inset-0 bg-white dark:bg-white/5 rounded-2xl transition-all group-focus-within:ring-2 group-focus-within:ring-indigo-500/30"></div>
+                            <div className="absolute inset-0 bg-white dark:bg-white/5 rounded-xl transition-all group-focus-within:ring-2 group-focus-within:ring-indigo-500/30"></div>
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                             <input 
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder={t('historyList.searchPlaceholder')}
-                                className="relative w-full bg-transparent border border-black/5 dark:border-white/10 rounded-2xl pl-10 pr-4 py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none placeholder:text-slate-400"
+                                className="relative w-full bg-transparent border border-black/5 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-800 dark:text-white focus:outline-none placeholder:text-slate-400"
                             />
                         </div>
                         

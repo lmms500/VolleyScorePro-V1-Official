@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
@@ -64,15 +65,16 @@ export const Modal: React.FC<ModalProps> = ({
             style={{ willChange: 'opacity' }}
           />
           
-          {/* Container - Ultra Clean Glass v2 */}
+          {/* Container - Neo-Glass Premium */}
           <motion.div 
             className={`
               relative w-full ${maxWidth} 
-              bg-[#f8fafc]/95 dark:bg-[#0f172a]/95 backdrop-blur-2xl 
-              border border-white/20 dark:border-white/10 
-              rounded-[2.5rem] shadow-2xl shadow-black/30
+              bg-white/80 dark:bg-[#0f172a]/70 
+              backdrop-blur-xl 
+              border border-white/40 dark:border-white/10 
+              rounded-3xl shadow-2xl shadow-black/20
               overflow-hidden flex flex-col max-h-[85vh]
-              ring-1 ring-black/5 dark:ring-white/5
+              ring-1 ring-white/30 dark:ring-white/5
               z-10
             `}
             initial="hidden"

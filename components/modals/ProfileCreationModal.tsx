@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Save, User, UserCircle2 } from 'lucide-react';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 interface ProfileCreationModalProps {
   isOpen: boolean;
@@ -21,8 +22,9 @@ const AVATARS = [
 ];
 
 export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
-  isOpen, onClose, onSave, initialName, initialNumber, initialSkill = 5, title = "Create Profile"
+  isOpen, onClose, onSave, initialName, initialNumber, initialSkill = 5, title
 }) => {
+  const { t } = useTranslation();
   const [name, setName] = useState(initialName);
   const [number, setNumber] = useState(initialNumber);
   const [avatar, setAvatar] = useState('🏐');
@@ -61,7 +63,7 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={title}
+      title={title || t('profile.createTitle')}
       maxWidth="max-w-sm"
       zIndex="z-[9999]"
     >
@@ -105,7 +107,7 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
         {/* --- 2. SKILL SLIDER (INLINE) --- */}
         <div className="bg-slate-50 dark:bg-black/20 rounded-2xl p-4 border border-black/5 dark:border-white/5 space-y-3">
             <div className="flex justify-between items-end">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Skill Level</label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t('profile.skillLevel')}</label>
                 <div className="flex items-baseline gap-1">
                     <span className={`text-2xl font-black tabular-nums transition-colors ${getSkillColor(skill)}`}>{skill}</span>
                     <span className="text-xs font-bold text-slate-300">/ 10</span>
@@ -137,8 +139,8 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
             </div>
             
             <div className="flex justify-between px-1">
-                <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">Rookie</span>
-                <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">Pro</span>
+                <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">{t('profile.rookie')}</span>
+                <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">{t('profile.pro')}</span>
             </div>
         </div>
 
@@ -151,7 +153,7 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
                 <input 
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Player Name"
+                    placeholder={t('profile.namePlaceholder')}
                     className="w-full bg-slate-100 dark:bg-white/5 border-none rounded-xl py-3 pl-10 pr-4 font-bold text-slate-800 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all"
                 />
             </div>
@@ -160,7 +162,7 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
                 <input 
                     value={number}
                     onChange={(e) => setNumber(e.target.value)}
-                    placeholder="Jersey Number (Optional)"
+                    placeholder={t('profile.numberPlaceholder')}
                     type="tel"
                     maxLength={3}
                     className="w-full bg-slate-100 dark:bg-white/5 border-none rounded-xl py-3 pl-10 pr-4 font-bold text-slate-800 dark:text-white placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all"
@@ -170,9 +172,9 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
 
         {/* --- 4. ACTIONS --- */}
         <div className="grid grid-cols-2 gap-3 pt-2">
-            <Button variant="secondary" onClick={onClose}>Cancel</Button>
+            <Button variant="secondary" onClick={onClose}>{t('common.cancel')}</Button>
             <Button onClick={handleSave} className="bg-indigo-600 text-white shadow-indigo-500/20">
-                <Save size={18} /> {title === "Create Profile" ? "Create" : "Save"}
+                <Save size={18} /> {t(title === "Create Profile" ? 'profile.create' : 'profile.save')}
             </Button>
         </div>
 

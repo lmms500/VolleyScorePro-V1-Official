@@ -1,4 +1,5 @@
 
+
 import { GameConfig } from './types';
 
 export const DEFAULT_CONFIG: GameConfig = {
@@ -15,7 +16,8 @@ export const DEFAULT_CONFIG: GameConfig = {
   announceScore: false,
   voiceGender: 'female',
   announcementFreq: 'all',
-  lowGraphics: false
+  lowGraphics: false,
+  reducedMotion: false
 };
 
 export const MIN_LEAD_TO_WIN = 2;

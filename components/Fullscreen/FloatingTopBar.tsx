@@ -1,3 +1,4 @@
+
 import React, { memo, useRef } from 'react';
 import { Volleyball, Timer, Skull, TrendingUp, Zap, Crown } from 'lucide-react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
@@ -30,7 +31,7 @@ interface FloatingTopBarProps {
   isSetPointB: boolean;
   isDeuce: boolean;
   inSuddenDeath: boolean;
-  reverseLayout: boolean; // New prop to control visual order
+  reverseLayout: boolean;
 }
 
 const formatTime = (seconds: number) => {
@@ -44,16 +45,20 @@ const formatTime = (seconds: number) => {
 const TimeoutDots = memo<{ count: number; colorTheme: any }>(({ count, colorTheme }) => (
   <div className="flex gap-1 justify-center">
     {[1, 2].map(i => {
-      const isUsed = i <= count;
+      // Logic: i is the timeout slot (1st, 2nd).
+      // count is used timeouts.
+      // If i <= count, that slot is USED (Inactive/Gray).
+      // If i > count, that slot is AVAILABLE (Active/Colored).
+      const isAvailable = i > count;
       return (
         <motion.div
           key={i}
           layout
           className={`
             w-1.5 h-1.5 rounded-full transition-colors
-            ${isUsed 
-                ? 'bg-slate-300 dark:bg-white/10' 
-                : `${colorTheme.bg.replace('/10', '')} ${colorTheme.text} dark:${colorTheme.halo}`}
+            ${isAvailable 
+                ? `${colorTheme.bg.replace('/10', '')} ${colorTheme.text} dark:${colorTheme.halo}` 
+                : 'bg-slate-300 dark:bg-white/10'}
           `}
         />
       );
@@ -296,7 +301,7 @@ export const FloatingTopBar: React.FC<FloatingTopBarProps> = memo((props) => {
                     pointer-events-auto
                     w-full max-w-xl
                     ${glassContainer}
-                    rounded-[2rem]
+                    rounded-2xl
                     px-2 py-2
                     flex items-stretch justify-between gap-1
                     min-h-[64px]
@@ -304,14 +309,6 @@ export const FloatingTopBar: React.FC<FloatingTopBarProps> = memo((props) => {
                     overflow-visible
                 `}
             >
-                {/* 
-                    SWAP LOGIC:
-                    We physically reorder the components in the DOM based on reverseLayout.
-                    Framer Motion's LayoutGroup + layoutId on the internal components 
-                    will automatically animate them moving to their new positions.
-                */}
-                
-                {/* Left Side (Can be A or B) */}
                 <TeamInfoSmart 
                     id={props.reverseLayout ? "B" : "A"} 
                     name={props.reverseLayout ? props.teamNameB : props.teamNameA} 
@@ -323,7 +320,6 @@ export const FloatingTopBar: React.FC<FloatingTopBarProps> = memo((props) => {
                     isSetPoint={props.reverseLayout ? props.isSetPointB : props.isSetPointA}
                 />
                 
-                {/* Divider & Timeout (Left Side) */}
                 <div className="flex items-center gap-1 shrink-0 border-l border-black/5 dark:border-white/10 pl-1">
                     <TimeoutButton 
                         id={props.reverseLayout ? "B" : "A"}
@@ -333,9 +329,8 @@ export const FloatingTopBar: React.FC<FloatingTopBarProps> = memo((props) => {
                     />
                 </div>
 
-                {/* Center Timer (Always centered) */}
                 <div className="shrink-0 z-10 mx-1 flex items-center">
-                    <div className="bg-slate-100/50 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/5 w-[80px] h-full flex justify-center items-center">
+                    <div className="bg-slate-100/50 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 w-[80px] h-full flex justify-center items-center">
                         <CenterDisplayStealth 
                             isTimerRunning={props.isTimerRunning}
                             onToggleTimer={props.onToggleTimer}
@@ -348,7 +343,6 @@ export const FloatingTopBar: React.FC<FloatingTopBarProps> = memo((props) => {
                     </div>
                 </div>
 
-                {/* Divider & Timeout (Right Side) */}
                 <div className="flex items-center gap-1 shrink-0 border-r border-black/5 dark:border-white/10 pr-1">
                     <TimeoutButton 
                         id={props.reverseLayout ? "A" : "B"}
@@ -358,7 +352,6 @@ export const FloatingTopBar: React.FC<FloatingTopBarProps> = memo((props) => {
                     />
                 </div>
 
-                {/* Right Side (Can be B or A) */}
                 <TeamInfoSmart 
                     id={props.reverseLayout ? "A" : "B"} 
                     name={props.reverseLayout ? props.teamNameA : props.teamNameB} 

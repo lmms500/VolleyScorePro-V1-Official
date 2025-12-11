@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, lazy, Suspense, useCallback, useRef } from 'react';
 import { GameProvider, useGame } from './contexts/GameContext';
 import { usePWAInstallPrompt } from './hooks/usePWAInstallPrompt';
@@ -22,7 +21,7 @@ import { SuddenDeathOverlay } from './components/ui/CriticalPointAnimation';
 import { BackgroundGlow } from './components/ui/BackgroundGlow';
 import { ReloadPrompt } from './components/ui/ReloadPrompt';
 import { InstallReminder } from './components/ui/InstallReminder';
-import { VoiceToast } from './components/ui/VoiceToast';
+import { NotificationToast } from './components/ui/NotificationToast';
 import { useTranslation } from './contexts/LanguageContext';
 import { useHudMeasure } from './hooks/useHudMeasure';
 import { useHistoryStore, Match } from './stores/historyStore';
@@ -37,6 +36,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { LayoutGroup } from 'framer-motion';
 import { GlobalLoader } from './components/ui/GlobalLoader';
 import { useSensoryFX } from './hooks/useSensoryFX';
+import { setGlobalReducedMotion } from './utils/animations';
 
 // LAZY LOADED CHUNKS
 const SettingsModal = lazy(() => import('./components/modals/SettingsModal').then(module => ({ default: module.SettingsModal })));
@@ -57,7 +57,7 @@ const GameContent = () => {
     deleteProfile, sortTeam, toggleTeamBench, substitutePlayers, deletePlayer, reorderQueue, disbandTeam
   } = game;
 
-  const { language } = useTranslation();
+  const { t, language } = useTranslation();
   const historyStore = useHistoryStore();
   const { isNative } = usePlatform();
   
@@ -76,13 +76,14 @@ const GameContent = () => {
   const [scoreElA, setScoreElA] = useState<HTMLElement | null>(null);
   const [scoreElB, setScoreElB] = useState<HTMLElement | null>(null);
 
-  const [voiceToast, setVoiceToast] = useState<{ 
+  const [notificationState, setNotificationState] = useState<{ 
       visible: boolean;
       type: 'success' | 'error' | 'info';
       mainText: string;
       subText?: string;
       skill?: SkillType;
-      color?: TeamColor 
+      color?: TeamColor;
+      systemIcon?: 'transfer' | 'save' | 'mic' | 'alert' | 'block' | 'undo' | 'delete' | 'add' | 'roster';
   }>({
       visible: false, type: 'success', mainText: '', color: 'slate'
   });
@@ -93,6 +94,11 @@ const GameContent = () => {
 
   // --- SENSORY ORCHESTRATION ---
   useSensoryFX(state);
+
+  // --- SYNC REDUCED MOTION ---
+  useEffect(() => {
+    setGlobalReducedMotion(state.config.reducedMotion);
+  }, [state.config.reducedMotion]);
 
   // --- MATCH SAVING LOGIC ---
   useEffect(() => {
@@ -120,10 +126,17 @@ const GameContent = () => {
         };
         
         historyStore.addMatch(matchData);
+        setNotificationState({
+            visible: true,
+            type: 'success',
+            mainText: t('notifications.matchSaved'),
+            subText: t('notifications.matchSavedSub'),
+            systemIcon: 'save'
+        });
     } else if (!state.isMatchOver && savedMatchIdRef.current) {
         savedMatchIdRef.current = null;
     }
-  }, [state.isMatchOver, state.matchWinner, historyStore]);
+  }, [state.isMatchOver, state.matchWinner, historyStore, t]);
 
   // --- SCORE ANNOUNCER ---
   useScoreAnnouncer({ state, enabled: state.config.announceScore });
@@ -175,11 +188,25 @@ const GameContent = () => {
     undo();
     audio.playUndo();
     haptics.impact('medium');
-  }, [state.isMatchOver, undo, historyStore, audio, haptics]);
+    setNotificationState({
+        visible: true,
+        type: 'info',
+        mainText: t('notifications.actionUndone'),
+        subText: t('notifications.actionUndoneSub'),
+        systemIcon: 'undo'
+    });
+  }, [state.isMatchOver, undo, historyStore, audio, haptics, t]);
 
   const handleToggleSides = useCallback(() => {
       toggleSides();
-  }, [toggleSides]);
+      setNotificationState({
+          visible: true,
+          type: 'info',
+          mainText: t('notifications.sidesSwapped'),
+          subText: t('notifications.sidesSwappedSub'),
+          systemIcon: 'transfer'
+      });
+  }, [toggleSides, t]);
 
   // --- VOICE CONTROL ---
   const handleVoiceAddPoint = useCallback((team: TeamId, playerId?: string, skill?: SkillType) => {
@@ -192,11 +219,11 @@ const GameContent = () => {
       
       const players = team === 'A' ? state.teamARoster.players : state.teamBRoster.players;
       let displayName = team === 'A' ? state.teamAName : state.teamBName;
-      let subInfo = `For ${team === 'A' ? state.teamAName : state.teamBName}`;
+      let subInfo = t('notifications.forTeam', { teamName: team === 'A' ? state.teamAName : state.teamBName });
 
       if (playerId) {
           if (playerId === 'unknown') {
-              displayName = "Unknown Player";
+              displayName = t('scout.unknownPlayer');
           } else {
               const player = players.find(p => p.id === playerId);
               if (player) displayName = player.name;
@@ -205,7 +232,7 @@ const GameContent = () => {
       
       const color = team === 'A' ? (state.teamARoster.color || 'indigo') : (state.teamBRoster.color || 'rose');
       
-      setVoiceToast({
+      setNotificationState({
           visible: true, 
           type: 'success', 
           mainText: displayName, 
@@ -213,38 +240,38 @@ const GameContent = () => {
           skill, 
           color
       });
-  }, [addPoint, state.teamARoster, state.teamBRoster, state.teamAName, state.teamBName, audio]);
+  }, [addPoint, state.teamARoster, state.teamBRoster, state.teamAName, state.teamBName, audio, t]);
 
   const handleVoiceSubtract = useCallback((team: TeamId) => {
       if (team === 'A') handleSubA(); else handleSubB();
-      setVoiceToast({ visible: true, type: 'info', mainText: 'Point Removed', subText: 'Correction' });
-  }, [handleSubA, handleSubB]);
+      setNotificationState({ visible: true, type: 'info', mainText: t('notifications.pointRemoved'), subText: t('notifications.pointRemovedSub'), systemIcon: 'undo' });
+  }, [handleSubA, handleSubB, t]);
 
   const handleVoiceTimeout = useCallback((team: TeamId) => {
       useTimeout(team);
       const teamName = team === 'A' ? state.teamAName : state.teamBName;
-      setVoiceToast({ visible: true, type: 'info', mainText: 'Timeout Called', subText: `For ${teamName}` });
-  }, [useTimeout, state.teamAName, state.teamBName]);
+      setNotificationState({ visible: true, type: 'info', mainText: t('notifications.timeoutCalled'), subText: t('notifications.timeoutCalledSub', { teamName }), systemIcon: 'alert' });
+  }, [useTimeout, state.teamAName, state.teamBName, t]);
 
   const handleVoiceSetServer = useCallback((team: TeamId) => {
       setServer(team);
       audio.playTap();
       const teamName = team === 'A' ? state.teamAName : state.teamBName;
-      setVoiceToast({ visible: true, type: 'info', mainText: 'Serve Change', subText: `Serving: ${teamName}` });
-  }, [setServer, state.teamAName, state.teamBName, audio]);
+      setNotificationState({ visible: true, type: 'info', mainText: t('notifications.serveChange'), subText: t('notifications.serveChangeSub', { teamName }), systemIcon: 'transfer' });
+  }, [setServer, state.teamAName, state.teamBName, audio, t]);
 
   const handleVoiceError = useCallback((errorType: 'permission' | 'network' | 'generic', transcript?: string) => {
-      let msg = "Microphone Error";
-      if (errorType === 'permission') msg = "Access Denied";
-      if (errorType === 'network') msg = "Network Error";
+      let msg = t('notifications.micError');
+      if (errorType === 'permission') msg = t('notifications.accessDenied');
+      if (errorType === 'network') msg = t('notifications.networkError');
       haptics.notification('error');
-      setVoiceToast({ visible: true, type: 'error', mainText: transcript || msg });
-  }, [haptics]);
+      setNotificationState({ visible: true, type: 'error', mainText: transcript || msg, systemIcon: 'block' });
+  }, [haptics, t]);
 
   const handleVoiceUnknown = useCallback((text: string) => {
       haptics.impact('light'); 
-      setVoiceToast({ visible: true, type: 'error', mainText: text, subText: 'Not Understood' });
-  }, [haptics]);
+      setNotificationState({ visible: true, type: 'error', mainText: text, subText: t('notifications.notUnderstood'), systemIcon: 'alert' });
+  }, [haptics, t]);
 
   const { isListening, toggleListening, isProcessingAI } = useVoiceControl({
       enabled: state.config.voiceControlEnabled,
@@ -266,11 +293,11 @@ const GameContent = () => {
 
   useEffect(() => {
       if (isProcessingAI) {
-          setVoiceToast({ visible: true, type: 'info', mainText: 'Thinking...', subText: 'AI Processing' });
+          setNotificationState({ visible: true, type: 'info', mainText: t('notifications.thinking'), subText: t('notifications.aiProcessing'), systemIcon: 'mic' });
       } else {
-          setVoiceToast(prev => prev.mainText === 'Thinking...' ? { ...prev, visible: false } : prev);
+          setNotificationState(prev => prev.mainText === t('notifications.thinking') ? { ...prev, visible: false } : prev);
       }
-  }, [isProcessingAI]);
+  }, [isProcessingAI, t]);
 
   const hudPlacement = useHudMeasure({
       leftScoreEl: scoreElA,
@@ -514,10 +541,11 @@ const GameContent = () => {
             isVisible={tutorial.showReminder} onInstall={pwa.promptInstall}
             onDismiss={tutorial.dismissReminder} canInstall={pwa.isInstallable} isIOS={pwa.isIOS}
         />
-        <VoiceToast 
-            visible={voiceToast.visible} type={voiceToast.type} mainText={voiceToast.mainText}
-            subText={voiceToast.subText} teamColor={voiceToast.color} skill={voiceToast.skill}
-            onClose={() => setVoiceToast(prev => ({ ...prev, visible: false }))} isFullscreen={isFullscreen}
+        <NotificationToast 
+            visible={notificationState.visible} type={notificationState.type} mainText={notificationState.mainText}
+            subText={notificationState.subText} teamColor={notificationState.color} skill={notificationState.skill}
+            onClose={() => setNotificationState(prev => ({ ...prev, visible: false }))} isFullscreen={isFullscreen}
+            systemIcon={notificationState.systemIcon}
         />
     </div>
   );

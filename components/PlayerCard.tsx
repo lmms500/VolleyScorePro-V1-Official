@@ -3,7 +3,7 @@ import React, { memo, useMemo, useCallback } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Player, PlayerProfile } from '../types';
-import { Pin, Save, Check, MoreVertical, Hash, Edit2, AlertCircle, RefreshCw } from 'lucide-react';
+import { Pin, Save, Check, MoreVertical, Hash, Edit2, RefreshCw } from 'lucide-react';
 import { SkillSlider } from './ui/SkillSlider';
 import { useHaptics } from '../hooks/useHaptics';
 
@@ -45,7 +45,8 @@ const EditableTitle = memo(({ name, onSave, className }: { name: string; onSave:
       return (
           <input 
               ref={inputRef} type="text"
-              className={`bg-transparent text-slate-900 dark:text-white border-b border-indigo-500 outline-none w-full px-0 py-0 font-bold text-base`}
+              // Added min-w-0 to prevent flex item expansion beyond container
+              className={`bg-transparent text-slate-900 dark:text-white border-b border-indigo-500 outline-none w-full min-w-0 px-0 py-0 font-bold text-sm`}
               value={val} onChange={e => setVal(e.target.value)} onBlur={save}
               onKeyDown={e => { if(e.key === 'Enter') save(); if(e.key === 'Escape') setIsEditing(false); }}
               onPointerDown={e => e.stopPropagation()} 
@@ -53,8 +54,9 @@ const EditableTitle = memo(({ name, onSave, className }: { name: string; onSave:
       );
     }
     return (
-        <div className={`flex items-center gap-2 group cursor-pointer min-w-0 ${className}`} onClick={() => setIsEditing(true)}>
-            <span className="truncate">{name}</span>
+        // Added flex-1 and min-w-0 to ensure proper text truncation in flex container
+        <div className={`flex items-center gap-2 group cursor-pointer min-w-0 flex-1 ${className}`} onClick={() => setIsEditing(true)}>
+            <span className="truncate flex-1 min-w-0 block">{name}</span>
             <Edit2 size={10} className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 flex-shrink-0" />
         </div>
     );
@@ -96,7 +98,7 @@ const EditableNumber = memo(({ number, onSave, validator }: { number?: string; o
     return (
         <button 
             onClick={() => setIsEditing(true)} onPointerDown={e => e.stopPropagation()}
-            className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-black border transition-all ${number ? 'bg-white/80 dark:bg-white/5 text-slate-800 dark:text-white border-transparent shadow-sm' : 'bg-transparent text-slate-300 dark:text-slate-600 border-transparent hover:border-slate-300 hover:text-slate-400'}`}
+            className={`w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-black border transition-all flex-shrink-0 ${number ? 'bg-white/80 dark:bg-white/5 text-slate-800 dark:text-white border-transparent shadow-sm' : 'bg-transparent text-slate-300 dark:text-slate-600 border-transparent hover:border-slate-300 hover:text-slate-400'}`}
         >
             {number || <Hash size={12} />}
         </button>
@@ -206,41 +208,44 @@ export const PlayerCard = memo(({
   return (
     <div 
         ref={setNodeRef} style={style} {...attributes} {...listeners} data-player-card="true" 
-        className={`group relative flex items-center justify-between rounded-2xl border touch-manipulation py-1.5 px-3 min-h-[54px] ${forceDragStyle ? containerClass : (locationId.includes('_Reserves') ? reserveClass : (player.isFixed ? fixedClass : containerClass))} ${!player.isFixed && !isMenuActive ? 'cursor-grab active:cursor-grabbing' : ''}`}
+        className={`group relative flex items-center justify-between rounded-2xl border touch-manipulation py-1.5 px-2.5 min-h-[54px] ${forceDragStyle ? containerClass : (locationId.includes('_Reserves') ? reserveClass : (player.isFixed ? fixedClass : containerClass))} ${!player.isFixed && !isMenuActive ? 'cursor-grab active:cursor-grabbing' : ''}`}
     >
-        <div className="flex items-center gap-3 flex-shrink-0 self-center pl-0.5">
+        {/* Left: Number (Fixed Width) */}
+        <div className="flex items-center gap-2 flex-shrink-0 self-center">
             <EditableNumber number={player.number} onSave={(v) => onUpdateNumber(player.id, v)} validator={validateNumber} />
         </div>
         
-        <div className="flex flex-1 items-center gap-3 min-w-0 px-2 justify-between">
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-                {profile?.avatar && (
-                    <span className="text-sm grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all">{profile.avatar}</span>
-                )}
-                <EditableTitle 
-                    name={player.name} 
-                    onSave={(v) => onUpdateName(player.id, v)} 
-                    className={`text-[15px] font-bold tracking-tight text-slate-800 dark:text-slate-100 truncate leading-tight w-full`} 
-                />
-                {player.isFixed && <Pin size={12} className="text-amber-500 flex-shrink-0" fill="currentColor" />}
-            </div>
+        {/* Middle: Name (Fluid, Truncating) & Avatar */}
+        <div className="flex flex-1 items-center gap-2 min-w-0 px-2">
+            {profile?.avatar && (
+                <span className="text-sm grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all flex-shrink-0">{profile.avatar}</span>
+            )}
             
-            <div className="flex items-center flex-shrink-0 scale-100 origin-right">
-                <SkillSlider level={player.skillLevel} onChange={(v) => onUpdateSkill(player.id, v)} />
-            </div>
+            <EditableTitle 
+                name={player.name} 
+                onSave={(v) => onUpdateName(player.id, v)} 
+                className={`text-sm font-bold tracking-tight text-slate-800 dark:text-slate-100 leading-tight`} 
+            />
+            
+            {player.isFixed && <Pin size={12} className="text-amber-500 flex-shrink-0" fill="currentColor" />}
         </div>
         
-        <div className="flex items-center gap-1 flex-shrink-0 relative z-30 self-center pl-1">
+        {/* Right: Skill & Actions (Fixed Width) */}
+        <div className="flex items-center gap-1 flex-shrink-0 relative z-30 self-center">
+            <div className="flex items-center scale-100 origin-right mr-1">
+                <SkillSlider level={player.skillLevel} onChange={(v) => onUpdateSkill(player.id, v)} />
+            </div>
+
             <button 
                 onClick={handleSmartSave} onPointerDown={e => e.stopPropagation()} 
-                className={`p-2 rounded-lg transition-colors ${syncColor}`} title={syncTitle}
+                className={`p-1.5 rounded-lg transition-colors ${syncColor}`} title={syncTitle}
             >
                 <SyncIcon size={14} strokeWidth={isLinked && !isDirty ? 3 : 2} />
             </button>
 
             <button 
                 onClick={handleMenu} onPointerDown={e => e.stopPropagation()}
-                className={`p-2 rounded-lg transition-colors ${isMenuActive ? 'bg-slate-200 dark:bg-white/10 text-indigo-500' : 'text-slate-300 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                className={`p-1.5 rounded-lg transition-colors ${isMenuActive ? 'bg-slate-200 dark:bg-white/10 text-indigo-500' : 'text-slate-300 hover:text-slate-600 dark:hover:text-slate-300'}`}
             >
                 <MoreVertical size={14} />
             </button>

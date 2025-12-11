@@ -99,10 +99,13 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
               timeoutsB: 0, 
               inSuddenDeath: false,
               pendingSideSwitch: false, 
-              actionLog: [], 
+              // Clear action log for new set? No, keep it so we can undo the SET POINT if needed.
+              // BUT, logic in 'UNDO' handles reverting the set transition if the last action was point.
+              actionLog: [], // Standard: reset undo stack per set for clean slate? 
+              // Better: KEEP last point action to allow UNDOING the set win.
+              // We do this by storing a special snapshot in the reducer logic below.
               matchLog: [...state.matchLog, newAction], 
               lastSnapshot: snapshotState,
-              // We store the rotation report so MatchOverModal can show it, but we DO NOT apply it yet.
               rotationReport: rotRes.report
           };
       }
@@ -184,6 +187,22 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
             };
         }
 
+        if (lastAction.type === 'ROTATION') {
+            const snap = lastAction.snapshot;
+            return {
+                ...state,
+                actionLog: newLog,
+                matchLog: newMatchLog,
+                teamARoster: snap.teamARoster,
+                teamBRoster: snap.teamBRoster,
+                queue: snap.queue,
+                rotationReport: snap.rotationReport,
+                // Revert names if they were changed by rotation logic
+                teamAName: snap.teamARoster.name,
+                teamBName: snap.teamBRoster.name
+            };
+        }
+
         if (lastAction.type === 'POINT') {
             return {
                 ...state,
@@ -232,12 +251,27 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
     case 'ROTATE_TEAMS': {
         if (!state.matchWinner) return state;
         
+        // Snapshot Current Roster State BEFORE Rotation
+        const rosterSnapshot = {
+            teamARoster: { ...state.teamARoster, players: [...state.teamARoster.players], reserves: [...(state.teamARoster.reserves||[])] },
+            teamBRoster: { ...state.teamBRoster, players: [...state.teamBRoster.players], reserves: [...(state.teamBRoster.reserves||[])] },
+            queue: state.queue.map(t => ({ ...t, players: [...t.players], reserves: [...(t.reserves||[])] })),
+            rotationReport: state.rotationReport
+        };
+
         const res = handleRotate(state.teamARoster, state.teamBRoster, state.queue, state.matchWinner, state.rotationMode);
         
+        const rotationAction: ActionLog = {
+            type: 'ROTATION',
+            snapshot: rosterSnapshot,
+            timestamp: Date.now()
+        };
+
         return {
             ...state,
             scoreA: 0, scoreB: 0, setsA: 0, setsB: 0, currentSet: 1, history: [],
-            actionLog: [], matchLog: [], 
+            actionLog: [rotationAction], // Start new log with this rotation, allowing Undo
+            matchLog: [...state.matchLog, rotationAction], 
             isMatchOver: false, matchWinner: null, servingTeam: null, 
             timeoutsA: 0, timeoutsB: 0, inSuddenDeath: false, 
             matchDurationSeconds: 0, isTimerRunning: false,
@@ -488,10 +522,17 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
                 if (master.name !== p.name) changed = true;
                 if (master.skillLevel !== p.skillLevel) changed = true;
                 if (master.number && master.number !== p.number) changed = true;
+                // Specifically allow number updates even if previously undefined/empty
+                if ((master.number || '') !== (p.number || '')) changed = true;
 
                 if (changed) {
                     hasChanges = true;
-                    return { ...p, name: master.name, skillLevel: master.skillLevel };
+                    return { 
+                        ...p, 
+                        name: master.name, 
+                        skillLevel: master.skillLevel,
+                        number: master.number 
+                    };
                 }
                 return p;
             });

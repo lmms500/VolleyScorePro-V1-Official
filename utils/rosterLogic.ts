@@ -246,11 +246,44 @@ export const handleDeletePlayer = (
     return { courtA, courtB, queue };
 };
 
+/**
+ * Enhanced move logic with strict Guard Clauses.
+ * Returns original state if move is illegal (over capacity).
+ */
 export const handleMovePlayer = (
     courtA: Team, courtB: Team, queue: Team[], 
     playerId: string, fromId: string, toId: string, newIndex?: number
 ): { courtA: Team, courtB: Team, queue: Team[] } => {
     
+    // GUARD: If same container, just reorder (handled implicitly below, but safe)
+    // GUARD: Check Capacity of Destination
+    
+    const getTargetListSize = (tid: string): number => {
+        if (tid === 'A') return courtA.players.length;
+        if (tid === 'B') return courtB.players.length;
+        if (tid === 'A_Reserves') return (courtA.reserves || []).length;
+        if (tid === 'B_Reserves') return (courtB.reserves || []).length;
+        
+        // Queue Check
+        if (tid.endsWith('_Reserves')) {
+            const t = queue.find(x => `${x.id}_Reserves` === tid);
+            return t ? (t.reserves || []).length : 99;
+        }
+        const t = queue.find(x => x.id === tid);
+        return t ? t.players.length : 99;
+    };
+
+    // If moving between lists, check capacity
+    if (fromId !== toId) {
+        const currentSize = getTargetListSize(toId);
+        const limit = toId.includes('Reserves') ? BENCH_LIMIT : PLAYERS_PER_TEAM;
+        
+        if (currentSize >= limit) {
+            console.warn(`[MoveBlocked] Target ${toId} is full (${currentSize}/${limit}).`);
+            return { courtA, courtB, queue }; // REJECT MOVE
+        }
+    }
+
     let player: Player | undefined;
          
     const removeFromList = (list: Player[]) => {
@@ -261,7 +294,7 @@ export const handleMovePlayer = (
 
     let newA = { ...courtA };
     let newB = { ...courtB };
-    let newQueue = queue.map(t => ({...t}));
+    let newQueue = queue.map(t => ({...t, players: [...t.players], reserves: [...(t.reserves||[])]}));
     
     // Remove
     if (fromId === 'A') newA.players = removeFromList(newA.players);
@@ -281,8 +314,9 @@ export const handleMovePlayer = (
     // Add
     const addToList = (list: Player[], p: Player, idx?: number) => {
         const copy = [...list];
-        if (idx !== undefined && idx >= 0 && idx <= copy.length) copy.splice(idx, 0, p);
-        else copy.push(p);
+        // Ensure index is valid
+        const safeIdx = (idx !== undefined && idx >= 0 && idx <= copy.length) ? idx : copy.length;
+        copy.splice(safeIdx, 0, p);
         return copy;
     };
 

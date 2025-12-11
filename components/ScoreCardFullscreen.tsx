@@ -46,12 +46,12 @@ const ScoreNumberDisplay = memo(({
 
     return (
         <div 
-            className="relative grid place-items-center w-full pointer-events-none" 
+            className="relative grid place-items-center w-full pointer-events-none overflow-visible" 
             style={{ 
                 lineHeight: 1,
             }}
         >
-            {/* Optimized Halo with Screen Blend Mode */}
+            {/* Background Halo - Behind the number */}
             <motion.div
                 className={`
                     col-start-1 row-start-1
@@ -59,24 +59,24 @@ const ScoreNumberDisplay = memo(({
                     ${haloColorClass}
                     justify-self-center self-center
                     mix-blend-multiply dark:mix-blend-screen
-                    blur-[80px] md:blur-[120px] will-change-[transform,opacity]
+                    blur-[100px] will-change-[transform,opacity]
                 `}
                 style={{ 
-                    width: '1.5em', 
-                    height: '1.5em',
+                    width: '1.2em', 
+                    height: '1.2em',
                     transform: 'translate3d(0,0,0)'
                 }}
                 animate={
                     isPressed 
-                    ? { scale: 1.1, opacity: 0.5 } 
+                    ? { scale: 1.1, opacity: 0.6 } 
                     : isCritical 
                         ? { 
                             scale: [1, 1.2, 1],
-                            opacity: isMatchPoint ? [0.4, 0.7, 0.4] : [0.2, 0.5, 0.2],
+                            opacity: isMatchPoint ? [0.6, 0.9, 0.6] : [0.4, 0.7, 0.4],
                         }
                         : { 
                             scale: 1, 
-                            opacity: isServing ? 0.3 : 0
+                            opacity: isServing ? 0.5 : 0
                         }
                 }
                 transition={
@@ -86,13 +86,14 @@ const ScoreNumberDisplay = memo(({
                 }
             />
 
+            {/* The Number - In front of Halo */}
             <motion.div 
                 ref={numberRef} 
-                className="col-start-1 row-start-1 relative z-10 flex flex-col items-center justify-center will-change-transform px-4"
+                className="col-start-1 row-start-1 relative z-10 flex flex-col items-center justify-center will-change-transform overflow-visible"
                 variants={pulseHeartbeat}
                 animate={isCritical ? "pulse" : "idle"}
             >
-                <div ref={scoreRefCallback}>
+                <div ref={scoreRefCallback} className="overflow-visible p-4">
                     <ScoreTicker 
                         value={score}
                         className={`
@@ -152,10 +153,7 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
 
   const handleAddWrapper = useCallback(() => {
       if (isInteractionLocked) return;
-
-      // Immediate Tap Feedback
       audio.playTap();
-
       if (config.enablePlayerStats) {
           haptics.impact('light');
           setShowScout(true);
@@ -166,7 +164,6 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
 
   const handleScoutConfirm = useCallback((pid: string, skill: SkillType) => {
       onAdd(teamId, pid, skill);
-      // Audio handled by sensory hook
   }, [onAdd, teamId]);
 
   const handleSubtractWrapper = useCallback(() => {
@@ -187,7 +184,8 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
   const isCritical = isMatchPoint || isSetPoint;
   
   const textEffectClass = useMemo(() => {
-    if (isMatchPoint) return 'drop-shadow-2xl'; 
+    // Stronger Drop Shadow for better contrast against glow
+    if (isMatchPoint) return 'drop-shadow-[0_0_40px_rgba(251,191,36,0.8)]'; 
     return ''; 
   }, [isMatchPoint]);
 
@@ -227,7 +225,6 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
             }}
             {...gestureHandlers}
         >
-            {/* Tap Ripple Effect (Small, White/Overlay) */}
             <AnimatePresence>
                 {ripple && (
                     <motion.div
@@ -252,11 +249,12 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
                     flex items-center justify-center w-full h-full
                     transition-transform duration-150
                     ${isPressed ? 'scale-95' : 'scale-100'}
-                    will-change-transform
+                    will-change-transform overflow-visible
                 `}
                 style={{ 
-                    fontSize: 'clamp(8rem, 28vmax, 22rem)',
-                    lineHeight: 0.8
+                    // Reduced min size from 8rem to 5rem to accommodate small landscape screens better without clipping
+                    fontSize: 'clamp(5rem, 28vmax, 22rem)',
+                    lineHeight: 1
                 }}
             >
                 <div className={`transform transition-transform duration-500 w-full flex justify-center ${offsetClass}`}>

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Modal } from '../ui/Modal';
-import { Mic, Zap, User, RotateCcw, AlertTriangle } from 'lucide-react';
+import { Mic, Zap, User, RotateCcw } from 'lucide-react';
 import { useTranslation } from '../../contexts/LanguageContext';
 
 interface VoiceCommandsModalProps {
@@ -27,41 +27,35 @@ const Section = ({ title, icon: Icon, colorClass, children }: any) => (
 );
 
 export const VoiceCommandsModal: React.FC<VoiceCommandsModalProps> = ({ isOpen, onClose }) => {
-  const { t, language } = useTranslation();
-
-  // Content adapts slightly based on language for better examples
-  const isPT = language === 'pt';
-  const isES = language === 'es';
+  const { t } = useTranslation();
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={isPT ? "Comandos de Voz" : (isES ? "Comandos de Voz" : "Voice Commands")} maxWidth="max-w-md">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('voice.title')} maxWidth="max-w-md">
       <div className="pb-6">
         <div className="p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20 mb-4 flex gap-3 items-start">
             <Mic size={20} className="text-indigo-500 flex-shrink-0 mt-0.5" />
             <p className="text-xs text-indigo-800 dark:text-indigo-200 leading-relaxed">
-                {isPT 
-                    ? "Diga o nome do Time ou Jogador para adicionar pontos. O sistema aprende os nomes que você digitou!" 
-                    : "Say the Team or Player name to add points. The system learns the names you typed!"}
+                {t('voice.intro')}
             </p>
         </div>
 
-        <Section title={isPT ? "Pontuação Básica" : "Basic Scoring"} icon={Zap} colorClass="text-amber-500">
-            <CommandRow cmd={isPT ? "Ponto Time A" : "Point Team A"} desc={isPT ? "Adiciona ponto para casa" : "Adds point to home team"} />
-            <CommandRow cmd={isPT ? "Ponto Brasil" : "Point [Team Name]"} desc={isPT ? "Usa o nome do time atual" : "Uses dynamic team name"} />
-            <CommandRow cmd={isPT ? "Tirar ponto" : "Remove point"} desc={isPT ? "Subtrai do último time falado" : "Subtracts from last mentioned"} />
+        <Section title={t('voice.sections.basic')} icon={Zap} colorClass="text-amber-500">
+            <CommandRow cmd={t('voice.commands.pointA')} desc={t('voice.commands.pointA_desc')} />
+            <CommandRow cmd={t('voice.commands.pointDynamic')} desc={t('voice.commands.pointDynamic_desc')} />
+            <CommandRow cmd={t('voice.commands.remove')} desc={t('voice.commands.remove_desc')} />
         </Section>
 
-        <Section title={isPT ? "Estatísticas (Scout)" : "Player Stats"} icon={User} colorClass="text-emerald-500">
-            <CommandRow cmd={isPT ? "Ponto do João" : "Point John"} desc={isPT ? "Ponto genérico para o jogador" : "Generic point for player"} />
-            <CommandRow cmd={isPT ? "Ace do João" : "Ace John"} desc={isPT ? "Ponto de Saque" : "Service Ace"} />
-            <CommandRow cmd={isPT ? "Bloqueio Pedro" : "Block Peter"} desc={isPT ? "Ponto de Bloqueio" : "Kill Block"} />
-            <CommandRow cmd={isPT ? "Ataque Lucas" : "Attack Lucas"} desc={isPT ? "Ponto de Ataque" : "Attack Kill"} />
+        <Section title={t('voice.sections.stats')} icon={User} colorClass="text-emerald-500">
+            <CommandRow cmd={t('voice.commands.pointPlayer')} desc={t('voice.commands.pointPlayer_desc')} />
+            <CommandRow cmd={t('voice.commands.ace')} desc={t('voice.commands.ace_desc')} />
+            <CommandRow cmd={t('voice.commands.block')} desc={t('voice.commands.block_desc')} />
+            <CommandRow cmd={t('voice.commands.attack')} desc={t('voice.commands.attack_desc')} />
         </Section>
 
-        <Section title={isPT ? "Controle" : "Controls"} icon={RotateCcw} colorClass="text-rose-500">
-            <CommandRow cmd={isPT ? "Desfazer / Voltar" : "Undo / Back"} desc={isPT ? "Remove a última ação" : "Reverts last action"} />
-            <CommandRow cmd={isPT ? "Tempo / Pausa" : "Timeout"} desc={isPT ? "Pede tempo para o time" : "Calls timeout"} />
-            <CommandRow cmd={isPT ? "Troca de Saque" : "Change Server"} desc={isPT ? "Apenas inverte a posse" : "Switches service possession"} />
+        <Section title={t('voice.sections.controls')} icon={RotateCcw} colorClass="text-rose-500">
+            <CommandRow cmd={t('voice.commands.undo')} desc={t('voice.commands.undo_desc')} />
+            <CommandRow cmd={t('voice.commands.timeout')} desc={t('voice.commands.timeout_desc')} />
+            <CommandRow cmd={t('voice.commands.serve')} desc={t('voice.commands.serve_desc')} />
         </Section>
       </div>
     </Modal>

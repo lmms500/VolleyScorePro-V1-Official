@@ -1,17 +1,17 @@
-
 {
   "app": {
     "loading": "Carregando..."
   },
-  "languages": {
-    "en": "English",
-    "pt": "Português (Brasil)",
-    "es": "Español"
-  },
   "common": {
     "done": "Pronto",
     "full": "Cheio",
-    "add": "Add"
+    "add": "Add",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "back": "Voltar",
+    "create": "Criar",
+    "empty": "Vazio",
+    "step": "Etapa {number}"
   },
   "controls": {
     "undo": "Desfazer",
@@ -21,11 +21,8 @@
     "history": "Histórico",
     "fullscreen": "Tela Cheia",
     "exitFullscreen": "Sair Tela Cheia",
-    "reset": "Zerar Partida"
-  },
-  "history": {
-    "gameStart": "Início do Jogo",
-    "setLabel": "S{setNumber}"
+    "reset": "Zerar Partida",
+    "voiceControl": "Controle de Voz"
   },
   "game": {
     "serving": "Servindo",
@@ -46,8 +43,41 @@
     "set_point": "SET POINT",
     "tie_break": "TIE BREAK"
   },
+  "notifications": {
+    "matchSaved": "Partida Salva",
+    "matchSavedSub": "Histórico atualizado",
+    "actionUndone": "Ação Desfeita",
+    "actionUndoneSub": "Última ação revertida",
+    "sidesSwapped": "Lados Trocados",
+    "sidesSwappedSub": "Equipes trocaram de quadra",
+    "pointRemoved": "Ponto Removido",
+    "pointRemovedSub": "Correção",
+    "timeoutCalled": "Tempo Solicitado",
+    "timeoutCalledSub": "Por {teamName}",
+    "serveChange": "Troca de Saque",
+    "serveChangeSub": "Sacando: {teamName}",
+    "micError": "Erro no Microfone",
+    "accessDenied": "Acesso Negado",
+    "networkError": "Erro de Rede",
+    "notUnderstood": "Não Entendido",
+    "thinking": "Pensando...",
+    "aiProcessing": "Processando IA",
+    "forTeam": "Para {teamName}",
+    "profileSynced": "Perfil Sincronizado",
+    "profileUpToDate": "Já está atualizado"
+  },
   "settings": {
     "title": "Configuração",
+    "sections": {
+      "presets": "Predefinições Rápidas",
+      "coreRules": "Regras Principales",
+      "tieBreakDeuce": "Tie Break & Deuce",
+      "visuals": "Visual",
+      "audio": "Áudio e Inteligência",
+      "sync": "Sincronização Nuvem",
+      "ai": "Inteligência Gemini",
+      "install": "Instalação e Atualizações"
+    },
     "appearance": {
       "title": "Aparência",
       "theme": "Tema",
@@ -55,10 +85,17 @@
       "themes": {
         "light": "Claro",
         "dark": "Escuro"
-      }
+      },
+      "lowPower": "Modo Economia",
+      "lowPowerSub": "Reduzir desfoque e animações"
     },
     "rules": {
       "title": "Regras da Partida",
+      "gameMode": "Modo de Jogo",
+      "modes": {
+        "indoor": "Quadra",
+        "beach": "Praia"
+      },
       "setsToPlay": "Sets a Disputar",
       "pointsPerSet": "Pontos por Set",
       "tieBreak": "Tie Break (Set Final)",
@@ -68,8 +105,52 @@
       "deuceStandard": "Vantagem de 2",
       "deuceSuddenDeath": "Morte Súbita (3pts)"
     },
+    "audio": {
+      "soundEffects": "Efeitos Sonoros",
+      "announcer": "Narrador do Placar",
+      "tts": "Texto-para-Fala",
+      "gender": {
+        "male": "Masc",
+        "female": "Fem"
+      },
+      "freq": {
+        "always": "Sempre",
+        "critical": "Apenas Crítico"
+      },
+      "voiceControl": "Controle de Voz (Beta)",
+      "voiceControlSub": "Fale para pontuar"
+    },
+    "game": {
+      "scoutMode": "Modo Scout",
+      "scoutModeSub": "Rastrear estatísticas"
+    },
+    "account": {
+      "signInGoogle": "Entrar com Google"
+    },
+    "backup": {
+        "title": "Backup de Dados",
+        "backupBtn": "Backup na Nuvem",
+        "restoreBtn": "Restaurar Dados",
+        "description": "Sincronize seu histórico e configurações."
+    },
+    "ai": {
+      "apiKey": "Chave API (Opcional)",
+      "placeholder": "Cole sua chave Gemini aqui...",
+      "help": "Necessário para comandos de voz ilimitados.",
+      "getKey": "Obter Chave"
+    },
+    "install": {
+      "installNow": "Instalar Agora",
+      "version": "Versão",
+      "updateAvailable": "Atualização Disponível",
+      "upToDate": "Atualizado",
+      "update": "Atualizar",
+      "check": "Verificar",
+      "native": "Versão Nativa"
+    },
     "applyChanges": "Aplicar Alterações",
     "applyAndReset": "Aplicar e Reiniciar Jogo",
+    "resetWarning": "Placar será zerado",
     "warningTitle": "Partida em Andamento",
     "warningMessage": "Alterar as regras agora irá zerar o placar atual."
   },
@@ -85,58 +166,6 @@
     "custom": {
       "label": "Vôlei de Segunda",
       "sub": "1 Set • 15 Pts • Morte Súbita"
-    }
-  },
-  "install": {
-    "title": "Instalar App",
-    "description": "Adicione à tela inicial para ter uma experiência completa.",
-    "installNow": "Instalar Agora",
-    "ios": {
-      "tap": "Toque em",
-      "then": "e depois",
-      "addToHome": "Adicionar à Tela de Início"
-    },
-    "android": {
-      "tap": "Toque em",
-      "then": "e depois",
-      "installApp": "Instalar aplicativo"
-    }
-  },
-  "tutorial": {
-    "header": "Bem-vindo",
-    "next": "Próximo",
-    "welcome": {
-      "title": "Bem-vindo ao VolleyScore Pro",
-      "desc": "O placar profissional definitivo para entusiastas de vôlei e árbitros."
-    },
-    "gestures": {
-      "title": "Gestos Inteligentes",
-      "desc": "Toque no placar para ADICIONAR ponto. Deslize para baixo para SUBTRAIR."
-    },
-    "features": {
-      "title": "Controle Total",
-      "desc": "Gerencie rotações, substituições, tempos e histórico na barra de controle."
-    },
-    "install": {
-      "title": "Instalar App",
-      "installed": "Tudo pronto! O app está instalado e pronto para uso offline.",
-      "descAndroid": "Instale o app para melhor experiência. Funciona offline e tela cheia.",
-      "descIOS": "Para instalar no iOS, siga as instruções abaixo:",
-      "descAndroidShort": "Instale para uso offline e tela cheia.",
-      "descIOSShort": "Adicione à Tela de Início."
-    }
-  },
-  "confirm": {
-    "cancel": "Cancelar",
-    "reset": {
-      "title": "Zerar Partida?",
-      "message": "Tem certeza de que deseja zerar a partida? Todos os pontos e o histórico serão perdidos.",
-      "confirmButton": "Sim, Zerar"
-    },
-    "unsaved": {
-      "title": "Alterações não salvas?",
-      "message": "Você fez alterações no elenco. Tem certeza de que deseja fechar?",
-      "confirmButton": "Fechar Mesmo Assim"
     }
   },
   "matchOver": {
@@ -160,33 +189,52 @@
   },
   "teamManager": {
     "title": "Gerenciador de Equipes",
-    "currentRoster": "Elenco Atual",
-    "batchInput": "Adicionar em Lote",
-    "batchInputPrompt": "Cole os nomes abaixo (um por linha).",
-    "batchInputPlaceholder": "João da Silva\nMaria Souza\n...",
-    "generateTeams": "Gerar Equipos",
+    "teamLabel": "Equipe",
+    "benchLabel": "Banco de Reservas",
     "queue": "Fila de Espera",
     "queueEmpty": "Fila vazia",
     "dragPlayersHere": "Arraste jogadores aqui",
-    "addPlayer": "Adicionar Jogador",
     "addPlayerPlaceholder": "Nome do novo jogador...",
-    "searchProfiles": "Buscar perfis...",
+    "addPlayerQueue": "Adicionar à Fila",
+    "searchQueue": "Buscar na fila...",
     "rosterFull": "Elenco Cheio",
-    "lockPlayer": "Fixar Jogador",
-    "unlockPlayer": "Liberar Jogador",
+    "rosterFullSub": "Sem espaço no Time ou Banco",
+    "benchFull": "Banco Cheio",
+    "benchFullSub": "Sem espaço para mais reservas",
+    "movedToBench": "Movido para o Banco",
+    "movedToBenchSub": "Time Principal Cheio",
     "playerRemoved": "Jogador removido",
     "undo": "DESFAZER",
-    "teamLabel": "Equipe",
-    "benchLabel": "Banco de Reservas",
-    "syncProfiles": "Sincronizar Perfis",
-    "saveProfile": "Salvar no Perfil",
+    "activateBenchTitle": "Ativar Banco?",
+    "activateBenchMsg": "O Banco de Reservas está desativado.",
+    "activateBenchConfirm": "Deseja Ativar o Banco e mover este jogador para lá?",
+    "teamFullTitle": "Time Cheio",
+    "teamFullMsg": "O time principal está cheio (6 jogadores).",
+    "teamFullConfirm": "Ativar o Banco de Reservas e mover jogador para lá?",
+    "btnActivateBench": "Ativar e Mover",
+    "btnYesBench": "Sim, Mover para o Banco",
     "sort": {
       "label": "Ordenar",
       "name": "Nome",
       "number": "Número",
       "skill": "Habilidade",
-      "asc": "Crescente",
-      "desc": "Decrescente"
+      "reset": "Restaurar Ordem",
+      "asc": "↑",
+      "desc": "↓"
+    },
+    "queueActions": {
+      "title": "Ações da Fila",
+      "moveToTop": "Mover para o Topo",
+      "moveUp": "Subir",
+      "moveDown": "Descer",
+      "disband": "Desfazer Time"
+    },
+    "menu": {
+      "returnCourt": "Voltar à Quadra",
+      "sendBench": "Enviar ao Banco",
+      "lock": "Fixar Jogador",
+      "unlock": "Liberar Jogador",
+      "delete": "Excluir"
     },
     "tabs": {
       "roster": "Elenco",
@@ -195,38 +243,91 @@
     },
     "modes": {
       "standard": "Padrão",
-      "standardTooltip": "Rotação: Vencedor Fica, Perdedor vai para o Fim. Vagas preenchidas pelas próximas equipes.",
+      "standardTooltip": "Vencedor Fica, Perdedor vai para o Fim.",
       "balanced": "Balanceado",
-      "balancedTooltip": "Rotação: Vencedor Fica. Vagas preenchidas para equilibrar com o nível do Vencedor."
+      "balancedTooltip": "Vencedor Fica, Times são Reequilibrados."
+    },
+    "batch": {
+      "tipTitle": "Dica Power User:",
+      "tipFormat": "Formato: Nome Skill (ex: \"João 8\")",
+      "tipDesc": "Se a skill (1-10) for informada, será definida automaticamente. Padrão é 5.",
+      "placeholder": "João da Silva\nMaria Souza 8\nPedro 4",
+      "generate": "Gerar Times"
+    },
+    "profiles": {
+      "empty": "Nenhum perfil salvo ainda.",
+      "noMatch": "Nenhum perfil encontrado para \"{term}\"",
+      "assign": "Atribuir ao Time",
+      "inGame": "Em Jogo"
     },
     "actions": {
-      "restoreOrder": "Restaurar Ordem",
-      "globalBalance": "Balanço Global",
-      "addToA": "Add para A",
-      "addToB": "Add para B",
-      "addToQueue": "Add para Fila"
-    },
-    "sync": {
-      "synced": "Sincronizado",
-      "desynced": "Alterações não Salvas",
-      "unlinked": "Sem Perfil",
-      "updateTooltip": "Atualizar Perfil",
-      "createTooltip": "Criar Perfil",
-      "revertTooltip": "Reverter para dados do Perfil"
+      "addTo": "Adicionar em",
+      "addToQueue": "Adicionar à Fila",
+      "globalBalance": "Balancear Geral",
+      "restoreOrder": "Restaurar Ordem"
     },
     "location": {
       "courtA": "Quadra A",
       "courtB": "Quadra B",
-      "queue": "Na Fila"
+      "queue": "Fila"
     },
-    "emptyProfiles": "Nenhum perfil salvo ainda. Sincronize jogadores na aba Elenco para criar perfis."
+    "generateTeams": "Gerar Times"
+  },
+  "substitution": {
+    "title": "Alterações Táticas",
+    "subtitle": "Toque no Jogador de Quadra e depois no Reserva.",
+    "outCourt": "Sai (Quadra)",
+    "inBench": "Entra (Banco)",
+    "emptyCourt": "Quadra Vazia",
+    "emptyBench": "Vazio",
+    "confirm": "Confirmar {count} Subs",
+    "select": "Selecionar Jogadores"
+  },
+  "scout": {
+    "step1": "Passo 1",
+    "step2": "Passo 2",
+    "whoScored": "Quem Pontuou?",
+    "selectAction": "Qual Fundamento?",
+    "unknownPlayer": "Jogador Desconhecido",
+    "back": "Voltar para Jogadores",
+    "skills": {
+      "attack": "Ataque",
+      "block": "Bloqueio",
+      "ace": "Ace",
+      "opponent_error": "Erro Adv."
+    }
+  },
+  "profile": {
+    "createTitle": "Criar Perfil",
+    "editTitle": "Editar Perfil",
+    "namePlaceholder": "Nome do Jogador",
+    "numberPlaceholder": "Camisa #",
+    "skillLevel": "Nível de Habilidade",
+    "rookie": "Iniciante",
+    "pro": "Pro",
+    "save": "Salvar",
+    "create": "Criar"
+  },
+  "stats": {
+    "matchAnalysis": "Análise da Partida",
+    "finalScore": "Placar Final",
+    "momentum": "Fluxo do Jogo",
+    "lead": "Vantagem",
+    "teamStats": "Estatísticas da Equipe",
+    "attackPoints": "Pts de Ataque",
+    "killBlocks": "Bloqueios",
+    "serviceAces": "Aces",
+    "oppErrors": "Erros do Oponente",
+    "topScorers": "Maiores Pontuadores",
+    "mvp": "MVP da Partida",
+    "points": "Pontos",
+    "notEnoughData": "Dados insuficientes para o gráfico"
   },
   "historyList": {
     "title": "Histórico de Partidas",
     "empty": "Nenhuma partida gravada ainda.",
     "searchPlaceholder": "Buscar times...",
     "filters": {
-      "title": "Filtros",
       "all": "Todas",
       "winnerA": "Vencedor: Time A",
       "winnerB": "Vencedor: Time B",
@@ -238,17 +339,96 @@
       "longest": "Maior Duração",
       "shortest": "Menor Duração"
     },
-    "export": "Exportar JSON",
-    "import": "Importar JSON",
-    "importSuccess": "Histórico importado com sucesso!",
-    "importError": "Formato de arquivo inválido.",
+    "export": {
+      "json": "JSON (Backup)",
+      "csv": "CSV (Excel)"
+    },
+    "import": "Importar",
     "delete": "Excluir",
-    "duration": "Duração",
-    "date": "Data"
+    "analysis": "Análise",
+    "importSuccess": "Histórico importado com sucesso!",
+    "importError": "Formato de arquivo inválido."
+  },
+  "history": {
+    "setLabel": "Set {setNumber}"
+  },
+  "voice": {
+    "title": "Comandos de Voz",
+    "intro": "Diga o nome do Time ou Jogador para adicionar pontos. O sistema aprende os nomes que você digitou!",
+    "thinking": "Pensando...",
+    "processing": "Processando IA",
+    "sections": {
+      "basic": "Pontuação Básica",
+      "stats": "Estatísticas (Scout)",
+      "controls": "Controle"
+    },
+    "commands": {
+      "pointA": "Ponto Time A",
+      "pointA_desc": "Adiciona ponto para casa",
+      "pointDynamic": "Ponto [Nome do Time]",
+      "pointDynamic_desc": "Usa o nome do time atual",
+      "remove": "Tirar ponto",
+      "remove_desc": "Subtrai do último time falado",
+      "pointPlayer": "Punto do João",
+      "pointPlayer_desc": "Ponto genérico para o jogador",
+      "ace": "Ace do João",
+      "ace_desc": "Ponto de Saque",
+      "block": "Bloqueio Pedro",
+      "block_desc": "Ponto de Bloqueio",
+      "attack": "Ataque Lucas",
+      "attack_desc": "Ponto de Ataque",
+      "undo": "Desfazer / Voltar",
+      "undo_desc": "Remove a última ação",
+      "timeout": "Tempo / Pausa",
+      "timeout_desc": "Pede tempo para o time",
+      "serve": "Troca de Saque",
+      "serve_desc": "Apenas inverte a posse"
+    }
+  },
+  "tutorial": {
+    "header": "Bem-vindo",
+    "next": "Próximo",
+    "welcome": {
+      "title": "Bem-vindo ao VolleyScore Pro",
+      "desc": "O placar profissional definitivo para entusiastas de vôlei e árbitros."
+    },
+    "gestures": {
+      "title": "Gestos Inteligentes",
+      "desc": "Toque no placar para ADICIONAR ponto. Desliza para baixo para SUBTRAIR."
+    },
+    "features": {
+      "title": "Controle Total",
+      "desc": "Gerencie rotações, substituições, tempos e histórico na barra de controle."
+    },
+    "install": {
+      "title": "Instalar App",
+      "installed": "Tudo pronto! O app está instalado e pronto para uso offline.",
+      "descAndroid": "Instale o app para melhor experiência. Funciona offline e tela cheia.",
+      "descIOS": "Para instalar no iOS, siga as instruções abaixo:",
+      "descAndroidShort": "Instale para uso offline e tela cheia.",
+      "descIOSShort": "Adicione à Tela de Início.",
+      "installNow": "Instalar Agora"
+    }
+  },
+  "install": {
+    "title": "Instalar App",
+    "ios": {
+      "tap": "Toque em",
+      "then": "e depois",
+      "addToHome": "Adicionar à Tela de Início"
+    }
   },
   "errors": {
     "genericTitle": "Algo deu errado",
     "genericMessage": "A aplicação encontrou um erro inesperado. Pedimos desculpas pelo inconveniente.",
     "reload": "Recarregar App"
+  },
+  "confirm": {
+    "reset": {
+      "title": "Zerar Partida?",
+      "message": "Tem certeza de que deseja zerar a partida? Todos os pontos e o histórico serão perdidos.",
+      "confirmButton": "Sim, Zerar"
+    },
+    "cancel": "Cancelar"
   }
 }

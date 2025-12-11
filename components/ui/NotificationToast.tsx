@@ -3,10 +3,14 @@ import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TeamColor, SkillType } from '../../types';
 import { resolveTheme } from '../../utils/colors';
-import { Swords, Shield, Target, AlertTriangle, CheckCircle2, Mic, AlertCircle, HelpCircle, X, Sparkles, ArrowRightLeft, Save, Ban } from 'lucide-react';
-import { springSnappy } from '../../utils/animations';
+import { 
+  Swords, Shield, Target, AlertTriangle, CheckCircle2, Mic, 
+  AlertCircle, HelpCircle, X, Sparkles, ArrowRightLeft, Save, 
+  Ban, RotateCcw, Trash2, UserPlus, Users
+} from 'lucide-react';
+import { softBounce } from '../../utils/animations';
 
-interface VoiceToastProps {
+interface NotificationToastProps {
   visible: boolean;
   type: 'success' | 'error' | 'info';
   mainText: string;
@@ -16,7 +20,7 @@ interface VoiceToastProps {
   onClose: () => void;
   duration?: number;
   isFullscreen?: boolean;
-  systemIcon?: 'transfer' | 'save' | 'mic' | 'alert' | 'block';
+  systemIcon?: 'transfer' | 'save' | 'mic' | 'alert' | 'block' | 'undo' | 'delete' | 'add' | 'roster';
 }
 
 const skillIcons: Record<SkillType | 'generic', any> = {
@@ -40,10 +44,14 @@ const systemIconsMap: Record<string, any> = {
     save: Save,
     mic: Mic,
     alert: AlertCircle,
-    block: Ban
+    block: Ban,
+    undo: RotateCcw,
+    delete: Trash2,
+    add: UserPlus,
+    roster: Users
 };
 
-export const VoiceToast: React.FC<VoiceToastProps> = ({ 
+export const NotificationToast: React.FC<NotificationToastProps> = ({ 
   visible, type, mainText, subText, teamColor, skill, onClose, duration = 3000, isFullscreen, systemIcon
 }) => {
   const onCloseRef = useRef(onClose);
@@ -54,7 +62,7 @@ export const VoiceToast: React.FC<VoiceToastProps> = ({
 
   useEffect(() => {
     if (visible) {
-        // Se for erro ou IA pensando, deixa mais tempo ou infinito até mudar
+        // Keep "Thinking" state visible until manually cleared or updated
         const isThinking = mainText === "Thinking...";
         if (isThinking) return; 
 
@@ -102,7 +110,7 @@ export const VoiceToast: React.FC<VoiceToastProps> = ({
           textColor: 'text-sky-700 dark:text-sky-200',
           borderColor: 'border-sky-500/20',
           halo: 'bg-sky-500',
-          Icon: Mic
+          Icon: CheckCircle2
       };
   }
 
@@ -118,7 +126,8 @@ export const VoiceToast: React.FC<VoiceToastProps> = ({
   // Apply System Icon Override if provided
   if (systemIcon && systemIconsMap[systemIcon]) {
       theme.Icon = systemIconsMap[systemIcon];
-      // Optional: Tweaks for specific system actions
+      
+      // Contextual styling for system icons
       if (systemIcon === 'transfer') {
           theme.iconBg = 'bg-amber-500/10';
           theme.iconColor = 'text-amber-500';
@@ -131,24 +140,34 @@ export const VoiceToast: React.FC<VoiceToastProps> = ({
           theme.borderColor = 'border-emerald-500/20';
           theme.textColor = 'text-emerald-700 dark:text-emerald-300';
       }
-      if (systemIcon === 'block') {
+      if (systemIcon === 'block' || systemIcon === 'delete') {
           theme.iconBg = 'bg-rose-500/10';
           theme.iconColor = 'text-rose-500';
           theme.borderColor = 'border-rose-500/20';
           theme.textColor = 'text-rose-700 dark:text-rose-300';
+      }
+      if (systemIcon === 'mic') {
+          theme.iconBg = 'bg-sky-500/10';
+          theme.iconColor = 'text-sky-500';
+          theme.borderColor = 'border-sky-500/20';
+      }
+      if (systemIcon === 'undo') {
+          theme.iconBg = 'bg-slate-500/10';
+          theme.iconColor = 'text-slate-500 dark:text-slate-400';
+          theme.borderColor = 'border-slate-500/20';
       }
   }
 
   let topLabel = '';
   let bottomLabel = mainText;
 
-  if (type === 'success') {
+  if (type === 'success' && !systemIcon) {
       topLabel = subText || skillLabels[skill || 'generic'];
   } else if (type === 'error') {
       topLabel = subText || 'Error';
       bottomLabel = mainText ? mainText : "Something went wrong";
   } else {
-      topLabel = subText || 'Info';
+      topLabel = subText || 'Notification';
       bottomLabel = mainText;
   }
 
@@ -170,11 +189,11 @@ export const VoiceToast: React.FC<VoiceToastProps> = ({
     <AnimatePresence>
       {visible && (
         <motion.div
-            key="voice-toast"
+            key="notification-toast"
             initial={{ opacity: 0, y: -20, x: "-50%", scale: 0.9, filter: 'blur(8px)' }}
             animate={{ opacity: 1, y: 0, x: "-50%", scale: 1, filter: 'blur(0px)' }}
             exit={{ opacity: 0, y: -10, x: "-50%", scale: 0.95, filter: 'blur(4px)', transition: { duration: 0.2 } }}
-            transition={springSnappy}
+            transition={softBounce}
             className={`fixed left-1/2 z-[100] flex justify-center ${positionClass}`}
             onClick={onClose}
         >
@@ -185,7 +204,7 @@ export const VoiceToast: React.FC<VoiceToastProps> = ({
                     ${theme.iconBg} ${theme.borderColor} border
                 `}>
                     <theme.Icon size={16} className={theme.iconColor} strokeWidth={2.5} />
-                    {type === 'success' && (
+                    {type === 'success' && !systemIcon && (
                         <motion.div 
                            className={`absolute inset-0 rounded-full ${theme.iconBg}`}
                            animate={{ scale: [1, 1.4], opacity: [0.5, 0] }}

@@ -1,17 +1,17 @@
-
 {
   "app": {
     "loading": "Loading..."
   },
-  "languages": {
-    "en": "English",
-    "pt": "Português (Brasil)",
-    "es": "Español"
-  },
   "common": {
     "done": "Done",
     "full": "Full",
-    "add": "Add"
+    "add": "Add",
+    "cancel": "Cancel",
+    "save": "Save",
+    "back": "Back",
+    "create": "Create",
+    "empty": "Empty",
+    "step": "Step {number}"
   },
   "controls": {
     "undo": "Undo",
@@ -21,11 +21,8 @@
     "history": "History",
     "fullscreen": "Fullscreen",
     "exitFullscreen": "Exit Fullscreen",
-    "reset": "Reset Match"
-  },
-  "history": {
-    "gameStart": "Game Start",
-    "setLabel": "S{setNumber}"
+    "reset": "Reset Match",
+    "voiceControl": "Voice Control"
   },
   "game": {
     "serving": "Serving",
@@ -46,8 +43,41 @@
     "set_point": "SET POINT",
     "tie_break": "TIE BREAK"
   },
+  "notifications": {
+    "matchSaved": "Match Saved",
+    "matchSavedSub": "History updated",
+    "actionUndone": "Action Undone",
+    "actionUndoneSub": "Last action reverted",
+    "sidesSwapped": "Sides Swapped",
+    "sidesSwappedSub": "Teams switched courts",
+    "pointRemoved": "Point Removed",
+    "pointRemovedSub": "Correction",
+    "timeoutCalled": "Timeout Called",
+    "timeoutCalledSub": "For {teamName}",
+    "serveChange": "Serve Change",
+    "serveChangeSub": "Serving: {teamName}",
+    "micError": "Microphone Error",
+    "accessDenied": "Access Denied",
+    "networkError": "Network Error",
+    "notUnderstood": "Not Understood",
+    "thinking": "Thinking...",
+    "aiProcessing": "AI Processing",
+    "forTeam": "For {teamName}",
+    "profileSynced": "Profile Synced",
+    "profileUpToDate": "Already up to date"
+  },
   "settings": {
     "title": "Configuration",
+    "sections": {
+      "presets": "Quick Presets",
+      "coreRules": "Core Rules",
+      "tieBreakDeuce": "Tie Break & Deuce",
+      "visuals": "Visuals",
+      "audio": "Audio & Intelligence",
+      "sync": "Cloud Sync",
+      "ai": "Gemini Intelligence",
+      "install": "Installation & Updates"
+    },
     "appearance": {
       "title": "Appearance",
       "theme": "Theme",
@@ -55,10 +85,19 @@
       "themes": {
         "light": "Light",
         "dark": "Dark"
-      }
+      },
+      "lowPower": "Low Power Mode",
+      "lowPowerSub": "Reduce blur & animations",
+      "reducedMotion": "Reduced Motion",
+      "reducedMotionSub": "Minimize UI movement"
     },
     "rules": {
       "title": "Match Rules",
+      "gameMode": "Game Mode",
+      "modes": {
+        "indoor": "Indoor",
+        "beach": "Beach"
+      },
       "setsToPlay": "Sets to Play",
       "pointsPerSet": "Points per Set",
       "tieBreak": "Tie Break (Final Set)",
@@ -68,8 +107,52 @@
       "deuceStandard": "Advantage of 2",
       "deuceSuddenDeath": "Sudden Death (3pts)"
     },
+    "audio": {
+      "soundEffects": "Sound Effects",
+      "announcer": "Score Announcer",
+      "tts": "Text-to-Speech",
+      "gender": {
+        "male": "Male",
+        "female": "Female"
+      },
+      "freq": {
+        "always": "Always",
+        "critical": "Critical Only"
+      },
+      "voiceControl": "Voice Control (Beta)",
+      "voiceControlSub": "Speak to score"
+    },
+    "game": {
+      "scoutMode": "Scout Mode",
+      "scoutModeSub": "Track player stats"
+    },
+    "account": {
+      "signInGoogle": "Sign in with Google"
+    },
+    "backup": {
+        "title": "Data Backup",
+        "backupBtn": "Backup to Cloud",
+        "restoreBtn": "Restore Data",
+        "description": "Sync your match history and settings."
+    },
+    "ai": {
+      "apiKey": "API Key (Optional)",
+      "placeholder": "Paste Gemini API Key here...",
+      "help": "Required for unlimited voice commands.",
+      "getKey": "Get Key"
+    },
+    "install": {
+      "installNow": "Install Now",
+      "version": "Version",
+      "updateAvailable": "Update Available",
+      "upToDate": "Up to date",
+      "update": "Update",
+      "check": "Check",
+      "native": "Native Build"
+    },
     "applyChanges": "Apply Changes",
     "applyAndReset": "Apply & Restart Match",
+    "resetWarning": "Will Reset Score",
     "warningTitle": "Match in Progress",
     "warningMessage": "Changing rules now will reset the current match score."
   },
@@ -87,19 +170,221 @@
       "sub": "1 Set • 15 Pts • Sudden Death"
     }
   },
-  "install": {
-    "title": "Install App",
-    "description": "Add to home screen for full experience.",
-    "installNow": "Install Now",
-    "ios": {
-      "tap": "Tap",
-      "then": "then",
-      "addToHome": "Add to Home Screen"
+  "matchOver": {
+    "title": "Match Result",
+    "wins": "Wins the Match",
+    "nextGameButton": "Start Next Game",
+    "share": "Share Result",
+    "generating": "Creating Image...",
+    "rotationReport": {
+      "title": "Rotation Report",
+      "entering": "Entering: {teamName}",
+      "leaving": "Leaving",
+      "newSize": "New Roster Size",
+      "players": "{count} Players",
+      "coreSquad": "Core Squad (Queue)",
+      "none": "None",
+      "reinforcements": "Reinforcements",
+      "source": "Stolen / Recycled"
     },
-    "android": {
-      "tap": "Tap",
-      "then": "then",
-      "installApp": "Install App"
+    "debugLogs": "Rotation Logic Logs"
+  },
+  "teamManager": {
+    "title": "Squad Management",
+    "teamLabel": "Team",
+    "benchLabel": "Reserve Bench",
+    "queue": "Waiting Queue",
+    "queueEmpty": "Queue empty",
+    "dragPlayersHere": "Drag players here",
+    "addPlayerPlaceholder": "New player name...",
+    "addPlayerQueue": "Add Player to Queue",
+    "searchQueue": "Search queue...",
+    "rosterFull": "Roster Full",
+    "rosterFullSub": "No space in Main Team or Bench",
+    "benchFull": "Bench Full",
+    "benchFullSub": "No space for more players",
+    "movedToBench": "Player moved to Bench",
+    "movedToBenchSub": "Main Roster Full",
+    "playerRemoved": "Player removed",
+    "undo": "UNDO",
+    "activateBenchTitle": "Activate Bench?",
+    "activateBenchMsg": "The Reserve Bench is currently disabled.",
+    "activateBenchConfirm": "Do you want to Activate the Bench and move this player there?",
+    "teamFullTitle": "Team Full",
+    "teamFullMsg": "The main roster is full (6 players).",
+    "teamFullConfirm": "Activate the Reserve Bench and move player there?",
+    "btnActivateBench": "Activate & Move",
+    "btnYesBench": "Yes, Move to Bench",
+    "sort": {
+      "label": "Sort",
+      "name": "Name",
+      "number": "Number",
+      "skill": "Skill",
+      "reset": "Reset Order",
+      "asc": "↑",
+      "desc": "↓"
+    },
+    "queueActions": {
+      "title": "Queue Actions",
+      "moveToTop": "Move to Top",
+      "moveUp": "Move Up",
+      "moveDown": "Move Down",
+      "disband": "Disband Team"
+    },
+    "menu": {
+      "returnCourt": "Return to Court",
+      "sendBench": "Send to Bench",
+      "lock": "Lock Player",
+      "unlock": "Unlock Player",
+      "delete": "Delete"
+    },
+    "tabs": {
+      "roster": "Roster",
+      "profiles": "Profiles",
+      "batch": "Batch"
+    },
+    "modes": {
+      "standard": "Std",
+      "standardTooltip": "Winner Stays, Loser to Queue",
+      "balanced": "Bal",
+      "balancedTooltip": "Winner Stays, Teams Rebalanced"
+    },
+    "batch": {
+      "tipTitle": "Power User Tip:",
+      "tipFormat": "Format: Name Skill (e.g., \"John 8\")",
+      "tipDesc": "If skill (1-10) is provided, it will be set automatically. Otherwise defaults to 5.",
+      "placeholder": "John Doe\nJane Smith 8\nPlayer Three 4",
+      "generate": "Generate Teams"
+    },
+    "profiles": {
+      "empty": "No profiles saved yet.",
+      "noMatch": "No profiles found matching \"{term}\"",
+      "assign": "Assign to Team",
+      "inGame": "In Game"
+    },
+    "actions": {
+      "addTo": "Add to",
+      "addToQueue": "Add to Queue",
+      "globalBalance": "Global Balance",
+      "restoreOrder": "Restore Order"
+    },
+    "location": {
+      "courtA": "Court A",
+      "courtB": "Court B",
+      "queue": "Queue"
+    },
+    "generateTeams": "Generate Teams"
+  },
+  "substitution": {
+    "title": "Tactical Changes",
+    "subtitle": "Tap Court Player then Bench Player to link.",
+    "outCourt": "Out (Court)",
+    "inBench": "In (Bench)",
+    "emptyCourt": "Empty Court",
+    "emptyBench": "Empty",
+    "confirm": "Confirm {count} Subs",
+    "select": "Select Players"
+  },
+  "scout": {
+    "step1": "Step 1",
+    "step2": "Step 2",
+    "whoScored": "Who Scored?",
+    "selectAction": "Select Action",
+    "unknownPlayer": "Unknown Player",
+    "back": "Back to Players",
+    "skills": {
+      "attack": "Attack",
+      "block": "Block",
+      "ace": "Ace",
+      "opponent_error": "Opp. Error"
+    }
+  },
+  "profile": {
+    "createTitle": "Create Profile",
+    "editTitle": "Edit Profile",
+    "namePlaceholder": "Player Name",
+    "numberPlaceholder": "Jersey #",
+    "skillLevel": "Skill Level",
+    "rookie": "Rookie",
+    "pro": "Pro",
+    "save": "Save",
+    "create": "Create"
+  },
+  "stats": {
+    "matchAnalysis": "Match Analysis",
+    "finalScore": "Final Score",
+    "momentum": "Momentum Flow",
+    "lead": "Lead",
+    "teamStats": "Team Stats",
+    "attackPoints": "Attack Points",
+    "killBlocks": "Kill Blocks",
+    "serviceAces": "Service Aces",
+    "oppErrors": "Opponent Errors",
+    "topScorers": "Top Scorers",
+    "mvp": "Match MVP",
+    "points": "Points",
+    "notEnoughData": "Not enough data for chart"
+  },
+  "historyList": {
+    "title": "Match History",
+    "empty": "No matches recorded yet.",
+    "searchPlaceholder": "Search teams...",
+    "filters": {
+      "all": "All Matches",
+      "winnerA": "Winner: Team A",
+      "winnerB": "Winner: Team B",
+      "scouted": "With Stats (Scouted)"
+    },
+    "sort": {
+      "newest": "Newest First",
+      "oldest": "Oldest First",
+      "longest": "Longest Duration",
+      "shortest": "Shortest Duration"
+    },
+    "export": {
+      "json": "JSON (Backup)",
+      "csv": "CSV (Excel)"
+    },
+    "import": "Import",
+    "delete": "Delete",
+    "analysis": "Analysis",
+    "importSuccess": "History imported successfully!",
+    "importError": "Invalid file format."
+  },
+  "history": {
+    "setLabel": "Set {setNumber}"
+  },
+  "voice": {
+    "title": "Voice Commands",
+    "intro": "Say the Team or Player name to add points. The system learns the names you typed!",
+    "thinking": "Thinking...",
+    "processing": "AI Processing",
+    "sections": {
+      "basic": "Basic Scoring",
+      "stats": "Player Stats",
+      "controls": "Controls"
+    },
+    "commands": {
+      "pointA": "Point Team A",
+      "pointA_desc": "Adds point to home team",
+      "pointDynamic": "Point [Team Name]",
+      "pointDynamic_desc": "Uses dynamic team name",
+      "remove": "Remove point",
+      "remove_desc": "Subtracts from last mentioned",
+      "pointPlayer": "Point John",
+      "pointPlayer_desc": "Generic point for player",
+      "ace": "Ace John",
+      "ace_desc": "Service Ace",
+      "block": "Block Peter",
+      "block_desc": "Kill Block",
+      "attack": "Attack Lucas",
+      "attack_desc": "Attack Kill",
+      "undo": "Undo / Back",
+      "undo_desc": "Reverts last action",
+      "timeout": "Timeout / Pause",
+      "timeout_desc": "Calls timeout",
+      "serve": "Change Server",
+      "serve_desc": "Switches service possession"
     }
   },
   "tutorial": {
@@ -123,132 +408,29 @@
       "descAndroid": "Install the app for the best experience. Works offline and fullscreen.",
       "descIOS": "To install on iOS, follow the instructions below:",
       "descAndroidShort": "Install for offline use & fullscreen.",
-      "descIOSShort": "Add to Home Screen for fullscreen."
+      "descIOSShort": "Add to Home Screen for fullscreen.",
+      "installNow": "Install Now"
     }
   },
-  "confirm": {
-    "cancel": "Cancel",
-    "reset": {
-      "title": "Reset Match?",
-      "message": "Are you sure you want to reset the match? All scores and history will be lost.",
-      "confirmButton": "Yes, Reset"
-    },
-    "unsaved": {
-      "title": "Unsaved Changes?",
-      "message": "You have made changes to the roster. Are you sure you want to close?",
-      "confirmButton": "Close Anyway"
+  "install": {
+    "title": "Install App",
+    "ios": {
+      "tap": "Tap",
+      "then": "then",
+      "addToHome": "Add to Home Screen"
     }
-  },
-  "matchOver": {
-    "title": "Match Result",
-    "wins": "Wins the Match",
-    "nextGameButton": "Start Next Game",
-    "share": "Share Result",
-    "generating": "Creating Image...",
-    "rotationReport": {
-      "title": "Rotation Report",
-      "entering": "{teamName} Entering",
-      "leaving": "Leaving",
-      "newSize": "New Roster Size",
-      "players": "{count} Players",
-      "coreSquad": "Core Squad (Queue)",
-      "none": "None",
-      "reinforcements": "Reinforcements",
-      "source": "Stolen / Recycled"
-    },
-    "debugLogs": "Rotation Logic Logs"
-  },
-  "teamManager": {
-    "title": "Squad Management",
-    "currentRoster": "Current Roster",
-    "batchInput": "Batch Input",
-    "batchInputPrompt": "Paste names below (one per line).",
-    "batchInputPlaceholder": "John Doe\nJane Smith\n...",
-    "generateTeams": "Generate Teams",
-    "queue": "Waiting Queue",
-    "queueEmpty": "Queue empty",
-    "dragPlayersHere": "Drag players here",
-    "addPlayer": "Add Player",
-    "addPlayerPlaceholder": "New player name...",
-    "searchProfiles": "Search profiles...",
-    "rosterFull": "Roster Full",
-    "lockPlayer": "Lock Player",
-    "unlockPlayer": "Unlock Player",
-    "playerRemoved": "Player removed",
-    "undo": "UNDO",
-    "teamLabel": "Team",
-    "benchLabel": "Reserve Bench",
-    "syncProfiles": "Sync Profiles",
-    "saveProfile": "Save to Profile",
-    "sort": {
-      "label": "Sort",
-      "name": "Name",
-      "number": "Number",
-      "skill": "Skill",
-      "asc": "Ascending",
-      "desc": "Descending"
-    },
-    "tabs": {
-      "roster": "Roster",
-      "profiles": "Profiles",
-      "batch": "Batch"
-    },
-    "modes": {
-      "standard": "Standard",
-      "standardTooltip": "Rotation: Winner Stays, Loser to End. Gaps filled from next teams.",
-      "balanced": "Balanced",
-      "balancedTooltip": "Rotation: Winner Stays. Gaps filled to match Winner's skill level."
-    },
-    "actions": {
-      "restoreOrder": "Restore Order",
-      "globalBalance": "Global Balance",
-      "addToA": "Add to A",
-      "addToB": "Add to B",
-      "addToQueue": "Add to Queue"
-    },
-    "sync": {
-      "synced": "Synced",
-      "desynced": "Unsaved Changes",
-      "unlinked": "No Profile",
-      "updateTooltip": "Update Profile",
-      "createTooltip": "Create Profile",
-      "revertTooltip": "Revert to Profile Data"
-    },
-    "location": {
-      "courtA": "Court A",
-      "courtB": "Court B",
-      "queue": "In Queue"
-    },
-    "emptyProfiles": "No profiles saved yet. Sync players in the Roster tab to create profiles."
-  },
-  "historyList": {
-    "title": "Match History",
-    "empty": "No matches recorded yet.",
-    "searchPlaceholder": "Search teams...",
-    "filters": {
-      "title": "Filters",
-      "all": "All Matches",
-      "winnerA": "Winner: Team A",
-      "winnerB": "Winner: Team B",
-      "scouted": "With Stats (Scouted)"
-    },
-    "sort": {
-      "newest": "Newest First",
-      "oldest": "Oldest First",
-      "longest": "Longest Duration",
-      "shortest": "Shortest Duration"
-    },
-    "export": "Export JSON",
-    "import": "Import JSON",
-    "importSuccess": "History imported successfully!",
-    "importError": "Invalid file format.",
-    "delete": "Delete",
-    "duration": "Duration",
-    "date": "Date"
   },
   "errors": {
     "genericTitle": "Something went wrong",
     "genericMessage": "The application encountered an unexpected error. We apologize for the inconvenience.",
     "reload": "Reload App"
+  },
+  "confirm": {
+    "reset": {
+      "title": "Reset Match?",
+      "message": "Are you sure you want to reset the match? All scores and history will be lost.",
+      "confirmButton": "Yes, Reset"
+    },
+    "cancel": "Cancel"
   }
 }
