@@ -75,6 +75,7 @@ const EditableNumber = memo(({ number, onSave, validator }: { number?: string; o
 
     const save = () => {
         const trimmed = val.trim();
+        // Validation handled by parent via onSave/Toast, but local check adds visual feedback
         if (validator && trimmed && trimmed !== (number || '') && !validator(trimmed)) {
             setError(true);
             setTimeout(() => setError(false), 500); 
@@ -142,15 +143,16 @@ export const PlayerCard = memo(({
 
   const handleEditRequest = useCallback((e: React.MouseEvent) => {
       e.stopPropagation();
-      // Button always opens EDIT mode
       onRequestProfileEdit(player.id); 
   }, [player.id, onRequestProfileEdit]);
 
   const handleViewRequest = useCallback((e: React.MouseEvent) => {
+      e.stopPropagation();
       if (isLinked) {
-          e.stopPropagation();
-          // Body click opens VIEW mode (if linked)
           onViewProfile(profile!.id);
+      } else {
+          // If not linked, tap behaves like edit request or does nothing (user should use sync button)
+          // Optionally, shake or show tooltip
       }
   }, [isLinked, profile, onViewProfile]);
 
@@ -201,12 +203,23 @@ export const PlayerCard = memo(({
             <EditableNumber number={player.number} onSave={(v) => onUpdatePlayer(player.id, { number: v })} validator={validateNumber} />
         </div>
         
-        {/* Main Body - View Trigger */}
-        <div className="flex flex-1 items-center gap-2 min-w-0 px-2" onClick={handleViewRequest}>
-            {profile?.avatar && (
-                <span className="text-sm grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all flex-shrink-0">{profile.avatar}</span>
-            )}
+        {/* Interaction Split: Name is one zone, Avatar is another */}
+        <div className="flex flex-1 items-center gap-2 min-w-0 px-2 h-full">
             
+            {/* AVATAR ZONE: Triggers View Profile */}
+            <div 
+                className={`flex items-center justify-center p-1 -ml-1 rounded-lg transition-transform active:scale-90 ${isLinked ? 'cursor-pointer hover:bg-black/5 dark:hover:bg-white/5' : ''}`}
+                onClick={handleViewRequest}
+                onPointerDown={e => e.stopPropagation()} // Isolate from drag
+            >
+                {profile?.avatar ? (
+                    <span className="text-sm grayscale opacity-80 group-hover:grayscale-0 group-hover:opacity-100 transition-all flex-shrink-0">{profile.avatar}</span>
+                ) : (
+                    RoleIcon ? <RoleIcon size={14} className={`${roleColor} flex-shrink-0`} strokeWidth={2.5} /> : <div className="w-4" />
+                )}
+            </div>
+            
+            {/* NAME ZONE: Triggers Edit */}
             <div className="flex flex-col min-w-0 flex-1">
                 <EditableTitle 
                     name={player.name} 
@@ -231,8 +244,9 @@ export const PlayerCard = memo(({
                 )}
             </div>
             
-            {RoleIcon && (
-                <RoleIcon size={12} className={`${roleColor} flex-shrink-0`} strokeWidth={2.5} />
+            {/* Role Icon (Secondary position if no avatar) or Fixed Pin */}
+            {profile?.avatar && RoleIcon && (
+                <RoleIcon size={12} className={`${roleColor} flex-shrink-0 mr-1`} strokeWidth={2.5} />
             )}
             
             {player.isFixed && <Pin size={12} className="text-amber-500 flex-shrink-0" fill="currentColor" />}
@@ -243,7 +257,7 @@ export const PlayerCard = memo(({
                 <SkillSlider level={player.skillLevel} onChange={(v) => onUpdatePlayer(player.id, { skillLevel: v })} />
             </div>
 
-            {/* Sync/Edit Button - Explicitly stops propagation to allow isolated click */}
+            {/* Sync/Edit Button */}
             <button 
                 onClick={handleEditRequest} onPointerDown={e => e.stopPropagation()} 
                 className={`p-1.5 rounded-lg transition-colors ${syncColor}`} title={syncTitle}

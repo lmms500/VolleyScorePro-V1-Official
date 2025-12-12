@@ -48,10 +48,15 @@ export const SkillSlider: React.FC<SkillSliderProps> = memo(({ level, onChange, 
     };
   }, [isExpanded]);
 
+  // Aggressive Event Trap to prevent DndKit from seeing interactions
+  const stopPropagation = (e: React.SyntheticEvent | Event) => {
+      e.stopPropagation();
+      // On some touch devices, preventDefault helps stop scroll/drag initiation
+      // but we shouldn't block click logic.
+  };
+
   const handleToggle = (e: React.MouseEvent | React.TouchEvent) => {
-    // CRITICAL: Stop propagation to prevent drag initiation on the parent card
-    e.stopPropagation();
-    // e.preventDefault(); // Removed to allow click through if needed, but stopPropagation is key
+    stopPropagation(e);
     
     if (disabled) return;
 
@@ -72,20 +77,14 @@ export const SkillSlider: React.FC<SkillSliderProps> = memo(({ level, onChange, 
   };
 
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Immediate stop to prevent bubbling
-    e.stopPropagation();
+    stopPropagation(e);
     onChange(Number(e.target.value));
   };
 
   const handleBackdropClick = (e: React.MouseEvent | React.TouchEvent) => {
-      e.stopPropagation();
+      stopPropagation(e);
       e.preventDefault();
       setIsExpanded(false);
-  };
-
-  // Stop drag propagation to parent Sortable item immediately on touch down
-  const handlePointerDown = (e: React.PointerEvent) => {
-      e.stopPropagation();
   };
 
   return (
@@ -93,8 +92,10 @@ export const SkillSlider: React.FC<SkillSliderProps> = memo(({ level, onChange, 
         <div 
             ref={containerRef} 
             className="relative flex items-center justify-center w-12 h-10 p-1 cursor-pointer touch-none"
-            onClick={(e) => e.stopPropagation()} // Extra safety
-            onPointerDown={handlePointerDown}
+            onClick={stopPropagation}
+            onPointerDown={stopPropagation}
+            onTouchStart={stopPropagation}
+            onMouseDown={stopPropagation}
         >
             <motion.button
                 initial={false}
@@ -102,8 +103,10 @@ export const SkillSlider: React.FC<SkillSliderProps> = memo(({ level, onChange, 
                 onClick={handleToggle}
                 className="absolute inset-0 flex items-center justify-center gap-1.5 px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/10 border border-black/5 dark:border-white/5 transition-transform shadow-sm"
                 disabled={disabled}
-                // Native event handling for React Native Web compat
-                onPointerDown={handlePointerDown}
+                // Native event handling isolation
+                onPointerDown={stopPropagation}
+                onTouchStart={stopPropagation}
+                onMouseDown={stopPropagation}
             >
                 <Star size={14} className="text-slate-400" fill="currentColor" />
                 <span 
@@ -122,6 +125,7 @@ export const SkillSlider: React.FC<SkillSliderProps> = memo(({ level, onChange, 
                     className="fixed inset-0 z-[9998] bg-transparent" 
                     onMouseDown={handleBackdropClick}
                     onTouchStart={handleBackdropClick}
+                    onPointerDown={handleBackdropClick}
                 />
                 
                 <div 
@@ -142,8 +146,10 @@ export const SkillSlider: React.FC<SkillSliderProps> = memo(({ level, onChange, 
                             className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-full px-5 py-3 shadow-2xl border border-black/10 dark:border-white/10 ring-1 ring-black/5"
                             style={{ minWidth: '220px' }}
                             // Capture all pointer events here to prevent leakage
-                            onPointerDown={handlePointerDown}
-                            onClick={(e) => e.stopPropagation()}
+                            onPointerDown={stopPropagation}
+                            onTouchStart={stopPropagation}
+                            onMouseDown={stopPropagation}
+                            onClick={stopPropagation}
                         >
                             <span 
                                 className="text-lg font-black w-8 text-center" 
@@ -162,7 +168,9 @@ export const SkillSlider: React.FC<SkillSliderProps> = memo(({ level, onChange, 
                                     value={level}
                                     onChange={handleSliderChange}
                                     // Use pointer down to stop drag propagation from the range input itself
-                                    onPointerDown={handlePointerDown}
+                                    onPointerDown={stopPropagation}
+                                    onTouchStart={stopPropagation}
+                                    onMouseDown={stopPropagation}
                                     className="relative z-20 w-full h-full opacity-0 cursor-pointer touch-none"
                                 />
                                 

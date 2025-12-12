@@ -8,12 +8,30 @@ import { sanitizeInput } from './security';
 const BENCH_LIMIT = 6;
 
 // Helper to find a player anywhere in the game state structure passed as args
-const findAllPlayers = (courtA: Team, courtB: Team, queue: Team[]) => {
+export const findAllPlayers = (courtA: Team, courtB: Team, queue: Team[]) => {
     return [
         ...courtA.players, ...(courtA.reserves || []),
         ...courtB.players, ...(courtB.reserves || []),
         ...queue.flatMap(t => [...t.players, ...(t.reserves || [])])
     ];
+};
+
+/**
+ * Validates that a number is unique within a specific team context.
+ * @param team The team to check (checks both active players and reserves)
+ * @param number The number to validate
+ * @param ignorePlayerId Optional: ID of the player being edited (to allow keeping their own number)
+ */
+export const validateUniqueNumber = (team: Team, number: string | undefined, ignorePlayerId?: string): boolean => {
+    if (!number || number.trim() === '') return true; // Empty numbers are allowed duplicates
+    
+    const allMembers = [...team.players, ...(team.reserves || [])];
+    const conflict = allMembers.find(p => 
+        p.id !== ignorePlayerId && 
+        p.number === number.trim()
+    );
+    
+    return !conflict;
 };
 
 export const createPlayer = (name: string, index: number, profileId?: string, skillLevel: number = 5, number?: string): Player => ({
@@ -42,10 +60,11 @@ export const handleAddPlayer = (
     newPlayer: Player, targetId: string
 ): { courtA: Team, courtB: Team, queue: Team[] } => {
     
-    // Duplicate Check
+    // Duplicate Check (Name-based prevention within active game)
+    // Note: Number uniqueness is handled by the Hook before calling this
     const all = findAllPlayers(courtA, courtB, queue);
     if (all.some(p => p.name.toLowerCase() === newPlayer.name.toLowerCase())) {
-        return { courtA, courtB, queue }; // No-op if duplicate
+        return { courtA, courtB, queue }; // No-op if duplicate name in game
     }
 
     const addToTeamSmart = (team: Team): Team => {
@@ -70,7 +89,6 @@ export const handleAddPlayer = (
     };
 
     // FIX: Check against Team ID property, not just literal 'A'/'B'
-    // This handles cases where teams have UUIDs but are currently sitting in Court A/B slots
     if (targetId === 'A' || targetId === courtA.id) {
         return { courtA: addToTeamSmart(courtA), courtB, queue };
     }
@@ -165,8 +183,6 @@ export const handleRemovePlayer = (
 
     if (!deletedPlayer || !targetTeam || !originType) return { courtA, courtB, queue };
 
-    // --- NEW LOGIC: BENCH PRIORITY ---
-
     // 1. If user was ALREADY in reserves, they are being "knocked out" completely (to end of queue)
     if (isFromReserves) {
         const endQueue = [...newQueue];
@@ -183,15 +199,13 @@ export const handleRemovePlayer = (
         return { courtA: newA, courtB: newB, queue: endQueue };
     }
 
-    // 2. If user was ON COURT (A/B)
+    // 2. If user was ON COURT (A/B) - Move to Bench
     if (originType === 'A' || originType === 'B') {
-        // ALWAYS Move to own Bench (Send to Bench)
-        // If bench wasn't active, the UI handles activating it before calling this.
         const updatedTeamWithReserve = { 
             ...targetTeam, 
-            players: targetTeam.players.filter(p => p.id !== playerId), // ensure removed from main
+            players: targetTeam.players.filter(p => p.id !== playerId),
             reserves: [...(targetTeam.reserves || []), deletedPlayer],
-            hasActiveBench: true // Force active if logic reaches here
+            hasActiveBench: true 
         };
 
         if (originType === 'A') return { courtA: updatedTeamWithReserve, courtB: newB, queue: newQueue };
@@ -206,9 +220,7 @@ export const handleRemovePlayer = (
              newQueue[qIndex] = updatedTeam;
              return { courtA: newA, courtB: newB, queue: newQueue };
         } else {
-            // Queue removal behaves like knockout if no bench
             const endQueue = [...newQueue];
-            // ... (add to end logic) ...
              if (endQueue.length > 0) {
                 const last = endQueue[endQueue.length - 1];
                 if (last.players.length < PLAYERS_PER_TEAM) {
@@ -257,17 +269,10 @@ export const handleDeletePlayer = (
     return { courtA, courtB, queue };
 };
 
-/**
- * Enhanced move logic with strict Guard Clauses.
- * Returns original state if move is illegal (over capacity).
- */
 export const handleMovePlayer = (
     courtA: Team, courtB: Team, queue: Team[], 
     playerId: string, fromId: string, toId: string, newIndex?: number
 ): { courtA: Team, courtB: Team, queue: Team[] } => {
-    
-    // GUARD: If same container, just reorder (handled implicitly below, but safe)
-    // GUARD: Check Capacity of Destination
     
     const getTargetListSize = (tid: string): number => {
         if (tid === 'A') return courtA.players.length;
@@ -275,7 +280,6 @@ export const handleMovePlayer = (
         if (tid === 'A_Reserves') return (courtA.reserves || []).length;
         if (tid === 'B_Reserves') return (courtB.reserves || []).length;
         
-        // Queue Check
         if (tid.endsWith('_Reserves')) {
             const t = queue.find(x => `${x.id}_Reserves` === tid);
             return t ? (t.reserves || []).length : 99;
@@ -284,14 +288,13 @@ export const handleMovePlayer = (
         return t ? t.players.length : 99;
     };
 
-    // If moving between lists, check capacity
     if (fromId !== toId) {
         const currentSize = getTargetListSize(toId);
         const limit = toId.includes('Reserves') ? BENCH_LIMIT : PLAYERS_PER_TEAM;
         
         if (currentSize >= limit) {
             console.warn(`[MoveBlocked] Target ${toId} is full (${currentSize}/${limit}).`);
-            return { courtA, courtB, queue }; // REJECT MOVE
+            return { courtA, courtB, queue };
         }
     }
 
@@ -307,7 +310,7 @@ export const handleMovePlayer = (
     let newB = { ...courtB };
     let newQueue = queue.map(t => ({...t, players: [...t.players], reserves: [...(t.reserves||[])]}));
     
-    // Remove
+    // Remove Logic
     if (fromId === 'A') newA.players = removeFromList(newA.players);
     else if (fromId === 'A_Reserves') newA.reserves = removeFromList(newA.reserves || []);
     else if (fromId === 'B') newB.players = removeFromList(newB.players);
@@ -322,10 +325,9 @@ export const handleMovePlayer = (
     
     if (!player) return { courtA, courtB, queue };
 
-    // Add
+    // Add Logic
     const addToList = (list: Player[], p: Player, idx?: number) => {
         const copy = [...list];
-        // Ensure index is valid
         const safeIdx = (idx !== undefined && idx >= 0 && idx <= copy.length) ? idx : copy.length;
         copy.splice(safeIdx, 0, p);
         return copy;
@@ -364,7 +366,6 @@ export const handleRotate = (
         result = getStandardRotationResult(winnerTeam, loserTeam, queue);
     }
 
-    // Persist Bench State
     const nextCourtA = winnerId === 'A' 
         ? { ...courtA } 
         : { ...result.incomingTeam, reserves: courtA.reserves, hasActiveBench: courtA.hasActiveBench }; 

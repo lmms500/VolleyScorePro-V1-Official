@@ -204,6 +204,7 @@ export type GameAction =
   | { type: 'ROSTER_UPDATE_TEAM_COLOR'; teamId: string; color: TeamColor }
   | { type: 'ROSTER_UPDATE_PLAYER'; playerId: string; updates: Partial<Player> }
   | { type: 'ROSTER_ADD_PLAYER'; player: Player; targetId: string }
+  | { type: 'ROSTER_RESTORE_PLAYER'; player: Player; targetId: string; index?: number }
   | { type: 'ROSTER_REMOVE_PLAYER'; playerId: string } // Knockout
   | { type: 'ROSTER_DELETE_PLAYER'; playerId: string } // Permanent Delete
   | { type: 'ROSTER_MOVE_PLAYER'; playerId: string; fromId: string; toId: string; newIndex?: number }
@@ -215,9 +216,11 @@ export type GameAction =
   | { type: 'ROSTER_SET_MODE'; mode: RotationMode }
   | { type: 'ROSTER_BALANCE' }
   | { type: 'ROSTER_SORT'; teamId: string; criteria: 'name' | 'number' | 'skill' }
-  | { type: 'ROSTER_GENERATE'; names: string[] }
+  | { type: 'ROSTER_GENERATE'; players: Player[] }
   | { type: 'ROSTER_SYNC_PROFILES'; profiles: Map<string, PlayerProfile> }
   | { type: 'ROSTER_ENSURE_TEAM_IDS' }
+  | { type: 'ROSTER_RESET_ALL' } // Nuclear Reset
   // NEW QUEUE ACTIONS
   | { type: 'ROSTER_QUEUE_REORDER'; fromIndex: number; toIndex: number }
-  | { type: 'ROSTER_DISBAND_TEAM'; teamId: string };
+  | { type: 'ROSTER_DISBAND_TEAM'; teamId: string }
+  | { type: 'ROSTER_RESTORE_TEAM'; team: Team; index: number }; // Undo Disband

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
@@ -10,19 +11,23 @@ interface ConfirmationModalProps {
   onConfirm: () => void;
   title: string;
   message: string;
+  confirmLabel?: string;
+  icon?: React.ElementType;
 }
 
-export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, onClose, onConfirm, title, message }) => {
+export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ 
+  isOpen, onClose, onConfirm, title, message, confirmLabel, icon: Icon = AlertTriangle 
+}) => {
   const { t } = useTranslation();
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t('confirm.reset.title')} maxWidth="max-w-sm">
+    <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth="max-w-sm">
       <div className="flex flex-col items-center text-center space-y-6 animate-in fade-in zoom-in-95 duration-300">
         <div className="p-4 bg-rose-500/10 rounded-full text-rose-500 border border-rose-500/20 shadow-[0_0_20px_-5px_rgba(244,63,94,0.4)]">
-           <AlertTriangle size={32} strokeWidth={2.5} />
+           <Icon size={32} strokeWidth={2.5} />
         </div>
         
         <p className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
-          {t('confirm.reset.message')}
+          {message}
         </p>
 
         <div className="grid grid-cols-2 gap-3 w-full pt-2">
@@ -30,7 +35,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({ isOpen, on
              {t('confirm.cancel')}
            </Button>
            <Button variant="danger" onClick={() => { onConfirm(); onClose(); }}>
-             {t('confirm.reset.confirmButton')}
+             {confirmLabel || t('confirm.reset.confirmButton')}
            </Button>
         </div>
       </div>

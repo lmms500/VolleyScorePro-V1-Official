@@ -55,7 +55,7 @@ const GameContent = () => {
     updatePlayer, addPlayer, undoRemovePlayer, commitDeletions, 
     rotateTeams, setRotationMode, balanceTeams, savePlayerToProfile, revertPlayerChanges, upsertProfile, 
     deleteProfile, sortTeam, toggleTeamBench, substitutePlayers, deletePlayer, reorderQueue, disbandTeam,
-    batchUpdateStats, profiles
+    batchUpdateStats, profiles, restoreTeam, onRestorePlayer, resetRosters
   } = game;
 
   const { t, language } = useTranslation();
@@ -85,6 +85,7 @@ const GameContent = () => {
       skill?: SkillType;
       color?: TeamColor;
       systemIcon?: 'transfer' | 'save' | 'mic' | 'alert' | 'block' | 'undo' | 'delete' | 'add' | 'roster';
+      onUndo?: () => void;
   }>({
       visible: false, type: 'success', mainText: '', color: 'slate'
   });
@@ -463,6 +464,7 @@ const GameContent = () => {
                     deleteProfile={deleteProfile} upsertProfile={upsertProfile} profiles={game.profiles} onSortTeam={sortTeam}
                     toggleTeamBench={toggleTeamBench} substitutePlayers={substitutePlayers} matchLog={state.matchLog}
                     enablePlayerStats={state.config.enablePlayerStats} reorderQueue={reorderQueue} disbandTeam={disbandTeam}
+                    restoreTeam={restoreTeam} onRestorePlayer={(p, t, i) => onRestorePlayer && onRestorePlayer(p, t, i)} resetRosters={resetRosters}
                 />
             )}
             {state.isMatchOver && <MatchOverModal isOpen={state.isMatchOver} state={state} onRotate={rotateTeams} onReset={resetMatch} onUndo={handleUndo} />}
@@ -477,7 +479,7 @@ const GameContent = () => {
             visible={notificationState.visible} type={notificationState.type} mainText={notificationState.mainText}
             subText={notificationState.subText} teamColor={notificationState.color} skill={notificationState.skill}
             onClose={() => setNotificationState(prev => ({ ...prev, visible: false }))} isFullscreen={isFullscreen}
-            systemIcon={notificationState.systemIcon}
+            systemIcon={notificationState.systemIcon} onUndo={notificationState.onUndo}
         />
     </div>
   );

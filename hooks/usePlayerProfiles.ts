@@ -32,19 +32,38 @@ export const usePlayerProfiles = () => {
     SecureStorage.save(PROFILES_STORAGE_KEY, array);
   }, [profiles, isReady]);
 
+  const findProfileByName = useCallback((name: string): PlayerProfile | undefined => {
+    const search = name.trim().toLowerCase();
+    for (const profile of profiles.values()) {
+        if (profile.name.toLowerCase() === search) return profile;
+    }
+    return undefined;
+  }, [profiles]);
+
+  /**
+   * Smart Upsert: Creates a new profile or UPDATES an existing one if name matches.
+   * This prevents duplicates when importing/saving rosters.
+   */
   const upsertProfile = useCallback((name: string, skillLevel: number, id?: string, extras?: { number?: string, avatar?: string, role?: PlayerRole }): PlayerProfile => {
     const cleanName = name.trim();
     const now = Date.now();
     
+    // 1. Try to find existing profile by ID (Edit mode)
     let existing: PlayerProfile | undefined;
     if (id) {
         existing = profiles.get(id);
+    } 
+    
+    // 2. If no ID provided (Create mode), check if name exists to deduplicate
+    if (!existing) {
+        existing = findProfileByName(cleanName);
     }
     
     const newProfile: PlayerProfile = {
       id: existing?.id || uuidv4(),
-      name: cleanName,
+      name: cleanName, // Always use the new name (allows casing fixes)
       skillLevel: Math.min(10, Math.max(1, skillLevel)),
+      // Merge logic: Use new val if provided, else fall back to existing, else undefined
       number: extras?.number !== undefined ? extras.number : existing?.number,
       avatar: extras?.avatar !== undefined ? extras.avatar : existing?.avatar,
       role: extras?.role !== undefined ? extras.role : existing?.role,
@@ -60,12 +79,8 @@ export const usePlayerProfiles = () => {
     });
 
     return newProfile;
-  }, [profiles]);
+  }, [profiles, findProfileByName]);
 
-  /**
-   * Batch updates statistics for multiple profiles at once.
-   * Called when a match finishes to sync stats to career totals.
-   */
   const batchUpdateStats = useCallback((updates: Map<string, StatsDelta>) => {
     setProfiles((prev: Map<string, PlayerProfile>) => {
       const next = new Map(prev);
@@ -89,20 +104,16 @@ export const usePlayerProfiles = () => {
     });
   }, []);
 
-  const deleteProfile = useCallback((id: string) => {
-    setProfiles(prev => {
-      const next = new Map(prev);
-      next.delete(id);
-      return next;
-    });
-  }, []);
-
-  const findProfileByName = useCallback((name: string): PlayerProfile | undefined => {
-    const search = name.trim().toLowerCase();
-    for (const profile of profiles.values()) {
-        if (profile.name.toLowerCase() === search) return profile;
+  const deleteProfile = useCallback((id: string): PlayerProfile | undefined => {
+    const profileToDelete = profiles.get(id);
+    if (profileToDelete) {
+        setProfiles(prev => {
+          const next = new Map(prev);
+          next.delete(id);
+          return next;
+        });
     }
-    return undefined;
+    return profileToDelete;
   }, [profiles]);
 
   const getProfile = useCallback((id: string) => profiles.get(id), [profiles]);

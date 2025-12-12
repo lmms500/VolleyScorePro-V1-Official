@@ -21,6 +21,7 @@ interface NotificationToastProps {
   duration?: number;
   isFullscreen?: boolean;
   systemIcon?: 'transfer' | 'save' | 'mic' | 'alert' | 'block' | 'undo' | 'delete' | 'add' | 'roster' | 'party';
+  onUndo?: () => void; // New Prop for Undo Actions
 }
 
 const skillIcons: Record<SkillType | 'generic', any> = {
@@ -53,7 +54,7 @@ const systemIconsMap: Record<string, any> = {
 };
 
 export const NotificationToast: React.FC<NotificationToastProps> = ({ 
-  visible, type, mainText, subText, teamColor, skill, onClose, duration = 3000, isFullscreen, systemIcon
+  visible, type, mainText, subText, teamColor, skill, onClose, duration = 3000, isFullscreen, systemIcon, onUndo
 }) => {
   const onCloseRef = useRef(onClose);
 
@@ -67,14 +68,15 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
         const isThinking = mainText === "Thinking...";
         if (isThinking) return; 
 
-        const finalDuration = type === 'error' ? 4000 : duration;
+        // If Undo is available, give a bit more time to react
+        const finalDuration = (type === 'error' || onUndo) ? 5000 : duration;
         const timer = setTimeout(() => {
             onCloseRef.current();
         }, finalDuration);
 
         return () => clearTimeout(timer);
     }
-  }, [visible, duration, type, mainText]);
+  }, [visible, duration, type, mainText, onUndo]);
 
   let theme = {
       iconBg: 'bg-slate-100 dark:bg-white/10',
@@ -236,14 +238,24 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
                     </span>
                 </div>
 
-                {type === 'success' ? (
-                     <div className="shrink-0 pl-2 border-l border-black/5 dark:border-white/5 opacity-50">
-                        <span className={`text-[10px] font-black ${theme.iconColor}`}>+1</span>
-                     </div>
+                {onUndo ? (
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); onUndo(); onClose(); }}
+                        className="shrink-0 pl-3 border-l border-black/10 dark:border-white/10 flex flex-col items-center justify-center hover:opacity-70 active:scale-95 transition-all"
+                    >
+                        <RotateCcw size={14} className="text-indigo-500 dark:text-indigo-400 mb-0.5" />
+                        <span className="text-[9px] font-black uppercase tracking-wider text-indigo-500 dark:text-indigo-400">UNDO</span>
+                    </button>
                 ) : (
-                    <div className="shrink-0 pl-2 border-l border-black/5 dark:border-white/5 opacity-30 hover:opacity-100 transition-opacity">
-                        <X size={12} className="text-slate-400" />
-                    </div>
+                    type === 'success' ? (
+                         <div className="shrink-0 pl-2 border-l border-black/5 dark:border-white/5 opacity-50">
+                            <span className={`text-[10px] font-black ${theme.iconColor}`}>+1</span>
+                         </div>
+                    ) : (
+                        <div className="shrink-0 pl-2 border-l border-black/5 dark:border-white/5 opacity-30 hover:opacity-100 transition-opacity">
+                            <X size={12} className="text-slate-400" />
+                        </div>
+                    )
                 )}
 
             </div>

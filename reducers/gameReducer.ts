@@ -1,4 +1,5 @@
 
+
 import { GameState, TeamId, SetHistory, ActionLog, Team, Player, SkillType, GameAction } from '../types';
 import { SETS_TO_WIN_MATCH, MIN_LEAD_TO_WIN } from '../constants';
 import { isValidTimeoutRequest, sanitizeInput } from '../utils/security';
@@ -299,6 +300,49 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         return { ...state, teamARoster: courtA, teamBRoster: courtB, queue };
     }
 
+    case 'ROSTER_RESTORE_PLAYER': {
+        const { player, targetId, index } = action;
+        let newA = { ...state.teamARoster }, newB = { ...state.teamBRoster }, newQ = [...state.queue];
+        
+        const insert = (list: Player[]) => {
+            const copy = [...list];
+            if (index !== undefined && index >= 0 && index <= copy.length) {
+                copy.splice(index, 0, player);
+            } else {
+                copy.push(player);
+            }
+            return copy;
+        };
+
+        if (targetId === 'A' || targetId === state.teamARoster.id) {
+            newA.players = insert(newA.players);
+        } else if (targetId === 'A_Reserves') {
+            newA.reserves = insert(newA.reserves || []);
+        } else if (targetId === 'B' || targetId === state.teamBRoster.id) {
+            newB.players = insert(newB.players);
+        } else if (targetId === 'B_Reserves') {
+            newB.reserves = insert(newB.reserves || []);
+        } else {
+            // Queue restore
+            const qId = targetId.includes('_Reserves') ? targetId.split('_Reserves')[0] : targetId;
+            const qIdx = newQ.findIndex(t => t.id === qId);
+            
+            if (qIdx !== -1) {
+                const team = { ...newQ[qIdx] };
+                if (targetId.includes('_Reserves')) {
+                    team.reserves = insert(team.reserves || []);
+                } else {
+                    team.players = insert(team.players);
+                }
+                newQ[qIdx] = team;
+            } else if (targetId === 'Queue') {
+                const res = handleAddPlayer(newA, newB, newQ, player, 'Queue');
+                return { ...state, ...res };
+            }
+        }
+        return { ...state, teamARoster: newA, teamBRoster: newB, queue: newQ };
+    }
+
     case 'ROSTER_REMOVE_PLAYER': {
         const { courtA, courtB, queue } = handleRemovePlayer(state.teamARoster, state.teamBRoster, state.queue, action.playerId);
         return { ...state, teamARoster: courtA, teamBRoster: courtB, queue };
@@ -377,26 +421,12 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
     }
 
     case 'ROSTER_GENERATE': {
-        const validNames = action.names.filter(n => n.trim().length > 0);
-        
-        const allNewPlayers = validNames.map((raw, idx) => {
-            const trimmed = raw.trim();
-            const match = trimmed.match(/^(.+)\s+(10|[1-9])$/);
-            
-            let name = trimmed;
-            let skill = 5;
-            
-            if (match) {
-                name = match[1].trim();
-                skill = parseInt(match[2], 10);
-            }
-            
-            return createPlayer(name, idx, undefined, skill); 
-        });
+        // Now accepts pre-constructed Player objects from hook logic
+        const players = action.players;
         
         const cleanA = { ...state.teamARoster, players: [] };
         const cleanB = { ...state.teamBRoster, players: [] };
-        const result = distributeStandard(allNewPlayers, cleanA, cleanB, []);
+        const result = distributeStandard(players, cleanA, cleanB, []);
         
         return { 
             ...state, 
@@ -439,8 +469,6 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
 
         // Helper to perform substitution on a specific team object
         const doSubstitute = (team: Team): Team => {
-            // Only proceed if this is the target team
-            // Match against explicit ID OR logical alias (A/B)
             const isTarget = team.id === teamId || 
                              (teamId === 'A' && team.id === state.teamARoster.id) || 
                              (teamId === 'B' && team.id === state.teamBRoster.id);
@@ -524,9 +552,7 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
                 if (master.name !== p.name) changed = true;
                 if (master.skillLevel !== p.skillLevel) changed = true;
                 if (master.number && master.number !== p.number) changed = true;
-                // Specifically allow number updates even if previously undefined/empty
                 if ((master.number || '') !== (p.number || '')) changed = true;
-                // Check Role
                 if ((master.role || 'none') !== (p.role || 'none')) changed = true;
 
                 if (changed) {
@@ -563,6 +589,23 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
     case 'ROSTER_DISBAND_TEAM': {
         const newQueue = state.queue.filter(t => t.id !== action.teamId);
         return { ...state, queue: newQueue };
+    }
+
+    case 'ROSTER_RESTORE_TEAM': {
+        const { team, index } = action;
+        const newQueue = [...state.queue];
+        const safeIndex = Math.min(Math.max(0, index), newQueue.length);
+        newQueue.splice(safeIndex, 0, team);
+        return { ...state, queue: newQueue };
+    }
+
+    case 'ROSTER_RESET_ALL': {
+        return { 
+            ...state, 
+            teamARoster: { ...state.teamARoster, players: [], reserves: [] },
+            teamBRoster: { ...state.teamBRoster, players: [], reserves: [] },
+            queue: []
+        };
     }
 
     case 'ROSTER_ENSURE_TEAM_IDS': {
