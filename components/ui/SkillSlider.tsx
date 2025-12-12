@@ -21,7 +21,6 @@ export const SkillSlider: React.FC<SkillSliderProps> = memo(({ level, onChange, 
   const [isExpanded, setIsExpanded] = useState(false);
   const [position, setPosition] = useState<{ top: number, left: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const sliderRef = useRef<HTMLDivElement>(null);
 
   // 1. Semantic Color Logic
   const getSkillColor = (val: number) => {
@@ -32,32 +31,19 @@ export const SkillSlider: React.FC<SkillSliderProps> = memo(({ level, onChange, 
 
   const currentColor = getSkillColor(level);
 
-  // 2. Dismiss on Interaction (Click Outside or Scroll)
+  // 2. Dismiss on Interaction (Scroll)
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
-      if (
-          containerRef.current && !containerRef.current.contains(event.target as Node) &&
-          sliderRef.current && !sliderRef.current.contains(event.target as Node)
-      ) {
-        setIsExpanded(false);
-      }
-    };
-
     const handleScrollDismiss = () => {
         if (isExpanded) setIsExpanded(false);
     };
     
     if (isExpanded) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
       // Listen for the custom event dispatched by TeamManagerModal lists
       window.addEventListener('team-manager-scroll', handleScrollDismiss);
       window.addEventListener('scroll', handleScrollDismiss, { capture: true }); // Global capture as backup
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
       window.removeEventListener('team-manager-scroll', handleScrollDismiss);
       window.removeEventListener('scroll', handleScrollDismiss, { capture: true });
     };
@@ -92,13 +78,24 @@ export const SkillSlider: React.FC<SkillSliderProps> = memo(({ level, onChange, 
     onChange(Number(e.target.value));
   };
 
+  const handleBackdropClick = (e: React.MouseEvent | React.TouchEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      setIsExpanded(false);
+  };
+
+  // Stop drag propagation to parent Sortable item
+  const handlePointerDown = (e: React.PointerEvent) => {
+      e.stopPropagation();
+  };
+
   return (
     <>
         <div 
             ref={containerRef} 
             className="relative flex items-center justify-center w-12 h-10 p-1 cursor-pointer"
             onClick={(e) => e.stopPropagation()}
-            onPointerDown={(e) => e.stopPropagation()}
+            onPointerDown={handlePointerDown}
         >
             <motion.button
                 initial={false}
@@ -118,70 +115,79 @@ export const SkillSlider: React.FC<SkillSliderProps> = memo(({ level, onChange, 
         </div>
 
         {isExpanded && position && createPortal(
-            <div 
-                className="fixed z-[9999]"
-                style={{ 
-                    top: position.top, 
-                    left: position.left,
-                    transform: 'translate(-50%, -50%)', // Perfect centering
-                    width: 'max-content'
-                }}
-            >
-                <AnimatePresence>
-                    <motion.div
-                        ref={sliderRef}
-                        initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.8, y: 5 }}
-                        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                        className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-full px-5 py-3 shadow-2xl border border-black/10 dark:border-white/10 ring-1 ring-black/5"
-                        style={{ minWidth: '220px' }}
-                        onPointerDown={(e) => e.stopPropagation()}
-                    >
-                        <span 
-                            className="text-lg font-black w-8 text-center" 
-                            style={{ color: currentColor }}
+            <>
+                {/* Backdrop to prevent interaction with other elements */}
+                <div 
+                    className="fixed inset-0 z-[9998] bg-transparent" 
+                    onMouseDown={handleBackdropClick}
+                    onTouchStart={handleBackdropClick}
+                />
+                
+                <div 
+                    className="fixed z-[9999]"
+                    style={{ 
+                        top: position.top, 
+                        left: position.left,
+                        transform: 'translate(-50%, -50%)', // Perfect centering
+                        width: 'max-content'
+                    }}
+                >
+                    <AnimatePresence>
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.8, y: 5 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                            className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-full px-5 py-3 shadow-2xl border border-black/10 dark:border-white/10 ring-1 ring-black/5"
+                            style={{ minWidth: '220px' }}
+                            onPointerDown={handlePointerDown}
                         >
-                            {level}
-                        </span>
-                        
-                        {/* Custom Gradient Slider Track */}
-                        <div className="relative flex-1 h-6 flex items-center">
-                            <input
-                                type="range"
-                                min="1"
-                                max="10"
-                                step="1"
-                                value={level}
-                                onChange={handleSliderChange}
-                                className="relative z-10 w-full h-6 opacity-0 cursor-pointer"
-                            />
+                            <span 
+                                className="text-lg font-black w-8 text-center" 
+                                style={{ color: currentColor }}
+                            >
+                                {level}
+                            </span>
                             
-                            {/* Track Background */}
-                            <div className="absolute top-1/2 left-0 w-full h-2 -translate-y-1/2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                {/* Fill Bar */}
+                            {/* Custom Gradient Slider Track */}
+                            <div className="relative flex-1 h-6 flex items-center">
+                                <input
+                                    type="range"
+                                    min="1"
+                                    max="10"
+                                    step="1"
+                                    value={level}
+                                    onChange={handleSliderChange}
+                                    onPointerDown={handlePointerDown}
+                                    className="relative z-10 w-full h-6 opacity-0 cursor-pointer touch-none"
+                                />
+                                
+                                {/* Track Background */}
+                                <div className="absolute top-1/2 left-0 w-full h-2 -translate-y-1/2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                    {/* Fill Bar - Instant update (no transition) for responsiveness */}
+                                    <div 
+                                        className="h-full rounded-full"
+                                        style={{
+                                            width: `${(level / 10) * 100}%`,
+                                            backgroundColor: currentColor
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Thumb Mockup - Instant update (no transition) for responsiveness */}
                                 <div 
-                                    className="h-full rounded-full transition-all duration-100"
+                                    className="absolute top-1/2 h-5 w-5 bg-white border-2 rounded-full shadow-md pointer-events-none flex items-center justify-center"
                                     style={{
-                                        width: `${(level / 10) * 100}%`,
-                                        backgroundColor: currentColor
+                                        left: `calc(${(level / 10) * 100}% - 10px)`, // Simple offset approximation
+                                        borderColor: currentColor,
+                                        transform: 'translateY(-50%)'
                                     }}
                                 />
                             </div>
-
-                            {/* Thumb Mockup (Visual only, follows calculation) */}
-                            <div 
-                                className="absolute top-1/2 h-5 w-5 bg-white border-2 rounded-full shadow-md pointer-events-none transition-all duration-100"
-                                style={{
-                                    left: `calc(${(level / 10) * 100}% - 10px)`, // Simple offset approximation
-                                    borderColor: currentColor,
-                                    transform: 'translateY(-50%)'
-                                }}
-                            />
-                        </div>
-                    </motion.div>
-                </AnimatePresence>
-            </div>,
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
+            </>,
             document.body
         )}
     </>

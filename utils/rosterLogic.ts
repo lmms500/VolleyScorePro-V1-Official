@@ -1,5 +1,4 @@
 
-
 import { Team, Player, RotationReport, DeletedPlayerRecord, RotationMode } from '../types';
 import { PLAYER_LIMIT_ON_COURT, PLAYERS_PER_TEAM } from '../constants';
 import { balanceTeamsSnake, distributeStandard, getStandardRotationResult, getBalancedRotationResult } from './balanceUtils';
@@ -70,10 +69,22 @@ export const handleAddPlayer = (
         return team;
     };
 
-    if (targetId === 'A') return { courtA: addToTeamSmart(courtA), courtB, queue };
-    if (targetId === 'B') return { courtA, courtB: addToTeamSmart(courtB), queue };
-    if (targetId === 'A_Reserves') return { courtA: addToReservesDirect(courtA), courtB, queue };
-    if (targetId === 'B_Reserves') return { courtA, courtB: addToReservesDirect(courtB), queue };
+    // FIX: Check against Team ID property, not just literal 'A'/'B'
+    // This handles cases where teams have UUIDs but are currently sitting in Court A/B slots
+    if (targetId === 'A' || targetId === courtA.id) {
+        return { courtA: addToTeamSmart(courtA), courtB, queue };
+    }
+    if (targetId === 'B' || targetId === courtB.id) {
+        return { courtA, courtB: addToTeamSmart(courtB), queue };
+    }
+
+    // Explicit Reserves Targeting
+    if (targetId === 'A_Reserves' || targetId === `${courtA.id}_Reserves`) {
+        return { courtA: addToReservesDirect(courtA), courtB, queue };
+    }
+    if (targetId === 'B_Reserves' || targetId === `${courtB.id}_Reserves`) {
+        return { courtA, courtB: addToReservesDirect(courtB), queue };
+    }
 
     // Queue Logic
     if (targetId.endsWith('_Reserves')) {
