@@ -15,6 +15,8 @@ export const DEFAULT_CONFIG: GameConfig = {
   voiceControlEnabled: false,
   announceScore: false,
   voiceGender: 'female',
+  voiceRate: 1.0,
+  voicePitch: 1.0,
   announcementFreq: 'all',
   lowGraphics: false,
   reducedMotion: false

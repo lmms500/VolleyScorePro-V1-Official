@@ -56,6 +56,8 @@ export interface GameConfig {
   voiceControlEnabled: boolean; // Voice Control Feature Toggle
   announceScore: boolean; // New: TTS Score Announcement
   voiceGender: 'male' | 'female'; // New: TTS Voice Preference
+  voiceRate: number; // New: TTS Speed (0.5 - 2.0)
+  voicePitch: number; // New: TTS Pitch (0.5 - 2.0)
   announcementFreq: 'all' | 'critical_only'; // New: TTS Verbosity
   lowGraphics: boolean; // Optimization for low-end devices
   reducedMotion: boolean; // Disable non-essential animations
@@ -79,6 +81,7 @@ export interface Team {
   id: string; 
   name: string;
   color: TeamColor; // New visual property
+  logo?: string; // Base64 Image String
   players: Player[];
   reserves: Player[]; // Bench players
   hasActiveBench?: boolean; // Controls if knockout sends to reserves or global queue
@@ -202,6 +205,7 @@ export type GameAction =
   // ROSTER ACTIONS
   | { type: 'ROSTER_UPDATE_TEAM_NAME'; teamId: string; name: string }
   | { type: 'ROSTER_UPDATE_TEAM_COLOR'; teamId: string; color: TeamColor }
+  | { type: 'ROSTER_UPDATE_TEAM_LOGO'; teamId: string; logo: string } // NEW
   | { type: 'ROSTER_UPDATE_PLAYER'; playerId: string; updates: Partial<Player> }
   | { type: 'ROSTER_ADD_PLAYER'; player: Player; targetId: string }
   | { type: 'ROSTER_RESTORE_PLAYER'; player: Player; targetId: string; index?: number }

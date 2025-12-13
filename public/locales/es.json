@@ -1,43 +1,55 @@
+
 {
   "app": {
     "loading": "Cargando..."
   },
+  "announcer": {
+    "matchPoint": "Match point {team}.",
+    "setPoint": "Set point {team}.",
+    "suddenDeath": "¡Muerte Súbita!",
+    "deuce": "Deuce.",
+    "serving": "{scoreA} saca {scoreB}",
+    "tied": "{scoreA} iguales",
+    "winner": "Set {team}",
+    "matchWon": "Victoria {team}",
+    "timeout": "Tiempo {team}"
+  },
   "common": {
     "done": "Listo",
     "full": "Lleno",
-    "add": "Añadir",
+    "add": "Add",
     "cancel": "Cancelar",
     "save": "Guardar",
     "back": "Volver",
     "create": "Crear",
     "empty": "Vacío",
-    "step": "Paso {number}"
+    "step": "{number}"
   },
   "controls": {
     "undo": "Deshacer",
-    "swap": "Cambiar Lados",
+    "swap": "Lados",
     "teams": "Equipos",
     "settings": "Ajustes",
     "history": "Historial",
     "fullscreen": "Pantalla Completa",
-    "exitFullscreen": "Salir Pantalla Completa",
-    "reset": "Reiniciar Partido",
-    "voiceControl": "Control por Voz"
+    "exitFullscreen": "Salir",
+    "reset": "Reiniciar",
+    "voiceControl": "Voz"
   },
   "game": {
-    "serving": "Sirviendo",
+    "serving": "Sacando",
     "matchPoint": "Match Point",
     "setPoint": "Set Point",
     "deuce": "Deuce",
     "suddenDeath": "Muerte Súbita",
     "tieBreak": "Tie Break",
     "timeout": "TIEMPO",
-    "useTimeout": "Usar Tiempo Fuera",
+    "useTimeout": "Pedir Tiempo",
     "menu": "Menú"
   },
   "status": {
     "sudden_death": "MUERTE SÚBITA",
-    "deuce_advantage": "VENTAJA DEUCE",
+    "deuce_advantage": "VENTAJA",
     "golden_point": "PUNTO DE ORO",
     "match_point": "MATCH POINT",
     "set_point": "SET POINT",
@@ -48,7 +60,7 @@
     "hitter": "Rematador",
     "libero": "Líbero",
     "middle": "Central",
-    "none": "Ninguno",
+    "none": "-",
     "abbr": {
       "setter": "Arm",
       "hitter": "Rem",
@@ -57,56 +69,57 @@
     }
   },
   "easterEgg": {
-    "title": "¡Es broma! ¡Disfruta! 🎉",
-    "subtitle": "¿Modo Desarrollador? Nop."
+    "title": "¡Fiesta! 🎉",
+    "subtitle": "Easter egg."
   },
   "validation": {
-    "numberConflict": "El número {number} ya pertenece a {name}.",
-    "numberAssigned": "El número {number} ya está asignado.",
-    "uniqueConstraint": "Número duplicado o límite alcanzado."
+    "numberConflict": "Número {number} ocupado por {name}.",
+    "numberAssigned": "{number} ya asignado.",
+    "uniqueConstraint": "Duplicado."
   },
   "notifications": {
-    "matchSaved": "Partido Guardado",
-    "matchSavedSub": "Historial actualizado",
-    "actionUndone": "Acción Deshecha",
-    "actionUndoneSub": "Última acción revertida",
-    "sidesSwapped": "Lados Cambiados",
-    "sidesSwappedSub": "Equipos cambiaron de cancha",
-    "pointRemoved": "Punto Quitado",
+    "matchSaved": "Guardado",
+    "matchSavedSub": "Historial ok",
+    "actionUndone": "Deshecho",
+    "actionUndoneSub": "Revertido",
+    "sidesSwapped": "Cambiado",
+    "sidesSwappedSub": "Lados invertidos",
+    "pointRemoved": "Quitado",
     "pointRemovedSub": "Corrección",
-    "timeoutCalled": "Tiempo Solicitado",
-    "timeoutCalledSub": "Por {teamName}",
-    "serveChange": "Cambio de Saque",
-    "serveChangeSub": "Sacando: {teamName}",
-    "micError": "Error de Micrófono",
-    "accessDenied": "Acceso Denegado",
-    "networkError": "Error de Red",
-    "notUnderstood": "No Entendido",
+    "timeoutCalled": "Tiempo",
+    "timeoutCalledSub": "{teamName}",
+    "serveChange": "Cambio Saque",
+    "serveChangeSub": "{teamName}",
+    "micError": "Error Mic",
+    "accessDenied": "Denegado",
+    "networkError": "Error Red",
+    "notUnderstood": "?",
     "thinking": "Pensando...",
-    "aiProcessing": "Procesando IA",
-    "forTeam": "Para {teamName}",
-    "profileSynced": "Perfil Sincronizado",
-    "profileUpToDate": "Ya está actualizado",
-    "numberUnavailable": "Número No Disponible",
-    "cannotAdd": "No se puede añadir",
-    "finishEditing": "Terminar Edición",
-    "finishEditingSub": "Por favor, corrija el número inválido antes de editar otro.",
-    "saveFailed": "Error al Guardar",
-    "numberConflict": "Conflicto de Número",
-    "teamFull": "Equipo Lleno",
-    "teamFullSub": "Active la Banca para añadir más jugadores"
+    "aiProcessing": "IA...",
+    "forTeam": "{teamName}",
+    "profileSynced": "Sincronizado",
+    "profileUpToDate": "Actualizado",
+    "numberUnavailable": "Ocupado",
+    "cannotAdd": "Error",
+    "finishEditing": "Termine",
+    "finishEditingSub": "Corrija número.",
+    "saveFailed": "Error",
+    "numberConflict": "Conflicto",
+    "teamFull": "Lleno",
+    "teamFullSub": "Use Banca",
+    "ambiguous": "Ambiguo"
   },
   "settings": {
-    "title": "Configuración",
+    "title": "Ajustes",
     "sections": {
-      "presets": "Preajustes Rápidos",
-      "coreRules": "Reglas Principales",
-      "tieBreakDeuce": "Tie Break & Deuce",
-      "visuals": "Visuales",
-      "audio": "Audio e Inteligencia",
-      "sync": "Sincronización Nube",
-      "ai": "Inteligencia Gemini",
-      "install": "Instalación y Actualizaciones"
+      "presets": "Presets",
+      "coreRules": "Reglas",
+      "tieBreakDeuce": "Final",
+      "visuals": "Visual",
+      "audio": "Audio",
+      "sync": "Sync",
+      "ai": "Gemini AI",
+      "install": "Sistema"
     },
     "appearance": {
       "title": "Apariencia",
@@ -116,210 +129,213 @@
         "light": "Claro",
         "dark": "Oscuro"
       },
-      "lowPower": "Modo Ahorro",
-      "lowPowerSub": "Reducir desenfoque y animaciones"
+      "lowPower": "Modo Eco",
+      "lowPowerSub": "Menos efectos",
+      "reducedMotion": "Reducir Movimiento",
+      "reducedMotionSub": "Menos animación"
     },
     "rules": {
-      "title": "Reglas del Partido",
-      "gameMode": "Modo de Juego",
+      "title": "Reglas",
+      "gameMode": "Modo",
       "modes": {
         "indoor": "Pista",
         "beach": "Playa"
       },
-      "setsToPlay": "Sets a Jugar",
-      "pointsPerSet": "Puntos por Set",
-      "tieBreak": "Tie Break (Set Final)",
-      "tieBreakTo15": "a 15 pts",
-      "tieBreakTo25": "a 25 pts",
-      "deuceLogic": "Lógica de Iguales",
-      "deuceStandard": "Ventaja de 2",
-      "deuceSuddenDeath": "Muerte Súbita (3pts)"
+      "setsToPlay": "Sets",
+      "pointsPerSet": "Puntos",
+      "tieBreak": "Tie Break",
+      "tieBreakTo15": "15 pts",
+      "tieBreakTo25": "25 pts",
+      "deuceLogic": "Deuce",
+      "deuceStandard": "+2 Ventaja",
+      "deuceSuddenDeath": "Muerte Súbita"
     },
     "audio": {
-      "soundEffects": "Efectos de Sonido",
+      "soundEffects": "SFX",
       "announcer": "Narrador",
-      "tts": "Texto a Voz",
+      "tts": "Voz",
       "gender": {
         "male": "Masc",
         "female": "Fem"
       },
       "freq": {
         "always": "Siempre",
-        "critical": "Solo Críticos"
+        "critical": "Crítico"
       },
-      "voiceControl": "Control por Voz (Beta)",
+      "voiceControl": "Comando Voz",
       "voiceControlSub": "Habla para anotar"
     },
     "game": {
       "scoutMode": "Modo Scout",
-      "scoutModeSub": "Seguir estadísticas"
+      "scoutModeSub": "Estadísticas"
     },
     "account": {
-      "signInGoogle": "Acceder con Google"
+      "signInGoogle": "Google Login"
     },
     "backup": {
-        "title": "Copia de Seguridad",
-        "backupBtn": "Respaldo en Nube",
-        "restoreBtn": "Restaurar Datos",
-        "description": "Sincroniza tu historial y ajustes."
+        "title": "Respaldo",
+        "backupBtn": "Backup",
+        "restoreBtn": "Restaurar",
+        "description": "Sincronizar.",
+        "resetTutorials": "Reset Tips"
     },
     "ai": {
-      "apiKey": "Clave API (Opcional)",
-      "placeholder": "Pega tu clave Gemini aquí...",
-      "help": "Requerido para comandos ilimitados.",
-      "getKey": "Obtener Clave"
+      "apiKey": "API Key",
+      "placeholder": "Clave...",
+      "help": "Para voz avanzada.",
+      "getKey": "Obtener"
     },
     "install": {
-      "installNow": "Instalar Ahora",
+      "installNow": "Instalar",
       "version": "Versión",
-      "updateAvailable": "Actualización Disponible",
+      "updateAvailable": "¡Actualizar!",
       "upToDate": "Actualizado",
       "update": "Actualizar",
       "check": "Buscar",
-      "native": "Versión Nativa"
+      "native": "Nativo"
     },
-    "applyChanges": "Aplicar Cambios",
-    "applyAndReset": "Aplicar y Reiniciar Partido",
-    "resetWarning": "Se reiniciará el marcador",
-    "warningTitle": "Partido en Progreso",
-    "warningMessage": "Cambiar las reglas ahora reiniciará el marcador actual."
+    "applyChanges": "Aplicar",
+    "applyAndReset": "Aplicar y Reiniciar",
+    "resetWarning": "Reinicia puntos",
+    "warningTitle": "En Juego",
+    "warningMessage": "Reiniciará el marcador."
   },
   "presets": {
     "fivb": {
-      "label": "Indoor (FIVB)",
+      "label": "Indoor",
       "sub": "5 Sets • 25 Pts"
     },
     "beach": {
-      "label": "Vóley Playa",
+      "label": "Playa",
       "sub": "3 Sets • 21 Pts"
     },
     "custom": {
-      "label": "Partido Personalizado",
-      "sub": "1 Set • 15 Pts • Muerte Súbita"
+      "label": "Custom",
+      "sub": "1 Set • 15 Pts"
     }
   },
   "matchOver": {
-    "title": "Resultado del Partido",
-    "wins": "Gana el Partido",
-    "nextGameButton": "Iniciar Siguiente Partido",
-    "share": "Compartir",
-    "generating": "Creando Imagen...",
+    "title": "Resultado",
+    "wins": "Ganador",
+    "nextGameButton": "Siguiente",
+    "share": "Enviar",
+    "generating": "Creando...",
     "rotationReport": {
-      "title": "Reporte de Rotación",
+      "title": "Rotación",
       "entering": "Entra: {teamName}",
       "leaving": "Sale",
-      "newSize": "Nuevo Tamaño de Plantilla",
-      "players": "{count} Jugadores",
-      "coreSquad": "Equipo Principal (Cola)",
-      "none": "Ninguno",
-      "reinforcements": "Refuerzos",
-      "source": "Robados / Reciclados"
+      "newSize": "Tam",
+      "players": "{count}",
+      "coreSquad": "Base",
+      "none": "-",
+      "reinforcements": "Adds",
+      "source": "Robados"
     },
-    "debugLogs": "Registros de Lógica de Rotación"
+    "debugLogs": "Logs"
   },
   "teamManager": {
-    "title": "Gestión de Equipos",
+    "title": "Plantillas",
     "teamLabel": "Equipo",
-    "benchLabel": "Banca de Reservas",
-    "queue": "Cola de Espera",
-    "queueEmpty": "Cola vacía",
-    "dragPlayersHere": "Arrastra jugadores aquí",
-    "addPlayerPlaceholder": "Nombre del jugador...",
-    "addPlayerQueue": "Añadir a Cola",
-    "searchQueue": "Buscar en cola...",
-    "rosterFull": "Plantilla Llena",
-    "rosterFullSub": "Sin espacio en Equipo o Banca",
+    "benchLabel": "Banca",
+    "queue": "Cola",
+    "queueEmpty": "Vacía",
+    "dragPlayersHere": "Soltar aquí",
+    "addPlayerPlaceholder": "Nombre...",
+    "addPlayerQueue": "Add Cola",
+    "searchQueue": "Buscar...",
+    "rosterFull": "Lleno",
+    "rosterFullSub": "Sin espacio",
     "benchFull": "Banca Llena",
-    "benchFullSub": "Sin espacio para más reservas",
-    "movedToBench": "Movido a la Banca",
-    "movedToBenchSub": "Equipo Principal Lleno",
-    "playerRemoved": "Jugador eliminado",
+    "benchFullSub": "Sin espacio",
+    "movedToBench": "A Banca",
+    "movedToBenchSub": "Equipo Lleno",
+    "playerRemoved": "Eliminado",
     "undo": "DESHACER",
-    "activateBenchTitle": "¿Activar Banca?",
-    "activateBenchMsg": "La Banca de Reservas está desactivada.",
-    "activateBenchConfirm": "¿Quieres activar la Banca y mover al jugador allí?",
-    "teamFullTitle": "Equipo Lleno",
-    "teamFullMsg": "La plantilla principal está llena (6 jugadores).",
-    "teamFullConfirm": "¿Activar la Banca y mover al jugador allí?",
-    "btnActivateBench": "Activar y Mover",
-    "btnYesBench": "Sí, Mover a Banca",
+    "activateBenchTitle": "¿Usar Banca?",
+    "activateBenchMsg": "Banca desactivada.",
+    "activateBenchConfirm": "¿Activar y mover?",
+    "teamFullTitle": "Lleno",
+    "teamFullMsg": "Equipo principal lleno.",
+    "teamFullConfirm": "¿Mover a Banca?",
+    "btnActivateBench": "Activar",
+    "btnYesBench": "Mover",
     "sort": {
       "label": "Ordenar",
       "name": "Nombre",
-      "number": "Número",
-      "skill": "Nivel",
-      "reset": "Restaurar Orden",
+      "number": "#",
+      "skill": "Skill",
+      "reset": "Reset",
       "asc": "↑",
       "desc": "↓"
     },
     "queueActions": {
-      "title": "Acciones de Cola",
-      "moveToTop": "Mover al Inicio",
+      "title": "Acciones",
+      "moveToTop": "Inicio",
       "moveUp": "Subir",
       "moveDown": "Bajar",
-      "disband": "Disolver Equipo"
+      "disband": "Disolver"
     },
     "menu": {
-      "returnCourt": "Volver a Cancha",
-      "sendBench": "Enviar a Banca",
-      "lock": "Fijar Jugador",
-      "unlock": "Desfijar Jugador",
-      "delete": "Eliminar"
+      "returnCourt": "A Cancha",
+      "sendBench": "A Banca",
+      "lock": "Fijar",
+      "unlock": "Liberar",
+      "delete": "Borrar"
     },
     "tabs": {
       "roster": "Plantilla",
       "profiles": "Perfiles",
-      "batch": "Por Lotes"
+      "batch": "Lote"
     },
     "modes": {
-      "standard": "Estándar",
-      "standardTooltip": "Ganador se Queda, Perdedor al Final.",
-      "balanced": "Equilibrado",
-      "balancedTooltip": "Ganador se Queda, Equipos Reequilibrados."
+      "standard": "Std",
+      "standardTooltip": "Ganador Se Queda",
+      "balanced": "Bal",
+      "balancedTooltip": "Balanceado por Skill"
     },
     "batch": {
-      "tipTitle": "Consejo Pro:",
-      "tipFormat": "Formato: Nombre Nivel (ej: \"Juan 8\")",
-      "tipDesc": "Si pones el nivel (1-10), se ajusta automático. Por defecto es 5.",
-      "placeholder": "Juan Pérez\nMaría García 8\nPedro 4",
-      "generate": "Generar Equipos"
+      "tipTitle": "Tip:",
+      "tipFormat": "\"Nombre 8\" fija skill.",
+      "tipDesc": "",
+      "placeholder": "Nombre\nNombre 8",
+      "generate": "Generar"
     },
     "profiles": {
-      "empty": "No hay perfiles guardados aún.",
-      "noMatch": "No hay perfiles para \"{term}\"",
-      "assign": "Asignar a Equipo",
+      "empty": "Vacío.",
+      "noMatch": "Sin resultado.",
+      "assign": "Asignar",
       "inGame": "En Juego"
     },
     "actions": {
-      "addTo": "Añadir a",
-      "addToQueue": "Añadir a Cola",
-      "globalBalance": "Balance Global",
-      "restoreOrder": "Restaurar Orden"
+      "addTo": "Add a",
+      "addToQueue": "Add Cola",
+      "globalBalance": "Balancear",
+      "restoreOrder": "Reset Orden"
     },
     "location": {
       "courtA": "Cancha A",
       "courtB": "Cancha B",
       "queue": "Cola"
     },
-    "generateTeams": "Generar Equipos"
+    "generateTeams": "Generar"
   },
   "substitution": {
-    "title": "Cambios Tácticos",
-    "subtitle": "Toca Jugador de Cancha y luego Reserva.",
-    "outCourt": "Sale (Cancha)",
-    "inBench": "Entra (Banca)",
-    "emptyCourt": "Cancha Vacía",
+    "title": "Cambios",
+    "subtitle": "Toca Cancha luego Banca.",
+    "outCourt": "Sale",
+    "inBench": "Entra",
+    "emptyCourt": "Vacío",
     "emptyBench": "Vacío",
-    "confirm": "Confirmar {count} Cambios",
-    "select": "Seleccionar Jugadores"
+    "confirm": "Confirmar {count}",
+    "select": "Seleccione"
   },
   "scout": {
-    "step1": "Paso 1",
-    "step2": "Paso 2",
-    "whoScored": "¿Quién Anotó?",
-    "selectAction": "¿Qué Acción?",
-    "unknownPlayer": "Jugador Desconocido",
-    "back": "Volver a Jugadores",
+    "step1": "Anotador",
+    "step2": "Acción",
+    "whoScored": "¿Quién?",
+    "selectAction": "¿Qué?",
+    "unknownPlayer": "Desconocido",
+    "back": "Volver",
     "skills": {
       "attack": "Ataque",
       "block": "Bloqueo",
@@ -327,150 +343,175 @@
       "opponent_error": "Error Rival"
     },
     "labels": {
-      "attack": "Punto de Ataque",
-      "block": "Bloqueo Ganador",
-      "ace": "Ace de Saque",
-      "opponent_error": "Error Oponente",
-      "generic": "Punto Añadido"
+      "attack": "Ataque",
+      "block": "Block",
+      "ace": "Ace",
+      "opponent_error": "Error",
+      "generic": "Punto"
     }
   },
   "profile": {
-    "createTitle": "Crear Perfil",
-    "editTitle": "Editar Perfil",
-    "namePlaceholder": "Nombre del Jugador",
-    "numberPlaceholder": "Camiseta #",
-    "skillLevel": "Nivel de Habilidade",
-    "rookie": "Novato",
+    "createTitle": "Nuevo Perfil",
+    "editTitle": "Editar",
+    "namePlaceholder": "Nombre",
+    "numberPlaceholder": "#",
+    "skillLevel": "Skill",
+    "rookie": "Nuevo",
     "pro": "Pro",
     "save": "Guardar",
     "create": "Crear"
   },
   "stats": {
-    "matchAnalysis": "Análisis del Partido",
-    "finalScore": "Marcador Final",
-    "momentum": "Flujo del Juego",
+    "matchAnalysis": "Análisis",
+    "finalScore": "Final",
+    "momentum": "Flujo",
     "lead": "Ventaja",
-    "teamStats": "Estadísticas de Equipo",
-    "attackPoints": "Puntos de Ataque",
-    "killBlocks": "Bloqueos",
+    "teamStats": "Stats",
+    "attackPoints": "Ataques",
+    "killBlocks": "Blocks",
     "serviceAces": "Aces",
-    "oppErrors": "Errores del Rival",
-    "topScorers": "Máximos Anotadores",
-    "mvp": "MVP del Partido",
-    "points": "Puntos",
-    "notEnoughData": "Datos insuficientes para gráfica",
+    "oppErrors": "Err Rival",
+    "topScorers": "Top",
+    "mvp": "MVP",
+    "points": "Pts",
+    "notEnoughData": "Sin datos",
     "matches": "Partidos",
     "sets": "Sets",
-    "conceded": "Recibidos"
+    "conceded": "Contra"
   },
   "historyList": {
-    "title": "Historial de Partidos",
-    "empty": "No hay partidos guardados todavía.",
-    "searchPlaceholder": "Buscar equipos...",
+    "title": "Historial",
+    "empty": "Vacío.",
+    "searchPlaceholder": "Buscar...",
     "filters": {
       "all": "Todos",
-      "winnerA": "Ganador: Equipo A",
-      "winnerB": "Ganador: Equipo B",
-      "scouted": "Con Estadísticas"
+      "winnerA": "Ganó A",
+      "winnerB": "Ganó B",
+      "scouted": "Stats"
     },
     "sort": {
-      "newest": "Más Recientes",
-      "oldest": "Más Antiguos",
-      "longest": "Mayor Duración",
-      "shortest": "Menor Duración"
+      "newest": "Recientes",
+      "oldest": "Antiguos",
+      "longest": "Largos",
+      "shortest": "Cortos"
     },
     "export": {
-      "json": "JSON (Copia)",
-      "csv": "CSV (Excel)"
+      "json": "JSON",
+      "csv": "CSV"
     },
     "import": "Importar",
-    "delete": "Eliminar",
-    "analysis": "Análisis",
-    "importSuccess": "¡Historial importado con éxito!",
-    "importError": "Formato de archivo inválido."
+    "delete": "Borrar",
+    "analysis": "Ver",
+    "importSuccess": "¡Importado!",
+    "importError": "Error."
   },
   "history": {
-    "setLabel": "Set {setNumber}"
+    "setLabel": "S{setNumber}"
   },
   "voice": {
-    "title": "Comandos de Voz",
-    "intro": "Di el nombre del Equipo o Jugador para sumar puntos. ¡El sistema aprende los nombres que escribiste!",
-    "thinking": "Pensando...",
-    "processing": "Procesando IA",
+    "title": "Voz",
+    "intro": "Diga Nombre o Equipo.",
+    "thinking": "...",
+    "processing": "IA...",
     "sections": {
-      "basic": "Puntuación Básica",
-      "stats": "Estadísticas (Scout)",
+      "basic": "Básico",
+      "stats": "Stats",
       "controls": "Control"
     },
     "commands": {
-      "pointA": "Punto Equipo A",
-      "pointA_desc": "Suma punto al local",
-      "pointDynamic": "Punto [Nombre Equipo]",
-      "pointDynamic_desc": "Usa nombre dinámico",
-      "remove": "Quitar punto",
-      "remove_desc": "Resta al último mencionado",
-      "pointPlayer": "Punto de Juan",
-      "pointPlayer_desc": "Punto genérico",
-      "ace": "Ace de Juan",
-      "ace_desc": "Punto de Saque",
-      "block": "Bloqueo Pedro",
-      "block_desc": "Punto de Bloqueo",
+      "pointA": "Punto A",
+      "pointA_desc": "Punto local",
+      "pointDynamic": "Punto [Equipo]",
+      "pointDynamic_desc": "Por nombre",
+      "remove": "Quitar",
+      "remove_desc": "Deshacer punto",
+      "pointPlayer": "Punto Juan",
+      "pointPlayer_desc": "Genérico",
+      "ace": "Ace Juan",
+      "ace_desc": "Ace",
+      "block": "Block Pedro",
+      "block_desc": "Bloqueo",
       "attack": "Ataque Lucas",
-      "attack_desc": "Punto de Ataque",
-      "undo": "Deshacer / Volver",
-      "undo_desc": "Revierte última acción",
-      "timeout": "Tiempo / Pausa",
-      "timeout_desc": "Pide tiempo fuera",
-      "serve": "Cambio de Saque",
-      "serve_desc": "Solo cambia posesión"
+      "attack_desc": "Ataque",
+      "undo": "Deshacer",
+      "undo_desc": "Volver",
+      "timeout": "Tiempo",
+      "timeout_desc": "Pausa",
+      "serve": "Saque",
+      "serve_desc": "Cambiar"
     }
   },
   "tutorial": {
     "header": "Bienvenido",
     "next": "Siguiente",
+    "skip": "Saltar",
+    "start": "Iniciar",
     "welcome": {
-      "title": "Bienvenido a VolleyScore Pro",
-      "desc": "El marcador profesional definitivo para entusiastas del vóley y árbitros."
+      "title": "VolleyScore Pro",
+      "desc": "Marcador profesional.",
+      "optIn": "Saltar si deseas."
     },
     "gestures": {
-      "title": "Gestos Inteligentes",
-      "desc": "Toca en el marcador para AÑADIR punto. Desliza hacia abajo para RESTAR."
+      "title": "Gestos",
+      "desc": "Toca para Add. Desliza para Deshacer."
     },
     "features": {
-      "title": "Control Total",
-      "desc": "Gestiona rotaciones, sustituciones, tiempos y el historial desde la barra de control."
+      "title": "Control",
+      "desc": "Rotación, Subs y Stats."
+    },
+    "manager": {
+        "welcome": "Plantillas",
+        "welcomeDesc": "Gestiona Equipos y Colas.",
+        "roster": "Equipo y Banca",
+        "rosterDesc": "6 en Cancha. Activa Banca para reservas.",
+        "queue": "Cola",
+        "queueDesc": "Lista de espera.",
+        "rotation": "Rotación",
+        "rotationDesc": "Estándar o Balanceada."
+    },
+    "history": {
+        "welcome": "Historial",
+        "welcomeDesc": "Revisa y Analiza.",
+        "timeline": "Línea Tiempo",
+        "timelineDesc": "Momentos clave.",
+        "stats": "Modo Scout",
+        "statsDesc": "Activa para Kills/Blocks.",
+        "statsFeedback": "Feedback visual confirma estadística guardada.",
+        "feedback": "Confirmación",
+        "export": "Exportar",
+        "exportDesc": "Imagen o CSV."
     },
     "install": {
-      "title": "Instalar App",
-      "installed": "¡Todo listo! La app está instalada y lista para uso sin conexión.",
-      "descAndroid": "Instala la app para la mejor experiencia. Funciona sin conexión y pantalla completa.",
-      "descIOS": "Para instalar en iOS, sigue las instrucciones a continuación:",
-      "descAndroidShort": "Instala para uso offline y pantalla completa.",
-      "descIOSShort": "Añadir a Pantalla de Inicio.",
-      "installNow": "Instalar Ahora"
+      "title": "Instalar",
+      "installed": "Listo.",
+      "descAndroid": "Instala para uso offline.",
+      "descIOS": "Instrucciones:",
+      "descAndroidShort": "Modo Offline",
+      "descIOSShort": "Add Inicio",
+      "installNow": "Instalar"
     }
   },
   "install": {
-    "title": "Instalar App",
+    "title": "Instalar",
     "ios": {
       "tap": "Toca",
-      "then": "y luego",
-      "addToHome": "Añadir a pantalla de inicio"
+      "then": "luego",
+      "addToHome": "Añadir a Inicio"
     }
   },
   "errors": {
-    "genericTitle": "Algo salió mal",
-    "genericMessage": "La aplicación encontró un error inesperado. Disculpe las molestias.",
-    "reload": "Recargar App"
+    "genericTitle": "Error",
+    "genericMessage": "Algo salió mal.",
+    "reload": "Recargar"
   },
   "confirm": {
     "reset": {
-      "title": "¿Reiniciar Partido?",
-      "message": "¿Estás seguro de que quieres reiniciar el partido? Se perderán todas las puntuaciones y el historial.",
-      "confirmButton": "Sí, Reiniciar"
+      "title": "¿Reiniciar?",
+      "message": "¿Perder datos?",
+      "confirmButton": "Reiniciar"
     },
     "cancel": "Cancelar",
-    "deleteProfile": "¿Eliminar Perfil?",
-    "deleteProfileMsg": "Esta acción eliminará el perfil permanentemente. Sin embargo, puede deshacerlo inmediatamente después."
+    "deleteProfile": "¿Borrar?",
+    "deleteProfileMsg": "Borrado permanente."
   }
 }

@@ -1,4 +1,3 @@
-
 import React, { memo, useState, useCallback } from 'react';
 import { Team, TeamId, SkillType, GameConfig, TeamColor } from '../types';
 import { Volleyball, Zap, Timer, Skull, TrendingUp, Trophy } from 'lucide-react';
@@ -175,13 +174,23 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
 
             <motion.div 
                 layout 
-                className="w-full flex items-center justify-center gap-1.5 cursor-pointer group px-1 py-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors max-w-full overflow-hidden"
+                className="w-full flex items-center justify-center gap-2 cursor-pointer group px-1 py-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors max-w-full overflow-hidden"
                 onClick={(e) => { 
                     e.stopPropagation(); 
                     onSetServer(); 
                     haptics.impact('light');
                 }}
             >
+                {/* Team Logo */}
+                {team.logo && (
+                    <motion.div 
+                        layout="position"
+                        className="w-6 h-6 rounded-full overflow-hidden border border-black/10 dark:border-white/10 flex-shrink-0 bg-white/50 dark:bg-white/5"
+                    >
+                        <img src={team.logo} alt="" className="w-full h-full object-cover" />
+                    </motion.div>
+                )}
+
                 {/* Team Name */}
                 <motion.h2 
                     ref={headerRef}

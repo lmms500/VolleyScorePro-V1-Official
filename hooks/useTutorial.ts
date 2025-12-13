@@ -1,41 +1,82 @@
+
 import { useState, useEffect, useCallback } from 'react';
 
-const TUTORIAL_KEY = 'vs_pro_tutorial_seen_v2';
-const REMINDER_INTERVAL = 5 * 60 * 1000; // 5 Minutes
+const TUTORIAL_STORAGE_KEY = 'vs_pro_tutorials_v3';
+
+// Available Tutorial Keys
+export type TutorialKey = 'main' | 'manager' | 'history';
+
+interface TutorialState {
+  main: boolean;
+  manager: boolean;
+  history: boolean;
+}
+
+const DEFAULT_STATE: TutorialState = {
+  main: false,
+  manager: false,
+  history: false
+};
 
 export const useTutorial = (isStandalone: boolean) => {
-  const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialState, setTutorialState] = useState<TutorialState>(DEFAULT_STATE);
+  const [activeTutorial, setActiveTutorial] = useState<TutorialKey | null>(null);
   const [showReminder, setShowReminder] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
+  // Initialize State
   useEffect(() => {
-    // Check if tutorial has been seen
-    const seen = localStorage.getItem(TUTORIAL_KEY);
-    if (!seen) {
-      // Small delay to ensure app is loaded visually
-      setTimeout(() => setShowTutorial(true), 1000);
+    const saved = localStorage.getItem(TUTORIAL_STORAGE_KEY);
+    if (saved) {
+      try {
+        setTutorialState(JSON.parse(saved));
+      } catch (e) {
+        setTutorialState(DEFAULT_STATE);
+      }
+    } else {
+        // First Launch Logic for 'main'
+        setTimeout(() => setActiveTutorial('main'), 1000);
     }
+    setIsLoaded(true);
   }, []);
 
+  // Reminder Logic (Only for PWA installs)
   useEffect(() => {
-    // Periodic Reminder Logic
-    if (isStandalone) return; // Don't remind if already installed
-
+    if (isStandalone) return; 
     const interval = setInterval(() => {
-      // Only show if tutorial is not currently open
-      if (!localStorage.getItem(TUTORIAL_KEY)) return; // Don't show reminder if tutorial hasn't finished (though logic implies it runs after)
+      // Don't remind if tutorial is open
+      if (activeTutorial) return;
       
       setShowReminder(prev => {
-        if (!prev) return true; // Show if not showing
+        if (!prev) return true;
         return prev;
       });
-    }, REMINDER_INTERVAL);
+    }, 5 * 60 * 1000); // 5 Minutes
 
     return () => clearInterval(interval);
-  }, [isStandalone]);
+  }, [isStandalone, activeTutorial]);
 
-  const completeTutorial = useCallback(() => {
-    localStorage.setItem(TUTORIAL_KEY, 'true');
-    setShowTutorial(false);
+  const saveState = (newState: TutorialState) => {
+      setTutorialState(newState);
+      localStorage.setItem(TUTORIAL_STORAGE_KEY, JSON.stringify(newState));
+  };
+
+  const triggerTutorial = useCallback((key: TutorialKey) => {
+      if (!tutorialState[key]) {
+          setActiveTutorial(key);
+      }
+  }, [tutorialState]);
+
+  const completeTutorial = useCallback((key: TutorialKey) => {
+      const newState = { ...tutorialState, [key]: true };
+      saveState(newState);
+      setActiveTutorial(null);
+  }, [tutorialState]);
+
+  const resetTutorials = useCallback(() => {
+      saveState(DEFAULT_STATE);
+      // Optional: Trigger main tutorial again immediately?
+      // setActiveTutorial('main');
   }, []);
 
   const dismissReminder = useCallback(() => {
@@ -43,9 +84,12 @@ export const useTutorial = (isStandalone: boolean) => {
   }, []);
 
   return {
-    showTutorial,
+    activeTutorial,
+    triggerTutorial,
     completeTutorial,
+    resetTutorials,
     showReminder,
-    dismissReminder
+    dismissReminder,
+    isLoaded
   };
 };

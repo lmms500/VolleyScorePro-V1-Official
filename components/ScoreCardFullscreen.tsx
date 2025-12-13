@@ -41,7 +41,8 @@ const ScoreNumberDisplay = memo(({
     isCritical,
     isMatchPoint,
     isServing,
-    colliderRef 
+    colliderRef,
+    team
 }: any) => {
 
     const haloColorClass = isMatchPoint ? 'bg-amber-500 saturate-150' : theme.halo;
@@ -278,6 +279,7 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
                         isMatchPoint={isMatchPoint}
                         isServing={isServing}
                         colliderRef={colliderRef}
+                        team={team}
                     />
                 </div>
             </div>

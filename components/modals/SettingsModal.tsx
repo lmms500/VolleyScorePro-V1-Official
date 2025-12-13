@@ -1,9 +1,10 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { GameConfig } from '../../types';
-import { Check, Trophy, Sun, Zap, Moon, AlertTriangle, Volume2, Umbrella, Activity, Globe, Scale, ToggleLeft, ToggleRight, RefreshCw, CloudDownload, Smartphone, ArrowRight, Mic, Battery, BatteryLow, Megaphone, User, User2, Bell, BellRing, AlignJustify, HelpCircle, LogOut, LogIn, Key, Eye, EyeOff, Layers, Cpu, Server, Target, ZapOff, UploadCloud, DownloadCloud, Loader2, Power, Share2, FileDown } from 'lucide-react';
+import { Check, Trophy, Sun, Zap, Moon, AlertTriangle, Volume2, Umbrella, Activity, Globe, Scale, ToggleLeft, ToggleRight, RefreshCw, CloudDownload, Smartphone, ArrowRight, Mic, Battery, BatteryLow, Megaphone, User, User2, Bell, BellRing, AlignJustify, HelpCircle, LogOut, LogIn, Key, Eye, EyeOff, Layers, Cpu, Server, Target, ZapOff, UploadCloud, DownloadCloud, Loader2, Power, Share2, FileDown, Play, Gauge, AudioWaveform } from 'lucide-react';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useServiceWorker } from '../../hooks/useServiceWorker';
@@ -15,6 +16,8 @@ import { BackupService } from '../../services/BackupService';
 import { parseJSONFile, exportActiveMatch } from '../../services/io';
 import { NotificationToast } from '../ui/NotificationToast';
 import { useGame } from '../../contexts/GameContext';
+import { useTutorial } from '../../hooks/useTutorial';
+import { ttsService } from '../../services/TTSService';
 
 // Defined constant to avoid importing package.json
 const APP_VERSION = '2.0.6';
@@ -45,6 +48,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [restoreStatus, setRestoreStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [statusMsg, setStatusMsg] = useState('');
   const [pendingRestart, setPendingRestart] = useState(false);
+  const [isTestingVoice, setIsTestingVoice] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const gameImportRef = useRef<HTMLInputElement>(null); // For active game imports
@@ -64,6 +68,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       needRefresh, updateServiceWorker, checkForUpdates: checkSW, isChecking: isSWChecking,
       isInstallable, promptInstall, isStandalone
   } = useServiceWorker();
+
+  // Tutorial Reset
+  const { resetTutorials } = useTutorial(false);
 
   // Smart Version Check State
   const [remoteCheckStatus, setRemoteCheckStatus] = useState<'idle' | 'checking' | 'latest' | 'available' | 'error'>('idle');
@@ -197,6 +204,38 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   const handleRestart = () => {
       window.location.reload();
+  };
+
+  const handleResetTutorials = () => {
+      resetTutorials();
+      setStatusMsg('Tutorials Reset!');
+      setTimeout(() => setStatusMsg(''), 2000);
+  };
+
+  const handleTestVoice = async () => {
+      if (isTestingVoice) return;
+      setIsTestingVoice(true);
+      
+      const langMap: Record<string, string> = { 'pt': 'pt-BR', 'en': 'en-US', 'es': 'es-ES' };
+      const targetLang = langMap[language] || 'en-US';
+      
+      const phrases = {
+          en: "VolleyScore Pro. 1 serving 0.",
+          pt: "VolleyScore Pro. 1 servindo 0.",
+          es: "VolleyScore Pro. 1 sacando 0."
+      };
+      
+      const text = phrases[language as keyof typeof phrases] || phrases.en;
+      
+      await ttsService.speak(
+          text, 
+          targetLang, 
+          localConfig.voiceGender || 'female', 
+          localConfig.voiceRate || 1.0, 
+          localConfig.voicePitch || 1.0
+      );
+      
+      setTimeout(() => setIsTestingVoice(false), 2000);
   };
 
   // --- SMART RESET LOGIC ---
@@ -460,16 +499,82 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                 </button>
                             </OptionRow>
 
-                            {localConfig.announceScore && (
-                                <div className="ml-10 mb-2 p-2 bg-slate-50 dark:bg-black/20 rounded-lg border border-black/5 dark:border-white/5 grid grid-cols-2 gap-2">
-                                    <button onClick={() => setLocalConfig(prev => ({...prev, voiceGender: prev.voiceGender === 'male' ? 'female' : 'male'}))} className="flex items-center justify-center gap-1 py-1.5 bg-white dark:bg-white/5 rounded-md text-[10px] font-bold text-slate-600 dark:text-slate-300 shadow-sm transition-colors truncate px-2">
-                                        {localConfig.voiceGender === 'male' ? <User2 size={10} /> : <User size={10} />} {localConfig.voiceGender === 'male' ? t('settings.audio.gender.male') : t('settings.audio.gender.female')}
-                                    </button>
-                                    <button onClick={() => setLocalConfig(prev => ({...prev, announcementFreq: prev.announcementFreq === 'all' ? 'critical_only' : 'all'}))} className="flex items-center justify-center gap-1 py-1.5 bg-white dark:bg-white/5 rounded-md text-[10px] font-bold text-slate-600 dark:text-slate-300 shadow-sm transition-colors truncate px-2">
-                                        {localConfig.announcementFreq === 'all' ? <AlignJustify size={10} /> : <BellRing size={10} />} {localConfig.announcementFreq === 'all' ? t('settings.audio.freq.always') : t('settings.audio.freq.critical')}
-                                    </button>
-                                </div>
-                            )}
+                            {/* ADVANCED TTS CONTROLS */}
+                            <AnimatePresence>
+                                {localConfig.announceScore && (
+                                    <motion.div 
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        className="overflow-hidden"
+                                    >
+                                        <div className="mt-2 p-3 bg-slate-50 dark:bg-black/20 rounded-xl border border-black/5 dark:border-white/5 space-y-3">
+                                            
+                                            {/* Top Row: Gender & Frequency */}
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div className="flex bg-white dark:bg-white/5 rounded-lg p-0.5 border border-black/5 dark:border-white/5">
+                                                    <button onClick={() => setLocalConfig(prev => ({...prev, voiceGender: 'male'}))} className={`flex-1 py-1.5 rounded-md text-[10px] font-bold flex items-center justify-center gap-1 transition-all ${localConfig.voiceGender === 'male' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300 shadow-sm' : 'text-slate-400'}`}>
+                                                        <User2 size={10} /> {t('settings.audio.gender.male')}
+                                                    </button>
+                                                    <button onClick={() => setLocalConfig(prev => ({...prev, voiceGender: 'female'}))} className={`flex-1 py-1.5 rounded-md text-[10px] font-bold flex items-center justify-center gap-1 transition-all ${localConfig.voiceGender === 'female' ? 'bg-pink-100 text-pink-700 dark:bg-pink-500/20 dark:text-pink-300 shadow-sm' : 'text-slate-400'}`}>
+                                                        <User size={10} /> {t('settings.audio.gender.female')}
+                                                    </button>
+                                                </div>
+                                                <div className="flex bg-white dark:bg-white/5 rounded-lg p-0.5 border border-black/5 dark:border-white/5">
+                                                    <button onClick={() => setLocalConfig(prev => ({...prev, announcementFreq: 'all'}))} className={`flex-1 py-1.5 rounded-md text-[10px] font-bold flex items-center justify-center gap-1 transition-all ${localConfig.announcementFreq === 'all' ? 'bg-slate-200 text-slate-800 dark:bg-white/20 dark:text-white shadow-sm' : 'text-slate-400'}`}>
+                                                        <AlignJustify size={10} /> All
+                                                    </button>
+                                                    <button onClick={() => setLocalConfig(prev => ({...prev, announcementFreq: 'critical_only'}))} className={`flex-1 py-1.5 rounded-md text-[10px] font-bold flex items-center justify-center gap-1 transition-all ${localConfig.announcementFreq === 'critical_only' ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300 shadow-sm' : 'text-slate-400'}`}>
+                                                        <BellRing size={10} /> Crit
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Speed Slider */}
+                                            <div className="flex items-center gap-3">
+                                                <Gauge size={14} className="text-slate-400" />
+                                                <div className="flex-1 relative h-6 flex items-center">
+                                                    <input 
+                                                        type="range" min="0.5" max="1.5" step="0.1"
+                                                        value={localConfig.voiceRate || 1.0}
+                                                        onChange={(e) => setLocalConfig(prev => ({...prev, voiceRate: parseFloat(e.target.value)}))}
+                                                        className="w-full h-1.5 bg-slate-200 dark:bg-white/10 rounded-full appearance-none accent-indigo-500 cursor-pointer"
+                                                    />
+                                                </div>
+                                                <span className="text-[10px] font-mono font-bold w-8 text-right text-slate-500">{localConfig.voiceRate?.toFixed(1)}x</span>
+                                            </div>
+
+                                            {/* Pitch Slider */}
+                                            <div className="flex items-center gap-3">
+                                                <AudioWaveform size={14} className="text-slate-400" />
+                                                <div className="flex-1 relative h-6 flex items-center">
+                                                    <input 
+                                                        type="range" min="0.5" max="1.5" step="0.1"
+                                                        value={localConfig.voicePitch || 1.0}
+                                                        onChange={(e) => setLocalConfig(prev => ({...prev, voicePitch: parseFloat(e.target.value)}))}
+                                                        className="w-full h-1.5 bg-slate-200 dark:bg-white/10 rounded-full appearance-none accent-indigo-500 cursor-pointer"
+                                                    />
+                                                </div>
+                                                <span className="text-[10px] font-mono font-bold w-8 text-right text-slate-500">{localConfig.voicePitch?.toFixed(1)}</span>
+                                            </div>
+
+                                            {/* Test Button */}
+                                            <button 
+                                                onClick={handleTestVoice}
+                                                disabled={isTestingVoice}
+                                                className={`
+                                                    w-full flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all
+                                                    ${isTestingVoice ? 'bg-emerald-500 text-white animate-pulse' : 'bg-white dark:bg-white/5 border border-black/5 dark:border-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10'}
+                                                `}
+                                            >
+                                                {isTestingVoice ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} fill="currentColor" />}
+                                                {isTestingVoice ? "Playing..." : "Test Voice"}
+                                            </button>
+
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
                             <div className="border-t border-black/5 dark:border-white/5 my-2" />
 
@@ -559,29 +664,32 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             )}
                             {(statusMsg && !pendingRestart) && <p className={`text-[9px] mt-2 text-center font-bold ${statusMsg.includes('Error') || statusMsg.includes('Failed') || statusMsg.includes('Invalid') ? 'text-rose-500' : 'text-emerald-500'}`}>{statusMsg}</p>}
                             {!pendingRestart && <p className="text-[9px] text-slate-400 mt-2 text-center">{t('settings.backup.description')}</p>}
+                            
+                            <div className="mt-4 pt-4 border-t border-black/5 dark:border-white/5">
+                                <button onClick={handleResetTutorials} className="w-full flex items-center justify-center gap-2 py-2 text-[10px] font-bold uppercase tracking-wider text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors">
+                                    <RefreshCw size={12} /> {t('settings.backup.resetTutorials')}
+                                </button>
+                            </div>
                         </div>
 
                         {/* AI Key */}
-                        <div className={sectionClass}>
-                            <label className={labelClass}>{t('settings.sections.ai')}</label>
-                            <div className="bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-black/5 dark:border-white/5">
-                                <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
-                                        <Key size={14} className="text-violet-500" /> {t('settings.ai.apiKey')}
-                                    </div>
-                                    <button onClick={() => setShowKey(!showKey)} className="text-slate-400 hover:text-indigo-500">
-                                        {showKey ? <EyeOff size={14} /> : <Eye size={14} />}
-                                    </button>
+                        <div className="bg-slate-50 dark:bg-white/5 p-3 rounded-xl border border-black/5 dark:border-white/5">
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
+                                    <Key size={14} className="text-violet-500" /> {t('settings.ai.apiKey')}
                                 </div>
-                                <input 
-                                    type={showKey ? "text" : "password"}
-                                    value={localConfig.userApiKey || ''}
-                                    onChange={(e) => setLocalConfig(prev => ({ ...prev, userApiKey: e.target.value }))}
-                                    placeholder={t('settings.ai.placeholder')}
-                                    className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:border-violet-500"
-                                />
-                                <p className="text-[9px] text-slate-400 mt-2">{t('settings.ai.help')} <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-violet-500 underline">{t('settings.ai.getKey')}</a></p>
+                                <button onClick={() => setShowKey(!showKey)} className="text-slate-400 hover:text-indigo-500">
+                                    {showKey ? <EyeOff size={14} /> : <Eye size={14} />}
+                                </button>
                             </div>
+                            <input 
+                                type={showKey ? "text" : "password"}
+                                value={localConfig.userApiKey || ''}
+                                onChange={(e) => setLocalConfig(prev => ({ ...prev, userApiKey: e.target.value }))}
+                                placeholder={t('settings.ai.placeholder')}
+                                className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-xs font-mono focus:outline-none focus:border-violet-500"
+                            />
+                            <p className="text-[9px] text-slate-400 mt-2">{t('settings.ai.help')} <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-violet-500 underline">{t('settings.ai.getKey')}</a></p>
                         </div>
 
                         {/* App Info */}

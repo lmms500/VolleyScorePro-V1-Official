@@ -15,13 +15,14 @@ interface UseVoiceControlProps {
   onSetServer: (team: TeamId) => void;
   onError?: (errorType: 'permission' | 'network' | 'generic', transcript?: string) => void;
   onUnknownCommand?: (transcript: string) => void;
+  onAmbiguousCommand?: (candidates: string[]) => void; // New Callback
   
   language: string;
   teamAName: string;
   teamBName: string;
   playersA: Player[];
   playersB: Player[];
-  servingTeam: TeamId | null; // NEW: Context
+  servingTeam: TeamId | null;
 }
 
 const INTERIM_DELAY_MS = 1500; 
@@ -29,7 +30,7 @@ const COMMAND_COOLDOWN_MS = 1000;
 
 export const useVoiceControl = ({ 
     enabled, enablePlayerStats, onAddPoint, onSubtractPoint, onUndo, onTimeout, onSetServer,
-    onError, onUnknownCommand,
+    onError, onUnknownCommand, onAmbiguousCommand,
     language, teamAName, teamBName, playersA, playersB, servingTeam 
 }: UseVoiceControlProps) => {
   const [isListening, setIsListening] = useState(false);
@@ -162,6 +163,15 @@ export const useVoiceControl = ({
 
       if (!intent) return;
 
+      // Handle Ambiguity First
+      if (intent.isAmbiguous && intent.ambiguousCandidates) {
+          if (isFinal) {
+              pendingActionRef.current = null;
+              if (onAmbiguousCommand) onAmbiguousCommand(intent.ambiguousCandidates);
+          }
+          return;
+      }
+
       if (intent.type === 'undo') {
           pendingActionRef.current = null;
           executeIntent(intent);
@@ -200,7 +210,7 @@ export const useVoiceControl = ({
           }
       }
 
-  }, [language, teamAName, teamBName, playersA, playersB, servingTeam, executeAction, executeIntent, onUnknownCommand, enablePlayerStats]);
+  }, [language, teamAName, teamBName, playersA, playersB, servingTeam, executeAction, executeIntent, onUnknownCommand, enablePlayerStats, onAmbiguousCommand]);
 
   useEffect(() => {
       recognitionService.setCallbacks(

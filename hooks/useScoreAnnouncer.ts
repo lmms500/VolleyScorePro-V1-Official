@@ -9,7 +9,7 @@ interface UseScoreAnnouncerProps {
 }
 
 export const useScoreAnnouncer = ({ state, enabled }: UseScoreAnnouncerProps) => {
-  const { language } = useTranslation();
+  const { language, t } = useTranslation();
   
   // Track previous state to detect changes
   const prevScoreA = useRef(state.scoreA);
@@ -33,9 +33,11 @@ export const useScoreAnnouncer = ({ state, enabled }: UseScoreAnnouncerProps) =>
     };
     const targetLang = langMap[language] || 'en-US';
     const targetGender = state.config.voiceGender || 'female';
+    const targetRate = state.config.voiceRate || 1.0;
+    const targetPitch = state.config.voicePitch || 1.0;
 
-    ttsService.speak(text, targetLang, targetGender);
-  }, [enabled, language, state.config.voiceGender]);
+    ttsService.speak(text, targetLang, targetGender, targetRate, targetPitch);
+  }, [enabled, language, state.config.voiceGender, state.config.voiceRate, state.config.voicePitch]);
 
   useEffect(() => {
     if (!enabled) {
@@ -53,7 +55,7 @@ export const useScoreAnnouncer = ({ state, enabled }: UseScoreAnnouncerProps) =>
     if (state.timeoutsA > prevTimeoutsA.current || state.timeoutsB > prevTimeoutsB.current) {
         const teamName = state.timeoutsA > prevTimeoutsA.current ? state.teamAName : state.teamBName;
         // Timeouts are critical events, always announce
-        speak(`Timeout ${teamName}`);
+        speak(t('announcer.timeout', { team: teamName }));
     }
     prevTimeoutsA.current = state.timeoutsA;
     prevTimeoutsB.current = state.timeoutsB;
@@ -69,10 +71,12 @@ export const useScoreAnnouncer = ({ state, enabled }: UseScoreAnnouncerProps) =>
     
     if (setChanged) {
         // Set/Match end are critical events
+        const winnerName = state.setsA > prevSetsA.current ? state.teamAName : state.teamBName;
+        
         if (state.isMatchOver) {
-            speak(`Match over. Winner ${state.matchWinner === 'A' ? state.teamAName : state.teamBName}`);
+            speak(t('announcer.matchWon', { team: winnerName }));
         } else {
-            speak(`Set to ${state.setsA > prevSetsA.current ? state.teamAName : state.teamBName}`);
+            speak(t('announcer.winner', { team: winnerName }));
         }
         prevSetsA.current = state.setsA;
         prevSetsB.current = state.setsB;
@@ -98,28 +102,25 @@ export const useScoreAnnouncer = ({ state, enabled }: UseScoreAnnouncerProps) =>
                                  ((state.setsA === Math.ceil(state.config.maxSets/2)-1 && state.scoreA > state.scoreB) || (state.setsB === Math.ceil(state.config.maxSets/2)-1 && state.scoreB > state.scoreA));
 
             if (isMatchPoint) {
-                phrase = `Match Point ${leader}. ${state.scoreA} ${state.scoreB}`;
+                phrase = t('announcer.matchPoint', { team: leader, scoreA: state.scoreA, scoreB: state.scoreB });
                 isCriticalEvent = true;
             } else if (state.inSuddenDeath) {
-                phrase = `Sudden Death. ${state.scoreA} ${state.scoreB}`;
+                phrase = t('announcer.suddenDeath', { scoreA: state.scoreA, scoreB: state.scoreB });
                 isCriticalEvent = true;
             } else {
                 // Standard Announcement
-                // If frequency is 'critical_only', we SKIP this block
                 if (configFreq === 'critical_only') {
                     // Do nothing
                 } else {
                     if (isTied) {
-                        phrase = `${state.scoreA} All.`;
+                        phrase = t('announcer.tied', { scoreA: state.scoreA });
                     } else {
-                        // Always announce Serving team first if known, otherwise Leader
                         if (state.servingTeam === 'A') {
-                            phrase = `${state.scoreA} serving ${state.scoreB}`;
+                            phrase = t('announcer.serving', { scoreA: state.scoreA, scoreB: state.scoreB });
                         } else if (state.servingTeam === 'B') {
-                            phrase = `${state.scoreB} serving ${state.scoreA}`;
+                            phrase = t('announcer.serving', { scoreA: state.scoreB, scoreB: state.scoreA });
                         } else {
-                            // Fallback
-                            phrase = `${state.scoreA} ${state.scoreB}`;
+                            phrase = t('announcer.serving', { scoreA: state.scoreA, scoreB: state.scoreB });
                         }
                     }
                 }
@@ -133,5 +134,5 @@ export const useScoreAnnouncer = ({ state, enabled }: UseScoreAnnouncerProps) =>
     prevScoreA.current = state.scoreA;
     prevScoreB.current = state.scoreB;
 
-  }, [state.scoreA, state.scoreB, state.setsA, state.setsB, state.timeoutsA, state.timeoutsB, enabled, language, speak, state.config.announcementFreq]);
+  }, [state.scoreA, state.scoreB, state.setsA, state.setsB, state.timeoutsA, state.timeoutsB, enabled, language, speak, state.config.announcementFreq, t]);
 };

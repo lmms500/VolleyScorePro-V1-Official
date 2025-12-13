@@ -1,4 +1,6 @@
 
+
+
 import { useCallback, useEffect, useReducer, useMemo, useState, useRef } from 'react';
 import { GameState, TeamId, GameConfig, SkillType, PlayerProfile, TeamColor, RotationMode, PlayerRole, Player, Team } from '../types';
 import { DEFAULT_CONFIG, SETS_TO_WIN_MATCH, PLAYERS_PER_TEAM } from '../constants';
@@ -224,6 +226,7 @@ export const useVolleyGame = () => {
 
   const updateTeamName = useCallback((teamId: string, name: string) => dispatch({ type: 'ROSTER_UPDATE_TEAM_NAME', teamId, name }), []);
   const updateTeamColor = useCallback((teamId: string, color: TeamColor) => dispatch({ type: 'ROSTER_UPDATE_TEAM_COLOR', teamId, color }), []);
+  const updateTeamLogo = useCallback((teamId: string, logo: string) => dispatch({ type: 'ROSTER_UPDATE_TEAM_LOGO', teamId, logo }), []);
   const togglePlayerFixed = useCallback((id: string) => dispatch({ type: 'ROSTER_TOGGLE_FIXED', playerId: id }), []);
   const toggleTeamBench = useCallback((teamId: string) => dispatch({ type: 'ROSTER_TOGGLE_BENCH', teamId }), []);
   
@@ -519,7 +522,7 @@ export const useVolleyGame = () => {
     
     // Roster API (Unified)
     updatePlayer, 
-    generateTeams, rotateTeams, updateTeamName, updateTeamColor,
+    generateTeams, rotateTeams, updateTeamName, updateTeamColor, updateTeamLogo,
     movePlayer, removePlayer, deletePlayer, addPlayer, restorePlayer, undoRemovePlayer,
     hasDeletedPlayers: state.deletedPlayerHistory.length > 0,
     togglePlayerFixed, commitDeletions, deletedCount: state.deletedPlayerHistory.length,
@@ -546,7 +549,7 @@ export const useVolleyGame = () => {
   }), [
     state, isLoaded, addPoint, subtractPoint, undo, resetMatch, toggleSides, setServer, useTimeout, applySettings, rotateTeams, 
     isTieBreak, stA, stB, setsNeededToWin, isDeuce,
-    generateTeams, updateTeamName, updateTeamColor, updatePlayer, movePlayer, removePlayer,
+    generateTeams, updateTeamName, updateTeamColor, updateTeamLogo, updatePlayer, movePlayer, removePlayer,
     deletePlayer, addPlayer, restorePlayer, undoRemovePlayer, togglePlayerFixed, commitDeletions, setRotationMode, balanceTeams, sortTeam,
     savePlayerToProfile, revertPlayerChanges, deleteProfileWrapper, upsertProfile, toggleTeamBench, substitutePlayers, profiles, reorderQueue, 
     disbandTeam, restoreTeam, resetRosters, relinkProfile,

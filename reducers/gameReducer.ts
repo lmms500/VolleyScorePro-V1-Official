@@ -394,6 +394,18 @@ export const gameReducer = (state: GameState, action: GameAction): GameState => 
         return { ...state, teamARoster: newA, teamBRoster: newB, queue: newQ };
     }
 
+    case 'ROSTER_UPDATE_TEAM_LOGO': {
+        const { teamId, logo } = action;
+        let newA = state.teamARoster, newB = state.teamBRoster, newQ = state.queue;
+        
+        if (teamId === 'A' || teamId === state.teamARoster.id) newA = { ...state.teamARoster, logo };
+        else if (teamId === 'B' || teamId === state.teamBRoster.id) newB = { ...state.teamBRoster, logo };
+        else {
+            newQ = state.queue.map(t => t.id === teamId ? { ...t, logo } : t);
+        }
+        return { ...state, teamARoster: newA, teamBRoster: newB, queue: newQ };
+    }
+
     case 'ROSTER_TOGGLE_FIXED': {
         const toggle = (list: Player[]) => list.map(p => p.id === action.playerId ? { ...p, isFixed: !p.isFixed } : p);
         const toggleTeam = (t: Team) => ({ ...t, players: toggle(t.players), reserves: toggle(t.reserves || []) });

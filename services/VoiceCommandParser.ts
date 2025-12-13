@@ -12,6 +12,8 @@ export interface VoiceCommandIntent {
   rawText: string;
   debugMessage?: string;
   requiresMoreInfo?: boolean;
+  isAmbiguous?: boolean;
+  ambiguousCandidates?: string[];
 }
 
 // --- VOCABULARY DEFINITIONS ---
@@ -116,7 +118,7 @@ export class VoiceCommandParser {
       teamAName: string, 
       teamBName: string, 
       vocab: any
-  ): { player?: Player, team?: TeamId, confidence: number } | null {
+  ): { player?: Player, team?: TeamId, confidence: number, isAmbiguous?: boolean, candidates?: string[] } | null {
       
       const cleanText = this.removePrepositions(text, vocab);
       const safeNameA = teamAName.toLowerCase().trim();
@@ -128,28 +130,65 @@ export class VoiceCommandParser {
           return null;
       }
 
-      // --- 2. PLAYER NAME MATCHING (Longest Match First - CRITICAL for Ana Laura vs Ana) ---
+      // --- 2. PLAYER NAME MATCHING (AMBIGUITY CHECK) ---
       const allPlayers = [
           ...playersA.map(p => ({ p, t: 'A' as TeamId })), 
           ...playersB.map(p => ({ p, t: 'B' as TeamId }))
       ];
 
-      // Sort by name length descending. This ensures "Ana Laura" is checked before "Ana".
-      allPlayers.sort((a, b) => b.p.name.length - a.p.name.length);
+      // Collect all potential matches
+      const matches: Array<{ p: Player, t: TeamId, score: number }> = [];
 
       for (const { p, t } of allPlayers) {
           const playerName = p.name.toLowerCase();
           
-          // A. Exact Token Match (Robust against substrings)
-          // We check if the full player name appears as a distinct phrase in the text
-          if (cleanText.includes(playerName)) {
-              return { player: p, team: t, confidence: 1.0 };
+          // A. Exact Match (Highest Priority)
+          // "Ana" matches "Ana"
+          if (cleanText === playerName) {
+              matches.push({ p, t, score: 100 });
+          }
+          // B. Jersey Number Match
+          else if (p.number && (cleanText.includes(`number ${p.number}`) || cleanText.includes(`numero ${p.number}`))) {
+              matches.push({ p, t, score: 90 });
+          }
+          // C. Starts With (Medium Priority)
+          // "Ana" matches "Ana Paula"
+          else if (playerName.startsWith(cleanText + " ")) {
+              matches.push({ p, t, score: 70 });
+          }
+          // D. Contains as Word (Low Priority)
+          // "Paula" matches "Ana Paula"
+          else if (playerName.includes(cleanText)) {
+              matches.push({ p, t, score: 50 });
+          }
+      }
+
+      // Process Matches
+      if (matches.length > 0) {
+          // Sort by score descending
+          matches.sort((a, b) => b.score - a.score);
+          const topMatch = matches[0];
+
+          // Check for ambiguity (multiple matches with the same top score, or very close)
+          // Specifically handles: "Ana" matches "Ana Paula" (70) and "Ana Laura" (70)
+          const similarMatches = matches.filter(m => m.score === topMatch.score);
+
+          // If we have multiple matches with the same score (and it's not a perfect unique match)
+          // OR if we have multiple "Starts With" matches (e.g. input "Ana" matches "Ana P" and "Ana L")
+          if (similarMatches.length > 1) {
+              // However, if we have an EXACT match (100) and partials (70), the Exact wins (e.g. "Ana" vs "Ana Paula")
+              // So we only flag ambiguity if the top score is NOT 100 (Exact) OR if there are multiple Exacts (Duplicate names)
+              if (topMatch.score < 100 || (topMatch.score === 100 && similarMatches.length > 1)) {
+                  return {
+                      isAmbiguous: true,
+                      candidates: similarMatches.map(m => m.p.name),
+                      confidence: 0
+                  };
+              }
           }
 
-          // B. Jersey Number Match (Only if explicitly mentioned "Number 10")
-          if (p.number && (cleanText.includes(`number ${p.number}`) || cleanText.includes(`numero ${p.number}`))) {
-              return { player: p, team: t, confidence: 1.0 };
-          }
+          // Return the winner
+          return { player: topMatch.p, team: topMatch.t, confidence: topMatch.score / 100 };
       }
 
       // --- 3. TEAM NAME MATCHING ---
@@ -161,7 +200,6 @@ export class VoiceCommandParser {
       if (vocab.teamB_Strict.some((k: string) => cleanText.includes(k))) return { team: 'B', confidence: 0.9 };
 
       // --- 5. EXPLICIT FALLBACK (Point A / Point B) ---
-      // This handles cases where user just says "Point A" and "A" survived preposition cleaning
       if (cleanText.includes('ponto a') || cleanText.includes('point a')) return { team: 'A', confidence: 0.9 };
       if (cleanText.includes('ponto b') || cleanText.includes('point b')) return { team: 'B', confidence: 0.9 };
 
@@ -192,6 +230,18 @@ export class VoiceCommandParser {
     const detectedSkill = this.findSkill(text, vocab);
     const entity = this.resolveEntity(text, context.playersA, context.playersB, context.teamAName, context.teamBName, vocab);
     
+    // Check for Ambiguity Flag from Resolver
+    if (entity?.isAmbiguous) {
+        return { 
+            type: 'unknown', 
+            confidence: 0, 
+            rawText, 
+            isAmbiguous: true,
+            ambiguousCandidates: entity.candidates,
+            debugMessage: `Ambiguous match: ${entity.candidates?.join(', ')}`
+        };
+    }
+
     const isNegative = vocab.negative.some((k: string) => text.includes(k));
     const isTimeout = vocab.timeout.some((k: string) => text.includes(k));
     const isExplicitServerChange = vocab.server.some((k: string) => text.includes(k));
@@ -213,8 +263,6 @@ export class VoiceCommandParser {
             return { type: 'server', team: entity.team, confidence: 1, rawText, debugMessage: `Serving Team: ${entity.team}` };
         } else {
             // Ambiguous "Serve" command (e.g. "Saque" or "Serve Flamengo" where Flamengo isn't matched locally)
-            // Return 'server' type but flag requiresMoreInfo to trigger AI Disambiguation
-            // This prevents accidental flipping or ignoring.
             return { 
                 type: 'server', 
                 confidence: 0.5, 
