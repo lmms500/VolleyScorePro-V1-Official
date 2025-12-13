@@ -21,7 +21,6 @@ import { NotificationToast } from '../ui/NotificationToast';
 import { useGameAudio } from '../../hooks/useGameAudio';
 import { PlayerCard } from '../PlayerCard';
 import { staggerContainer, staggerItem, liquidSpring } from '../../utils/animations';
-import { validateUniqueNumberInTeam } from '../../utils/rosterLogic';
 
 const SortableContextFixed = SortableContext as any;
 const DragOverlayFixed = DragOverlay as any;
@@ -46,7 +45,7 @@ interface TeamManagerModalProps {
   // Unified Handler replacing individual update functions
   onUpdatePlayer: (playerId: string, updates: Partial<Player>) => { success: boolean, error?: string } | void;
 
-  onSaveProfile: (playerId: string, overrides?: { name?: string, number?: string, avatar?: string, skill?: number, role?: PlayerRole }) => void;
+  onSaveProfile: (playerId: string, overrides?: { name?: string, number?: string, avatar?: string, skill?: number, role?: PlayerRole }) => { success: boolean, error?: string } | void;
   onRevertProfile: (playerId: string) => void;
   // UPDATED: addPlayer now returns result object
   onAddPlayer: (name: string, target: 'A' | 'B' | 'Queue' | 'A_Reserves' | 'B_Reserves' | string, number?: string, skill?: number, existingPlayer?: Player) => { success: boolean, error?: string };
@@ -208,16 +207,6 @@ const TeamColumn = memo(({ id, team, profiles, onUpdateTeamName, onUpdateTeamCol
       }
   }, [onAddPlayer, id, viewMode, onShowToast]);
 
-  // Validates a number change against this team's roster
-  const validateNumber = useCallback((num: string, playerId: string): boolean => {
-      const result = validateUniqueNumberInTeam(team, num, playerId);
-      if (!result.valid) {
-          onShowToast(result.message || "Invalid number", 'error');
-          return false;
-      }
-      return true;
-  }, [team, onShowToast]);
-
   const handleSubstitution = (pIn: string, pOut: string) => { substitutePlayers(id, pIn, pOut); };
   const applySort = (criteria: any) => { setSortConfig(prev => ({ criteria, direction: prev.criteria === criteria && prev.direction === 'asc' ? 'desc' : 'asc' })); setShowSortMenu(false); };
 
@@ -297,7 +286,6 @@ const TeamColumn = memo(({ id, team, profiles, onUpdateTeamName, onUpdateTeamCol
                         isCompact={viewMode === 'reserves' || (window.innerWidth < 640 && !isQueue)} 
                         onToggleMenu={onTogglePlayerMenu} 
                         isMenuActive={activePlayerMenuId === p.id} 
-                        validateNumber={(n) => validateNumber(n, p.id)}
                         onShowToast={onShowToast} 
                     />
                 </motion.div>
@@ -368,7 +356,7 @@ const BatchInputSection = memo(({ onGenerate }: { onGenerate: (names: string[]) 
     return (<div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 px-1 pb-10 pt-4"> <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 flex items-start gap-2 text-xs text-amber-700 dark:text-amber-400"><AlertCircle size={16} className="mt-0.5 flex-shrink-0" /><div><p className="font-bold mb-1">{t('teamManager.batch.tipTitle')}</p><p><code>{t('teamManager.batch.tipFormat')}</code></p><p className="opacity-80 mt-1">{t('teamManager.batch.tipDesc')}</p></div></div><textarea className="w-full h-64 bg-white/50 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl p-4 text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-mono text-sm resize-none custom-scrollbar" placeholder={t('teamManager.batch.placeholder')} value={rawNames} onChange={e => setRawNames(e.target.value)} /><Button onClick={handleGenerate} className="w-full" size="lg"><Shuffle size={18} /> {t('teamManager.generateTeams')}</Button></div>);
 });
 
-const RosterBoard = ({ courtA, courtB, queue, onUpdatePlayer, wrappedAdd, handleKnockoutRequest, usedColors, wrappedMove, playerStatsMap, setEditingTarget, setViewingProfileId, handleTogglePlayerMenu, activePlayerMenu, toggleTeamBench, wrappedUpdateColor, substitutePlayers, validateNumber, reorderQueue, handleDisbandTeam, dragOverContainerId, setToast, profiles, wrappedSaveProfile, onRequestProfileEdit }: any) => {
+const RosterBoard = ({ courtA, courtB, queue, onUpdatePlayer, wrappedAdd, handleKnockoutRequest, usedColors, wrappedMove, playerStatsMap, setEditingTarget, setViewingProfileId, handleTogglePlayerMenu, activePlayerMenu, toggleTeamBench, wrappedUpdateColor, substitutePlayers, reorderQueue, handleDisbandTeam, dragOverContainerId, setToast, profiles, wrappedSaveProfile, onRequestProfileEdit }: any) => {
     const { t } = useTranslation();
     const [queueSearchTerm, setQueueSearchTerm] = useState('');
     const queueScrollRef = useRef<HTMLDivElement>(null);
@@ -426,10 +414,10 @@ const RosterBoard = ({ courtA, courtB, queue, onUpdatePlayer, wrappedAdd, handle
     return (
         <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="flex flex-col [@media(min-width:736px)]:grid [@media(min-width:736px)]:grid-cols-2 [@media(min-width:992px)]:flex [@media(min-width:992px)]:flex-row gap-4 [@media(min-width:992px)]:gap-8 pb-24 px-1 min-h-[60vh] pt-4">
             <div className="w-full [@media(min-width:992px)]:w-[30%] h-full">
-                <TeamColumn id="A" team={courtA} onUpdatePlayer={onUpdatePlayer} onAddPlayer={wrappedAdd} onKnockoutRequest={handleKnockoutRequest} usedColors={usedColors} onMove={wrappedMove} statsMap={playerStatsMap} onRequestProfileEdit={(pid: string) => setEditingTarget({ type: 'player', id: pid })} onViewProfile={(pid: string) => setViewingProfileId(pid)} onTogglePlayerMenu={handleTogglePlayerMenu} activePlayerMenuId={activePlayerMenu?.playerId || null} profiles={profiles} onUpdateTeamName={()=>{}} onUpdateTeamColor={wrappedUpdateColor} onSaveProfile={wrappedSaveProfile} onSortTeam={()=>{}} toggleTeamBench={toggleTeamBench} substitutePlayers={substitutePlayers} validateNumber={validateNumber} isDragOver={dragOverContainerId === 'A' || dragOverContainerId === 'A_Reserves'} onShowToast={(msg: string, type: any, undo?: any) => setToast({ message: msg, visible: true, type, systemIcon: type === 'success' ? 'save' : 'alert', onUndo: undo })} />
+                <TeamColumn id="A" team={courtA} onUpdatePlayer={onUpdatePlayer} onAddPlayer={wrappedAdd} onKnockoutRequest={handleKnockoutRequest} usedColors={usedColors} onMove={wrappedMove} statsMap={playerStatsMap} onRequestProfileEdit={(pid: string) => setEditingTarget({ type: 'player', id: pid })} onViewProfile={(pid: string) => setViewingProfileId(pid)} onTogglePlayerMenu={handleTogglePlayerMenu} activePlayerMenuId={activePlayerMenu?.playerId || null} profiles={profiles} onUpdateTeamName={()=>{}} onUpdateTeamColor={wrappedUpdateColor} onSaveProfile={wrappedSaveProfile} onSortTeam={()=>{}} toggleTeamBench={toggleTeamBench} substitutePlayers={substitutePlayers} isDragOver={dragOverContainerId === 'A' || dragOverContainerId === 'A_Reserves'} onShowToast={(msg: string, type: any, undo?: any) => setToast({ message: msg, visible: true, type, systemIcon: type === 'success' ? 'save' : 'alert', onUndo: undo })} />
             </div>
             <div className="w-full [@media(min-width:992px)]:w-[30%] h-full">
-                <TeamColumn id="B" team={courtB} onUpdatePlayer={onUpdatePlayer} onAddPlayer={wrappedAdd} onKnockoutRequest={handleKnockoutRequest} usedColors={usedColors} onMove={wrappedMove} statsMap={playerStatsMap} onRequestProfileEdit={(pid: string) => setEditingTarget({ type: 'player', id: pid })} onViewProfile={(pid: string) => setViewingProfileId(pid)} onTogglePlayerMenu={handleTogglePlayerMenu} activePlayerMenuId={activePlayerMenu?.playerId || null} profiles={profiles} onUpdateTeamName={()=>{}} onUpdateTeamColor={wrappedUpdateColor} onSaveProfile={wrappedSaveProfile} onSortTeam={()=>{}} toggleTeamBench={toggleTeamBench} substitutePlayers={substitutePlayers} validateNumber={validateNumber} isDragOver={dragOverContainerId === 'B' || dragOverContainerId === 'B_Reserves'} onShowToast={(msg: string, type: any, undo?: any) => setToast({ message: msg, visible: true, type, systemIcon: type === 'success' ? 'save' : 'alert', onUndo: undo })} />
+                <TeamColumn id="B" team={courtB} onUpdatePlayer={onUpdatePlayer} onAddPlayer={wrappedAdd} onKnockoutRequest={handleKnockoutRequest} usedColors={usedColors} onMove={wrappedMove} statsMap={playerStatsMap} onRequestProfileEdit={(pid: string) => setEditingTarget({ type: 'player', id: pid })} onViewProfile={(pid: string) => setViewingProfileId(pid)} onTogglePlayerMenu={handleTogglePlayerMenu} activePlayerMenuId={activePlayerMenu?.playerId || null} profiles={profiles} onUpdateTeamName={()=>{}} onUpdateTeamColor={wrappedUpdateColor} onSaveProfile={wrappedSaveProfile} onSortTeam={()=>{}} toggleTeamBench={toggleTeamBench} substitutePlayers={substitutePlayers} isDragOver={dragOverContainerId === 'B' || dragOverContainerId === 'B_Reserves'} onShowToast={(msg: string, type: any, undo?: any) => setToast({ message: msg, visible: true, type, systemIcon: type === 'success' ? 'save' : 'alert', onUndo: undo })} />
             </div>
             <motion.div variants={staggerItem} className="w-full [@media(min-width:736px)]:col-span-2 [@media(min-width:992px)]:w-[40%] relative p-1 pt-8 rounded-2xl bg-slate-100/50 dark:bg-white/[0.02] border border-dashed border-slate-300 dark:border-white/10 flex flex-col h-full overflow-hidden">
                 <div className="absolute top-4 left-6 px-3 py-1 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2 shadow-sm z-30"><Layers size={10} /><span>{t('teamManager.queue')}</span><span className="bg-slate-200 dark:bg-white/10 px-1.5 rounded text-slate-600 dark:text-slate-300">{queue.length}</span></div>{filteredQueue.length > 1 && (<div className="absolute top-4 right-6 px-3 py-1 rounded-full bg-black/5 dark:bg-white/5 text-[9px] font-bold text-slate-400 border border-black/5 dark:border-white/5 z-30">{t('common.step', {number: `${queuePage} / ${filteredQueue.length}`})}</div>)}
@@ -441,7 +429,7 @@ const RosterBoard = ({ courtA, courtB, queue, onUpdatePlayer, wrappedAdd, handle
                         <AnimatePresence initial={false} mode="popLayout">
                             {filteredQueue.map((team: Team, idx: number) => (
                                 <motion.div key={team.id} layout="position" layoutId={`queue-card-${team.id}`} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }} transition={{ type: "spring", stiffness: 60, damping: 15, mass: 1 }} className="snap-center w-full flex-shrink-0 h-full px-2 pt-1 pb-1 flex flex-col"> 
-                                    <TeamColumn id={team.id} team={team} profiles={profiles} onUpdateTeamName={()=>{}} onUpdateTeamColor={wrappedUpdateColor} onSaveProfile={wrappedSaveProfile} onSortTeam={()=>{}} toggleTeamBench={toggleTeamBench} substitutePlayers={()=>{}} onUpdatePlayer={onUpdatePlayer} onAddPlayer={wrappedAdd} onKnockoutRequest={handleKnockoutRequest} usedColors={usedColors} isQueue={true} onMove={wrappedMove} statsMap={playerStatsMap} onRequestProfileEdit={(pid: string) => setEditingTarget({ type: 'player', id: pid })} onViewProfile={(pid: string) => setViewingProfileId(pid)} onTogglePlayerMenu={handleTogglePlayerMenu} activePlayerMenuId={activePlayerMenu?.playerId || null} isNext={idx === 0 && !queueSearchTerm} validateNumber={validateNumber} onDisband={handleDisbandTeam} onReorder={isFiltered ? undefined : handleReorderLocal} queueIndex={idx} queueSize={queue.length} isDragOver={dragOverContainerId === team.id || dragOverContainerId === `${team.id}_Reserves`} onShowToast={(msg: string, type: any, undo?: any) => setToast({ message: msg, visible: true, type, systemIcon: type === 'success' ? 'save' : 'alert', onUndo: undo })} />
+                                    <TeamColumn id={team.id} team={team} profiles={profiles} onUpdateTeamName={()=>{}} onUpdateTeamColor={wrappedUpdateColor} onSaveProfile={wrappedSaveProfile} onSortTeam={()=>{}} toggleTeamBench={toggleTeamBench} substitutePlayers={()=>{}} onUpdatePlayer={onUpdatePlayer} onAddPlayer={wrappedAdd} onKnockoutRequest={handleKnockoutRequest} usedColors={usedColors} isQueue={true} onMove={wrappedMove} statsMap={playerStatsMap} onRequestProfileEdit={(pid: string) => setEditingTarget({ type: 'player', id: pid })} onViewProfile={(pid: string) => setViewingProfileId(pid)} onTogglePlayerMenu={handleTogglePlayerMenu} activePlayerMenuId={activePlayerMenu?.playerId || null} isNext={idx === 0 && !queueSearchTerm} onDisband={handleDisbandTeam} onReorder={isFiltered ? undefined : handleReorderLocal} queueIndex={idx} queueSize={queue.length} isDragOver={dragOverContainerId === team.id || dragOverContainerId === `${team.id}_Reserves`} onShowToast={(msg: string, type: any, undo?: any) => setToast({ message: msg, visible: true, type, systemIcon: type === 'success' ? 'save' : 'alert', onUndo: undo })} />
                                 </motion.div>
                             ))}
                         </AnimatePresence>
@@ -485,44 +473,19 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = (props) => {
 
   const { onUpdatePlayer, restoreTeam, onRestorePlayer, upsertProfile, deleteProfile, relinkProfile } = props;
   
-  // --- ROBUST TEAM LOOKUP ---
-  // Finds the exact Team object that contains the player ID, searching recursively.
-  const findTeamForPlayer = useCallback((playerId: string): Team | undefined => {
-      // 1. Check Court A (Main & Reserves)
-      if (props.courtA.players.some(p => p.id === playerId) || (props.courtA.reserves || []).some(p => p.id === playerId)) {
-          return props.courtA;
-      }
-      // 2. Check Court B (Main & Reserves)
-      if (props.courtB.players.some(p => p.id === playerId) || (props.courtB.reserves || []).some(p => p.id === playerId)) {
-          return props.courtB;
-      }
-      // 3. Check All Queue Teams (Main & Reserves)
-      for (const t of props.queue) {
-          if (t.players.some(p => p.id === playerId) || (t.reserves || []).some(p => p.id === playerId)) {
-              return t;
-          }
-      }
-      return undefined;
+  const findContainer = useCallback((id: string) => {
+    if (id === 'A' || props.courtA.players.some(p => p.id === id)) return 'A';
+    if (props.courtA.reserves?.some(p => p.id === id)) return 'A_Reserves';
+    if (id === 'B' || props.courtB.players.some(p => p.id === id)) return 'B';
+    if (props.courtB.reserves?.some(p => p.id === id)) return 'B_Reserves';
+    if (id === 'A_Reserves') return 'A_Reserves'; 
+    if (id === 'B_Reserves') return 'B_Reserves';
+    for (const team of props.queue) {
+        if (id === team.id || team.players.some(p => p.id === id)) return team.id;
+        if (id === `${team.id}_Reserves` || (team.reserves && team.reserves.some(p => p.id === id))) return `${team.id}_Reserves`;
+    }
+    return null;
   }, [props.courtA, props.courtB, props.queue]);
-
-  // --- VALIDATION LOGIC ---
-  const validateNumber = useCallback((number: string, teamId: string, playerId: string): boolean => {
-      let team = findTeamForPlayer(playerId);
-      if (!team) {
-          // If we can't find by player (new player?), try finding by teamId
-          if (teamId === 'A') team = props.courtA;
-          else if (teamId === 'B') team = props.courtB;
-          else team = props.queue.find(t => t.id === teamId);
-      }
-      
-      if (team) {
-          const result = validateUniqueNumberInTeam(team, number, playerId);
-          if (!result.valid) {
-              return false;
-          }
-      }
-      return true;
-  }, [props.courtA, props.courtB, props.queue, findTeamForPlayer]);
 
   // --- UPDATE HANDLER ---
   const handleUpdatePlayerWrapper = useCallback((playerId: string, updates: Partial<Player>) => {
@@ -675,20 +638,6 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = (props) => {
   }, [activePlayerMenu]);
 
   const handleCloseAttempt = () => { props.onClose(); }; 
-
-  const findContainer = useCallback((id: string) => {
-    if (id === 'A' || props.courtA.players.some(p => p.id === id)) return 'A';
-    if (props.courtA.reserves?.some(p => p.id === id)) return 'A_Reserves';
-    if (id === 'B' || props.courtB.players.some(p => p.id === id)) return 'B';
-    if (props.courtB.reserves?.some(p => p.id === id)) return 'B_Reserves';
-    if (id === 'A_Reserves') return 'A_Reserves'; 
-    if (id === 'B_Reserves') return 'B_Reserves';
-    for (const team of props.queue) {
-        if (id === team.id || team.players.some(p => p.id === id)) return team.id;
-        if (id === `${team.id}_Reserves` || (team.reserves && team.reserves.some(p => p.id === id))) return `${team.id}_Reserves`;
-    }
-    return null;
-  }, [props.courtA, props.courtB, props.queue]);
 
   const getTeamById = (id: string) => {
       if (id === 'A' || id === 'A_Reserves') return props.courtA;
@@ -848,7 +797,22 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = (props) => {
 
     if (editingTarget.type === 'player') {
         const rosterPlayerId = editingTarget.id;
-        props.onSaveProfile(rosterPlayerId, { name, number, avatar, skill, role });
+        // 🛡️ CAPTURE RESULT FROM SAVE PROFILE
+        const result = props.onSaveProfile(rosterPlayerId, { name, number, avatar, skill, role });
+        
+        // Check for error (e.g., number conflict)
+        if (result && result.success === false) {
+            haptics.notification('error');
+            setToast({
+                message: "Cannot Save Profile",
+                subText: result.error || "Invalid data",
+                visible: true,
+                type: 'error',
+                systemIcon: 'block'
+            });
+            // 🛑 STOP: Do not close modal, let user fix it
+            return;
+        }
     } else if (editingTarget.type === 'profile') {
         if (props.upsertProfile) {
             props.upsertProfile(name, skill, editingTarget.id, { number, avatar, role });
@@ -1040,7 +1004,7 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = (props) => {
             </motion.div>
           );
       })}</div>)}</motion.div>)}
-      {activeTab === 'roster' && (<DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}><div onScroll={dispatchScrollEvent} className="h-full flex flex-col"><RosterBoard courtA={props.courtA} courtB={props.courtB} queue={props.queue} onUpdatePlayer={handleUpdatePlayerWrapper} wrappedAdd={wrappedAdd} handleKnockoutRequest={handleKnockoutRequest} usedColors={usedColors} wrappedMove={wrappedMove} playerStatsMap={playerStatsMap} setEditingTarget={setEditingTarget} setViewingProfileId={setViewingProfileId} handleTogglePlayerMenu={handleTogglePlayerMenu} activePlayerMenu={activePlayerMenu} reorderQueue={wrappedReorder} handleDisbandTeam={wrappedDisband} toggleTeamBench={props.toggleTeamBench} wrappedUpdateColor={wrappedUpdateColor} substitutePlayers={props.substitutePlayers} validateNumber={validateNumber} dragOverContainerId={dragOverContainerId} setToast={setToast} profiles={props.profiles} wrappedSaveProfile={props.onSaveProfile} onRequestProfileEdit={handleProfileRequest} {...props} /></div></DndContext>)}
+      {activeTab === 'roster' && (<DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}><div onScroll={dispatchScrollEvent} className="h-full flex flex-col"><RosterBoard courtA={props.courtA} courtB={props.courtB} queue={props.queue} onUpdatePlayer={handleUpdatePlayerWrapper} wrappedAdd={wrappedAdd} handleKnockoutRequest={handleKnockoutRequest} usedColors={usedColors} wrappedMove={wrappedMove} playerStatsMap={playerStatsMap} setEditingTarget={setEditingTarget} setViewingProfileId={setViewingProfileId} handleTogglePlayerMenu={handleTogglePlayerMenu} activePlayerMenu={activePlayerMenu} reorderQueue={wrappedReorder} handleDisbandTeam={wrappedDisband} toggleTeamBench={props.toggleTeamBench} wrappedUpdateColor={wrappedUpdateColor} substitutePlayers={props.substitutePlayers} dragOverContainerId={dragOverContainerId} setToast={setToast} profiles={props.profiles} wrappedSaveProfile={props.onSaveProfile} onRequestProfileEdit={handleProfileRequest} {...props} /></div></DndContext>)}
        <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[70] transition-all duration-300 cubic-bezier(0.175, 0.885, 0.32, 1.275) ${undoVisible && props.canUndoRemove ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-4 scale-90 pointer-events-none'}`}><div className="bg-slate-900/90 backdrop-blur-xl text-white px-6 py-3 rounded-full shadow-2xl border border-white/10 flex items-center gap-4"><span className="text-xs font-bold text-slate-300 tracking-wide">{t('teamManager.playerRemoved')}</span><div className="h-4 w-px bg-white/20"></div><button onClick={props.onUndoRemove} className="flex items-center gap-1.5 text-xs font-black text-indigo-400 hover:text-indigo-300 transition-colors uppercase tracking-wider"><Undo2 size={16} /> {t('teamManager.undo')}</button></div></div>
        {props.isOpen && createPortal(<DragOverlayFixed dropAnimation={{ duration: 150, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>{activePlayer ? (<div className="w-[300px]"><PlayerCard player={activePlayer} locationId="" profile={activePlayer.profileId ? props.profiles.get(activePlayer.profileId) : undefined} onUpdatePlayer={()=>{}} onSaveProfile={()=>{}} onRequestProfileEdit={()=>{}} onViewProfile={()=>{}} forceDragStyle={true} onToggleMenu={()=>{}} isMenuActive={false} /></div>) : null}</DragOverlayFixed>, document.body)}
     </Modal>

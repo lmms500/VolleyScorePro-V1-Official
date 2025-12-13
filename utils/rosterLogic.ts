@@ -25,8 +25,9 @@ export const findAllPlayers = (courtA: Team, courtB: Team, queue: Team[]) => {
 };
 
 /**
- * 🧠 BUSINESSS CORE: Single Number Constraint
+ * 🧠 BUSINESS CORE: Single Number Constraint
  * Enforces that no two players in the same team roster (players + reserves) share the same number.
+ * This is the SINGLE SOURCE OF TRUTH for validity.
  */
 export const validateUniqueNumber = (
     roster: Player[], 
@@ -59,11 +60,13 @@ export const validateUniqueNumber = (
 };
 
 // Legacy wrapper ensuring compatibility with boolean checks, but redirecting to new logic
+// @deprecated Use validateUniqueNumber directly
 export const isNumberAvailable = (team: Team, number: string | undefined, excludePlayerId?: string): boolean => {
     const roster = [...team.players, ...(team.reserves || [])];
     return validateUniqueNumber(roster, number, excludePlayerId).valid;
 };
 
+// Helper specific for Team objects
 export const validateUniqueNumberInTeam = (team: Team, number: string, excludeId?: string): ValidationResult => {
     const roster = [...team.players, ...(team.reserves || [])];
     return validateUniqueNumber(roster, number, excludeId);

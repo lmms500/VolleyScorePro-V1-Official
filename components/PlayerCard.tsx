@@ -25,7 +25,7 @@ interface PlayerCardProps {
     onViewProfile: (id: string) => void; // New Prop for Read-Only View
     onToggleMenu: (playerId: string, targetElement: HTMLElement) => void;
     isMenuActive: boolean;
-    validateNumber?: (n: string) => boolean;
+    // validateNumber is removed as validation is now handled atomically in the store
     onShowToast?: (msg: string, type: 'success' | 'info' | 'error') => void;
     isCompact?: boolean;
     forceDragStyle?: boolean;
@@ -64,49 +64,38 @@ const EditableTitle = memo(({ name, onSave, className }: { name: string; onSave:
     );
 });
 
-const EditableNumber = memo(({ number, onSave, validator }: { number?: string; onSave: (val: string) => void; validator?: (n: string) => boolean }) => {
+const EditableNumber = memo(({ number, onSave }: { number?: string; onSave: (val: string) => void }) => {
     const [isEditing, setIsEditing] = React.useState(false);
     const [val, setVal] = React.useState(number || '');
-    const [error, setError] = React.useState(false);
     const inputRef = React.useRef<HTMLInputElement>(null);
 
-    React.useEffect(() => { setVal(number || ''); setError(false); }, [number]);
+    // CRITICAL: Reset internal state when prop changes. 
+    // This allows the parent to force-revert the input if validation fails.
+    React.useEffect(() => { 
+        setVal(number || ''); 
+    }, [number]);
+
     React.useEffect(() => { if(isEditing) inputRef.current?.focus(); }, [isEditing]);
 
     const save = () => {
         const trimmed = val.trim();
-        // Skip validation if value hasn't changed
-        if (trimmed === (number || '')) {
-            setIsEditing(false);
-            return;
-        }
-
-        // Strict Validation Check
-        if (validator && trimmed && !validator(trimmed)) {
-            setError(true);
-            // Shake/Flash error and revert
-            setTimeout(() => {
-                setError(false);
-                // Keep editing open so user can fix it, or revert. Reverting is safer to avoid frustration.
-                // Reverting to original value visually but keeping editing active might be better UX?
-                // For simplicity, let's revert value and close. Or keep editing active.
-                // Let's keep editing active but revert the value? No, user loses input.
-                // Just keep editing active and focus.
-                inputRef.current?.focus();
-            }, 600); 
-            return; // ABORT SAVE
-        }
-
         setIsEditing(false);
-        onSave(trimmed);
+        // Always call onSave to allow parent validation logic to run, even if seemingly unchanged
+        // But optimization: only if trimmed is different from current prop or if empty to clear
+        if (trimmed !== (number || '')) {
+            onSave(trimmed);
+        } else {
+            // Reset to prop value just in case
+            setVal(number || '');
+        }
     };
 
     if(isEditing) {
         return (
             <input 
                 ref={inputRef} type="tel" maxLength={3}
-                className={`w-7 h-7 bg-white dark:bg-black/50 text-center rounded-md border outline-none text-xs font-bold text-slate-800 dark:text-white shadow-sm transition-all ${error ? 'border-red-500 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 animate-[shake_0.4s_ease-in-out]' : 'border-indigo-500'}`}
-                value={val} onChange={e => { setVal(e.target.value); setError(false); }}
+                className={`w-7 h-7 bg-white dark:bg-black/50 text-center rounded-md border outline-none text-xs font-bold text-slate-800 dark:text-white shadow-sm transition-all border-indigo-500`}
+                value={val} onChange={e => setVal(e.target.value)}
                 onBlur={save} onKeyDown={e => { if(e.key === 'Enter') save(); if(e.key === 'Escape') setIsEditing(false); }}
                 onPointerDown={e => e.stopPropagation()} 
             />
@@ -126,7 +115,7 @@ const EditableNumber = memo(({ number, onSave, validator }: { number?: string; o
 export const PlayerCard = memo(({ 
     player, locationId, profile, 
     onUpdatePlayer, onSaveProfile, onRequestProfileEdit, onViewProfile,
-    onToggleMenu, isMenuActive, validateNumber, onShowToast, forceDragStyle = false 
+    onToggleMenu, isMenuActive, onShowToast, forceDragStyle = false 
 }: PlayerCardProps) => {
   const haptics = useHaptics();
 
@@ -217,7 +206,7 @@ export const PlayerCard = memo(({
         className={`group relative flex items-center justify-between rounded-2xl border touch-manipulation py-1.5 px-2.5 min-h-[54px] ${forceDragStyle ? containerClass : (locationId.includes('_Reserves') ? reserveClass : (player.isFixed ? fixedClass : (specialClass || containerClass)))} ${!player.isFixed && !isMenuActive ? 'cursor-grab active:cursor-grabbing' : ''}`}
     >
         <div className="flex items-center gap-2 flex-shrink-0 self-center">
-            <EditableNumber number={player.number} onSave={(v) => onUpdatePlayer(player.id, { number: v })} validator={validateNumber} />
+            <EditableNumber number={player.number} onSave={(v) => onUpdatePlayer(player.id, { number: v })} />
         </div>
         
         {/* Interaction Split: Name is one zone, Avatar is another */}

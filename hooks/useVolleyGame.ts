@@ -131,7 +131,7 @@ export const useVolleyGame = () => {
 
   // --- ROSTER ACTIONS (Smart Linking & Validation) ---
   
-  // Helper to find exact team object for validation
+  // Helper to find exact team object for player ID
   const findTeamForPlayer = useCallback((playerId: string): Team | undefined => {
       // Check Court A
       if (state.teamARoster.players.some(p => p.id === playerId) || (state.teamARoster.reserves || []).some(p => p.id === playerId)) {
@@ -345,8 +345,9 @@ export const useVolleyGame = () => {
   const restoreTeam = useCallback((team: Team, index: number) => dispatch({ type: 'ROSTER_RESTORE_TEAM', team, index }), []);
   const resetRosters = useCallback(() => dispatch({ type: 'ROSTER_RESET_ALL' }), []);
 
-  // 🛡️ REFACTORED: SAVE PLAYER TO PROFILE (Deduplication)
+  // 🛡️ CRITICAL FIX: VALIDATE NUMBER CONFLICTS WHEN SAVING PROFILE TO ROSTER PLAYER
   const savePlayerToProfile = useCallback((playerId: string, overrides?: { name?: string, number?: string, avatar?: string, skill?: number, role?: PlayerRole }) => {
+      // 1. Locate Player in current game state
       let p: Player | undefined;
       const all = [
         ...state.teamARoster.players, ...(state.teamARoster.reserves || []),
@@ -355,45 +356,62 @@ export const useVolleyGame = () => {
       ];
       p = all.find(x => x.id === playerId);
       
-      if(p) {
-          const nameToUse = overrides?.name || p.name;
-          const numberToUse = overrides?.number !== undefined ? overrides.number : p.number;
-          const skillToUse = overrides?.skill !== undefined ? overrides.skill : p.skillLevel;
-          const roleToUse = overrides?.role !== undefined ? overrides.role : p.role;
-          
-          // DEDUPLICATION CHECK
-          let targetProfileId = p.profileId;
-          
-          if (!targetProfileId) {
-              const existingProfile = findProfileByName(nameToUse);
-              if (existingProfile) {
-                  // MERGE STRATEGY: Use existing profile ID
-                  targetProfileId = existingProfile.id;
+      if(!p) return { success: false, error: "Player not found" };
+
+      const nameToUse = overrides?.name || p.name;
+      const numberToUse = overrides?.number !== undefined ? overrides.number : p.number;
+      const skillToUse = overrides?.skill !== undefined ? overrides.skill : p.skillLevel;
+      const roleToUse = overrides?.role !== undefined ? overrides.role : p.role;
+
+      // 🛡️ VALIDATION: If number is being set via profile, check constraints on the ACTIVE team
+      if (numberToUse) {
+          const team = findTeamForPlayer(playerId);
+          if (team) {
+              const roster = [...team.players, ...(team.reserves || [])];
+              const validation = validateUniqueNumber(roster, numberToUse, playerId);
+              
+              if (!validation.valid) {
+                  // BLOCK THE SAVE/SYNC to prevent loophole
+                  console.warn(`[ProfileSave] Blocked: Number ${numberToUse} conflict in team ${team.name}`);
+                  return { success: false, error: validation.message };
               }
           }
-
-          // Upsert (Create or Update)
-          const profile = upsertProfile(
-              nameToUse, 
-              skillToUse, 
-              targetProfileId, // Pass existing ID if found/linked
-              { number: numberToUse, avatar: overrides?.avatar, role: roleToUse }
-          );
-          
-          // Link Player to Profile in Reducer
-          dispatch({ 
-              type: 'ROSTER_UPDATE_PLAYER', 
-              playerId, 
-              updates: { 
-                  profileId: profile.id,
-                  name: profile.name,
-                  number: profile.number,
-                  skillLevel: profile.skillLevel,
-                  role: profile.role
-              } 
-          });
       }
-  }, [state, upsertProfile, findProfileByName]);
+          
+      // DEDUPLICATION CHECK
+      let targetProfileId = p.profileId;
+      
+      if (!targetProfileId) {
+          const existingProfile = findProfileByName(nameToUse);
+          if (existingProfile) {
+              // MERGE STRATEGY: Use existing profile ID
+              targetProfileId = existingProfile.id;
+          }
+      }
+
+      // Upsert (Create or Update)
+      const profile = upsertProfile(
+          nameToUse, 
+          skillToUse, 
+          targetProfileId, // Pass existing ID if found/linked
+          { number: numberToUse, avatar: overrides?.avatar, role: roleToUse }
+      );
+      
+      // Link Player to Profile in Reducer
+      dispatch({ 
+          type: 'ROSTER_UPDATE_PLAYER', 
+          playerId, 
+          updates: { 
+              profileId: profile.id,
+              name: profile.name,
+              number: profile.number,
+              skillLevel: profile.skillLevel,
+              role: profile.role
+          } 
+      });
+
+      return { success: true };
+  }, [state, upsertProfile, findProfileByName, findTeamForPlayer]);
 
   const revertPlayerChanges = useCallback((playerId: string) => {
       let p;
