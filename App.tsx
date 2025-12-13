@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useEffect, lazy, Suspense, useCallback, useRef } from 'react';
 import { GameProvider, useGame } from './contexts/GameContext';
 import { usePWAInstallPrompt } from './hooks/usePWAInstallPrompt';
@@ -47,7 +45,8 @@ const TeamManagerModal = lazy(() => import('./components/modals/TeamManagerModal
 const MatchOverModal = lazy(() => import('./components/modals/MatchOverModal').then(m => ({ default: m.MatchOverModal })));
 const ConfirmationModal = lazy(() => import('./components/modals/ConfirmationModal').then(m => ({ default: m.ConfirmationModal })));
 const HistoryModal = lazy(() => import('./components/modals/HistoryModal').then(m => ({ default: m.HistoryModal })));
-const TutorialModal = lazy(() => import('./components/modals/TutorialModal').then(m => ({ default: m.TutorialModal })));
+// UPDATED: Import RichTutorialModal instead of TutorialModal
+const RichTutorialModal = lazy(() => import('./components/modals/RichTutorialModal').then(m => ({ default: m.RichTutorialModal })));
 
 const GameContent = () => {
   const game = useGame();
@@ -529,7 +528,8 @@ const GameContent = () => {
             {state.isMatchOver && <MatchOverModal isOpen={state.isMatchOver} state={state} onRotate={rotateTeams} onReset={resetMatch} onUndo={handleUndo} />}
             {showResetConfirm && <ConfirmationModal isOpen={showResetConfirm} onClose={() => setShowResetConfirm(false)} onConfirm={resetMatch} title={t('confirm.reset.title')} message={t('confirm.reset.message')} confirmLabel={t('confirm.reset.confirmButton')} />}
             {showHistory && <HistoryModal isOpen={showHistory} onClose={() => setShowHistory(false)} />}
-            {tutorial.activeTutorial === 'main' && <TutorialModal isOpen={true} tutorialKey="main" onClose={tutorial.completeTutorial} onInstall={pwa.promptInstall} canInstall={pwa.isInstallable} isIOS={pwa.isIOS} isStandalone={pwa.isStandalone} />}
+            {/* UPDATED: Usage of RichTutorialModal */}
+            {tutorial.activeTutorial === 'main' && <RichTutorialModal isOpen={true} tutorialKey="main" onClose={tutorial.completeTutorial} />}
         </Suspense>
         
         <ReloadPrompt />

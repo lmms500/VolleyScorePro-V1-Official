@@ -448,32 +448,56 @@
     "start": "Start",
     "welcome": {
       "title": "VolleyScore Pro",
-      "desc": "Professional scoring.",
+      "desc": "The ultimate volleyball companion. Pro scoring, squad management, and advanced stats.",
       "optIn": "Skip anytime."
     },
     "gestures": {
-      "title": "Gestures",
-      "desc": "Tap to Add. Swipe to Undo."
+      "title": "Smart Gestures",
+      "desc": "Tap anywhere to add points. Swipe down to subtract or undo. It's fluid and fast."
     },
     "features": {
-      "title": "Control",
-      "desc": "Rotations, Subs & Stats."
+      "title": "Full Control",
+      "desc": "Manage rotations, timeouts, substitutions, and detailed match history in one place."
     },
     "manager": {
-        "welcome": "Squads",
-        "welcomeDesc": "Manage Rosters & Queues.",
-        "roster": "Roster & Bench",
-        "rosterDesc": "6 on Court. Activate Bench for subs.",
-        "queue": "Queue",
-        "queueDesc": "Waitlist for rotations.",
-        "rotation": "Rotation",
-        "rotationDesc": "Standard or Skill Balanced."
+        "intro": {
+            "title": "Squad Manager",
+            "desc": "The heart of your teams. Manage rosters, queues, and player profiles here."
+        },
+        "edit": {
+            "title": "Customization",
+            "desc": "Tap team names to edit. Tap the color circle to change team identity."
+        },
+        "roster": {
+            "title": "Drag & Drop",
+            "desc": "Drag players between the Court, Bench, and Queue. The first 6 are active players."
+        },
+        "profiles": {
+            "title": "Player Profiles",
+            "desc": "Create profiles to track long-term stats (Kills, Blocks, Aces) across matches."
+        },
+        "rotation": {
+            "title": "Rotations",
+            "desc": "In 'Standard Mode', winners stay on court. Losers move to the queue automatically."
+        },
+        "balance": {
+            "title": "Skill Balance",
+            "desc": "Use 'Balanced Mode' to let the AI draft teams based on player skill levels."
+        }
     },
     "history": {
-        "welcome": "History",
-        "welcomeDesc": "Review & Analyze.",
-        "timeline": "Timeline",
-        "timelineDesc": "Momentum shifts.",
+        "summary": {
+            "title": "Match Summary",
+            "desc": "Review sets, final scores, and duration. Tap to expand set details."
+        },
+        "timeline": {
+            "title": "Momentum",
+            "desc": "Visualize the game flow with the momentum graph. See exactly when the tide turned."
+        },
+        "analysis": {
+            "title": "Deep Analysis",
+            "desc": "View aggregated stats for kills, blocks, and aces. Identify your MVPs."
+        },
         "stats": "Scout Mode",
         "statsDesc": "Enable to log Kills/Blocks.",
         "statsFeedback": "Visual confirmation appears when stats are saved.",

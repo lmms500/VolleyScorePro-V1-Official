@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useEffect, useCallback, memo, useRef } from 'react';
+
+import React, { useState, useMemo, useEffect, useCallback, memo, useRef, lazy } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Team, Player, RotationMode, PlayerProfile, TeamColor, ActionLog, PlayerRole } from '../../types';
@@ -20,7 +21,9 @@ import { useGameAudio } from '../../hooks/useGameAudio';
 import { PlayerCard } from '../PlayerCard';
 import { staggerContainer, staggerItem, liquidSpring } from '../../utils/animations';
 import { useTutorial } from '../../hooks/useTutorial';
-import { TutorialModal } from './TutorialModal';
+
+// LAZY LOAD RichTutorialModal
+const RichTutorialModal = lazy(() => import('./RichTutorialModal').then(m => ({ default: m.RichTutorialModal })));
 
 const SortableContextFixed = SortableContext as any;
 const DragOverlayFixed = DragOverlay as any;
@@ -944,12 +947,14 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = (props) => {
     createPortal(
     <Modal isOpen={props.isOpen} onClose={handleCloseAttempt} title={t('teamManager.title')} maxWidth="max-w-5xl" zIndex="z-[50]">
         
-        {/* Tutorial Integration */}
-        <TutorialModal 
-            isOpen={activeTutorial === 'manager'} 
-            tutorialKey="manager" 
-            onClose={completeTutorial} 
-        />
+        {/* Tutorial Integration - Replaced with RichTutorialModal */}
+        {activeTutorial === 'manager' && (
+            <RichTutorialModal 
+                isOpen={true} 
+                tutorialKey="manager" 
+                onClose={completeTutorial} 
+            />
+        )}
 
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
             
