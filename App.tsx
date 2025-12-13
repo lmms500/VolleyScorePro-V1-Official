@@ -483,7 +483,7 @@ const GameContent = () => {
                 />
             )}
             {state.isMatchOver && <MatchOverModal isOpen={state.isMatchOver} state={state} onRotate={rotateTeams} onReset={resetMatch} onUndo={handleUndo} />}
-            {showResetConfirm && <ConfirmationModal isOpen={showResetConfirm} onClose={() => setShowResetConfirm(false)} onConfirm={resetMatch} title="Reset Match?" message="Are you sure?" />}
+            {showResetConfirm && <ConfirmationModal isOpen={showResetConfirm} onClose={() => setShowResetConfirm(false)} onConfirm={resetMatch} title={t('confirm.reset.title')} message={t('confirm.reset.message')} confirmLabel={t('confirm.reset.confirmButton')} />}
             {showHistory && <HistoryModal isOpen={showHistory} onClose={() => setShowHistory(false)} />}
             {tutorial.showTutorial && <TutorialModal isOpen={tutorial.showTutorial} onClose={tutorial.completeTutorial} onInstall={pwa.promptInstall} canInstall={pwa.isInstallable} isIOS={pwa.isIOS} isStandalone={pwa.isStandalone} />}
         </Suspense>

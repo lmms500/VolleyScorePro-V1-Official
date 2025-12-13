@@ -172,15 +172,20 @@ export const useVolleyGame = () => {
               const result = validateUniqueNumber(roster, updates.number, playerId);
               
               if (!result.valid) {
-                  console.warn(`[Store Integrity] Blocked update: Number ${updates.number} conflict in team ${team.name}.`);
-                  return { success: false, error: result.message };
+                  console.warn(`[Store Integrity] Blocked update: Number ${updates.number} conflict.`);
+                  // Return the full result so the UI can translate it
+                  return { 
+                      success: false, 
+                      errorKey: result.messageKey, 
+                      errorParams: result.messageParams 
+                  };
               }
 
               // 🔒 OPTIMISTIC LOCK: Check against pending updates (Race Condition Protection)
               const lockKey = `${team.id}:${updates.number.trim()}`;
               if (optimisticNumberLocks.current.has(lockKey)) {
                   console.warn(`[Race Condition] Blocked rapid update for ${lockKey}`);
-                  return { success: false, error: `Number ${updates.number} is already being assigned.` };
+                  return { success: false, errorKey: 'validation.numberAssigned', errorParams: { number: updates.number } };
               }
               optimisticNumberLocks.current.add(lockKey);
           }
@@ -223,7 +228,7 @@ export const useVolleyGame = () => {
   const toggleTeamBench = useCallback((teamId: string) => dispatch({ type: 'ROSTER_TOGGLE_BENCH', teamId }), []);
   
   // 🛡️ REFACTORED: ADD PLAYER WITH AUTO-LINKING & VALIDATION
-  const addPlayer = useCallback((name: string, target: string, number?: string, skill?: number, existingPlayer?: Player): { success: boolean, error?: string } => {
+  const addPlayer = useCallback((name: string, target: string, number?: string, skill?: number, existingPlayer?: Player): { success: boolean, errorKey?: string, errorParams?: any } => {
       const currentState = stateRef.current;
       let p: Player;
       
@@ -280,13 +285,13 @@ export const useVolleyGame = () => {
           const result = validateUniqueNumber(roster, p.number); // No excludeId because it's a new player
           
           if (!result.valid) {
-              return { success: false, error: result.message };
+              return { success: false, errorKey: result.messageKey, errorParams: result.messageParams };
           }
 
           // 🔒 OPTIMISTIC LOCK: Check against pending adds
           const lockKey = `${targetTeam.id}:${p.number.trim()}`;
           if (optimisticNumberLocks.current.has(lockKey)) {
-              return { success: false, error: `Number ${p.number} is already being assigned.` };
+              return { success: false, errorKey: 'validation.numberAssigned', errorParams: { number: p.number } };
           }
           optimisticNumberLocks.current.add(lockKey);
       }
@@ -387,8 +392,8 @@ export const useVolleyGame = () => {
               
               if (!validation.valid) {
                   // BLOCK THE SAVE/SYNC to prevent loophole
-                  console.warn(`[ProfileSave] Blocked: Number ${numberToUse} conflict in team ${team.name}`);
-                  return { success: false, error: validation.message };
+                  console.warn(`[ProfileSave] Blocked: Number ${numberToUse} conflict.`);
+                  return { success: false, errorKey: validation.messageKey, errorParams: validation.messageParams };
               }
           }
       }

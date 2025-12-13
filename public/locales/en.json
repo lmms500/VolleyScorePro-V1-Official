@@ -48,6 +48,7 @@
     "hitter": "Hitter",
     "libero": "Libero",
     "middle": "Middle",
+    "none": "None",
     "abbr": {
       "setter": "Set",
       "hitter": "Hit",
@@ -58,6 +59,11 @@
   "easterEgg": {
     "title": "Just kidding! Have fun! 🎉",
     "subtitle": "Developer Mode? Nope."
+  },
+  "validation": {
+    "numberConflict": "Number {number} already belongs to {name}.",
+    "numberAssigned": "Number {number} is already being assigned.",
+    "uniqueConstraint": "Duplicate number or limit reached."
   },
   "notifications": {
     "matchSaved": "Match Saved",
@@ -80,7 +86,15 @@
     "aiProcessing": "AI Processing",
     "forTeam": "For {teamName}",
     "profileSynced": "Profile Synced",
-    "profileUpToDate": "Already up to date"
+    "profileUpToDate": "Already up to date",
+    "numberUnavailable": "Number Unavailable",
+    "cannotAdd": "Cannot Add",
+    "finishEditing": "Finish Editing",
+    "finishEditingSub": "Please fix the invalid number before editing another.",
+    "saveFailed": "Save Failed",
+    "numberConflict": "Number conflict",
+    "teamFull": "Team Full",
+    "teamFullSub": "Activate Bench to add more players"
   },
   "settings": {
     "title": "Configuration",
@@ -313,6 +327,13 @@
       "block": "Block",
       "ace": "Ace",
       "opponent_error": "Opp. Error"
+    },
+    "labels": {
+      "attack": "Attack Point",
+      "block": "Kill Block",
+      "ace": "Service Ace",
+      "opponent_error": "Opponent Error",
+      "generic": "Point Added"
     }
   },
   "profile": {
@@ -339,7 +360,10 @@
     "topScorers": "Top Scorers",
     "mvp": "Match MVP",
     "points": "Points",
-    "notEnoughData": "Not enough data for chart"
+    "notEnoughData": "Not enough data for chart",
+    "matches": "Matches",
+    "sets": "Sets",
+    "conceded": "Conceded"
   },
   "historyList": {
     "title": "Match History",
@@ -447,6 +471,8 @@
       "message": "Are you sure you want to reset the match? All scores and history will be lost.",
       "confirmButton": "Yes, Reset"
     },
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "deleteProfile": "Delete Profile?",
+    "deleteProfileMsg": "This action will delete the profile permanently. However, you can undo it immediately after."
   }
 }

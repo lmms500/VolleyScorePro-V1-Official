@@ -36,6 +36,15 @@ interface PlayerCardProps {
     onRequestEditNumber?: (id: string) => void;
 }
 
+// Map roles to specific color styles (Neo-Glass Tint)
+const ROLE_STYLES: Record<string, string> = {
+    setter: 'bg-amber-500/10 dark:bg-amber-500/10 border-amber-500/30 hover:bg-amber-500/20 dark:hover:bg-amber-500/20',
+    hitter: 'bg-rose-500/10 dark:bg-rose-500/10 border-rose-500/30 hover:bg-rose-500/20 dark:hover:bg-rose-500/20',
+    middle: 'bg-indigo-500/10 dark:bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/20 dark:hover:bg-indigo-500/20',
+    libero: 'bg-emerald-500/10 dark:bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/20',
+    none: ''
+};
+
 const EditableTitle = memo(({ name, onSave, className }: { name: string; onSave: (val: string) => void; className?: string }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [val, setVal] = useState(name);
@@ -296,13 +305,28 @@ export const PlayerCard = memo(({
   else if (activeRole === 'middle') { RoleIcon = Target; roleColor = "text-indigo-500"; }
   else if (activeRole === 'libero') { RoleIcon = Shield; roleColor = "text-emerald-500"; }
 
-  const containerClass = forceDragStyle
-    ? `bg-white dark:bg-slate-800 border-2 border-indigo-500 shadow-2xl z-50 ring-4 ring-indigo-500/20`
-    : `bg-white/60 dark:bg-white/[0.04] hover:bg-white/80 dark:hover:bg-white/[0.08] border-transparent hover:border-black/5 dark:hover:border-white/10 transition-all duration-200`;
+  // Base style for dragged items
+  const dragClass = `bg-white dark:bg-slate-800 border-2 border-indigo-500 shadow-2xl z-50 ring-4 ring-indigo-500/20`;
+  
+  // Base style for normal items (Glass effect)
+  const baseClass = `bg-white/60 dark:bg-white/[0.04] hover:bg-white/80 dark:hover:bg-white/[0.08] border-transparent hover:border-black/5 dark:hover:border-white/10 transition-all duration-200`;
 
-  const specialClass = activeRole === 'libero' && !forceDragStyle ? 'bg-emerald-500/5 dark:bg-emerald-500/5 border-emerald-500/10' : '';
-  const fixedClass = player.isFixed ? 'bg-amber-500/5 border-amber-500/20 shadow-sm shadow-amber-500/5' : '';
-  const reserveClass = locationId.includes('_Reserves') ? 'border-dashed border-slate-300 dark:border-white/10 bg-slate-50/50 dark:bg-black/20' : '';
+  // Role Tint: If a role is active, use the role-specific style instead of baseClass
+  const roleStyleClass = ROLE_STYLES[activeRole];
+  
+  // Logic for final container class
+  let containerClass = baseClass;
+  
+  if (forceDragStyle) {
+      containerClass = dragClass;
+  } else if (locationId.includes('_Reserves')) {
+      containerClass = 'border-dashed border-slate-300 dark:border-white/10 bg-slate-50/50 dark:bg-black/20';
+  } else if (player.isFixed) {
+      containerClass = 'bg-amber-500/5 border-amber-500/20 shadow-sm shadow-amber-500/5';
+  } else if (roleStyleClass) {
+      // Apply the role tint logic requested by user
+      containerClass = roleStyleClass;
+  }
 
   let SyncIcon = Save;
   let syncColor = 'text-slate-300 hover:text-indigo-500 hover:bg-indigo-500/10';
@@ -323,7 +347,7 @@ export const PlayerCard = memo(({
   return (
     <div 
         ref={setNodeRef} style={style} {...attributes} {...listeners} data-player-card="true" 
-        className={`group relative flex items-center justify-between rounded-2xl border touch-manipulation py-1.5 px-2.5 min-h-[54px] ${forceDragStyle ? containerClass : (locationId.includes('_Reserves') ? reserveClass : (player.isFixed ? fixedClass : (specialClass || containerClass)))} ${!player.isFixed && !isMenuActive && activeNumberId !== player.id ? 'cursor-grab active:cursor-grabbing' : ''}`}
+        className={`group relative flex items-center justify-between rounded-2xl border touch-manipulation py-1.5 px-2.5 min-h-[54px] ${containerClass} ${!player.isFixed && !isMenuActive && activeNumberId !== player.id ? 'cursor-grab active:cursor-grabbing' : ''}`}
     >
         <div className="flex items-center gap-2 flex-shrink-0 self-center">
             <EditableNumber 

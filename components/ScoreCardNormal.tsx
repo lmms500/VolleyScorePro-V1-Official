@@ -1,3 +1,4 @@
+
 import React, { memo, useState, useCallback } from 'react';
 import { Team, TeamId, SkillType, GameConfig, TeamColor } from '../types';
 import { Volleyball, Zap, Timer, Skull, TrendingUp, Trophy } from 'lucide-react';
@@ -52,7 +53,6 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
   const [ripple, setRipple] = useState<{ x: number, y: number, id: number } | null>(null);
   
   // Specific Physics Colliders for precise interaction
-  // These refs track the *physical* location of elements for the confetti engine
   const headerRef = useCollider<HTMLHeadingElement>(`sc-header-${teamId}`);
   const badgeRef = useCollider<HTMLDivElement>(`sc-badge-${teamId}`);
   const numberRef = useCollider<HTMLDivElement>(`sc-number-${teamId}`);
@@ -154,7 +154,6 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
       <div className="flex flex-col h-full w-full relative z-10 py-1 px-2 justify-between items-center overflow-visible">
         
         {/* HEADER: Sets & Name */}
-        {/* Important: No Ref on this container to avoid blocking confetti */}
         <div className="flex flex-col items-center justify-center w-full flex-none order-1 mt-2 space-y-1 relative z-30">
             <div className="flex gap-2 mb-1">
                 {[...Array(setsNeededToWin)].map((_, i) => (
@@ -176,32 +175,39 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
 
             <motion.div 
                 layout 
-                className="w-full flex items-center justify-center gap-2 cursor-pointer group px-4 py-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors max-w-full overflow-hidden"
+                className="w-full flex items-center justify-center gap-1.5 cursor-pointer group px-1 py-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors max-w-full overflow-hidden"
                 onClick={(e) => { 
                     e.stopPropagation(); 
                     onSetServer(); 
                     haptics.impact('light');
                 }}
             >
-                {/* COLLIDER ON TEXT ONLY: This ensures confetti flows around the name, not the whole header bar */}
+                {/* Team Name */}
                 <motion.h2 
                     ref={headerRef}
-                    layout 
-                    className="font-black uppercase text-center text-base md:text-xl text-slate-800 dark:text-slate-200 tracking-wider truncate min-w-0 w-fit mx-auto max-w-full"
+                    layout="position"
+                    className="font-black uppercase text-center text-base md:text-xl text-slate-800 dark:text-slate-200 tracking-wider truncate min-w-0"
                 >
                     {team?.name || ''}
                 </motion.h2>
                 
-                <AnimatePresence>
+                {/* Serving Icon - Properly animated next to name */}
+                <AnimatePresence mode="popLayout">
                   {isServing && (
                     <motion.div
-                      initial={{ scale: 0, opacity: 0, rotate: -90 }}
-                      animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                      exit={{ scale: 0, opacity: 0, rotate: 90 }}
-                      transition={springPremium}
-                      className="flex-shrink-0"
+                      layout="position"
+                      initial={{ scale: 0, opacity: 0, width: 0 }}
+                      animate={{ scale: 1, opacity: 1, width: 'auto' }}
+                      exit={{ scale: 0, opacity: 0, width: 0 }}
+                      transition={{ 
+                          type: "spring", 
+                          stiffness: 300, 
+                          damping: 25, 
+                          mass: 0.8 
+                      }}
+                      className="flex-shrink-0 origin-center ml-0.5"
                     >
-                        <Volleyball size={14} className={`${theme.text} ${theme.textDark}`} strokeWidth={2.5} />
+                        <Volleyball size={16} className={`${theme.text} ${theme.textDark}`} strokeWidth={2.5} />
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -209,12 +215,11 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
         </div>
 
         {/* BADGE AREA */}
-        {/* Important: No Ref on this full-width container */}
         <div className="order-2 min-h-[24px] flex items-center justify-center w-full my-1 flex-none">
             <AnimatePresence mode="wait">
                 {badgeConfig && (
                     <motion.div 
-                        ref={badgeRef} // COLLIDER MOVED HERE: Only the badge pill is solid
+                        ref={badgeRef}
                         variants={stampVariants}
                         initial="hidden" animate="visible" exit="exit"
                         className={`px-3 py-1 rounded-xl border backdrop-blur-md font-bold uppercase tracking-widest text-[9px] flex items-center gap-1.5 shadow-sm ${badgeConfig.className}`}
@@ -255,7 +260,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
             </AnimatePresence>
 
             <div className="grid place-items-center w-full h-full relative z-10 pointer-events-none overflow-visible">
-                {/* HALO BACKGROUND */}
+                {/* HALO BACKGROUND - Now Pulses on Match/Set Point */}
                 <motion.div 
                     layout 
                     className={`
@@ -276,11 +281,11 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                         opacity: isCritical ? 0.6 : (isServing ? 0.3 : 0),
                         scale: 1
                     } : { 
-                        opacity: isCritical ? [0.6, 0.9, 0.6] : (isServing ? 0.5 : 0),
+                        opacity: isCritical ? (isMatchPoint ? [0.6, 0.9, 0.6] : [0.4, 0.7, 0.4]) : (isServing ? 0.5 : 0),
                         scale: isCritical ? [1, 1.15, 1] : 1,
                     }}
                     transition={config.lowGraphics ? undefined : { 
-                        duration: isCritical ? 2 : 0.5, 
+                        duration: isCritical ? (isMatchPoint ? 1.5 : 2) : 0.5, 
                         repeat: isCritical ? Infinity : 0, 
                         ease: "easeInOut" 
                     }}
@@ -312,10 +317,9 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
         </div>
 
         {/* FOOTER: Timeouts */}
-        {/* Important: No Ref on this full-width container */}
         <div className="order-4 w-full flex justify-center pb-2 flex-none">
            <button 
-             ref={footerRef} // COLLIDER MOVED HERE: Only the button itself is solid
+             ref={footerRef} 
              type="button"
              onClick={(e) => { 
                  e.stopPropagation(); 

@@ -10,6 +10,7 @@ import {
   Ban, RotateCcw, Trash2, UserPlus, Users, PartyPopper
 } from 'lucide-react';
 import { softBounce } from '../../utils/animations';
+import { useTranslation } from '../../contexts/LanguageContext';
 
 interface NotificationToastProps {
   visible: boolean;
@@ -33,14 +34,6 @@ const skillIcons: Record<SkillType | 'generic', any> = {
     generic: CheckCircle2
 };
 
-const skillLabels: Record<SkillType | 'generic', string> = {
-    attack: 'Attack Point',
-    block: 'Kill Block',
-    ace: 'Service Ace',
-    opponent_error: 'Opponent Error',
-    generic: 'Point Added'
-};
-
 const systemIconsMap: Record<string, any> = {
     transfer: ArrowRightLeft,
     save: Save,
@@ -59,6 +52,7 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
 }) => {
   const onCloseRef = useRef(onClose);
   const [mounted, setMounted] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     setMounted(true);
@@ -72,7 +66,7 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
   useEffect(() => {
     if (visible) {
         // Keep "Thinking" state visible until manually cleared or updated
-        const isThinking = mainText === "Thinking...";
+        const isThinking = mainText === "Thinking..." || mainText === t('notifications.thinking');
         if (isThinking) return; 
 
         // Error toasts persist longer to be read
@@ -83,7 +77,7 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
 
         return () => clearTimeout(timer);
     }
-  }, [visible, duration, type, mainText, onUndo]);
+  }, [visible, duration, type, mainText, onUndo, t]);
 
   if (!mounted) return null;
 
@@ -127,7 +121,7 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
   }
 
   // Handle "Thinking" state
-  if (mainText === "Thinking...") {
+  if (mainText === "Thinking..." || mainText === t('notifications.thinking')) {
       theme.Icon = Sparkles;
       theme.iconBg = 'bg-violet-500/10';
       theme.iconColor = 'text-violet-500';
@@ -180,10 +174,11 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
   let bottomLabel = mainText;
 
   if (type === 'success' && !systemIcon) {
-      topLabel = subText || skillLabels[skill || 'generic'];
+      const labelKey = skill ? `scout.labels.${skill}` : 'scout.labels.generic';
+      topLabel = subText || t(labelKey);
   } else if (type === 'error') {
       topLabel = subText || 'Error';
-      bottomLabel = mainText ? mainText : "Something went wrong";
+      bottomLabel = mainText ? mainText : t('errors.genericTitle');
   } else {
       topLabel = subText || 'Info';
       bottomLabel = mainText;
@@ -231,7 +226,7 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
                             transition={{ duration: 1.5, repeat: Infinity }}
                             />
                         )}
-                        {mainText === "Thinking..." && (
+                        {(mainText === "Thinking..." || mainText === t('notifications.thinking')) && (
                             <motion.div 
                             className={`absolute inset-0 rounded-full border-2 border-violet-500 border-t-transparent`}
                             animate={{ rotate: 360 }}
@@ -255,7 +250,7 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
                             className="shrink-0 pl-3 border-l border-black/10 dark:border-white/10 flex flex-col items-center justify-center hover:opacity-70 active:scale-95 transition-all"
                         >
                             <RotateCcw size={14} className="text-indigo-500 dark:text-indigo-400 mb-0.5" />
-                            <span className="text-[9px] font-black uppercase tracking-wider text-indigo-500 dark:text-indigo-400">UNDO</span>
+                            <span className="text-[9px] font-black uppercase tracking-wider text-indigo-500 dark:text-indigo-400">{t('teamManager.undo')}</span>
                         </button>
                     ) : (
                         type === 'success' ? (

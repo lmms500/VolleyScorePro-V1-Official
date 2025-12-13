@@ -48,6 +48,7 @@
     "hitter": "Ponteiro/Oposto",
     "libero": "Líbero",
     "middle": "Central",
+    "none": "Nenhum",
     "abbr": {
       "setter": "Lev",
       "hitter": "Pont",
@@ -58,6 +59,11 @@
   "easterEgg": {
     "title": "Brincadeirinha! Divirta-se! 🎉",
     "subtitle": "Modo Desenvolvedor? Nop."
+  },
+  "validation": {
+    "numberConflict": "O número {number} já pertence a {name}.",
+    "numberAssigned": "O número {number} já está sendo atribuído.",
+    "uniqueConstraint": "Número duplicado ou limite atingido."
   },
   "notifications": {
     "matchSaved": "Partida Salva",
@@ -80,7 +86,15 @@
     "aiProcessing": "Processando IA",
     "forTeam": "Para {teamName}",
     "profileSynced": "Perfil Sincronizado",
-    "profileUpToDate": "Já está atualizado"
+    "profileUpToDate": "Já está atualizado",
+    "numberUnavailable": "Número Indisponível",
+    "cannotAdd": "Não é possível adicionar",
+    "finishEditing": "Conclua a Edição",
+    "finishEditingSub": "Por favor, corrija o número inválido antes de editar outro.",
+    "saveFailed": "Falha ao Salvar",
+    "numberConflict": "Conflito de Número",
+    "teamFull": "Time Cheio",
+    "teamFullSub": "Ative o Banco para adicionar mais jogadores"
   },
   "settings": {
     "title": "Configuração",
@@ -311,6 +325,13 @@
       "block": "Bloqueio",
       "ace": "Ace",
       "opponent_error": "Erro Adv."
+    },
+    "labels": {
+      "attack": "Ponto de Ataque",
+      "block": "Bloqueio Vencedor",
+      "ace": "Ace de Saque",
+      "opponent_error": "Erro do Oponente",
+      "generic": "Ponto Adicionado"
     }
   },
   "profile": {
@@ -337,7 +358,10 @@
     "topScorers": "Maiores Pontuadores",
     "mvp": "MVP da Partida",
     "points": "Pontos",
-    "notEnoughData": "Dados insuficientes para o gráfico"
+    "notEnoughData": "Dados insuficientes para o gráfico",
+    "matches": "Partidas",
+    "sets": "Sets",
+    "conceded": "Sofridos"
   },
   "historyList": {
     "title": "Histórico de Partidas",
@@ -445,6 +469,8 @@
       "message": "Tem certeza de que deseja zerar a partida? Todos os pontos e o histórico serão perdidos.",
       "confirmButton": "Sim, Zerar"
     },
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "deleteProfile": "Excluir Perfil?",
+    "deleteProfileMsg": "Esta ação excluirá o perfil permanentemente. No entanto, você pode desfazer imediatamente após."
   }
 }

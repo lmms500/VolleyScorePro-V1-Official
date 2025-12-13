@@ -48,6 +48,7 @@
     "hitter": "Rematador",
     "libero": "Líbero",
     "middle": "Central",
+    "none": "Ninguno",
     "abbr": {
       "setter": "Arm",
       "hitter": "Rem",
@@ -58,6 +59,11 @@
   "easterEgg": {
     "title": "¡Es broma! ¡Disfruta! 🎉",
     "subtitle": "¿Modo Desarrollador? Nop."
+  },
+  "validation": {
+    "numberConflict": "El número {number} ya pertenece a {name}.",
+    "numberAssigned": "El número {number} ya está asignado.",
+    "uniqueConstraint": "Número duplicado o límite alcanzado."
   },
   "notifications": {
     "matchSaved": "Partido Guardado",
@@ -80,7 +86,15 @@
     "aiProcessing": "Procesando IA",
     "forTeam": "Para {teamName}",
     "profileSynced": "Perfil Sincronizado",
-    "profileUpToDate": "Ya está actualizado"
+    "profileUpToDate": "Ya está actualizado",
+    "numberUnavailable": "Número No Disponible",
+    "cannotAdd": "No se puede añadir",
+    "finishEditing": "Terminar Edición",
+    "finishEditingSub": "Por favor, corrija el número inválido antes de editar otro.",
+    "saveFailed": "Error al Guardar",
+    "numberConflict": "Conflicto de Número",
+    "teamFull": "Equipo Lleno",
+    "teamFullSub": "Active la Banca para añadir más jugadores"
   },
   "settings": {
     "title": "Configuración",
@@ -311,6 +325,13 @@
       "block": "Bloqueo",
       "ace": "Ace",
       "opponent_error": "Error Rival"
+    },
+    "labels": {
+      "attack": "Punto de Ataque",
+      "block": "Bloqueo Ganador",
+      "ace": "Ace de Saque",
+      "opponent_error": "Error Oponente",
+      "generic": "Punto Añadido"
     }
   },
   "profile": {
@@ -337,7 +358,10 @@
     "topScorers": "Máximos Anotadores",
     "mvp": "MVP del Partido",
     "points": "Puntos",
-    "notEnoughData": "Datos insuficientes para gráfica"
+    "notEnoughData": "Datos insuficientes para gráfica",
+    "matches": "Partidos",
+    "sets": "Sets",
+    "conceded": "Recibidos"
   },
   "historyList": {
     "title": "Historial de Partidos",
@@ -445,6 +469,8 @@
       "message": "¿Estás seguro de que quieres reiniciar el partido? Se perderán todas las puntuaciones y el historial.",
       "confirmButton": "Sí, Reiniciar"
     },
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "deleteProfile": "¿Eliminar Perfil?",
+    "deleteProfileMsg": "Esta acción eliminará el perfil permanentemente. Sin embargo, puede deshacerlo inmediatamente después."
   }
 }

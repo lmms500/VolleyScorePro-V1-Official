@@ -10,6 +10,11 @@ const BENCH_LIMIT = 6;
 // --- TYPES ---
 export interface ValidationResult {
     valid: boolean;
+    // New: Translation Key instead of raw message
+    messageKey?: string; 
+    // New: Parameters for the translation
+    messageParams?: Record<string, string>;
+    // Legacy support (optional)
     message?: string;
     conflictId?: string;
     conflictName?: string;
@@ -50,7 +55,10 @@ export const validateUniqueNumber = (
     if (conflict) {
         return {
             valid: false,
-            message: `O número ${normalizedCandidate} já pertence a ${conflict.name}.`,
+            messageKey: 'validation.numberConflict',
+            messageParams: { number: normalizedCandidate, name: conflict.name },
+            // Keeping raw message for dev console logs if needed
+            message: `Number ${normalizedCandidate} belongs to ${conflict.name}`,
             conflictId: conflict.id,
             conflictName: conflict.name
         };
