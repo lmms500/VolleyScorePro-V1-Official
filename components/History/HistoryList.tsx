@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo, useRef, useEffect, lazy, Suspense } from 'react';
+import { createPortal } from 'react-dom';
 import { useHistoryStore, Match } from '../../stores/historyStore';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { downloadJSON, exportMatchesToCSV, parseJSONFile } from '../../services/io';
@@ -12,6 +13,7 @@ import { Button } from '../ui/Button';
 import { MatchDetail } from './MatchDetail';
 import { resolveTheme, getHexFromColor } from '../../utils/colors';
 import { Virtuoso } from 'react-virtuoso'; 
+import { NotificationToast } from '../ui/NotificationToast';
 
 // Lazy load the new stats modal
 const TeamStatsModal = lazy(() => import('../modals/TeamStatsModal').then(module => ({ default: module.TeamStatsModal })));
@@ -49,8 +51,8 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ value, onChange, options, i
                 className={`
                     w-full flex items-center justify-between
                     bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 
-                    rounded-2xl pl-4 pr-3 py-3 
-                    text-xs font-bold uppercase tracking-wider 
+                    rounded-xl landscape:rounded-lg pl-3 pr-2 py-2.5 landscape:py-1.5
+                    text-[10px] sm:text-xs font-bold uppercase tracking-wider 
                     text-slate-600 dark:text-slate-300 
                     hover:bg-slate-50 dark:hover:bg-white/10 hover:border-black/10 dark:hover:border-white/20
                     transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/30
@@ -58,7 +60,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ value, onChange, options, i
                 `}
             >
                 <span className="truncate mr-2 min-w-0">{selectedLabel}</span>
-                <div className="text-slate-400 flex-shrink-0">
+                <div className="text-slate-400 flex-shrink-0 scale-90">
                     {icon || (isOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
                 </div>
             </button>
@@ -72,10 +74,10 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ value, onChange, options, i
                         transition={{ duration: 0.2, ease: "easeOut" }}
                         className={`
                             absolute top-full ${align === 'right' ? 'right-0' : 'left-0'} mt-2 z-50 
-                            min-w-full w-max max-w-[280px]
+                            min-w-full w-max max-w-[200px]
                             bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl 
                             border border-black/5 dark:border-white/10 
-                            rounded-2xl shadow-2xl shadow-black/20 
+                            rounded-xl shadow-2xl shadow-black/20 
                             overflow-hidden max-h-60 overflow-y-auto custom-scrollbar
                         `}
                     >
@@ -84,14 +86,14 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ value, onChange, options, i
                                 key={opt.value}
                                 onClick={() => { onChange(opt.value); setIsOpen(false); }}
                                 className={`
-                                    w-full flex items-center justify-between px-4 py-3 text-left
-                                    text-xs font-bold uppercase tracking-wide transition-colors
+                                    w-full flex items-center justify-between px-3 py-2 text-left
+                                    text-[10px] font-bold uppercase tracking-wide transition-colors
                                     hover:bg-black/5 dark:hover:bg-white/10
                                     ${value === opt.value ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10' : 'text-slate-600 dark:text-slate-300'}
                                 `}
                             >
                                 <span className="mr-2 whitespace-nowrap">{opt.label}</span>
-                                {value === opt.value && <Check size={14} className="text-indigo-500 flex-shrink-0" />}
+                                {value === opt.value && <Check size={12} className="text-indigo-500 flex-shrink-0" />}
                             </button>
                         ))}
                     </motion.div>
@@ -120,9 +122,9 @@ const ExportMenu = ({ onExportJSON, onExportCSV }: { onExportJSON: () => void, o
         <div className="relative" ref={containerRef}>
             <button 
                 onClick={() => setIsOpen(!isOpen)} 
-                className={`p-3 rounded-2xl border border-black/5 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-white hover:bg-indigo-50 dark:hover:bg-white/10 transition-colors ${isOpen ? 'bg-indigo-50 dark:bg-white/10 text-indigo-500' : 'bg-white dark:bg-white/5'}`} 
+                className={`p-2.5 rounded-xl border border-black/5 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-white hover:bg-indigo-50 dark:hover:bg-white/10 transition-colors ${isOpen ? 'bg-indigo-50 dark:bg-white/10 text-indigo-500' : 'bg-white dark:bg-white/5'}`} 
             >
-                <Upload size={18} /> 
+                <Upload size={16} /> 
             </button>
             <AnimatePresence>
                 {isOpen && (
@@ -130,13 +132,13 @@ const ExportMenu = ({ onExportJSON, onExportCSV }: { onExportJSON: () => void, o
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute top-full right-0 mt-2 z-50 min-w-[160px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-2xl shadow-xl overflow-hidden p-1.5"
+                        className="absolute top-full right-0 mt-2 z-50 min-w-[140px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-xl shadow-xl overflow-hidden p-1"
                     >
-                        <button onClick={() => { onExportJSON(); setIsOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors">
-                            <FileJson size={16} className="text-amber-500" /> JSON (Backup)
+                        <button onClick={() => { onExportJSON(); setIsOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg transition-colors">
+                            <FileJson size={14} className="text-amber-500" /> JSON
                         </button>
-                        <button onClick={() => { onExportCSV(); setIsOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2.5 text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10 rounded-xl transition-colors">
-                            <FileSpreadsheet size={16} className="text-emerald-500" /> CSV (Excel)
+                        <button onClick={() => { onExportCSV(); setIsOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg transition-colors">
+                            <FileSpreadsheet size={14} className="text-emerald-500" /> CSV
                         </button>
                     </motion.div>
                 )}
@@ -152,7 +154,8 @@ const HistoryCard: React.FC<{
     isExpanded: boolean;
     onToggle: () => void;
     onAnalyze: () => void;
-}> = React.memo(({ match, onDelete, isExpanded, onToggle, onAnalyze }) => {
+    isSelected?: boolean;
+}> = React.memo(({ match, onDelete, isExpanded, onToggle, onAnalyze, isSelected }) => {
     const { t } = useTranslation();
     const date = new Date(match.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
     const time = new Date(match.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -171,70 +174,59 @@ const HistoryCard: React.FC<{
     const hexB = getHexFromColor(match.teamBRoster?.color || 'rose');
 
     return (
-        <div className="pb-4 px-1"> 
+        <div className="pb-3 px-1 landscape:pb-2 landscape:px-0"> 
             <motion.div 
                 layout
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="group relative rounded-[1.5rem] bg-white dark:bg-white/[0.03] backdrop-blur-md shadow-sm hover:shadow-lg hover:bg-white/80 dark:hover:bg-white/[0.05] transition-all border border-transparent"
+                className={`group relative rounded-2xl landscape:rounded-xl backdrop-blur-md shadow-sm hover:shadow-md transition-all border ${isSelected ? 'bg-indigo-50/80 dark:bg-indigo-500/10 border-indigo-500/30' : 'bg-white dark:bg-white/[0.03] border-transparent hover:bg-white/80 dark:hover:bg-white/[0.05]'}`}
             >
                 {/* Subtle Gradient Backing */}
-                {isWinnerA && (
-                    <div 
-                        className="absolute inset-0 opacity-[0.02] pointer-events-none transition-colors duration-500 rounded-[1.5rem]"
-                        style={{ background: `linear-gradient(135deg, ${hexA}, transparent)` }}
-                    />
+                {isWinnerA && !isSelected && (
+                    <div className="absolute inset-0 opacity-[0.02] pointer-events-none rounded-2xl landscape:rounded-xl transition-colors duration-500" style={{ background: `linear-gradient(135deg, ${hexA}, transparent)` }} />
                 )}
-                {isWinnerB && (
-                    <div 
-                        className="absolute inset-0 opacity-[0.02] pointer-events-none transition-colors duration-500 rounded-[1.5rem]"
-                        style={{ background: `linear-gradient(135deg, ${hexB}, transparent)` }}
-                    />
+                {isWinnerB && !isSelected && (
+                    <div className="absolute inset-0 opacity-[0.02] pointer-events-none rounded-2xl landscape:rounded-xl transition-colors duration-500" style={{ background: `linear-gradient(135deg, ${hexB}, transparent)` }} />
                 )}
 
                 <div 
-                    className="relative z-10 p-5 sm:p-6 cursor-pointer flex flex-col gap-5"
+                    className="relative z-10 p-4 landscape:p-3 cursor-pointer flex flex-col gap-3 landscape:gap-2"
                     onClick={onToggle}
                 >
-                    <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                        <div className="flex items-center gap-3">
-                            <span className="flex items-center gap-1.5"><Calendar size={12} /> {date}</span>
-                            <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></span>
+                    <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                        <div className="flex items-center gap-2">
+                            <span>{date}</span>
+                            <span className="w-0.5 h-0.5 rounded-full bg-slate-300 dark:bg-slate-700"></span>
                             <span>{time}</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                            <Clock size={12} /> {durationStr}
+                        <div className="flex items-center gap-1">
+                            <Clock size={10} /> {durationStr}
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between gap-2 sm:gap-6 w-full">
-                        
-                        <div className={`flex-1 min-w-0 flex items-center justify-end gap-3 text-right ${isWinnerA ? 'opacity-100' : 'opacity-60 grayscale-[0.3]'}`}>
-                            <span className={`text-sm sm:text-lg leading-tight break-words line-clamp-2 ${isWinnerA ? `font-black ${themeA.text} ${themeA.textDark}` : 'font-bold text-slate-600 dark:text-slate-400'}`}>
-                                {match.teamAName}
-                            </span>
-                            {isWinnerA && <Crown size={16} className={`${themeA.crown} flex-shrink-0 drop-shadow-sm`} fill="currentColor" />}
+                    <div className="flex items-center justify-between gap-2 w-full">
+                        <div className={`flex-1 min-w-0 flex items-center justify-end gap-2 text-right ${isWinnerA ? 'opacity-100' : 'opacity-60 grayscale-[0.3]'}`}>
+                            <span className={`text-xs sm:text-sm font-bold truncate leading-tight ${isWinnerA ? `${themeA.text} ${themeA.textDark}` : 'text-slate-600 dark:text-slate-400'}`}>{match.teamAName}</span>
+                            {isWinnerA && <Crown size={12} className={`${themeA.crown} flex-shrink-0`} fill="currentColor" />}
                         </div>
 
-                        <div className="flex-shrink-0 flex flex-col items-center justify-center px-4 py-1.5 bg-slate-100/50 dark:bg-black/20 rounded-2xl min-w-[70px] sm:min-w-[90px]">
-                            <div className="flex items-center gap-1.5 font-inter text-xl sm:text-2xl font-black tabular-nums leading-none">
+                        <div className="flex-shrink-0 flex flex-col items-center justify-center px-2.5 py-1 bg-slate-100/50 dark:bg-black/20 rounded-lg min-w-[50px]">
+                            <div className="flex items-center gap-1 font-inter text-sm font-black tabular-nums leading-none">
                                 <span className={isWinnerA ? `${themeA.text} ${themeA.textDark}` : 'text-slate-400'}>{match.setsA}</span>
-                                <span className="text-slate-300 dark:text-slate-600 text-sm">:</span>
+                                <span className="text-slate-300 dark:text-slate-600 text-[10px]">:</span>
                                 <span className={isWinnerB ? `${themeB.text} ${themeB.textDark}` : 'text-slate-400'}>{match.setsB}</span>
                             </div>
                         </div>
 
-                        <div className={`flex-1 min-w-0 flex items-center justify-start gap-3 text-left ${isWinnerB ? 'opacity-100' : 'opacity-60 grayscale-[0.3]'}`}>
-                            {isWinnerB && <Crown size={16} className={`${themeB.crown} flex-shrink-0 drop-shadow-sm`} fill="currentColor" />}
-                            <span className={`text-sm sm:text-lg leading-tight break-words line-clamp-2 ${isWinnerB ? `font-black ${themeB.text} ${themeB.textDark}` : 'font-bold text-slate-600 dark:text-slate-400'}`}>
-                                {match.teamBName}
-                            </span>
+                        <div className={`flex-1 min-w-0 flex items-center justify-start gap-2 text-left ${isWinnerB ? 'opacity-100' : 'opacity-60 grayscale-[0.3]'}`}>
+                            {isWinnerB && <Crown size={12} className={`${themeB.crown} flex-shrink-0`} fill="currentColor" />}
+                            <span className={`text-xs sm:text-sm font-bold truncate leading-tight ${isWinnerB ? `${themeB.text} ${themeB.textDark}` : 'text-slate-600 dark:text-slate-400'}`}>{match.teamBName}</span>
                         </div>
-
                     </div>
 
-                    <div className="flex justify-center text-slate-300 dark:text-slate-700 -mt-2">
-                        {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                    {/* Expand Chevron (Only show in Portrait or when explicitly requested) */}
+                    <div className={`flex justify-center text-slate-300 dark:text-slate-700 -mt-1 ${isSelected ? 'text-indigo-400' : ''}`}>
+                        {isExpanded ? <ChevronUp size={14} /> : (isSelected ? <div className="w-1 h-1 rounded-full bg-indigo-400" /> : <ChevronDown size={14} />)}
                     </div>
                 </div>
 
@@ -246,18 +238,18 @@ const HistoryCard: React.FC<{
                             exit={{ height: 0, opacity: 0 }}
                             className="relative z-10 border-t border-black/5 dark:border-white/5 bg-slate-50/50 dark:bg-black/10"
                         >
-                            <div className="p-5 sm:p-6 flex flex-col items-center space-y-6">
+                            <div className="p-4 landscape:p-3 flex flex-col items-center space-y-4 landscape:space-y-3">
                                 
-                                <div className="w-full overflow-x-auto pb-2 no-scrollbar flex justify-center">
-                                    <div className="flex gap-3">
+                                <div className="w-full overflow-x-auto pb-1 no-scrollbar flex justify-center">
+                                    <div className="flex gap-2">
                                         {match.sets.map((set, idx) => {
                                             const isSetWinnerA = set.winner === 'A';
                                             const setTheme = isSetWinnerA ? themeA : themeB;
                                             return (
                                                 <div key={idx} className="flex flex-col items-center flex-shrink-0">
-                                                    <span className="text-[9px] font-bold text-slate-300 uppercase mb-1.5">{t('history.setLabel', {setNumber: set.setNumber})}</span>
+                                                    <span className="text-[8px] font-bold text-slate-300 uppercase mb-1">{t('history.setLabel', {setNumber: set.setNumber})}</span>
                                                     <div className={`
-                                                        min-w-[3.5rem] text-center px-2 py-2 rounded-xl text-xs font-black border backdrop-blur-sm shadow-sm tabular-nums
+                                                        min-w-[3rem] text-center px-1.5 py-1.5 rounded-lg text-[10px] font-black border backdrop-blur-sm shadow-sm tabular-nums
                                                         ${setTheme.bg} ${setTheme.text} ${setTheme.textDark} ${setTheme.border}
                                                     `}>
                                                         {set.scoreA}-{set.scoreB}
@@ -268,20 +260,21 @@ const HistoryCard: React.FC<{
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-4 w-full sm:w-auto">
+                                <div className="flex items-center gap-2 w-full">
+                                    {/* Analysis Button - Hidden in Landscape Split View since selection works there */}
                                     <Button 
                                         onClick={(e) => { e.stopPropagation(); onAnalyze(); }}
-                                        className="flex-1 sm:flex-none bg-slate-800 text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 shadow-lg active:scale-95"
-                                        size="md"
+                                        className="flex-1 bg-slate-800 text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 shadow-lg active:scale-95 h-9 text-[10px] landscape:hidden"
+                                        size="sm"
                                     >
-                                        <BarChart2 size={16} /> Analysis
+                                        <BarChart2 size={14} /> Analysis
                                     </Button>
                                     <button 
                                         onClick={(e) => { e.stopPropagation(); onDelete(match.id); }}
-                                        className="p-3.5 rounded-2xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/20 active:scale-95"
+                                        className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/20 active:scale-95 flex-1 landscape:flex-none"
                                         title={t('historyList.delete')}
                                     >
-                                        <Trash2 size={18} />
+                                        <Trash2 size={14} className="mx-auto" />
                                     </button>
                                 </div>
                             </div>
@@ -299,17 +292,24 @@ type FilterType = 'all' | 'A' | 'B' | 'scouted';
 type SortType = 'newest' | 'oldest' | 'longest' | 'shortest';
 
 export const HistoryList: React.FC = () => {
-    const { matches, deleteMatch, importJSON, exportJSON } = useHistoryStore();
+    const { matches, deleteMatch, addMatch, importJSON, exportJSON } = useHistoryStore();
     const { t } = useTranslation();
     
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState<FilterType>('all');
     const [sortOrder, setSortOrder] = useState<SortType>('newest');
     
+    // UI State
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+    
+    // Separate state for Portrait "Analysis" modal vs Landscape "Selection"
+    const [showMobileDetail, setShowMobileDetail] = useState(false);
+
     const [showStats, setShowStats] = useState(false);
     const [importMsg, setImportMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [deletedMatch, setDeletedMatch] = useState<Match | null>(null);
+    const [showUndoToast, setShowUndoToast] = useState(false);
     
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -374,10 +374,43 @@ export const HistoryList: React.FC = () => {
         setTimeout(() => setImportMsg(null), 3000);
     };
 
-    if (selectedMatch) {
-        return <MatchDetail match={selectedMatch} onBack={() => setSelectedMatch(null)} />;
-    }
+    const handleItemClick = (match: Match) => {
+        // Toggle expansion in portrait (or landscape, behavior is consistent for the list)
+        setExpandedId(prev => prev === match.id ? null : match.id);
+        
+        // Update selection state for Landscape View
+        setSelectedMatch(match);
+        
+        // NOTE: We do NOT open showMobileDetail here. 
+        // This ensures portrait users only expand the card.
+    };
 
+    const handleAnalyze = (match: Match) => {
+        setSelectedMatch(match);
+        setShowMobileDetail(true); // Open the full view overlay in Portrait
+    };
+
+    const handleDelete = (id: string) => {
+        const match = matches.find(m => m.id === id);
+        if (match) {
+            setDeletedMatch(match);
+            deleteMatch(id);
+            setShowUndoToast(true);
+            if (selectedMatch?.id === id) {
+                setSelectedMatch(null);
+                setShowMobileDetail(false);
+            }
+        }
+    };
+
+    const handleUndoDelete = () => {
+        if (deletedMatch) {
+            addMatch(deletedMatch);
+            setDeletedMatch(null);
+            setShowUndoToast(false);
+        }
+    };
+    
     const filterOptions = [
         { value: 'all', label: t('historyList.filters.all') },
         { value: 'A', label: t('historyList.filters.winnerA') },
@@ -393,7 +426,7 @@ export const HistoryList: React.FC = () => {
     ];
 
     return (
-        <div className="flex flex-col h-full min-h-[50vh]">
+        <div className="flex flex-col h-full min-h-[50vh] overflow-hidden relative">
             <input 
                 type="file" 
                 ref={fileInputRef} 
@@ -406,103 +439,140 @@ export const HistoryList: React.FC = () => {
                 <TeamStatsModal isOpen={showStats} onClose={() => setShowStats(false)} />
             </Suspense>
 
-            <motion.div 
-                className="sticky top-0 z-30 mb-6 -mx-1 px-1"
-                initial={{ y: -10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-            >
-                <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/40 dark:border-white/5 rounded-3xl p-4 shadow-xl shadow-black/5 dark:shadow-black/20 ring-1 ring-black/5 dark:ring-white/5">
-                    <div className="flex gap-3 mb-3">
-                        <div className="relative flex-1 group">
-                            <div className="absolute inset-0 bg-slate-100 dark:bg-white/5 rounded-2xl transition-all group-focus-within:ring-2 group-focus-within:ring-indigo-500/30"></div>
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                            <input 
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder={t('historyList.searchPlaceholder')}
-                                className="relative w-full bg-transparent border-none rounded-2xl pl-11 pr-4 py-3 text-sm font-medium text-slate-800 dark:text-white focus:outline-none placeholder:text-slate-400"
+            <NotificationToast 
+                visible={showUndoToast} 
+                type="info" 
+                mainText="Match Deleted" 
+                subText="Tap to restore" 
+                onClose={() => setShowUndoToast(false)} 
+                systemIcon="delete"
+                onUndo={handleUndoDelete}
+            />
+
+            {/* SPLIT VIEW CONTAINER */}
+            <div className={`flex flex-col landscape:flex-row h-full overflow-hidden ${selectedMatch ? 'landscape:gap-0' : ''}`}>
+                
+                {/* LEFT PANEL (LIST) */}
+                <div className={`
+                    flex-col h-full w-full landscape:w-[320px] lg:landscape:w-[380px] landscape:border-r border-black/5 dark:border-white/5
+                    flex
+                `}>
+                    {/* Header (Transparent & Clean) */}
+                    <div className="flex-shrink-0 z-30 p-2 sm:p-3 landscape:p-2 bg-transparent">
+                         <div className="flex flex-col gap-2">
+                            {/* Row 1: Search & Actions */}
+                            <div className="flex gap-2 items-center">
+                                <div className="relative flex-1 group">
+                                    <div className="absolute inset-0 bg-slate-100 dark:bg-white/5 rounded-xl transition-all group-focus-within:ring-2 group-focus-within:ring-indigo-500/30"></div>
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                                    <input 
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        placeholder={t('historyList.searchPlaceholder')}
+                                        className="relative w-full bg-transparent border-none rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-slate-800 dark:text-white focus:outline-none placeholder:text-slate-400"
+                                    />
+                                </div>
+                                
+                                <button onClick={() => setShowStats(true)} className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors shadow-sm active:scale-95" title="Stats">
+                                    <PieChart size={16} />
+                                </button>
+                                
+                                <ExportMenu onExportJSON={handleExportJSON} onExportCSV={handleExportCSV} />
+                                
+                                <button onClick={handleImportClick} className="p-2.5 rounded-xl bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-white hover:bg-indigo-50 dark:hover:bg-white/10 transition-colors shadow-sm active:scale-95" title={t('historyList.import')}>
+                                    <Download size={16} />
+                                </button>
+                            </div>
+
+                            {/* Row 2: Filters */}
+                            <div className="grid grid-cols-2 gap-2 relative z-20">
+                                <CustomSelect 
+                                    value={filterType}
+                                    onChange={(val) => setFilterType(val as FilterType)}
+                                    options={filterOptions}
+                                    icon={<Filter size={12} />}
+                                    align="left"
+                                />
+                                <CustomSelect 
+                                    value={sortOrder}
+                                    onChange={(val) => setSortOrder(val as SortType)}
+                                    options={sortOptions}
+                                    icon={<SortDesc size={12} />}
+                                    align="right"
+                                />
+                            </div>
+                        </div>
+
+                        <AnimatePresence>
+                            {importMsg && (
+                                <motion.div 
+                                    initial={{ opacity: 0, height: 0, marginTop: 0 }} 
+                                    animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
+                                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                                    className={`text-[10px] px-3 py-2 rounded-lg font-bold flex items-center gap-2 ${importMsg.type === 'success' ? 'bg-emerald-500/20 text-emerald-600' : 'bg-rose-500/20 text-rose-600'}`}
+                                >
+                                    <AlertCircle size={12} /> {importMsg.text}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* List Content */}
+                    <div className="flex-1 min-h-0 bg-transparent">
+                        {filteredMatches.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-full text-slate-400 opacity-60">
+                                <div className="p-4 bg-slate-100 dark:bg-white/5 rounded-full mb-3 border border-slate-200 dark:border-white/10">
+                                    <FolderOpen size={32} strokeWidth={1} className="opacity-50" />
+                                </div>
+                                <h3 className="text-xs font-black uppercase tracking-widest mb-1 opacity-80">{t('historyList.empty')}</h3>
+                            </div>
+                        ) : (
+                            <Virtuoso 
+                                data={filteredMatches}
+                                totalCount={filteredMatches.length}
+                                className="custom-scrollbar"
+                                style={{ height: '100%' }}
+                                itemContent={(index, match) => (
+                                    <HistoryCard 
+                                        key={match.id} 
+                                        match={match} 
+                                        onDelete={handleDelete}
+                                        isExpanded={expandedId === match.id}
+                                        isSelected={selectedMatch?.id === match.id}
+                                        onToggle={() => handleItemClick(match)}
+                                        onAnalyze={() => handleAnalyze(match)}
+                                    />
+                                )}
                             />
-                        </div>
-                        
-                        <div className="flex gap-2">
-                            <button onClick={() => setShowStats(true)} className="p-3 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors shadow-sm active:scale-95" title="Aggregated Stats">
-                                <PieChart size={20} />
-                            </button>
-                            
-                            <ExportMenu onExportJSON={handleExportJSON} onExportCSV={handleExportCSV} />
-                            
-                            <button onClick={handleImportClick} className="p-3 rounded-2xl bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-white hover:bg-indigo-50 dark:hover:bg-white/10 transition-colors shadow-sm active:scale-95" title={t('historyList.import')}>
-                                <Download size={20} />
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3 relative z-20">
-                        <CustomSelect 
-                            value={filterType}
-                            onChange={(val) => setFilterType(val as FilterType)}
-                            options={filterOptions}
-                            icon={<Filter size={16} />}
-                            align="left"
-                        />
-                        <CustomSelect 
-                            value={sortOrder}
-                            onChange={(val) => setSortOrder(val as SortType)}
-                            options={sortOptions}
-                            icon={<SortDesc size={16} />}
-                            align="right"
-                        />
-                    </div>
-
-                    <AnimatePresence>
-                        {importMsg && (
-                            <motion.div 
-                                initial={{ opacity: 0, height: 0, marginTop: 0 }} 
-                                animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
-                                exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                                className={`text-xs px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 ${importMsg.type === 'success' ? 'bg-emerald-500/20 text-emerald-600' : 'bg-rose-500/20 text-rose-600'}`}
-                            >
-                                <AlertCircle size={16} /> {importMsg.text}
-                            </motion.div>
                         )}
-                    </AnimatePresence>
+                    </div>
                 </div>
-            </motion.div>
 
-            <motion.div 
-                className="flex-1 min-h-0"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.4 }}
-            >
-                {filteredMatches.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-24 text-slate-400 opacity-60">
-                        <div className="p-6 bg-slate-100 dark:bg-white/5 rounded-full mb-6 border border-slate-200 dark:border-white/10">
-                            <FolderOpen size={48} strokeWidth={1} className="opacity-50" />
-                        </div>
-                        <h3 className="text-sm font-black uppercase tracking-widest mb-1 opacity-80">{t('historyList.empty')}</h3>
-                        <p className="text-[10px] font-medium opacity-50">No matches recorded yet</p>
-                    </div>
-                ) : (
-                    <Virtuoso 
-                        data={filteredMatches}
-                        totalCount={filteredMatches.length}
-                        className="custom-scrollbar"
-                        style={{ height: '100%' }}
-                        itemContent={(index, match) => (
-                            <HistoryCard 
-                                key={match.id} 
-                                match={match} 
-                                onDelete={deleteMatch}
-                                isExpanded={expandedId === match.id}
-                                onToggle={() => setExpandedId(expandedId === match.id ? null : match.id)}
-                                onAnalyze={() => setSelectedMatch(match)}
-                            />
-                        )}
-                    />
+                {/* RIGHT PANEL - MOBILE PORTAL (Overlay on top of everything) */}
+                {showMobileDetail && selectedMatch && createPortal(
+                    <div className="fixed inset-0 z-[70] flex flex-col bg-slate-50 dark:bg-[#020617] animate-in slide-in-from-bottom-5 duration-200 overflow-hidden">
+                        <MatchDetail match={selectedMatch} onBack={() => setShowMobileDetail(false)} />
+                    </div>,
+                    document.body
                 )}
-            </motion.div>
+
+                {/* RIGHT PANEL - DESKTOP/LANDSCAPE (Inline Split View) */}
+                <div className={`
+                    hidden landscape:flex landscape:flex-1 landscape:h-full landscape:overflow-hidden landscape:relative landscape:z-40 landscape:bg-transparent
+                `}>
+                    {selectedMatch ? (
+                        <MatchDetail match={selectedMatch} onBack={() => setShowMobileDetail(false)} />
+                    ) : (
+                        <div className="hidden landscape:flex flex-1 items-center justify-center bg-transparent text-slate-300 dark:text-slate-700">
+                            <div className="flex flex-col items-center gap-4">
+                                <BarChart2 size={64} strokeWidth={1} className="opacity-20" />
+                                <p className="text-sm font-bold uppercase tracking-widest opacity-40">Select a match to view details</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+            </div>
         </div>
     );
 };

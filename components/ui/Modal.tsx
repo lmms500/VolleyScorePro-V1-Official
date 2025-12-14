@@ -49,7 +49,7 @@ export const Modal: React.FC<ModalProps> = ({
       {isOpen && (
         <motion.div 
           key="modal-container"
-          className={`fixed inset-0 ${zIndex} flex items-center justify-center p-4 isolate`}
+          className={`fixed inset-0 ${zIndex} flex items-center justify-center p-4 landscape:p-2 isolate`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, pointerEvents: 'auto' }}
           exit={{ opacity: 0, pointerEvents: 'none' }}
@@ -73,8 +73,9 @@ export const Modal: React.FC<ModalProps> = ({
               bg-[#ffffff]/95 dark:bg-[#0f172a]/95 
               backdrop-blur-3xl 
               border border-white/50 dark:border-white/10 
-              rounded-[2.5rem] shadow-2xl shadow-black/30
-              overflow-hidden flex flex-col max-h-[85vh]
+              rounded-[2.5rem] landscape:rounded-3xl
+              shadow-2xl shadow-black/30
+              overflow-hidden flex flex-col max-h-[85vh] landscape:max-h-[95vh]
               ring-1 ring-white/50 dark:ring-white/5
               z-10
             `}
@@ -85,7 +86,7 @@ export const Modal: React.FC<ModalProps> = ({
             style={{ willChange: 'transform, opacity, filter' }}
           >
             {/* Header - More breathing room */}
-            <div className="px-8 pt-8 pb-4 flex justify-between items-center bg-transparent z-10 shrink-0">
+            <div className="px-8 pt-8 pb-4 landscape:pt-4 landscape:pb-2 landscape:px-6 flex justify-between items-center bg-transparent z-10 shrink-0">
               <h2 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-[0.2em] opacity-90 pl-1 drop-shadow-sm">
                 {title}
               </h2>
@@ -93,7 +94,7 @@ export const Modal: React.FC<ModalProps> = ({
                 <button 
                   onClick={onClose} 
                   className="
-                    p-3 rounded-full 
+                    p-3 landscape:p-2 rounded-full 
                     bg-slate-100/80 dark:bg-white/5 
                     hover:bg-slate-200 dark:hover:bg-white/10 
                     text-slate-400 hover:text-slate-900 dark:hover:text-white 
@@ -106,7 +107,7 @@ export const Modal: React.FC<ModalProps> = ({
             </div>
             
             {/* Content Area - Spacious Padding */}
-            <div className="px-8 pb-8 pt-2 overflow-y-auto custom-scrollbar text-slate-600 dark:text-slate-300 leading-relaxed">
+            <div className="px-8 pb-8 pt-2 landscape:px-6 landscape:pb-4 overflow-y-auto custom-scrollbar text-slate-600 dark:text-slate-300 leading-relaxed flex-1 flex flex-col">
               {children}
             </div>
           </motion.div>

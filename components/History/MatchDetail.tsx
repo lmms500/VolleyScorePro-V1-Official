@@ -295,10 +295,11 @@ export const MatchDetail: React.FC<MatchDetailProps> = ({ match, onBack }) => {
     return (
         <div className="flex flex-col h-full bg-transparent overflow-hidden relative">
             
-            <div className="px-4 py-4 landscape:py-2 flex items-center justify-between shrink-0">
+            <div className="px-4 py-4 landscape:py-2 flex items-center justify-between shrink-0 bg-transparent">
+                {/* Back Button hidden in Landscape Split View via CSS if needed, but handled by parent rendering in new layout */}
                 <button 
                     onClick={onBack} 
-                    className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 hover:text-indigo-500 font-bold text-xs uppercase tracking-wider transition-colors px-3 py-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10"
+                    className="flex landscape:hidden items-center gap-1.5 text-slate-600 dark:text-slate-300 hover:text-indigo-500 font-bold text-xs uppercase tracking-wider transition-colors px-3 py-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10"
                 >
                     <ArrowLeft size={16} /> {t('common.back')}
                 </button>
@@ -307,16 +308,16 @@ export const MatchDetail: React.FC<MatchDetailProps> = ({ match, onBack }) => {
                 </div>
             </div>
 
-            {/* SPLIT VIEW Container for Landscape */}
+            {/* SPLIT VIEW Container for Landscape - MODIFIED TO BE SINGLE COLUMN */}
             <motion.div 
-                className="flex-1 overflow-y-auto custom-scrollbar px-4 pb-safe-bottom space-y-6 landscape:grid landscape:grid-cols-2 landscape:gap-6 landscape:space-y-0"
+                className="flex-1 overflow-y-auto custom-scrollbar px-4 pb-safe-bottom space-y-6"
                 variants={staggerContainer}
                 initial="hidden"
                 animate="visible"
             >
                 
-                {/* LEFT COLUMN: Hero Scoreboard + Key Stats */}
-                <div className="flex flex-col gap-6 landscape:sticky landscape:top-0 landscape:h-fit">
+                {/* Hero Scoreboard + Key Stats */}
+                <div className="flex flex-col gap-6">
                     <motion.div variants={staggerItem} className="bg-white/60 dark:bg-white/[0.03] rounded-3xl p-5 border border-white/40 dark:border-white/5 shadow-sm backdrop-blur-md relative overflow-hidden">
                         <div className="absolute inset-0 opacity-[0.03] bg-grid-slate-900/[0.1] dark:bg-grid-white/[0.05] pointer-events-none" />
                         
@@ -353,7 +354,7 @@ export const MatchDetail: React.FC<MatchDetailProps> = ({ match, onBack }) => {
                     )}
                 </div>
 
-                {/* RIGHT COLUMN: Timeline & Detailed Logs */}
+                {/* Timeline & Detailed Logs */}
                 <div className="flex flex-col gap-6">
                     {match.actionLog && match.actionLog.length > 0 && (
                         <motion.div variants={staggerItem} className="-mx-2">
