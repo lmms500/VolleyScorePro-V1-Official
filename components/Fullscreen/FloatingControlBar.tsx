@@ -1,6 +1,7 @@
 
+
 import React, { useEffect, useState } from 'react';
-import { Undo2, ArrowLeftRight, RotateCcw, Menu, ChevronDown, ChevronUp, Mic, MicOff } from 'lucide-react';
+import { Undo2, ArrowLeftRight, RotateCcw, Menu, ChevronDown, ChevronUp, Mic, MicOff, Grid } from 'lucide-react';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { useLayoutManager } from '../../contexts/LayoutContext';
 import { useElementSize } from '../../hooks/useElementSize';
@@ -13,13 +14,14 @@ interface FloatingControlBarProps {
   onSwap: () => void;
   onReset: () => void;
   onMenu: () => void;
+  onCourt: () => void; // New Prop
   voiceEnabled: boolean;
   isListening: boolean;
   onToggleListening: () => void;
 }
 
 export const FloatingControlBar: React.FC<FloatingControlBarProps> = ({ 
-  onUndo, canUndo, onSwap, onReset, onMenu, voiceEnabled, isListening, onToggleListening
+  onUndo, canUndo, onSwap, onReset, onMenu, onCourt, voiceEnabled, isListening, onToggleListening
 }) => {
   const { t } = useTranslation();
   const [isMinimized, setIsMinimized] = useState(false);
@@ -85,6 +87,10 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = ({
             )}
 
             <div className="w-px h-5 bg-black/10 dark:bg-white/10 mx-0.5"></div>
+
+            <button onClick={onCourt} className={`${buttonBase} ${pClass} text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20`} title={t('court.title') || 'Court'}>
+                <Grid size={iconSize} strokeWidth={1.5} />
+            </button>
 
             <button onClick={onReset} className={`${buttonBase} ${pClass} text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10`} title={t('controls.reset')}>
               <RotateCcw size={iconSize} strokeWidth={1.5} />

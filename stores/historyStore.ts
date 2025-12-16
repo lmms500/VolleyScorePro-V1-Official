@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
 import { GameConfig, SetHistory, TeamId, ActionLog, Team } from '../types';
@@ -6,21 +5,9 @@ import { SecureStorage } from '../services/SecureStorage';
 
 // --- TYPES (Derived/Extended from Core Types) ---
 
-/**
- * Represents the configuration used for a specific match.
- * Aliased from core types to maintain consistency.
- */
 export type MatchSettings = GameConfig;
-
-/**
- * Represents a single score event or action within a match.
- * Aliased from core types.
- */
 export type ScoreEvent = ActionLog;
 
-/**
- * Snapshot of a completed match.
- */
 export interface Match {
   id: string;                 // UUID
   date: string;               // ISO Date String
@@ -30,7 +17,6 @@ export interface Match {
   teamAName: string;
   teamBName: string;
   
-  // Roster Snapshots (Optional for backward compatibility)
   teamARoster?: Team;
   teamBRoster?: Team;
 
@@ -39,13 +25,8 @@ export interface Match {
   
   winner: TeamId | null;      // 'A' | 'B'
   
-  // Detailed History
   sets: SetHistory[];
-  
-  // Detailed Actions (New for V2 Stats)
   actionLog?: ActionLog[];
-
-  // Configuration used
   config: MatchSettings;
 }
 
@@ -54,53 +35,28 @@ interface HistoryStoreState {
 }
 
 interface HistoryStoreActions {
-  /**
-   * Adds a completed match to the history.
-   * Newest matches appear first.
-   */
   addMatch: (match: Match) => void;
-
-  /**
-   * Deletes a single match by ID.
-   */
   deleteMatch: (matchId: string) => void;
-
-  /**
-   * Wipes all match history. Irreversible.
-   */
   clearHistory: () => void;
-
-  /**
-   * Exports the current history as a JSON string.
-   */
   exportJSON: () => string;
-
-  /**
-   * Imports history from a JSON string.
-   * @param jsonStr The raw JSON string.
-   * @param options.merge If true, adds unique matches to existing history. If false, overwrites.
-   * @returns Object indicating success status and any error messages.
-   */
   importJSON: (jsonStr: string, options?: { merge: boolean }) => { success: boolean; errors?: string[] };
+  
+  // NEW: Merges external matches (e.g. from Cloud Sync)
+  mergeMatches: (newMatches: Match[]) => void;
 }
 
-// --- ADAPTER: SecureStorage (IndexedDB) <-> Zustand ---
 const secureStorageAdapter: StateStorage = {
   getItem: async (name: string): Promise<string | null> => {
-    // Load returns T, which is the stringified state string from Zustand
     const data = await SecureStorage.load<string>(name);
     return data || null;
   },
   setItem: async (name: string, value: string): Promise<void> => {
-    // Save wraps the data in an integrity envelope and puts it in IndexedDB
     await SecureStorage.save(name, value);
   },
   removeItem: async (name: string): Promise<void> => {
     await SecureStorage.remove(name);
   },
 };
-
-// --- STORE IMPLEMENTATION ---
 
 export const useHistoryStore = create<HistoryStoreState & HistoryStoreActions>()(
   persist(
@@ -109,7 +65,7 @@ export const useHistoryStore = create<HistoryStoreState & HistoryStoreActions>()
 
       addMatch: (match) => {
         set((state) => ({
-          matches: [match, ...state.matches] // Unshift (Newest first)
+          matches: [match, ...state.matches]
         }));
       },
 
@@ -121,6 +77,29 @@ export const useHistoryStore = create<HistoryStoreState & HistoryStoreActions>()
 
       clearHistory: () => {
         set({ matches: [] });
+      },
+
+      // NEW: Intelligent Merge for Cloud Sync
+      mergeMatches: (newMatches) => {
+          set((state) => {
+              // Fix: Explicitly type the Map to ensure values are Match objects, avoiding 'unknown' errors
+              const currentMap = new Map<string, Match>(state.matches.map(m => [m.id, m]));
+              let changes = false;
+
+              newMatches.forEach(m => {
+                  if (!currentMap.has(m.id)) {
+                      currentMap.set(m.id, m);
+                      changes = true;
+                  }
+                  // We could add logic here to update existing matches if timestamp is newer
+                  // For now, assuming immutable matches once saved
+              });
+
+              if (!changes) return state;
+
+              const merged = Array.from(currentMap.values()).sort((a, b) => b.timestamp - a.timestamp);
+              return { matches: merged };
+          });
       },
 
       exportJSON: () => {
@@ -136,7 +115,6 @@ export const useHistoryStore = create<HistoryStoreState & HistoryStoreActions>()
             return { success: false, errors: ['Invalid format: Root must be an array.'] };
           }
 
-          // Basic Validation of Match Structure
           const validMatches: Match[] = [];
           const errors: string[] = [];
 
@@ -160,15 +138,11 @@ export const useHistoryStore = create<HistoryStoreState & HistoryStoreActions>()
 
           set((state) => {
             if (options.merge) {
-              // Create Map of existing IDs to avoid duplicates
               const existingIds = new Set(state.matches.map(m => m.id));
               const newUniqueMatches = validMatches.filter(m => !existingIds.has(m.id));
-              
-              // Merge and sort by timestamp descending
               const merged = [...newUniqueMatches, ...state.matches].sort((a, b) => b.timestamp - a.timestamp);
               return { matches: merged };
             } else {
-              // Overwrite mode
               return { matches: validMatches.sort((a, b) => b.timestamp - a.timestamp) };
             }
           });
@@ -185,7 +159,7 @@ export const useHistoryStore = create<HistoryStoreState & HistoryStoreActions>()
     }),
     {
       name: 'vsp_matches_v1',
-      storage: createJSONStorage(() => secureStorageAdapter), // Use async secure storage
+      storage: createJSONStorage(() => secureStorageAdapter),
       version: 1,
     }
   )

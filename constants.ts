@@ -19,7 +19,10 @@ export const DEFAULT_CONFIG: GameConfig = {
   voicePitch: 1.0,
   announcementFreq: 'all',
   lowGraphics: false,
-  reducedMotion: false
+  reducedMotion: false,
+  // Default Security & Access State
+  adsRemoved: false,
+  developerMode: false
 };
 
 export const MIN_LEAD_TO_WIN = 2;

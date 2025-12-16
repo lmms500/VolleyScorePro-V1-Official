@@ -62,6 +62,10 @@ export interface GameConfig {
   lowGraphics: boolean; // Optimization for low-end devices
   reducedMotion: boolean; // Disable non-essential animations
   userApiKey?: string; // BYOK: User Provided Gemini Key
+  
+  // Monetization & Access Control
+  adsRemoved: boolean;     // Freemium Unlock
+  developerMode: boolean;  // Backdoor Access
 }
 
 // 2. A INSTÂNCIA DE JOGO (Volátil / Em Quadra)
@@ -85,6 +89,7 @@ export interface Team {
   players: Player[];
   reserves: Player[]; // Bench players
   hasActiveBench?: boolean; // Controls if knockout sends to reserves or global queue
+  tacticalOffset?: number; // Visual rotation offset (0-5) for tactical view
 }
 
 export interface SetHistory {
@@ -128,7 +133,8 @@ export type ActionLog =
       timestamp?: number;
       // Scout Metadata (Explicitly typed)
       playerId?: string | null; // UUID or null (Team Stat fallback)
-      skill?: SkillType; 
+      skill?: SkillType;
+      autoRotated?: boolean; // Tracks if this point caused an auto-rotation
     }
   | { 
       type: 'TIMEOUT'; 
@@ -140,6 +146,12 @@ export type ActionLog =
   | {
       type: 'ROTATION';
       snapshot: RosterSnapshot;
+      timestamp?: number;
+  }
+  | {
+      type: 'MANUAL_ROTATION';
+      teamId: string;
+      direction: 'clockwise' | 'counter';
       timestamp?: number;
   };
 
@@ -213,6 +225,7 @@ export type GameAction =
   | { type: 'ROSTER_DELETE_PLAYER'; playerId: string } // Permanent Delete
   | { type: 'ROSTER_MOVE_PLAYER'; playerId: string; fromId: string; toId: string; newIndex?: number }
   | { type: 'ROSTER_SUBSTITUTE'; teamId: string; playerInId: string; playerOutId: string }
+  | { type: 'ROSTER_SWAP_POSITIONS'; teamId: string; indexA: number; indexB: number } // NEW: Direct Swap
   | { type: 'ROSTER_UNDO_REMOVE' }
   | { type: 'ROSTER_COMMIT_DELETIONS' }
   | { type: 'ROSTER_TOGGLE_FIXED'; playerId: string }
@@ -228,4 +241,6 @@ export type GameAction =
   // NEW QUEUE ACTIONS
   | { type: 'ROSTER_QUEUE_REORDER'; fromIndex: number; toIndex: number }
   | { type: 'ROSTER_DISBAND_TEAM'; teamId: string }
-  | { type: 'ROSTER_RESTORE_TEAM'; team: Team; index: number }; // Undo Disband
+  | { type: 'ROSTER_RESTORE_TEAM'; team: Team; index: number }
+  // TACTICAL ACTIONS
+  | { type: 'MANUAL_ROTATION'; teamId: string; direction: 'clockwise' | 'counter' }; // Undo Disband

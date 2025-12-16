@@ -262,6 +262,12 @@ export class VoiceCommandParser {
             // High confidence local match
             return { type: 'server', team: entity.team, confidence: 1, rawText, debugMessage: `Serving Team: ${entity.team}` };
         } else {
+            // SMART INFERENCE: "Side Out" implies switching to the OTHER team
+            if (context.servingTeam) {
+                const nextServer = context.servingTeam === 'A' ? 'B' : 'A';
+                return { type: 'server', team: nextServer, confidence: 0.8, rawText, debugMessage: `Side Out inferred: Team ${nextServer}` };
+            }
+
             // Ambiguous "Serve" command (e.g. "Saque" or "Serve Flamengo" where Flamengo isn't matched locally)
             return { 
                 type: 'server', 

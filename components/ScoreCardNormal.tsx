@@ -87,6 +87,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
   }, [onSubtract]);
 
   const handleTouchStart = useCallback((e: React.PointerEvent) => {
+      if (isLocked) return;
       setIsTouching(true);
       onInteractionStart?.();
 
@@ -98,9 +99,15 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
               id: Date.now()
           });
       }
-  }, [onInteractionStart]);
+  }, [onInteractionStart, isLocked]);
 
   const handleTouchEnd = useCallback(() => {
+      setIsTouching(false);
+      onInteractionEnd?.();
+  }, [onInteractionEnd]);
+
+  // Ensure touch ends even if cancelled or leaves area
+  const handleTouchCancel = useCallback(() => {
       setIsTouching(false);
       onInteractionEnd?.();
   }, [onInteractionEnd]);
@@ -140,7 +147,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
         transition={{ type: "spring", stiffness: 120, damping: 20, mass: 1 }}
         className={`
             flex flex-col flex-1 relative h-full select-none
-            rounded-[2.5rem] min-h-0 my-2
+            rounded-2xl min-h-0 my-2
             !bg-transparent !border-none !shadow-none !ring-0
             transition-[opacity,filter] duration-300
             ${isLocked ? 'opacity-40 grayscale' : ''} 
@@ -230,6 +237,8 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
             className="relative flex flex-col justify-center items-center w-full flex-1 min-h-0 cursor-pointer overflow-visible isolate"
             style={{ touchAction: 'none' }}
             {...gestureHandlers}
+            onPointerCancel={handleTouchCancel}
+            onPointerLeave={handleTouchCancel}
         >
             <GestureHint isVisible={isTouching} />
 

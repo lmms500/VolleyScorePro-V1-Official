@@ -1,5 +1,5 @@
 
-import React, { useEffect, lazy, Suspense } from 'react';
+import React, { useEffect, lazy, Suspense, memo } from 'react';
 import { Modal } from '../ui/Modal';
 import { HistoryList } from '../History/HistoryList';
 import { useTranslation } from '../../contexts/LanguageContext';
@@ -10,11 +10,14 @@ const RichTutorialModal = lazy(() => import('./RichTutorialModal').then(m => ({ 
 interface HistoryModalProps {
   isOpen: boolean;
   onClose: () => void;
+  developerMode?: boolean;
+  zIndex?: string; // New prop for layering
 }
 
-export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) => {
+export const HistoryModal: React.FC<HistoryModalProps> = memo(({ isOpen, onClose, developerMode, zIndex }) => {
   const { t } = useTranslation();
-  const { activeTutorial, triggerTutorial, completeTutorial, isLoaded } = useTutorial(false);
+  // Pass developerMode to block tutorial if enabled
+  const { activeTutorial, triggerTutorial, completeTutorial, isLoaded } = useTutorial(false, developerMode);
 
   useEffect(() => {
       if (isLoaded && isOpen) {
@@ -26,8 +29,10 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
     <Modal 
         isOpen={isOpen} 
         onClose={onClose} 
-        title={t('historyList.title')}
-        maxWidth="max-w-2xl landscape:max-w-5xl"
+        title="" // Empty title to remove default header text
+        showCloseButton={false} // Disable default close button, handled internally by HistoryList
+        variant="fullscreen"
+        zIndex={zIndex}
     >
         <Suspense fallback={null}>
             {activeTutorial === 'history' && (
@@ -39,9 +44,9 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
             )}
         </Suspense>
         
-        <div className="h-[75vh] flex flex-col pb-safe-bottom">
-            <HistoryList />
+        <div className="h-full flex flex-col pb-safe-bottom glass-hardware-accelerated">
+            <HistoryList onClose={onClose} />
         </div>
     </Modal>
   );
-};
+});

@@ -1,21 +1,16 @@
-
-
-
-import { useCallback, useEffect, useReducer, useMemo, useState, useRef } from 'react';
-import { GameState, TeamId, GameConfig, SkillType, PlayerProfile, TeamColor, RotationMode, PlayerRole, Player, Team } from '../types';
-import { DEFAULT_CONFIG, SETS_TO_WIN_MATCH, PLAYERS_PER_TEAM } from '../constants';
+import { useReducer, useEffect, useCallback, useState } from 'react';
 import { gameReducer } from '../reducers/gameReducer';
+import { GameState, GameConfig, TeamId, Player, PlayerProfile, SkillType, RotationMode, PlayerRole, Team } from '../types';
+import { DEFAULT_CONFIG, SETS_TO_WIN_MATCH } from '../constants';
+import { SecureStorage } from '../services/SecureStorage';
 import { usePlayerProfiles } from './usePlayerProfiles';
 import { createPlayer, validateUniqueNumber } from '../utils/rosterLogic';
-import { useTimer } from '../contexts/TimerContext';
-import { SecureStorage } from '../services/SecureStorage';
 
-// Key for the ACTIVE game being played
-const ACTIVE_GAME_KEY = 'action_log'; 
+const STORAGE_KEY = 'action_log';
 
 const INITIAL_STATE: GameState = {
-  teamAName: 'Home',
-  teamBName: 'Guest',
+  teamAName: 'Team A',
+  teamBName: 'Team B',
   scoreA: 0,
   scoreB: 0,
   setsA: 0,
@@ -35,9 +30,9 @@ const INITIAL_STATE: GameState = {
   pendingSideSwitch: false,
   matchDurationSeconds: 0,
   isTimerRunning: false,
-  teamARoster: { id: 'A', name: 'Home', color: 'indigo', players: [], reserves: [], hasActiveBench: false },
-  teamBRoster: { id: 'B', name: 'Guest', color: 'rose', players: [], reserves: [], hasActiveBench: false },
-  queue: [], 
+  teamARoster: { id: 'A', name: 'Team A', players: [], reserves: [], color: 'indigo', tacticalOffset: 0 },
+  teamBRoster: { id: 'B', name: 'Team B', players: [], reserves: [], color: 'rose', tacticalOffset: 0 },
+  queue: [],
   rotationReport: null,
   deletedPlayerHistory: [],
   rotationMode: 'standard'
@@ -45,514 +40,257 @@ const INITIAL_STATE: GameState = {
 
 export const useVolleyGame = () => {
   const [state, dispatch] = useReducer(gameReducer, INITIAL_STATE);
+  const { profiles, findProfileByName, isReady: profilesReady, upsertProfile, deleteProfile, batchUpdateStats } = usePlayerProfiles();
   const [isLoaded, setIsLoaded] = useState(false);
-  
-  // Create a Ref to hold the latest state. This allows functions to access
-  // the current state without needing to be recreated on every render.
-  const stateRef = useRef(state);
-  
+
+  // Load state on mount
   useEffect(() => {
-    stateRef.current = state;
-  }, [state]);
-
-  const { profiles, upsertProfile, deleteProfile: deleteProfileStore, isReady: profilesReady, batchUpdateStats, findProfileByName } = usePlayerProfiles();
-  const { setSeconds, start: startTimer, stop: stopTimer, reset: resetTimer, getTime } = useTimer();
-
-  const saveTimeoutRef = useRef<any>(null);
-  
-  // --- OPTIMISTIC LOCKING ---
-  // Stores "TeamID:Number" keys to prevent duplicates during rapid updates (Race Condition Fix)
-  const optimisticNumberLocks = useRef<Set<string>>(new Set());
-
-  // Clear locks whenever state updates (Source of truth has caught up)
-  // This guards against race conditions by releasing locks only after the reducer has processed the change
-  useEffect(() => {
-      optimisticNumberLocks.current.clear();
-  }, [state.teamARoster, state.teamBRoster, state.queue]);
-
-  // --- PERSISTENCE: Load ---
-  useEffect(() => {
-    const loadGame = async () => {
+    const load = async () => {
       try {
-        const savedState = await SecureStorage.load<GameState>(ACTIVE_GAME_KEY);
-        if (savedState) { 
-          if(!savedState.config) savedState.config = DEFAULT_CONFIG;
-          setSeconds(savedState.matchDurationSeconds || 0);
-          if (savedState.isTimerRunning && !savedState.isMatchOver) {
-              startTimer();
-          }
-          dispatch({ type: 'LOAD_STATE', payload: savedState });
+        const saved = await SecureStorage.load<GameState>(STORAGE_KEY);
+        if (saved) {
+          // ROBUSTNESS: Merge saved config with DEFAULT_CONFIG to ensure new flags exist
+          const mergedConfig = { ...DEFAULT_CONFIG, ...saved.config };
+          // Ensure structure integrity
+          const validState = { 
+              ...INITIAL_STATE, 
+              ...saved, 
+              config: mergedConfig,
+              // Legacy Fix: Ensure rosters exist if corrupted
+              teamARoster: saved.teamARoster || INITIAL_STATE.teamARoster,
+              teamBRoster: saved.teamBRoster || INITIAL_STATE.teamBRoster
+          };
+          dispatch({ type: 'LOAD_STATE', payload: validState });
+        } else {
+          dispatch({ type: 'ROSTER_ENSURE_TEAM_IDS' });
         }
-        dispatch({ type: 'ROSTER_ENSURE_TEAM_IDS' });
       } catch (e) {
         console.error("Failed to load game state", e);
-      } finally {
-          setIsLoaded(true);
+        // Fallback to initial state if corruption
       }
+      setIsLoaded(true);
     };
-    loadGame();
-  }, [setSeconds, startTimer]);
+    load();
+  }, []);
 
-  // --- PERSISTENCE: Save ---
+  // Save state on change
   useEffect(() => {
-    if (!isLoaded) return; 
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    if (isLoaded) {
+      SecureStorage.save(STORAGE_KEY, state);
+    }
+  }, [state, isLoaded]);
 
-    saveTimeoutRef.current = setTimeout(() => {
-        const { lastSnapshot, ...stateToSave } = state;
-        stateToSave.matchDurationSeconds = getTime();
-        SecureStorage.save(ACTIVE_GAME_KEY, stateToSave);
-    }, 500);
-
-    return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
-  }, [state, getTime, isLoaded]);
-
-  // --- TIMER SYNC ---
+  // Sync profiles if updated
   useEffect(() => {
-      if (state.isMatchOver) stopTimer();
-      else if (state.isTimerRunning) startTimer();
-      else stopTimer();
-  }, [state.isTimerRunning, state.isMatchOver, startTimer, stopTimer]);
-
-  // --- PROFILE SYNC ---
-  useEffect(() => {
-      if (profilesReady) {
+      if (profilesReady && isLoaded) {
           dispatch({ type: 'ROSTER_SYNC_PROFILES', profiles });
       }
-  }, [profiles, profilesReady]);
+  }, [profiles, profilesReady, isLoaded]);
 
-  // --- ACTIONS ---
+  // Actions
   const addPoint = useCallback((team: TeamId, metadata?: { playerId: string, skill: SkillType }) => {
+      // Safety check: Don't add points if match is over
+      if (state.isMatchOver) return;
       dispatch({ type: 'POINT', team, metadata });
-  }, []);
+  }, [state.isMatchOver]);
 
-  const subtractPoint = useCallback((team: TeamId) => dispatch({ type: 'SUBTRACT_POINT', team }), []);
-  const useTimeout = useCallback((team: TeamId) => dispatch({ type: 'TIMEOUT', team }), []);
-  const undo = useCallback(() => dispatch({ type: 'UNDO' }), []); 
-  const resetMatch = useCallback(() => { resetTimer(); dispatch({ type: 'RESET_MATCH' }); }, [resetTimer]);
-  const toggleSides = useCallback(() => dispatch({ type: 'TOGGLE_SIDES' }), []);
+  const subtractPoint = useCallback((team: TeamId) => {
+      if (state.isMatchOver) return;
+      dispatch({ type: 'SUBTRACT_POINT', team });
+  }, [state.isMatchOver]);
+
   const setServer = useCallback((team: TeamId) => dispatch({ type: 'SET_SERVER', team }), []);
+  const useTimeout = useCallback((team: TeamId) => dispatch({ type: 'TIMEOUT', team }), []);
+  const undo = useCallback(() => dispatch({ type: 'UNDO' }), []);
+  const toggleSides = useCallback(() => dispatch({ type: 'TOGGLE_SIDES' }), []);
+  const applySettings = useCallback((config: GameConfig, shouldReset: boolean) => dispatch({ type: 'APPLY_SETTINGS', config, shouldReset }), []);
+  const resetMatch = useCallback(() => dispatch({ type: 'RESET_MATCH' }), []);
   
-  const applySettings = useCallback((newConfig: GameConfig, shouldReset: boolean = false) => {
-      if(shouldReset) resetTimer();
-      dispatch({ type: 'APPLY_SETTINGS', config: newConfig, shouldReset });
-  }, [resetTimer]);
-
-  const rotateTeams = useCallback(() => dispatch({ type: 'ROTATE_TEAMS' }), []);
-
-  // --- ROSTER ACTIONS (Smart Linking & Validation) ---
+  const togglePlayerFixed = useCallback((id: string) => dispatch({ type: 'ROSTER_TOGGLE_FIXED', playerId: id }), []);
+  const removePlayer = useCallback((id: string) => dispatch({ type: 'ROSTER_REMOVE_PLAYER', playerId: id }), []);
+  const movePlayer = useCallback((id: string, from: string, to: string, index?: number) => dispatch({ type: 'ROSTER_MOVE_PLAYER', playerId: id, fromId: from, toId: to, newIndex: index }), []);
   
-  // Helper to find exact team object for player ID using FRESH state ref
-  const findTeamForPlayer = useCallback((playerId: string): Team | undefined => {
-      const currentState = stateRef.current;
-      
-      // Check Court A
-      if (currentState.teamARoster.players.some(p => p.id === playerId) || (currentState.teamARoster.reserves || []).some(p => p.id === playerId)) {
-          return currentState.teamARoster;
-      }
-      // Check Court B
-      if (currentState.teamBRoster.players.some(p => p.id === playerId) || (currentState.teamBRoster.reserves || []).some(p => p.id === playerId)) {
-          return currentState.teamBRoster;
-      }
-      // Check Queue
-      for (const t of currentState.queue) {
-          if (t.players.some(p => p.id === playerId) || (t.reserves || []).some(p => p.id === playerId)) {
-              return t;
-          }
-      }
-      return undefined;
+  const swapPositions = useCallback((teamId: string, indexA: number, indexB: number) => {
+      dispatch({ type: 'ROSTER_SWAP_POSITIONS', teamId, indexA, indexB });
   }, []);
 
-  const updatePlayer = useCallback((playerId: string, updates: Partial<Player>) => {
-      const currentState = stateRef.current;
-
-      // 🛡️ SECURITY LAYER 3: Validate Number Uniqueness on Store Update
-      if (updates.number !== undefined && updates.number !== '') {
-          const team = findTeamForPlayer(playerId);
-          if (team) {
-              const roster = [...team.players, ...(team.reserves || [])];
-              const result = validateUniqueNumber(roster, updates.number, playerId);
-              
-              if (!result.valid) {
-                  console.warn(`[Store Integrity] Blocked update: Number ${updates.number} conflict.`);
-                  // Return the full result so the UI can translate it
-                  return { 
-                      success: false, 
-                      errorKey: result.messageKey, 
-                      errorParams: result.messageParams 
-                  };
-              }
-
-              // 🔒 OPTIMISTIC LOCK: Check against pending updates (Race Condition Protection)
-              const lockKey = `${team.id}:${updates.number.trim()}`;
-              if (optimisticNumberLocks.current.has(lockKey)) {
-                  console.warn(`[Race Condition] Blocked rapid update for ${lockKey}`);
-                  return { success: false, errorKey: 'validation.numberAssigned', errorParams: { number: updates.number } };
-              }
-              optimisticNumberLocks.current.add(lockKey);
-          }
-      }
-
-      // Dispatch update to Reducer
-      dispatch({ type: 'ROSTER_UPDATE_PLAYER', playerId, updates });
-
-      // Auto-Sync logic for linked profiles
-      const allPlayers = [
-          ...currentState.teamARoster.players, ...(currentState.teamARoster.reserves || []),
-          ...currentState.teamBRoster.players, ...(currentState.teamBRoster.reserves || []),
-          ...currentState.queue.flatMap(t => [...t.players, ...(t.reserves||[])])
-      ];
-      const player = allPlayers.find(p => p.id === playerId);
-
-      if (player && player.profileId) {
-          if (updates.name !== undefined || updates.number !== undefined || updates.skillLevel !== undefined || updates.role !== undefined) {
-              const currentProfile = profiles.get(player.profileId);
-              if (currentProfile) {
-                  upsertProfile(
-                      updates.name ?? currentProfile.name,
-                      updates.skillLevel ?? currentProfile.skillLevel,
-                      player.profileId,
-                      {
-                          number: updates.number ?? currentProfile.number,
-                          role: updates.role ?? currentProfile.role,
-                          avatar: currentProfile.avatar 
-                      }
-                  );
-              }
-          }
-      }
-      return { success: true };
-  }, [profiles, upsertProfile, findTeamForPlayer]);
-
-  const updateTeamName = useCallback((teamId: string, name: string) => dispatch({ type: 'ROSTER_UPDATE_TEAM_NAME', teamId, name }), []);
-  const updateTeamColor = useCallback((teamId: string, color: TeamColor) => dispatch({ type: 'ROSTER_UPDATE_TEAM_COLOR', teamId, color }), []);
-  const updateTeamLogo = useCallback((teamId: string, logo: string) => dispatch({ type: 'ROSTER_UPDATE_TEAM_LOGO', teamId, logo }), []);
-  const togglePlayerFixed = useCallback((id: string) => dispatch({ type: 'ROSTER_TOGGLE_FIXED', playerId: id }), []);
-  const toggleTeamBench = useCallback((teamId: string) => dispatch({ type: 'ROSTER_TOGGLE_BENCH', teamId }), []);
+  const updateTeamName = useCallback((id: string, name: string) => dispatch({ type: 'ROSTER_UPDATE_TEAM_NAME', teamId: id, name }), []);
+  const updateTeamColor = useCallback((id: string, color: any) => dispatch({ type: 'ROSTER_UPDATE_TEAM_COLOR', teamId: id, color }), []);
+  const updateTeamLogo = useCallback((id: string, logo: string) => dispatch({ type: 'ROSTER_UPDATE_TEAM_LOGO', teamId: id, logo }), []);
   
-  // 🛡️ REFACTORED: ADD PLAYER WITH AUTO-LINKING & VALIDATION
-  const addPlayer = useCallback((name: string, target: string, number?: string, skill?: number, existingPlayer?: Player): { success: boolean, errorKey?: string, errorParams?: any } => {
-      const currentState = stateRef.current;
-      let p: Player;
-      
-      // Determine Target Team for Validation
-      let targetTeam: Team | undefined;
-      if (target === 'A' || target === currentState.teamARoster.id || target === 'A_Reserves') targetTeam = currentState.teamARoster;
-      else if (target === 'B' || target === currentState.teamBRoster.id || target === 'B_Reserves') targetTeam = currentState.teamBRoster;
-      else if (target === 'Queue') {
-          // Handle explicit "Queue" target which usually appends to the last team
-          if (currentState.queue.length > 0) {
-              const lastTeam = currentState.queue[currentState.queue.length - 1];
-              // Only validate against last team if it has space, otherwise a new team is created (empty) so no conflict
-              if (lastTeam.players.length < PLAYERS_PER_TEAM) {
-                  targetTeam = lastTeam;
-              }
-          }
+  const updatePlayer = useCallback((id: string, updates: Partial<Player>) => {
+      if (updates.number) {
+          const allPlayers = [
+              ...state.teamARoster.players, ...(state.teamARoster.reserves || []),
+              ...state.teamBRoster.players, ...(state.teamBRoster.reserves || []),
+              ...state.queue.flatMap(t => [...t.players, ...(t.reserves || [])])
+          ];
+          const result = validateUniqueNumber(allPlayers, updates.number, id);
+          if (!result.valid) return { success: false, error: result.message, errorKey: result.messageKey, errorParams: result.messageParams };
       }
-      else {
-          const qId = target.replace('_Reserves', '');
-          targetTeam = currentState.queue.find(t => t.id === qId);
-      }
+      dispatch({ type: 'ROSTER_UPDATE_PLAYER', playerId: id, updates });
+      return { success: true };
+  }, [state.teamARoster, state.teamBRoster, state.queue]);
 
-      if (existingPlayer) {
-          p = existingPlayer;
-      } else {
-          // AUTO-LINK LOGIC: Check if profile exists by name
-          let foundProfile: PlayerProfile | undefined = undefined;
-          if (profilesReady) {
-              foundProfile = findProfileByName(name);
-          }
-
-          if (foundProfile) {
-              // Adopt profile data (Smart Link)
-              // If number wasn't provided in input, use profile number
-              const numToUse = (number && number.trim() !== '') ? number : foundProfile.number;
-              p = createPlayer(
-                  foundProfile.name, 
-                  0, 
-                  foundProfile.id, 
-                  foundProfile.skillLevel, 
-                  numToUse
-              );
-              if (foundProfile.role) p.role = foundProfile.role;
-          } else {
-              // Create new local player
-              p = createPlayer(name, 0, undefined, skill, number);
-          }
+  const addPlayer = useCallback((name: string, target: string, number?: string, skill?: number, profileId?: string) => {
+      if (number) {
+          const allPlayers = [
+              ...state.teamARoster.players, ...(state.teamARoster.reserves || []),
+              ...state.teamBRoster.players, ...(state.teamBRoster.reserves || []),
+              ...state.queue.flatMap(t => [...t.players, ...(t.reserves || [])])
+          ];
+          const result = validateUniqueNumber(allPlayers, number);
+          if (!result.valid) return { success: false, error: result.message, errorKey: result.messageKey, errorParams: result.messageParams };
       }
 
-      // 🛡️ SECURITY LAYER 2: INTERCEPT & VALIDATE
-      // Check number uniqueness in the target team
-      if (targetTeam && p.number) {
-          const roster = [...targetTeam.players, ...(targetTeam.reserves || [])];
-          const result = validateUniqueNumber(roster, p.number); // No excludeId because it's a new player
-          
-          if (!result.valid) {
-              return { success: false, errorKey: result.messageKey, errorParams: result.messageParams };
-          }
-
-          // 🔒 OPTIMISTIC LOCK: Check against pending adds
-          const lockKey = `${targetTeam.id}:${p.number.trim()}`;
-          if (optimisticNumberLocks.current.has(lockKey)) {
-              return { success: false, errorKey: 'validation.numberAssigned', errorParams: { number: p.number } };
-          }
-          optimisticNumberLocks.current.add(lockKey);
-      }
-
+      const p = createPlayer(name, 999, profileId, skill, number);
       dispatch({ type: 'ROSTER_ADD_PLAYER', player: p, targetId: target });
       return { success: true };
+  }, [state.teamARoster, state.teamBRoster, state.queue]);
 
-  }, [profiles, profilesReady, findProfileByName]);
-
-  const restorePlayer = useCallback((player: Player, targetId: string, index?: number) => {
-      dispatch({ type: 'ROSTER_RESTORE_PLAYER', player, targetId, index });
-  }, []);
-
-  const removePlayer = useCallback((id: string) => dispatch({ type: 'ROSTER_REMOVE_PLAYER', playerId: id }), []);
-  const deletePlayer = useCallback((id: string) => dispatch({ type: 'ROSTER_DELETE_PLAYER', playerId: id }), []);
   const undoRemovePlayer = useCallback(() => dispatch({ type: 'ROSTER_UNDO_REMOVE' }), []);
   const commitDeletions = useCallback(() => dispatch({ type: 'ROSTER_COMMIT_DELETIONS' }), []);
-  const movePlayer = useCallback((playerId: string, fromId: string, toId: string, newIndex?: number) => 
-      dispatch({ type: 'ROSTER_MOVE_PLAYER', playerId, fromId, toId, newIndex }), []);
   
+  const rotateTeams = useCallback(() => dispatch({ type: 'ROTATE_TEAMS' }), []);
   const setRotationMode = useCallback((mode: RotationMode) => dispatch({ type: 'ROSTER_SET_MODE', mode }), []);
   const balanceTeams = useCallback(() => dispatch({ type: 'ROSTER_BALANCE' }), []);
   
-  // 🛡️ REFACTORED: GENERATE WITH AUTO-LINKING
-  const generateTeams = useCallback((names: string[]) => {
-      const validNames = names.filter(n => n.trim().length > 0);
+  const savePlayerToProfile = useCallback((playerId: string, data: { name: string, number: string, avatar: string, skill: number, role: PlayerRole }) => {
+      const { name, number, avatar, skill, role } = data;
+      let existingProfileId: string | undefined;
+      const findP = (list: Player[]) => list.find(p => p.id === playerId);
+      const player = findP(state.teamARoster.players) || findP(state.teamARoster.reserves||[]) || 
+                     findP(state.teamBRoster.players) || findP(state.teamBRoster.reserves||[]) ||
+                     state.queue.flatMap(t => [...t.players, ...(t.reserves||[])]).find(p => p.id === playerId);
       
-      const allNewPlayers = validNames.map((raw, idx) => {
-          const trimmed = raw.trim();
-          const match = trimmed.match(/^(.+)\s+(10|[1-9])$/);
-          
-          let name = trimmed;
-          let skill = 5;
-          
-          if (match) {
-              name = match[1].trim();
-              skill = parseInt(match[2], 10);
-          }
+      if (player && player.profileId) existingProfileId = player.profileId;
 
-          // Check if profile exists to auto-link
-          let foundProfile: PlayerProfile | undefined = undefined;
-          if (profilesReady) {
-              foundProfile = findProfileByName(name);
-          }
-
-          let p: Player;
-          if (foundProfile) {
-              p = createPlayer(
-                  foundProfile.name,
-                  idx,
-                  foundProfile.id,
-                  foundProfile.skillLevel,
-                  foundProfile.number
-              );
-              if (foundProfile.role) p.role = foundProfile.role;
-          } else {
-              p = createPlayer(name, idx, undefined, skill); 
-          }
-          return p;
-      });
-
-      dispatch({ type: 'ROSTER_GENERATE', players: allNewPlayers });
-  }, [profilesReady, findProfileByName]);
-
-  const substitutePlayers = useCallback((teamId: string, pIn: string, pOut: string) => dispatch({ type: 'ROSTER_SUBSTITUTE', teamId, playerInId: pIn, playerOutId: pOut }), []);
-  const sortTeam = useCallback((teamId: string, criteria: 'name' | 'number' | 'skill') => dispatch({ type: 'ROSTER_SORT', teamId, criteria }), []); 
-  const reorderQueue = useCallback((fromIndex: number, toIndex: number) => dispatch({ type: 'ROSTER_QUEUE_REORDER', fromIndex, toIndex }), []);
-  
-  const disbandTeam = useCallback((teamId: string) => dispatch({ type: 'ROSTER_DISBAND_TEAM', teamId }), []);
-  const restoreTeam = useCallback((team: Team, index: number) => dispatch({ type: 'ROSTER_RESTORE_TEAM', team, index }), []);
-  const resetRosters = useCallback(() => dispatch({ type: 'ROSTER_RESET_ALL' }), []);
-
-  // 🛡️ CRITICAL FIX: VALIDATE NUMBER CONFLICTS WHEN SAVING PROFILE TO ROSTER PLAYER
-  const savePlayerToProfile = useCallback((playerId: string, overrides?: { name?: string, number?: string, avatar?: string, skill?: number, role?: PlayerRole }) => {
-      const currentState = stateRef.current;
-      // 1. Locate Player in current game state
-      let p: Player | undefined;
-      const all = [
-        ...currentState.teamARoster.players, ...(currentState.teamARoster.reserves || []),
-        ...currentState.teamBRoster.players, ...(currentState.teamBRoster.reserves || []),
-        ...currentState.queue.flatMap(t => [...t.players, ...(t.reserves||[])])
-      ];
-      p = all.find(x => x.id === playerId);
+      const p = upsertProfile(name, skill, existingProfileId, { number, avatar, role });
       
-      if(!p) return { success: false, error: "Player not found" };
+      dispatch({ type: 'ROSTER_UPDATE_PLAYER', playerId, updates: { 
+          name: p.name, number: p.number, skillLevel: p.skillLevel, 
+          profileId: p.id, role: p.role 
+      }});
+      return { success: true };
+  }, [upsertProfile, state.teamARoster, state.teamBRoster, state.queue]);
 
-      const nameToUse = overrides?.name || p.name;
-      const numberToUse = overrides?.number !== undefined ? overrides.number : p.number;
-      const skillToUse = overrides?.skill !== undefined ? overrides.skill : p.skillLevel;
-      const roleToUse = overrides?.role !== undefined ? overrides.role : p.role;
-
-      // 🛡️ VALIDATION: If number is being set via profile, check constraints on the ACTIVE team
-      if (numberToUse) {
-          const team = findTeamForPlayer(playerId);
-          if (team) {
-              const roster = [...team.players, ...(team.reserves || [])];
-              const validation = validateUniqueNumber(roster, numberToUse, playerId);
-              
-              if (!validation.valid) {
-                  // BLOCK THE SAVE/SYNC to prevent loophole
-                  console.warn(`[ProfileSave] Blocked: Number ${numberToUse} conflict.`);
-                  return { success: false, errorKey: validation.messageKey, errorParams: validation.messageParams };
-              }
-          }
-      }
-          
-      // DEDUPLICATION CHECK
-      let targetProfileId = p.profileId;
+  const revertPlayerChanges = useCallback((playerId: string) => {
+      const findP = (list: Player[]) => list.find(p => p.id === playerId);
+      const player = findP(state.teamARoster.players) || findP(state.teamARoster.reserves||[]) || 
+                     findP(state.teamBRoster.players) || findP(state.teamBRoster.reserves||[]) ||
+                     state.queue.flatMap(t => [...t.players, ...(t.reserves||[])]).find(p => p.id === playerId);
       
-      if (!targetProfileId) {
-          const existingProfile = findProfileByName(nameToUse);
-          if (existingProfile) {
-              // MERGE STRATEGY: Use existing profile ID
-              targetProfileId = existingProfile.id;
-          }
-      }
-
-      // Upsert (Create or Update)
-      const profile = upsertProfile(
-          nameToUse, 
-          skillToUse, 
-          targetProfileId, // Pass existing ID if found/linked
-          { number: numberToUse, avatar: overrides?.avatar, role: roleToUse }
-      );
-      
-      // Link Player to Profile in Reducer
-      dispatch({ 
-          type: 'ROSTER_UPDATE_PLAYER', 
-          playerId, 
-          updates: { 
-              profileId: profile.id,
+      if (player && player.profileId && profiles.has(player.profileId)) {
+          const profile = profiles.get(player.profileId)!;
+          dispatch({ type: 'ROSTER_UPDATE_PLAYER', playerId, updates: {
               name: profile.name,
               number: profile.number,
               skillLevel: profile.skillLevel,
               role: profile.role
-          } 
-      });
-
-      return { success: true };
-  }, [upsertProfile, findProfileByName, findTeamForPlayer]);
-
-  const revertPlayerChanges = useCallback((playerId: string) => {
-      const currentState = stateRef.current;
-      let p;
-      const all = [...currentState.teamARoster.players, ...currentState.teamBRoster.players, ...currentState.queue.flatMap(t => t.players)];
-      p = all.find(x => x.id === playerId);
-      if(p && p.profileId) {
-          const prof = profiles.get(p.profileId);
-          if(prof) {
-              dispatch({ type: 'ROSTER_UPDATE_PLAYER', playerId, updates: { name: prof.name, skillLevel: prof.skillLevel, number: prof.number, role: prof.role } });
-          }
+          }});
       }
-  }, [profiles]);
+  }, [state.teamARoster, state.teamBRoster, state.queue, profiles]);
 
-  // 🛡️ NEW: RELINK PROFILE TO ROSTER (Fixes Undo Deletion Orphan Issue)
+  const sortTeam = useCallback((teamId: string, criteria: any) => dispatch({ type: 'ROSTER_SORT', teamId, criteria }), []);
+  const toggleTeamBench = useCallback((teamId: string) => dispatch({ type: 'ROSTER_TOGGLE_BENCH', teamId }), []);
+  const substitutePlayers = useCallback((teamId: string, pIn: string, pOut: string) => dispatch({ type: 'ROSTER_SUBSTITUTE', teamId, playerInId: pIn, playerOutId: pOut }), []);
+  const deletePlayer = useCallback((id: string) => dispatch({ type: 'ROSTER_DELETE_PLAYER', playerId: id }), []);
+  const reorderQueue = useCallback((from: number, to: number) => dispatch({ type: 'ROSTER_QUEUE_REORDER', fromIndex: from, toIndex: to }), []);
+  const disbandTeam = useCallback((id: string) => dispatch({ type: 'ROSTER_DISBAND_TEAM', teamId: id }), []);
+  const restoreTeam = useCallback((team: Team, index: number) => dispatch({ type: 'ROSTER_RESTORE_TEAM', team, index }), []);
+  const onRestorePlayer = useCallback((p: Player, t: string, i?: number) => dispatch({ type: 'ROSTER_RESTORE_PLAYER', player: p, targetId: t, index: i }), []);
+  const resetRosters = useCallback(() => dispatch({ type: 'ROSTER_RESET_ALL' }), []);
   const relinkProfile = useCallback((profile: PlayerProfile) => {
-      const currentState = stateRef.current;
-      const allPlayers = [
-          ...currentState.teamARoster.players, ...(currentState.teamARoster.reserves || []),
-          ...currentState.teamBRoster.players, ...(currentState.teamBRoster.reserves || []),
-          ...currentState.queue.flatMap(t => [...t.players, ...(t.reserves||[])])
-      ];
-
-      allPlayers.forEach(p => {
-          // Re-link if ID matches (orphaned link) OR if name matches (auto-link)
-          // Use Case: User deleted profile, then undid. Players on court lost link. This restores it.
-          const isOrphan = p.profileId === profile.id;
-          const isNameMatch = !p.profileId && p.name.trim().toLowerCase() === profile.name.trim().toLowerCase();
-
-          if (isOrphan || isNameMatch) {
-              dispatch({
-                  type: 'ROSTER_UPDATE_PLAYER',
-                  playerId: p.id,
-                  updates: {
-                      profileId: profile.id,
-                      name: profile.name,
-                      number: profile.number,
-                      skillLevel: profile.skillLevel,
-                      role: profile.role
-                  }
-              });
-          }
-      });
+      dispatch({ type: 'ROSTER_SYNC_PROFILES', profiles: new Map([[profile.id, profile]]) });
   }, []);
 
-  // 🛡️ WRAPPER: Deletes profile from store AND updates roster visual state
-  const deleteProfileWrapper = useCallback((id: string) => {
-      const deleted = deleteProfileStore(id);
-      if (deleted) {
-          // Trigger Reducer update to clear profileIds and roles from players
-          dispatch({ type: 'ROSTER_UNLINK_PROFILE', profileId: id });
-      }
-      return deleted;
-  }, [deleteProfileStore]);
+  const manualRotate = useCallback((teamId: string, direction: 'clockwise' | 'counter') => {
+      dispatch({ type: 'MANUAL_ROTATION', teamId, direction });
+  }, []);
 
-  const loadStateFromFile = useCallback((newState: GameState) => {
-      resetTimer();
-      setSeconds(newState.matchDurationSeconds || 0);
-      dispatch({ type: 'LOAD_STATE', payload: newState });
-      if (newState.isTimerRunning && !newState.isMatchOver) startTimer();
-  }, [resetTimer, setSeconds, startTimer]);
+  const setState = useCallback((action: any) => dispatch(action), []);
 
-  const statusA = { isSetPoint: false, isMatchPoint: false }; 
-  const statusB = { isSetPoint: false, isMatchPoint: false }; 
+  const generateTeams = useCallback((names: string[]) => {
+      const validNames = names.filter(n => n.trim().length > 0);
+      const allNewPlayers = validNames.map((raw, idx) => {
+          const trimmed = raw.trim();
+          let name = trimmed;
+          let skill = 5;
+          let number: string | undefined = undefined;
+          
+          // Regex 1: "10 Lucas 8" (Number + Name + Skill)
+          const matchFull = trimmed.match(/^(\d+)\s+(.+)\s+(10|[1-9])$/);
+          // Regex 2: "Lucas 8" (Name + Skill)
+          const matchSkill = trimmed.match(/^(.+)\s+(10|[1-9])$/);
+          // Regex 3: "10 Lucas" (Number + Name) - NEW
+          const matchNumber = trimmed.match(/^(\d+)\s+(.+)$/);
+
+          if (matchFull) { 
+              number = matchFull[1]; 
+              name = matchFull[2].trim(); 
+              skill = parseInt(matchFull[3], 10); 
+          } 
+          else if (matchSkill) { 
+              name = matchSkill[1].trim(); 
+              skill = parseInt(matchSkill[2], 10); 
+          }
+          else if (matchNumber) {
+              number = matchNumber[1];
+              name = matchNumber[2].trim();
+              // skill remains default (5)
+          }
+          
+          let foundProfile: PlayerProfile | undefined = undefined;
+          if (profilesReady) foundProfile = findProfileByName(name);
+
+          let p: Player;
+          if (foundProfile) {
+              p = createPlayer(foundProfile.name, idx, foundProfile.id, foundProfile.skillLevel, number || foundProfile.number);
+              if (foundProfile.role) p.role = foundProfile.role;
+          } else {
+              p = createPlayer(name, idx, undefined, skill, number); 
+          }
+          return p;
+      });
+      dispatch({ type: 'ROSTER_GENERATE', players: allNewPlayers });
+  }, [profilesReady, findProfileByName]);
+
   const isTieBreak = state.config.hasTieBreak && state.currentSet === state.config.maxSets;
+  const target = isTieBreak ? state.config.tieBreakPoints : state.config.pointsPerSet;
+  const isDeuce = state.scoreA === state.scoreB && state.scoreA >= target - 1;
   const setsNeededToWin = SETS_TO_WIN_MATCH(state.config.maxSets);
-  const isDeuce = state.scoreA === state.scoreB && state.scoreA >= (isTieBreak ? state.config.tieBreakPoints : state.config.pointsPerSet) - 1;
-
-  const getGameStatus = (scoreMy: number, scoreOpponent: number, setsMy: number) => {
-      const pts = isTieBreak ? state.config.tieBreakPoints : state.config.pointsPerSet;
-      const isSetPoint = scoreMy >= pts - 1 && scoreMy > scoreOpponent;
-      const isMatchPoint = isSetPoint && (setsMy === setsNeededToWin - 1);
-      return { isSetPoint, isMatchPoint };
+  
+  const isMatchPoint = (scoreA: number, scoreB: number, setsA: number, setsB: number) => {
+      const isSetPoint = (scoreA >= target - 1 || scoreB >= target - 1) && Math.abs(scoreA - scoreB) >= 1;
+      const setsToWin = setsNeededToWin;
+      const aCanWin = setsA === setsToWin - 1 && scoreA > scoreB;
+      const bCanWin = setsB === setsToWin - 1 && scoreB > scoreA;
+      return isSetPoint && (aCanWin || bCanWin);
   };
-  const stA = getGameStatus(state.scoreA, state.scoreB, state.setsA);
-  const stB = getGameStatus(state.scoreB, state.scoreA, state.setsB);
 
-  return useMemo(() => ({
-    state,
-    setState: (action: any) => dispatch(action),
-    isLoaded,
-    addPoint, subtractPoint, undo, resetMatch, toggleSides, setServer, useTimeout, applySettings, 
-    canUndo: state.actionLog.length > 0 || !!state.lastSnapshot, 
-    isMatchActive: state.scoreA > 0 || state.scoreB > 0 || state.setsA > 0 || state.setsB > 0 || state.currentSet > 1,
-    
-    // Roster API (Unified)
-    updatePlayer, 
-    generateTeams, rotateTeams, updateTeamName, updateTeamColor, updateTeamLogo,
-    movePlayer, removePlayer, deletePlayer, addPlayer, restorePlayer, undoRemovePlayer,
-    hasDeletedPlayers: state.deletedPlayerHistory.length > 0,
-    togglePlayerFixed, commitDeletions, deletedCount: state.deletedPlayerHistory.length,
-    setRotationMode, balanceTeams, sortTeam,
-    savePlayerToProfile, revertPlayerChanges, 
-    deleteProfile: deleteProfileWrapper, // Use wrapped version
-    upsertProfile, batchUpdateStats,
-    toggleTeamBench, substitutePlayers, reorderQueue, 
-    disbandTeam, restoreTeam, resetRosters, 
-    relinkProfile, // Exported for use in UI Undo actions
-    
-    rotationMode: state.rotationMode,
-    profiles,
-    loadStateFromFile,
+  const isSetPoint = (scoreA: number, scoreB: number) => {
+      return (scoreA >= target - 1 || scoreB >= target - 1) && Math.abs(scoreA - scoreB) >= 1 && !isMatchPoint(scoreA, scoreB, state.setsA, state.setsB);
+  };
 
-    isTieBreak,
-    isMatchPointA: stA.isMatchPoint,
-    isSetPointA: stA.isSetPoint,
-    isMatchPointB: stB.isMatchPoint,
-    isSetPointB: stB.isSetPoint,
-    pointsToWinCurrentSet: isTieBreak ? state.config.tieBreakPoints : state.config.pointsPerSet,
-    setsNeededToWin,
-    isDeuce
-  }), [
-    state, isLoaded, addPoint, subtractPoint, undo, resetMatch, toggleSides, setServer, useTimeout, applySettings, rotateTeams, 
-    isTieBreak, stA, stB, setsNeededToWin, isDeuce,
-    generateTeams, updateTeamName, updateTeamColor, updateTeamLogo, updatePlayer, movePlayer, removePlayer,
-    deletePlayer, addPlayer, restorePlayer, undoRemovePlayer, togglePlayerFixed, commitDeletions, setRotationMode, balanceTeams, sortTeam,
-    savePlayerToProfile, revertPlayerChanges, deleteProfileWrapper, upsertProfile, toggleTeamBench, substitutePlayers, profiles, reorderQueue, 
-    disbandTeam, restoreTeam, resetRosters, relinkProfile,
-    batchUpdateStats, loadStateFromFile
-  ]);
+  return {
+      state,
+      isLoaded: isLoaded && profilesReady,
+      profiles,
+      addPoint, subtractPoint, setServer, useTimeout, undo, toggleSides, applySettings, resetMatch,
+      generateTeams, togglePlayerFixed, removePlayer, movePlayer, swapPositions, updateTeamName, updateTeamColor, updateTeamLogo, updatePlayer, addPlayer,
+      undoRemovePlayer, commitDeletions, rotateTeams, setRotationMode, balanceTeams, savePlayerToProfile, revertPlayerChanges,
+      upsertProfile, deleteProfile, sortTeam, toggleTeamBench, substitutePlayers, deletePlayer, reorderQueue, disbandTeam,
+      batchUpdateStats, restoreTeam, onRestorePlayer, resetRosters, relinkProfile, setState,
+      manualRotate, // Exported
+      canUndo: state.actionLog.length > 0,
+      hasDeletedPlayers: state.deletedPlayerHistory.length > 0,
+      deletedCount: state.deletedPlayerHistory.length,
+      rotationMode: state.rotationMode,
+      isMatchActive: state.scoreA > 0 || state.scoreB > 0 || state.setsA > 0 || state.setsB > 0,
+      isMatchPointA: isMatchPoint(state.scoreA, state.scoreB, state.setsA, state.setsB) && state.scoreA > state.scoreB,
+      isMatchPointB: isMatchPoint(state.scoreA, state.scoreB, state.setsA, state.setsB) && state.scoreB > state.scoreA,
+      isSetPointA: isSetPoint(state.scoreA, state.scoreB) && state.scoreA > state.scoreB,
+      isSetPointB: isSetPoint(state.scoreA, state.scoreB) && state.scoreB > state.scoreA,
+      isDeuce, isTieBreak, setsNeededToWin
+  };
 };

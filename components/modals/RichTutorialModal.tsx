@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronRight, Check, ChevronLeft, Pause, Play } from 'lucide-react';
+import { X, ChevronRight, Check, ChevronLeft, Pause, Play, Download } from 'lucide-react';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { TutorialKey } from '../../hooks/useTutorial';
 import { TUTORIAL_SCENARIOS } from '../../data/tutorialContent';
@@ -13,6 +13,10 @@ interface RichTutorialModalProps {
   isOpen: boolean;
   tutorialKey: TutorialKey;
   onClose: (key: TutorialKey) => void;
+  canInstall?: boolean;
+  onInstall?: () => void;
+  isStandalone?: boolean;
+  isIOS?: boolean;
 }
 
 const overlayVariants = {
@@ -55,7 +59,7 @@ const contentVariants = {
 };
 
 export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({ 
-  isOpen, tutorialKey, onClose 
+  isOpen, tutorialKey, onClose, canInstall, onInstall, isStandalone, isIOS
 }) => {
   const { t } = useTranslation();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -63,7 +67,16 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
   const [isPaused, setIsPaused] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
-  const steps = useMemo(() => TUTORIAL_SCENARIOS[tutorialKey] || [], [tutorialKey]);
+  // Filter steps: Only remove 'install' step if explicitly in Standalone/Native mode
+  // This ensures browser users (including iOS) see the prompt to install/add to home screen
+  const steps = useMemo(() => {
+      const rawSteps = TUTORIAL_SCENARIOS[tutorialKey] || [];
+      if (tutorialKey === 'main' && isStandalone) {
+          return rawSteps.filter(s => s.id !== 'install');
+      }
+      return rawSteps;
+  }, [tutorialKey, isStandalone]);
+
   const currentStep = steps[currentStepIndex];
 
   useEffect(() => {
@@ -85,12 +98,21 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
 
   if (!isOpen || !currentStep) return null;
 
+  const isInstallStep = currentStep.id === 'install';
+
   const handleNext = () => {
     if (currentStepIndex < steps.length - 1) {
       setDirection(1);
       setCurrentStepIndex(prev => prev + 1);
     } else {
-      onClose(tutorialKey);
+      // Last step logic
+      if (isInstallStep && canInstall && onInstall) {
+          onInstall();
+          // We close immediately to show the browser prompt
+          onClose(tutorialKey);
+      } else {
+          onClose(tutorialKey);
+      }
     }
   };
 
@@ -112,13 +134,32 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
   const colorTheme = resolveTheme(currentStep.color);
   const effectiveIsPaused = isPaused || !isReady;
 
+  // Determine button text for Install Step
+  const getInstallButtonContent = () => {
+      if (canInstall) {
+          return <>{t('install.installNow')} <Download size={18} strokeWidth={3} /></>;
+      }
+      if (isIOS) {
+          return <>{t('common.done')} <Check size={18} strokeWidth={3} /></>;
+      }
+      return <>{t('common.done')} <Check size={18} strokeWidth={3} /></>;
+  };
+
+  // Determine description text override for Install Step (iOS instructions vs Android/Generic)
+  const getDescriptionKey = () => {
+      if (isInstallStep && isIOS) {
+          return 'tutorial.install.descIOSShort'; // Or a dedicated full string for iOS instructions
+      }
+      return currentStep.descKey;
+  };
+
   return createPortal(
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 isolate">
           
           <motion.div
-            className="absolute inset-0 bg-slate-900/80 backdrop-blur-md"
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             variants={overlayVariants}
             initial="hidden"
             animate="visible"
@@ -130,8 +171,8 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
             className="
                 relative w-full 
                 max-w-[360px] landscape:max-w-3xl landscape:h-[85vh]
-                bg-white dark:bg-[#0f172a] 
-                rounded-[2.5rem] shadow-2xl 
+                bg-white/70 dark:bg-[#0f172a]/70 backdrop-blur-xl
+                rounded-2xl shadow-2xl 
                 overflow-hidden flex flex-col landscape:flex-row
                 ring-1 ring-white/20 dark:ring-white/10
             "
@@ -164,7 +205,7 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
             <div className="flex flex-col landscape:flex-row w-full h-full">
                 
                 {/* 1. HERO VISUAL AREA (Left in Landscape) */}
-                <div className="h-64 landscape:h-full landscape:w-1/2 w-full relative overflow-hidden bg-slate-50 dark:bg-white/5 border-b landscape:border-b-0 landscape:border-r border-black/5 dark:border-white/5 flex items-center justify-center">
+                <div className="h-64 landscape:h-full landscape:w-1/2 w-full relative overflow-hidden bg-slate-50/50 dark:bg-white/5 border-b landscape:border-b-0 landscape:border-r border-black/5 dark:border-white/5 flex items-center justify-center">
                     <AnimatePresence initial={false} custom={direction} mode="wait">
                         <motion.div
                             key={`vis-${currentStep.id}`}
@@ -185,7 +226,7 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
                 </div>
 
                 {/* 2. TEXT & NAVIGATION AREA (Right in Landscape) */}
-                <div className="landscape:w-1/2 flex flex-col h-full bg-white dark:bg-[#0f172a] relative z-20">
+                <div className="landscape:w-1/2 flex flex-col h-full bg-transparent relative z-20">
                     
                     <div className="flex-1 flex flex-col items-center justify-center text-center px-8 pt-8 pb-4 landscape:pt-12 overflow-y-auto custom-scrollbar">
                         <AnimatePresence initial={false} custom={direction} mode="wait">
@@ -218,7 +259,7 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
                                 </h2>
                                 
                                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs landscape:max-w-sm">
-                                    {t(currentStep.descKey)}
+                                    {t(getDescriptionKey())}
                                 </p>
                                 
                                 {currentStep.id === 'welcome' && (
@@ -231,7 +272,7 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
                     </div>
 
                     {/* Footer Navigation (Fixed at bottom of right column) */}
-                    <div className="px-8 pb-8 pt-4 z-10 shrink-0 bg-white dark:bg-[#0f172a] w-full mt-auto">
+                    <div className="px-8 pb-8 pt-4 z-10 shrink-0 w-full mt-auto">
                         <div className="flex gap-4">
                             {currentStepIndex > 0 ? (
                                 <button 
@@ -259,7 +300,7 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
                                 {currentStepIndex < steps.length - 1 ? (
                                     <>{t('tutorial.next')} <ChevronRight size={18} strokeWidth={3} /></>
                                 ) : (
-                                    <>{t('common.done')} <Check size={18} strokeWidth={3} /></>
+                                    isInstallStep ? getInstallButtonContent() : <>{t('common.done')} <Check size={18} strokeWidth={3} /></>
                                 )}
                             </button>
                         </div>

@@ -3,9 +3,13 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, X, WifiOff, RefreshCw } from 'lucide-react';
 import { useServiceWorker } from '../../hooks/useServiceWorker';
+import { Capacitor } from '@capacitor/core';
 
 export const ReloadPrompt: React.FC = () => {
   const { needRefresh, offlineReady, updateServiceWorker, closePrompt } = useServiceWorker();
+
+  // Strictly disable for Native apps
+  if (Capacitor.isNativePlatform()) return null;
 
   if (!offlineReady && !needRefresh) return null;
 

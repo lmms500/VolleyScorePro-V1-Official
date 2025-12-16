@@ -77,7 +77,7 @@ export const modalVariants: Variants = {
     opacity: 1,
     scale: 1,
     y: 0,
-    filter: "blur(0px)",
+    filter: "none", // Fix: Explicitly remove blur
     transition: isReducedMotion ? { duration: 0.1 } : liquidSpring
   },
   exit: { 
@@ -201,7 +201,7 @@ export const stampVariants: Variants = {
   visible: { 
     scale: 1, 
     opacity: 1, 
-    filter: "blur(0px)",
+    filter: "blur(0px)", // Stamp effect needs blur to animate sharpness.
     transition: isReducedMotion ? { duration: 0 } : softBounce
   },
   exit: { 

@@ -1,3 +1,4 @@
+
 {
   "app": {
     "loading": "Loading..."
@@ -22,7 +23,17 @@
     "back": "Back",
     "create": "Create",
     "empty": "Empty",
-    "step": "{number}"
+    "step": "{number}",
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete",
+    "import": "Import",
+    "export": "Export",
+    "share": "Share",
+    "download": "Download",
+    "analysis": "Analysis",
+    "logs": "Logs",
+    "undo": "Undo"
   },
   "controls": {
     "undo": "Undo",
@@ -59,13 +70,7 @@
     "hitter": "Hitter",
     "libero": "Libero",
     "middle": "Middle",
-    "none": "None",
-    "abbr": {
-      "setter": "Set",
-      "hitter": "Hit",
-      "libero": "Lib",
-      "middle": "Mid"
-    }
+    "none": "None"
   },
   "easterEgg": {
     "title": "Party Time! 🎉",
@@ -119,6 +124,11 @@
       "sync": "Sync",
       "ai": "Gemini AI",
       "install": "System"
+    },
+    "portability": {
+        "title": "Game Portability",
+        "shareGame": "Share Game",
+        "loadFile": "Load File"
     },
     "appearance": {
       "title": "Appearance",
@@ -176,7 +186,14 @@
         "backupBtn": "Backup",
         "restoreBtn": "Restore",
         "description": "Sync data.",
-        "resetTutorials": "Reset Tips"
+        "resetTutorials": "Reset Tips",
+        "restoredTitle": "Data Restored!",
+        "restoredMsg": "Restart Required.",
+        "restartBtn": "Restart App",
+        "parsing": "Parsing file...",
+        "success": "Restored successfully!",
+        "invalid": "Invalid backup file.",
+        "error": "Error parsing file."
     },
     "ai": {
       "apiKey": "API Key",
@@ -284,7 +301,7 @@
     "tabs": {
       "roster": "Roster",
       "profiles": "Profiles",
-      "batch": "Batch"
+      "batch": "Import"
     },
     "modes": {
       "standard": "Std",
@@ -293,15 +310,17 @@
       "balancedTooltip": "Skill Balanced"
     },
     "batch": {
+      "title": "Import List",
+      "desc": "Paste a list of names (one per line). The system automatically detects numbers and skill level.",
       "tipTitle": "Tip:",
-      "tipFormat": "\"Name 8\" sets skill.",
+      "tipFormat": "Formats: \"Name 8\" or \"10 Name 8\" (Number Name Skill).",
       "tipDesc": "",
-      "placeholder": "Name\nName 8",
+      "placeholder": "Name 8\n10 Name 9\nName",
       "generate": "Generate"
     },
     "profiles": {
       "empty": "No profiles.",
-      "noMatch": "No match.",
+      "noMatch": "No match for \"{term}\".",
       "assign": "Assign",
       "inGame": "In Game"
     },
@@ -351,32 +370,42 @@
   },
   "profile": {
     "createTitle": "New Profile",
-    "editTitle": "Edit",
+    "editTitle": "Edit Profile",
     "namePlaceholder": "Name",
     "numberPlaceholder": "#",
-    "skillLevel": "Skill",
+    "skillLevel": "Skill Level",
+    "preferredRole": "Preferred Role",
     "rookie": "New",
     "pro": "Pro",
     "save": "Save",
-    "create": "Create"
+    "create": "Create",
+    "details": {
+        "analytics": "Performance Analytics",
+        "impactScore": "Impact Score",
+        "avgPts": "Avg Pts/Game",
+        "efficiencyDesc": "* Calculated based on attack, block, and ace contributions per match. Score > 6.0 indicates elite performance."
+    },
+    "emoji": "Emoji",
+    "text": "Text"
   },
   "stats": {
     "matchAnalysis": "Analysis",
     "finalScore": "Final",
     "momentum": "Flow",
     "lead": "Lead",
-    "teamStats": "Stats",
+    "teamStats": "Team Stats",
     "attackPoints": "Kills",
     "killBlocks": "Blocks",
     "serviceAces": "Aces",
     "oppErrors": "Opp. Err",
-    "topScorers": "Top",
-    "mvp": "MVP",
+    "topScorers": "Top Scorers",
+    "mvp": "Match MVP",
     "points": "Pts",
-    "notEnoughData": "No data",
+    "notEnoughData": "Not enough data for graph",
     "matches": "Matches",
     "sets": "Sets",
-    "conceded": "Against"
+    "conceded": "Against",
+    "winRate": "Win Rate"
   },
   "historyList": {
     "title": "History",
@@ -405,7 +434,11 @@
     "importError": "Invalid file."
   },
   "history": {
-    "setLabel": "S{setNumber}"
+    "setLabel": "S{setNumber}",
+    "timeline": "Timeline",
+    "exportText": "Export Text",
+    "exportImage": "Export Image",
+    "scorecard": "Scorecard"
   },
   "voice": {
     "title": "Voice",
@@ -500,7 +533,9 @@
         "batch": {
             "title": "Batch Input",
             "desc": "Paste a list of names (one per line) in the Batch tab. Format: 'Name 8' to set skill level."
-        }
+        },
+        "rosterDesc": "Manage players.",
+        "rotationDesc": "Auto rotations."
     },
     "history": {
         "summary": {
@@ -518,7 +553,9 @@
         "export": {
             "title": "Export Data",
             "desc": "Share match results as social images or export raw CSV/JSON data for analysis."
-        }
+        },
+        "welcome": "History",
+        "welcomeDesc": "Review past games."
     },
     "install": {
       "title": "Install",
@@ -552,5 +589,34 @@
     "cancel": "Cancel",
     "deleteProfile": "Delete?",
     "deleteProfileMsg": "Permanent delete."
+  },
+  "visuals": {
+      "tap": "Tap",
+      "swipe": "Swipe",
+      "player": "Player",
+      "in": "IN",
+      "out": "OUT",
+      "teamA": "TEAM A",
+      "atk": "Atk",
+      "blk": "Blk",
+      "ace": "Ace"
+  },
+  "system": {
+      "updateAvailable": "Update Available",
+      "offlineReady": "Offline Ready",
+      "newVersion": "New version available. Click reload to update.",
+      "appReady": "App is ready to work offline.",
+      "reload": "Reload"
+  },
+  "resultCard": {
+      "title": "Match Result",
+      "scorecard": "Scorecard",
+      "winner": "Winner"
+  },
+  "court": {
+      "title": "Tactical Court",
+      "rotate": "Rotate",
+      "undoRotate": "Undo",
+      "hint": "Players rotate automatically on Side-Out."
   }
 }

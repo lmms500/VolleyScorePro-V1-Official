@@ -22,7 +22,16 @@
     "back": "Volver",
     "create": "Crear",
     "empty": "Vacío",
-    "step": "{number}"
+    "step": "{number}",
+    "view": "Ver",
+    "edit": "Editar",
+    "delete": "Borrar",
+    "import": "Importar",
+    "export": "Exportar",
+    "share": "Enviar",
+    "download": "Descargar",
+    "analysis": "Análisis",
+    "logs": "Logs"
   },
   "controls": {
     "undo": "Deshacer",
@@ -59,13 +68,7 @@
     "hitter": "Rematador",
     "libero": "Líbero",
     "middle": "Central",
-    "none": "-",
-    "abbr": {
-      "setter": "Arm",
-      "hitter": "Rem",
-      "libero": "Lib",
-      "middle": "Cen"
-    }
+    "none": "Ninguno"
   },
   "easterEgg": {
     "title": "¡Fiesta! 🎉",
@@ -112,13 +115,18 @@
     "title": "Ajustes",
     "sections": {
       "presets": "Presets",
-      "coreRules": "Reglas",
+      "coreRules": "Regras",
       "tieBreakDeuce": "Final",
       "visuals": "Visual",
       "audio": "Audio",
       "sync": "Sync",
       "ai": "Gemini AI",
       "install": "Sistema"
+    },
+    "portability": {
+        "title": "Portabilidad",
+        "shareGame": "Enviar Juego",
+        "loadFile": "Cargar Archivo"
     },
     "appearance": {
       "title": "Apariencia",
@@ -130,7 +138,7 @@
       },
       "lowPower": "Modo Eco",
       "lowPowerSub": "Menos efectos",
-      "reducedMotion": "Reducir Movimiento",
+      "reducedMotion": "Reducir Movimento",
       "reducedMotionSub": "Menos animación"
     },
     "rules": {
@@ -176,7 +184,14 @@
         "backupBtn": "Backup",
         "restoreBtn": "Restaurar",
         "description": "Sincronizar.",
-        "resetTutorials": "Reset Tips"
+        "resetTutorials": "Reset Tips",
+        "restoredTitle": "¡Restaurado!",
+        "restoredMsg": "Reinicio requerido.",
+        "restartBtn": "Reiniciar App",
+        "parsing": "Leyendo archivo...",
+        "success": "¡Restaurado con éxito!",
+        "invalid": "Archivo inválido.",
+        "error": "Error al leer."
     },
     "ai": {
       "apiKey": "API Key",
@@ -284,7 +299,7 @@
     "tabs": {
       "roster": "Plantilla",
       "profiles": "Perfiles",
-      "batch": "Lote"
+      "batch": "Importar"
     },
     "modes": {
       "standard": "Std",
@@ -293,15 +308,17 @@
       "balancedTooltip": "Balanceado por Skill"
     },
     "batch": {
-      "tipTitle": "Tip:",
-      "tipFormat": "\"Nombre 8\" fija skill.",
+      "title": "Importar Lista",
+      "desc": "Pega una lista de nombres (uno por línea). El sistema detecta números y nivel de habilidad.",
+      "tipTitle": "Formatos:",
+      "tipFormat": "• Nombre\n• 10 Nombre (Número + Nombre)\n• 10 Nombre 9 (Completo con Skill)",
       "tipDesc": "",
-      "placeholder": "Nombre\nNombre 8",
+      "placeholder": "Nombre 8\n10 Nombre 9\nNombre",
       "generate": "Generar"
     },
     "profiles": {
       "empty": "Vacío.",
-      "noMatch": "Sin resultado.",
+      "noMatch": "Sin resultado para \"{term}\".",
       "assign": "Asignar",
       "inGame": "En Juego"
     },
@@ -351,32 +368,42 @@
   },
   "profile": {
     "createTitle": "Nuevo Perfil",
-    "editTitle": "Editar",
+    "editTitle": "Editar Perfil",
     "namePlaceholder": "Nombre",
     "numberPlaceholder": "#",
-    "skillLevel": "Skill",
+    "skillLevel": "Nivel de Habilidad",
+    "preferredRole": "Posição Preferida",
     "rookie": "Nuevo",
     "pro": "Pro",
     "save": "Guardar",
-    "create": "Crear"
+    "create": "Crear",
+    "details": {
+        "analytics": "Análisis de Rendimiento",
+        "impactScore": "Nota de Impacto",
+        "avgPts": "Promedio Pts/Juego",
+        "efficiencyDesc": "* Calculado basado en ataques, bloqueios y aces por partido. Nota > 6.0 indica rendimiento elite."
+    },
+    "emoji": "Emoji",
+    "text": "Texto"
   },
   "stats": {
     "matchAnalysis": "Análisis",
     "finalScore": "Final",
     "momentum": "Flujo",
     "lead": "Ventaja",
-    "teamStats": "Stats",
+    "teamStats": "Estadísticas",
     "attackPoints": "Ataques",
     "killBlocks": "Blocks",
     "serviceAces": "Aces",
     "oppErrors": "Err Rival",
-    "topScorers": "Top",
-    "mvp": "MVP",
+    "topScorers": "Goleadores",
+    "mvp": "MVP del Partido",
     "points": "Pts",
-    "notEnoughData": "Sin datos",
+    "notEnoughData": "Sin datos para gráfico",
     "matches": "Partidos",
     "sets": "Sets",
-    "conceded": "Contra"
+    "conceded": "Contra",
+    "winRate": "Victorias"
   },
   "historyList": {
     "title": "Historial",
@@ -405,7 +432,11 @@
     "importError": "Error."
   },
   "history": {
-    "setLabel": "S{setNumber}"
+    "setLabel": "S{setNumber}",
+    "timeline": "Timeline",
+    "exportText": "Exportar Texto",
+    "exportImage": "Exportar Imagen",
+    "scorecard": "Planilla"
   },
   "voice": {
     "title": "Voz",
@@ -452,7 +483,7 @@
     },
     "gestures": {
       "title": "Gestos Fluidos",
-      "desc": "Toca en el lado de un equipo para sumar (+1). Desliza hacia ABAJO para corregir (-1)."
+      "desc": "Toca en el lado de un equipo para sumar (+1). Desliza para BAIXO para corregir (-1)."
     },
     "main": {
       "config": {
@@ -499,8 +530,13 @@
         },
         "batch": {
             "title": "Entrada por Lote",
-            "desc": "Pega una lista de nombres en la pestaña 'Lote'. Formato: 'Nombre 8' para fijar nivel de habilidad."
-        }
+            "desc": "Pega una lista de nombres en la pestaña 'Importar'. Formato: 'Nombre 8' para fijar nivel de habilidad.",
+            "tipFormat": "Formatos: \"Nombre 8\" o \"10 Nombre 8\" (Número Nombre Skill).",
+            "placeholder": "Nombre 8\n10 Nombre 9\nNombre",
+            "generate": "Generar"
+        },
+        "rosterDesc": "Gestionar equipos.",
+        "rotationDesc": "Rotaciones auto."
     },
     "history": {
         "summary": {
@@ -509,16 +545,18 @@
         },
         "timeline": {
             "title": "Gráfico de Momentum",
-            "desc": "Visualiza el flujo del juego. Mira exactamente cuándo cambió el impulso en la línea de tiempo."
+            "desc": "Visualize el flujo del juego. Mira exactamente cuándo cambió el impulso en la línea de tiempo."
         },
         "stats": "Modo Scout",
-        "statsDesc": "Activa en Ajustes para registrar acciones específicas (Ataque, Bloqueo, Ace) en cada punto.",
+        "statsDesc": "Activa en Ajustes para registrar acciones específicas (Ataque, Bloqueio, Ace) en cada punto.",
         "statsFeedback": "Al anotar, selecciona el Jugador y Habilidad. El sistema actualiza sus estadísticas al instante.",
         "feedback": "Análisis",
         "export": {
             "title": "Exportar Datos",
             "desc": "Comparte resultados como imagen social o exporta datos CSV/JSON para análisis."
-        }
+        },
+        "welcome": "Historial",
+        "welcomeDesc": "Revisar juegos."
     },
     "install": {
       "title": "Instalar",
@@ -552,5 +590,28 @@
     "cancel": "Cancelar",
     "deleteProfile": "¿Borrar?",
     "deleteProfileMsg": "Borrado permanente."
+  },
+  "visuals": {
+      "tap": "Toca",
+      "swipe": "Swipe",
+      "player": "Jugador",
+      "in": "ENTRA",
+      "out": "SALE",
+      "teamA": "EQUIPO A",
+      "atk": "Atq",
+      "blk": "Blq",
+      "ace": "Ace"
+  },
+  "system": {
+      "updateAvailable": "Actualización Disponible",
+      "offlineReady": "Offline Listo",
+      "newVersion": "Nueva versión disponible. Recarga para actualizar.",
+      "appReady": "App lista para uso offline.",
+      "reload": "Recargar"
+  },
+  "resultCard": {
+      "title": "Resultado",
+      "scorecard": "Planilla",
+      "winner": "Ganador"
   }
 }

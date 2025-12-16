@@ -47,7 +47,7 @@ const SetNumber = memo(({ value, color }: { value: number, color: TeamColor }) =
     const textColor = `${theme.text} ${theme.textDark} dark:drop-shadow-[0_0_15px_currentColor]`;
 
     return (
-        <div className="w-[60px] flex flex-col justify-center items-center relative">
+        <div className="w-[45px] flex flex-col justify-center items-center relative">
             <motion.span
                 key={value} 
                 initial={{ scale: 0.8, opacity: 0, filter: 'blur(8px)' }}
@@ -60,7 +60,7 @@ const SetNumber = memo(({ value, color }: { value: number, color: TeamColor }) =
                     duration: 0.4, 
                     ease: "backOut"
                 }}
-                className={`font-black text-5xl leading-none tabular-nums tracking-tighter ${textColor}`}
+                className={`font-black text-4xl leading-none tabular-nums tracking-tighter ${textColor}`}
                 style={{ 
                     display: 'inline-block'
                 }}
@@ -112,24 +112,24 @@ export const MeasuredFullscreenHUD: React.FC<MeasuredFullscreenHUDProps> = memo(
                 }}
                 className="relative"
             >
-                {/* Neo-Glass Container - Lighter/Cleaner in Light Mode to support colored text */}
+                {/* Neo-Glass Container - Slightly reduced size for better margin */}
                 <div className={`
                     relative flex items-center justify-center gap-0 
-                    px-6 py-2 rounded-full
+                    px-5 py-1.5 rounded-full
                     bg-white/80 dark:bg-black/40 
                     backdrop-blur-xl border border-white/40 dark:border-white/10 
                     shadow-[0_8px_32px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)]
                     overflow-hidden
-                    min-w-[180px] min-h-[70px]
+                    min-w-[140px] min-h-[50px]
                     flex-shrink-0
                     ring-1 ring-white/20 dark:ring-white/10
                 `}>
                     {/* Content Layer */}
-                    <div className="relative z-10 flex items-center justify-center gap-2">
+                    <div className="relative z-10 flex items-center justify-center gap-1">
                         <SetNumber value={setsLeft} color={colorLeft} />
 
-                        {/* Divider - Smaller Dot - Dark in Light Mode, White in Dark Mode */}
-                        <div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-white/20 mx-1" />
+                        {/* Divider - Smaller Dot */}
+                        <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-white/20 mx-0.5" />
 
                         <SetNumber value={setsRight} color={colorRight} />
                     </div>

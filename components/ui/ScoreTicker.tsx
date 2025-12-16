@@ -10,11 +10,11 @@ interface ScoreTickerProps {
 }
 
 /**
- * ScoreTicker v3.1 (Polish Edition)
+ * ScoreTicker v3.5 (Gold Master)
  * 
- * Performance Update:
- * - Added `transform: translateZ(0)` to force hardware acceleration.
- * - Added `tabular-nums` class to ensure monospaced numeric width (prevents wobble).
+ * - GPU Layer Promotion enforced via translateZ
+ * - Tabular Nums for zero-layout-shift updates
+ * - Memoized to prevent parent re-renders leaking in
  */
 export const ScoreTicker: React.FC<ScoreTickerProps> = memo(({ value, className, style }) => {
   const prevValue = useRef(value);
@@ -44,9 +44,8 @@ export const ScoreTicker: React.FC<ScoreTickerProps> = memo(({ value, className,
             maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
             WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
             overflow: 'visible',
-            fontVariantNumeric: 'tabular-nums', // Enforce monospace numbers
-            // HARDWARE ACCELERATION HINT
-            willChange: 'transform'
+            fontVariantNumeric: 'tabular-nums',
+            // Removed will-change: transform to avoid static blur
         }}
     >
       <AnimatePresence mode="popLayout" custom={direction} initial={false}>
@@ -57,13 +56,12 @@ export const ScoreTicker: React.FC<ScoreTickerProps> = memo(({ value, className,
           initial="enter"
           animate="center"
           exit="exit"
-          className="block text-center leading-none origin-center absolute inset-0 flex items-center justify-center tabular-nums"
+          className="block text-center leading-none origin-center absolute inset-0 flex items-center justify-center tabular-nums gpu-layer"
           style={{ 
-              willChange: "transform, opacity", 
+              // Removed explicit willChange to let framer-motion handle it
               backfaceVisibility: "hidden",
               WebkitBackfaceVisibility: "hidden",
-              // Force GPU layer promotion
-              transform: 'translateZ(0)'
+              transform: 'translateZ(0)' // Keep Z for stacking context but removed aggressive hints
           }} 
         >
           {value}

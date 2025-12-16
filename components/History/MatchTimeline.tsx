@@ -345,13 +345,13 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
         <div className="flex items-center justify-between px-5 py-3 border-b border-black/5 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
             <div className="flex items-center gap-2">
                 <Clock size={16} className="text-indigo-500" />
-                <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Timeline</h3>
+                <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('history.timeline')}</h3>
             </div>
             <div className="flex gap-2">
-                <button onClick={handleExportText} disabled={isExporting} className="p-2 rounded-xl bg-white dark:bg-white/10 border border-black/5 dark:border-white/10 text-slate-400 hover:text-indigo-500 dark:hover:text-white transition-colors" title="Export Text">
+                <button onClick={handleExportText} disabled={isExporting} className="p-2 rounded-xl bg-white dark:bg-white/10 border border-black/5 dark:border-white/10 text-slate-400 hover:text-indigo-500 dark:hover:text-white transition-colors" title={t('history.exportText')}>
                     <FileText size={16} />
                 </button>
-                <button onClick={handleExportImage} disabled={isExporting} className="p-2 rounded-xl bg-white dark:bg-white/10 border border-black/5 dark:border-white/10 text-slate-400 hover:text-indigo-500 dark:hover:text-white transition-colors" title="Export Image">
+                <button onClick={handleExportImage} disabled={isExporting} className="p-2 rounded-xl bg-white dark:bg-white/10 border border-black/5 dark:border-white/10 text-slate-400 hover:text-indigo-500 dark:hover:text-white transition-colors" title={t('history.exportImage')}>
                     <Share2 size={16} />
                 </button>
             </div>

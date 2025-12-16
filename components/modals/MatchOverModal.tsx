@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { GameState, TeamId } from '../../types';
-import { Trophy, RefreshCw, ArrowRight, UserPlus, ShieldAlert, Users, RotateCcw, Terminal, ChevronDown, ChevronUp, Undo2, Share2, Loader2, Download } from 'lucide-react';
+import { Trophy, RefreshCw, UserPlus, Undo2, Share2, Loader2, Download, RotateCcw, ChevronUp, ChevronDown, X, Hash } from 'lucide-react';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ResultCard } from '../Share/ResultCard';
@@ -42,10 +42,10 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
   const getBgColor = (c: string) => {
       if (c.startsWith('#')) return `bg-[${c}]`;
       const mapping: any = {
-        indigo: 'bg-indigo-600', rose: 'bg-rose-600', emerald: 'bg-emerald-600', amber: 'bg-amber-600', 
-        sky: 'bg-sky-600', violet: 'bg-violet-600', slate: 'bg-slate-600', fuchsia: 'bg-fuchsia-600'
+        indigo: 'bg-indigo-500', rose: 'bg-rose-500', emerald: 'bg-emerald-500', amber: 'bg-amber-500', 
+        sky: 'bg-sky-500', violet: 'bg-violet-500', slate: 'bg-slate-500', fuchsia: 'bg-fuchsia-500'
       };
-      return mapping[c] || 'bg-indigo-600';
+      return mapping[c] || 'bg-indigo-500';
   };
   const winnerBgColor = getBgColor(winnerColorKey);
 
@@ -64,42 +64,39 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
 
   const mvpData = useMemo(() => {
      if (!state.matchLog || state.matchLog.length === 0) return null;
-     
-     const pointsMap = new Map<string, { total: number, name: string, team: TeamId }>();
-     const playerMap = new Map<string, { name: string, team: TeamId }>();
-     state.teamARoster.players.forEach(p => playerMap.set(p.id, { name: p.name, team: 'A' }));
-     state.teamBRoster.players.forEach(p => playerMap.set(p.id, { name: p.name, team: 'B' }));
-
-     state.matchLog.forEach(log => {
-         if (log.type === 'POINT' && log.playerId && playerMap.has(log.playerId)) {
-             const info = playerMap.get(log.playerId)!;
-             const current = pointsMap.get(log.playerId) || { total: 0, name: info.name, team: info.team };
-             current.total += 1;
-             pointsMap.set(log.playerId, current);
-         }
-     });
-
-     if (pointsMap.size === 0) return null;
-     const sorted = Array.from(pointsMap.values()).sort((a, b) => b.total - a.total);
-     const top = sorted[0];
-     return top.total > 0 ? { name: top.name, totalPoints: top.total, team: top.team } : null;
-
-  }, [state.matchLog, state.teamARoster, state.teamBRoster]);
+     return null; 
+  }, [state.matchLog]);
 
   const handleShareAction = (action: 'share' | 'download') => {
       setRenderShareCard(true);
       haptics.impact('light');
-      
       setTimeout(() => {
           if (action === 'share') shareMatch();
           else downloadMatch();
       }, 500);
   };
 
+  const getOriginTeamName = (playerId: string) => {
+      // Check active rosters first (one of them is likely the loser source)
+      if (state.teamARoster.players.some(p => p.id === playerId)) return state.teamARoster.name;
+      if (state.teamBRoster.players.some(p => p.id === playerId)) return state.teamBRoster.name;
+      
+      // Check reserves
+      if (state.teamARoster.reserves?.some(p => p.id === playerId)) return state.teamARoster.name;
+      if (state.teamBRoster.reserves?.some(p => p.id === playerId)) return state.teamBRoster.name;
+
+      // Check queue
+      for (const t of state.queue) {
+          if (t.players.some(p => p.id === playerId) || t.reserves?.some(p => p.id === playerId)) return t.name;
+      }
+      return null;
+  };
+
   if (!isOpen && renderShareCard) {
       setRenderShareCard(false);
   }
 
+  // --- IMMERSIVE LAYOUT ---
   return (
     <>
       {renderShareCard && createPortal(
@@ -122,141 +119,248 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
       <Modal 
         isOpen={isOpen} 
         onClose={() => {}} 
-        title={t('matchOver.title')}
+        title=""
         showCloseButton={false}
         persistent={true}
+        variant="immersive"
       >
-        {/* Confetti Background - Pass Winner Color twice to dominate palette + Gold/White */}
-        <div className="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none z-0 opacity-60">
-            <Confetti colors={[winnerColorKey, winnerColorKey]} intensity="high" />
+        {/* Full Screen Background Gradient - Lighter/Brighter */}
+        <div className={`absolute inset-0 bg-gradient-to-b ${winnerTheme.gradient.replace('/15', '/20')} to-slate-50 dark:to-[#0f172a] pointer-events-none z-0 glass-hardware-accelerated`} />
+        
+        {/* Confetti - Ambient Mode (No Collision, Leaf-like physics) */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-60">
+            <Confetti colors={[winnerColorKey, winnerColorKey]} intensity="high" physicsVariant="ambient" />
         </div>
 
-        {/* Content Container - High Z-Index to stay above confetti */}
-        <div className="flex flex-col items-center text-center space-y-6 relative z-20 pt-2">
-          
-          <div className="relative group">
-              <div className={`absolute inset-0 blur-[80px] rounded-full opacity-40 ${winnerBgColor}`}></div>
-              <div className="relative flex flex-col items-center z-20">
-                  <motion.div
-                    initial={{ scale: 0, rotate: -20 }}
-                    animate={{ scale: 1, rotate: 0 }}
-                    transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
-                  >
-                    <Trophy size={80} className={`${winnerTheme.text} ${winnerTheme.textDark} drop-shadow-[0_4px_20px_rgba(0,0,0,0.3)]`} strokeWidth={1.5} />
-                  </motion.div>
-                  
-                  <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white mt-4 uppercase tracking-tighter drop-shadow-sm leading-none">
-                    {winnerName}
-                  </h2>
-                  
-                  <div className="flex items-center gap-3 mt-2 opacity-80">
-                      <div className="h-px w-10 bg-slate-400 dark:bg-slate-500"></div>
-                      <span className="text-[10px] font-black tracking-[0.2em] text-slate-500 dark:text-slate-400 uppercase">{t('matchOver.wins')}</span>
-                      <div className="h-px w-10 bg-slate-400 dark:bg-slate-500"></div>
-                  </div>
-              </div>
-          </div>
+        {/* Content Container (Safe Area Aware) */}
+        {/* Increased base padding to ensure nothing touches edges roughly */}
+        <div className="relative z-10 flex flex-col h-full w-full pt-safe-top pb-safe-bottom glass-hardware-accelerated">
+            
+            {/* Minimal Safe-Exit Button (Top Right) */}
+            <div className="absolute top-safe-top right-4 z-50 mt-4">
+                <button 
+                    onClick={onRotate} // Usually 'Next Game' logic, but acts as close here if needed
+                    className="p-2 rounded-full bg-white/20 dark:bg-black/20 hover:bg-white/40 dark:hover:bg-black/40 text-slate-600 dark:text-slate-300 transition-colors backdrop-blur-md border border-white/20"
+                >
+                    <X size={20} />
+                </button>
+            </div>
 
-          {/* Score Display */}
-          <div className="flex items-center gap-8 text-5xl font-black font-inter bg-white/60 dark:bg-black/40 px-10 py-5 rounded-2xl border border-white/40 dark:border-white/10 shadow-xl backdrop-blur-xl z-20">
-              <span className={isA ? `${winnerTheme.text} ${winnerTheme.textDark} drop-shadow-lg` : 'text-slate-400 dark:text-slate-600 opacity-60'}>{state.setsA}</span>
-              <div className="h-10 w-[3px] bg-slate-300 dark:bg-slate-700 rounded-full opacity-30 rotate-12"></div>
-              <span className={!isA ? `${winnerTheme.text} ${winnerTheme.textDark} drop-shadow-lg` : 'text-slate-400 dark:text-slate-600 opacity-60'}>{state.setsB}</span>
-          </div>
+            {/* MAIN GRID LAYOUT - FIXED FOR PORTRAIT SPLIT */}
+            <div className="flex-1 grid grid-rows-[minmax(0,40%)_minmax(0,60%)] landscape:grid-rows-none landscape:grid-cols-2 landscape:gap-8 h-full overflow-hidden">
+                
+                {/* 1. HERO SECTION (Winner & Score) - Scrolls in Portrait, Fixed in Landscape */}
+                <div className="flex flex-col items-center justify-center text-center space-y-6 p-6 overflow-y-auto landscape:overflow-visible landscape:h-full">
+                    <div className="relative group">
+                        {/* Glow behind trophy */}
+                        <div className={`absolute inset-0 blur-[80px] rounded-full opacity-40 ${winnerBgColor}`}></div>
+                        
+                        <div className="relative flex flex-col items-center z-20">
+                            <motion.div
+                                initial={{ scale: 0, rotate: -20, y: 50 }}
+                                animate={{ scale: 1, rotate: 0, y: 0 }}
+                                transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
+                            >
+                                <Trophy size={96} className={`${winnerTheme.text} ${winnerTheme.textDark} drop-shadow-2xl`} strokeWidth={1.5} />
+                            </motion.div>
+                            
+                            <motion.h2 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.4 }}
+                                className="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white mt-6 uppercase tracking-tighter drop-shadow-sm leading-none"
+                            >
+                                {winnerName}
+                            </motion.h2>
+                            
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 0.8 }}
+                                transition={{ delay: 0.6 }}
+                                className="flex items-center gap-3 mt-3"
+                            >
+                                <div className="h-px w-10 bg-slate-400 dark:bg-slate-500"></div>
+                                <span className="text-[10px] font-black tracking-[0.3em] text-slate-500 dark:text-slate-400 uppercase">{t('matchOver.wins')}</span>
+                                <div className="h-px w-10 bg-slate-400 dark:bg-slate-500"></div>
+                            </motion.div>
+                        </div>
+                    </div>
 
-          {report && (
-              <div className="w-full bg-slate-50/80 dark:bg-white/[0.03] rounded-xl p-4 text-left border border-black/5 dark:border-white/5 space-y-3 backdrop-blur-md shadow-sm z-20">
-                  <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-2">
-                       <h3 className="font-bold text-slate-500 dark:text-slate-500 uppercase text-[10px] tracking-widest">{t('matchOver.rotationReport.title')}</h3>
-                       <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">{t('matchOver.rotationReport.entering', { teamName: report.incomingTeam.name })}</span>
-                  </div>
-                  
-                  {/* Simplified Report Summary */}
-                  <div className="flex flex-wrap gap-2 pt-1">
-                      {coreSquad.map(p => (
-                          <span key={p.id} className="text-[10px] font-bold text-slate-600 dark:text-slate-400 bg-white dark:bg-white/10 px-2 py-1 rounded-lg border border-black/5 dark:border-white/5">
-                              {p.name}
-                          </span>
-                      ))}
-                      {reinforcements.map(p => (
-                          <span key={p.id} className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20 flex items-center gap-1">
-                              <UserPlus size={10} /> {p.name}
-                          </span>
-                      ))}
-                  </div>
+                    {/* Final Score - Floating */}
+                    <motion.div 
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 0.5, type: 'spring' }}
+                        className="flex items-center gap-8 text-6xl font-black font-inter z-20 mt-4"
+                    >
+                        <span className={isA ? `${winnerTheme.text} ${winnerTheme.textDark} drop-shadow-lg` : 'text-slate-300 dark:text-slate-600 opacity-50'}>{state.setsA}</span>
+                        <div className="h-12 w-[4px] bg-slate-200 dark:bg-white/10 rounded-full rotate-12"></div>
+                        <span className={!isA ? `${winnerTheme.text} ${winnerTheme.textDark} drop-shadow-lg` : 'text-slate-300 dark:text-slate-600 opacity-50'}>{state.setsB}</span>
+                    </motion.div>
+                </div>
 
-                  {logs.length > 0 && (
-                      <button 
-                          onClick={() => setShowLogs(!showLogs)} 
-                          className="w-full flex items-center justify-center gap-2 pt-2 text-[9px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-                      >
-                          {t('matchOver.debugLogs')} {showLogs ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
-                      </button>
-                  )}
-                  
-                  <AnimatePresence>
-                      {showLogs && (
-                          <motion.div 
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              className="overflow-hidden"
-                          >
-                              <div className="mt-2 bg-slate-950 text-slate-300 p-3 rounded-lg font-mono text-[9px] leading-relaxed max-h-32 overflow-y-auto custom-scrollbar">
-                                  {logs.map((log, idx) => <div key={idx} className="mb-1 opacity-80">{log}</div>)}
-                              </div>
-                          </motion.div>
-                      )}
-                  </AnimatePresence>
-              </div>
-          )}
+                {/* 2. ROTATION & ACTIONS SECTION */}
+                <div className="flex flex-col h-full w-full max-w-md mx-auto landscape:max-w-none landscape:pr-8 landscape:pb-8 p-6 pt-0 landscape:pt-8 portrait:overflow-hidden landscape:overflow-y-auto landscape:scroll-smooth">
+                    
+                    {/* ROTATION REPORT */}
+                    {/* Portrait: Scroll internally. Landscape: Part of main flow. */}
+                    <div 
+                        className="portrait:flex-1 portrait:overflow-y-auto custom-scrollbar portrait:min-h-0 landscape:flex-none landscape:overflow-visible pb-4"
+                        style={{
+                            // Mask only needed in portrait where it scrolls internally
+                            maskImage: 'linear-gradient(to bottom, transparent 0%, black 15px, black calc(100% - 15px), transparent 100%)',
+                            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15px, black calc(100% - 15px), transparent 100%)'
+                        }}
+                    >
+                        {report && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.7 }}
+                                className="w-full bg-white/60 dark:bg-slate-900/60 rounded-3xl p-5 text-left border border-white/40 dark:border-white/10 space-y-4 backdrop-blur-xl shadow-xl z-20"
+                            >
+                                <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-indigo-500/10 rounded-xl text-indigo-500">
+                                            <RefreshCw size={16} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <h3 className="font-black text-slate-400 dark:text-slate-500 uppercase text-[9px] tracking-widest">{t('matchOver.rotationReport.title')}</h3>
+                                            <span className="text-sm text-slate-800 dark:text-white font-bold">{t('matchOver.rotationReport.entering', { teamName: '' })} <span className="text-indigo-600 dark:text-indigo-400">{report.incomingTeam.name}</span></span>
+                                        </div>
+                                    </div>
+                                    <div className="px-2.5 py-1 bg-slate-100 dark:bg-white/10 rounded-lg text-[10px] font-bold text-slate-500">
+                                        {coreSquad.length + reinforcements.length} Players
+                                    </div>
+                                </div>
+                                
+                                <div className="space-y-3">
+                                    {/* Core Squad */}
+                                    {coreSquad.length > 0 && (
+                                        <div className="flex flex-wrap gap-2">
+                                            {coreSquad.map(p => (
+                                                <div key={p.id} className="text-[10px] font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-transparent flex items-center gap-1.5">
+                                                    {p.number && <span className="font-mono text-slate-400 dark:text-slate-500 font-normal border-r border-black/5 dark:border-white/5 pr-1.5 mr-0.5">#{p.number}</span>}
+                                                    {p.name}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
 
-          <motion.div 
-            initial={{ opacity: 0, y: 20, pointerEvents: 'none' }}
-            animate={{ 
-                opacity: 1, 
-                y: 0, 
-                pointerEvents: canInteract ? 'auto' : 'none' 
-            }}
-            transition={{ delay: 0.8, duration: 0.5 }}
-            className={`flex flex-col w-full gap-3 mt-4 relative z-30 ${!canInteract ? 'grayscale opacity-50 cursor-wait' : ''}`}
-          >
-              <div className="flex gap-2">
-                   <Button 
-                      onClick={() => handleShareAction('share')} 
-                      disabled={isSharing || !canInteract}
-                      variant="secondary"
-                      className="flex-1 bg-white dark:bg-white/10 text-indigo-600 dark:text-indigo-400 border-indigo-200 dark:border-white/10"
-                  >
-                      {isSharing ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
-                      <span className="ml-2">{t('matchOver.share')}</span>
-                  </Button>
+                                    {/* Reinforcements (Highlights) */}
+                                    {reinforcements.length > 0 && (
+                                        <div className="relative pl-3 border-l-2 border-amber-500/30">
+                                            <span className="text-[9px] font-bold text-amber-500 uppercase tracking-wider block mb-2">{t('matchOver.rotationReport.reinforcements')}</span>
+                                            <div className="flex flex-wrap gap-2">
+                                                {reinforcements.map(p => {
+                                                    const origin = getOriginTeamName(p.id);
+                                                    return (
+                                                        <div key={p.id} className="flex flex-col bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20 shadow-sm min-w-[80px]">
+                                                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-amber-700 dark:text-amber-300">
+                                                                <UserPlus size={10} strokeWidth={3} className="opacity-70" /> 
+                                                                {p.number && <span className="font-mono opacity-80">#{p.number}</span>}
+                                                                <span className="truncate">{p.name}</span>
+                                                            </div>
+                                                            {origin && (
+                                                                <span className="text-[8px] font-medium text-amber-600/60 dark:text-amber-400/60 uppercase tracking-tight ml-4">
+                                                                    from {origin}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
 
-                  <Button 
-                      onClick={() => handleShareAction('download')} 
-                      disabled={isSharing || !canInteract}
-                      variant="secondary"
-                      className="aspect-square p-0 flex items-center justify-center bg-white dark:bg-white/10 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10"
-                      title="Download Image"
-                  >
-                      {isSharing ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
-                  </Button>
-              </div>
-              
-              <Button onClick={onRotate} disabled={!canInteract} size="lg" className="w-full shadow-xl shadow-emerald-500/30 bg-emerald-600 hover:bg-emerald-500 border-t border-white/20 text-white font-black tracking-wide text-sm py-4">
-                  <RefreshCw size={18} />
-                  {t('matchOver.nextGameButton')}
-              </Button>
-              
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                  <Button onClick={onUndo} disabled={!canInteract} size="md" variant="ghost" className="w-full text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white">
-                      <Undo2 size={16} /> {t('controls.undo')}
-                  </Button>
-                  <Button onClick={onReset} disabled={!canInteract} size="md" variant="ghost" className="w-full text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10">
-                      <RotateCcw size={16} /> {t('controls.reset')}
-                  </Button>
-              </div>
-          </motion.div>
+                                {/* Logs Toggle (Compact) */}
+                                {logs.length > 0 && (
+                                    <div className="pt-1">
+                                        <button 
+                                            onClick={() => setShowLogs(!showLogs)} 
+                                            className="w-full flex items-center justify-center gap-2 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                                        >
+                                            {t('matchOver.debugLogs')} {showLogs ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+                                        </button>
+                                        <AnimatePresence>
+                                            {showLogs && (
+                                                <motion.div 
+                                                    initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                                                    className="overflow-hidden"
+                                                >
+                                                    <div className="mt-2 bg-slate-950/50 text-slate-400 p-2 rounded-lg font-mono text-[8px] leading-relaxed max-h-24 overflow-y-auto custom-scrollbar border border-white/5">
+                                                        {logs.map((log, idx) => <div key={idx} className="mb-0.5">{log}</div>)}
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+                    </div>
+
+                    {/* ACTION BUTTONS FOOTER */}
+                    {/* Adjusted padding to prevent cut-off in portrait mode */}
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0, pointerEvents: canInteract ? 'auto' : 'none' }}
+                        transition={{ delay: 0.9 }}
+                        className={`flex flex-col gap-3 shrink-0 portrait:mt-auto landscape:mt-6 pt-4 portrait:pb-6 landscape:pb-10 ${!canInteract ? 'opacity-50 grayscale' : ''}`}
+                    >
+                        <Button 
+                            onClick={onRotate} 
+                            disabled={!canInteract} 
+                            size="lg" 
+                            className="w-full shadow-2xl shadow-emerald-500/40 bg-emerald-600 hover:bg-emerald-500 border-t border-white/20 text-white font-black tracking-widest text-sm h-16 rounded-2xl"
+                        >
+                            <RefreshCw size={20} className="mr-2" strokeWidth={2.5} />
+                            {t('matchOver.nextGameButton')}
+                        </Button>
+
+                        <div className="flex gap-2 h-14">
+                            <Button 
+                                onClick={() => handleShareAction('share')} 
+                                disabled={isSharing || !canInteract}
+                                variant="secondary"
+                                className="flex-1 bg-white/80 dark:bg-white/10 text-indigo-600 dark:text-indigo-300 border-indigo-200 dark:border-white/10 hover:bg-indigo-50 dark:hover:bg-white/20 backdrop-blur-md rounded-2xl"
+                            >
+                                {isSharing ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
+                                <span className="ml-2 text-xs font-bold">{t('matchOver.share')}</span>
+                            </Button>
+
+                            <Button 
+                                onClick={() => handleShareAction('download')} 
+                                disabled={isSharing || !canInteract}
+                                variant="secondary"
+                                className="aspect-square p-0 flex items-center justify-center bg-white/80 dark:bg-white/10 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-white/10 backdrop-blur-md rounded-2xl"
+                            >
+                                <Download size={20} />
+                            </Button>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-3 pt-2">
+                            {/* High Contrast Undo/Reset Buttons */}
+                            <button 
+                                onClick={onUndo} 
+                                disabled={!canInteract} 
+                                className="flex items-center justify-center gap-2 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 transition-all border border-slate-200 dark:border-white/5 shadow-sm active:scale-95 backdrop-blur-sm"
+                            >
+                                <Undo2 size={16} strokeWidth={2} /> {t('controls.undo')}
+                            </button>
+                            <button 
+                                onClick={onReset} 
+                                disabled={!canInteract} 
+                                className="flex items-center justify-center gap-2 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 bg-white/80 dark:bg-white/10 hover:bg-rose-50 dark:hover:bg-rose-500/20 transition-all border border-rose-200 dark:border-rose-500/20 shadow-sm active:scale-95 backdrop-blur-sm"
+                            >
+                                <RotateCcw size={16} strokeWidth={2} /> {t('controls.reset')}
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+
+            </div>
         </div>
       </Modal>
     </>

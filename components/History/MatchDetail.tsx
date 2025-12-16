@@ -73,12 +73,12 @@ const MomentumChart = ({ actionLog, sets, hexA, hexB }: { actionLog: any[], sets
             const pointsInSet = set.scoreA + set.scoreB;
             cumulativePoints += pointsInSet;
             return {
-                setLabel: `S${set.setNumber}`,
+                setLabel: t('history.setLabel', {setNumber: set.setNumber}),
                 xIndex: cumulativePoints,
                 winner: set.winner
             };
         });
-    }, [sets]);
+    }, [sets, t]);
 
     if (dataPoints.length < 2) return (
         <div className="w-full h-32 flex items-center justify-center text-[10px] text-slate-400 italic bg-slate-50/50 dark:bg-white/[0.02] rounded-xl border border-dashed border-slate-200 dark:border-white/10 my-2">
@@ -196,7 +196,7 @@ const PlayerStatRow: React.FC<{ stats: CalculatedStat, isMVP: boolean, rank: num
                         {stats.name}
                     </span>
                     <span className={`text-[9px] font-bold uppercase tracking-wide opacity-80 ${teamColorClass}`}>
-                        {stats.team === 'Unknown' ? 'Guest' : `Team ${stats.team}`}
+                        {stats.team === 'Unknown' ? 'Guest' : (stats.team === 'A' ? 'Team A' : 'Team B')}
                     </span>
                 </div>
             </div>
@@ -318,7 +318,7 @@ export const MatchDetail: React.FC<MatchDetailProps> = ({ match, onBack }) => {
                 
                 {/* Hero Scoreboard + Key Stats */}
                 <div className="flex flex-col gap-6">
-                    <motion.div variants={staggerItem} className="bg-white/60 dark:bg-white/[0.03] rounded-3xl p-5 border border-white/40 dark:border-white/5 shadow-sm backdrop-blur-md relative overflow-hidden">
+                    <motion.div variants={staggerItem} className="bg-white/60 dark:bg-white/[0.03] rounded-2xl p-5 border border-white/40 dark:border-white/5 shadow-sm backdrop-blur-md relative overflow-hidden">
                         <div className="absolute inset-0 opacity-[0.03] bg-grid-slate-900/[0.1] dark:bg-grid-white/[0.05] pointer-events-none" />
                         
                         <div className="flex items-center justify-between gap-4 relative z-10">
@@ -330,7 +330,7 @@ export const MatchDetail: React.FC<MatchDetailProps> = ({ match, onBack }) => {
                                     <span className="text-slate-300 dark:text-slate-600 text-2xl mx-1">:</span>
                                     <span className={isWinnerB ? 'opacity-100' : 'opacity-50'}>{match.setsB}</span>
                                 </div>
-                                <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">Final</span>
+                                <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{t('stats.finalScore')}</span>
                             </div>
 
                             <TeamHero name={match.teamBName} winner={isWinnerB} isRight theme={themeB} />

@@ -18,7 +18,7 @@ const DEFAULT_STATE: TutorialState = {
   history: false
 };
 
-export const useTutorial = (isStandalone: boolean) => {
+export const useTutorial = (isStandalone: boolean, isDisabled: boolean = false) => {
   const [tutorialState, setTutorialState] = useState<TutorialState>(DEFAULT_STATE);
   const [activeTutorial, setActiveTutorial] = useState<TutorialKey | null>(null);
   const [showReminder, setShowReminder] = useState(false);
@@ -35,14 +35,25 @@ export const useTutorial = (isStandalone: boolean) => {
       }
     } else {
         // First Launch Logic for 'main'
-        setTimeout(() => setActiveTutorial('main'), 1000);
+        // Only trigger if not disabled
+        if (!isDisabled) {
+            setTimeout(() => setActiveTutorial('main'), 1000);
+        }
     }
     setIsLoaded(true);
-  }, []);
+  }, []); // Run once on mount
+
+  // Force close if disabled toggles to true
+  useEffect(() => {
+      if (isDisabled) {
+          setActiveTutorial(null);
+          setShowReminder(false);
+      }
+  }, [isDisabled]);
 
   // Reminder Logic (Only for PWA installs)
   useEffect(() => {
-    if (isStandalone) return; 
+    if (isStandalone || isDisabled) return; 
     const interval = setInterval(() => {
       // Don't remind if tutorial is open
       if (activeTutorial) return;
@@ -54,7 +65,7 @@ export const useTutorial = (isStandalone: boolean) => {
     }, 5 * 60 * 1000); // 5 Minutes
 
     return () => clearInterval(interval);
-  }, [isStandalone, activeTutorial]);
+  }, [isStandalone, activeTutorial, isDisabled]);
 
   const saveState = (newState: TutorialState) => {
       setTutorialState(newState);
@@ -62,10 +73,10 @@ export const useTutorial = (isStandalone: boolean) => {
   };
 
   const triggerTutorial = useCallback((key: TutorialKey) => {
-      if (!tutorialState[key]) {
+      if (!isDisabled && !tutorialState[key]) {
           setActiveTutorial(key);
       }
-  }, [tutorialState]);
+  }, [tutorialState, isDisabled]);
 
   const completeTutorial = useCallback((key: TutorialKey) => {
       const newState = { ...tutorialState, [key]: true };

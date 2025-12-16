@@ -1,12 +1,12 @@
 
-import React, { useState, useMemo, useRef, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useMemo, useRef, useEffect, lazy, Suspense, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useHistoryStore, Match } from '../../stores/historyStore';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { downloadJSON, exportMatchesToCSV, parseJSONFile } from '../../services/io';
 import { 
   Search, Clock, Trash2, ChevronDown, ChevronUp, 
-  Download, Upload, Filter, AlertCircle, BarChart2, Crown, Calendar, SortDesc, Check, FileSpreadsheet, FileJson, PieChart, FolderOpen
+  Download, Upload, Filter, AlertCircle, BarChart2, Crown, Calendar, SortDesc, Check, FileSpreadsheet, FileJson, PieChart, FolderOpen, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../ui/Button';
@@ -105,6 +105,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ value, onChange, options, i
 
 // Export Menu Component
 const ExportMenu = ({ onExportJSON, onExportCSV }: { onExportJSON: () => void, onExportCSV: () => void }) => {
+    const { t } = useTranslation();
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -135,10 +136,10 @@ const ExportMenu = ({ onExportJSON, onExportCSV }: { onExportJSON: () => void, o
                         className="absolute top-full right-0 mt-2 z-50 min-w-[140px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-xl shadow-xl overflow-hidden p-1"
                     >
                         <button onClick={() => { onExportJSON(); setIsOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg transition-colors">
-                            <FileJson size={14} className="text-amber-500" /> JSON
+                            <FileJson size={14} className="text-amber-500" /> {t('historyList.export.json')}
                         </button>
                         <button onClick={() => { onExportCSV(); setIsOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10 rounded-lg transition-colors">
-                            <FileSpreadsheet size={14} className="text-emerald-500" /> CSV
+                            <FileSpreadsheet size={14} className="text-emerald-500" /> {t('historyList.export.csv')}
                         </button>
                     </motion.div>
                 )}
@@ -179,7 +180,8 @@ const HistoryCard: React.FC<{
                 layout
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className={`group relative rounded-2xl landscape:rounded-xl backdrop-blur-md shadow-sm hover:shadow-md transition-all border ${isSelected ? 'bg-indigo-50/80 dark:bg-indigo-500/10 border-indigo-500/30' : 'bg-white dark:bg-white/[0.03] border-transparent hover:bg-white/80 dark:hover:bg-white/[0.05]'}`}
+                // Removing backdrop-blur and transition-all to fix performance blur
+                className={`group relative rounded-2xl landscape:rounded-xl shadow-sm hover:shadow-md transition-colors border ${isSelected ? 'bg-indigo-50/80 dark:bg-indigo-500/10 border-indigo-500/30' : 'bg-white dark:bg-white/[0.03] border-transparent hover:bg-white/80 dark:hover:bg-white/[0.05]'}`}
             >
                 {/* Subtle Gradient Backing */}
                 {isWinnerA && !isSelected && (
@@ -267,7 +269,7 @@ const HistoryCard: React.FC<{
                                         className="flex-1 bg-slate-800 text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 shadow-lg active:scale-95 h-9 text-[10px] landscape:hidden"
                                         size="sm"
                                     >
-                                        <BarChart2 size={14} /> Analysis
+                                        <BarChart2 size={14} /> {t('historyList.analysis')}
                                     </Button>
                                     <button 
                                         onClick={(e) => { e.stopPropagation(); onDelete(match.id); }}
@@ -291,7 +293,7 @@ const HistoryCard: React.FC<{
 type FilterType = 'all' | 'A' | 'B' | 'scouted';
 type SortType = 'newest' | 'oldest' | 'longest' | 'shortest';
 
-export const HistoryList: React.FC = () => {
+export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const { matches, deleteMatch, addMatch, importJSON, exportJSON } = useHistoryStore();
     const { t } = useTranslation();
     
@@ -302,14 +304,32 @@ export const HistoryList: React.FC = () => {
     // UI State
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
-    
-    // Separate state for Portrait "Analysis" modal vs Landscape "Selection"
     const [showMobileDetail, setShowMobileDetail] = useState(false);
-
     const [showStats, setShowStats] = useState(false);
     const [importMsg, setImportMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const [deletedMatch, setDeletedMatch] = useState<Match | null>(null);
     const [showUndoToast, setShowUndoToast] = useState(false);
+    
+    // SCROLL HEADER LOGIC
+    const [showHeader, setShowHeader] = useState(true);
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const lastScrollY = useRef(0);
+
+    const onScroll = useCallback(() => {
+        if (!scrollRef.current) return;
+        const currentY = scrollRef.current.scrollTop;
+        const diff = currentY - lastScrollY.current;
+
+        // Bounce protection (iOS)
+        if (currentY < 0) return;
+
+        if (diff > 10 && showHeader && currentY > 50) { // Scroll Down & not at top
+            setShowHeader(false);
+        } else if (diff < -5 && !showHeader) { // Scroll Up
+            setShowHeader(true);
+        }
+        lastScrollY.current = currentY;
+    }, [showHeader]);
     
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -375,19 +395,13 @@ export const HistoryList: React.FC = () => {
     };
 
     const handleItemClick = (match: Match) => {
-        // Toggle expansion in portrait (or landscape, behavior is consistent for the list)
         setExpandedId(prev => prev === match.id ? null : match.id);
-        
-        // Update selection state for Landscape View
         setSelectedMatch(match);
-        
-        // NOTE: We do NOT open showMobileDetail here. 
-        // This ensures portrait users only expand the card.
     };
 
     const handleAnalyze = (match: Match) => {
         setSelectedMatch(match);
-        setShowMobileDetail(true); // Open the full view overlay in Portrait
+        setShowMobileDetail(true);
     };
 
     const handleDelete = (id: string) => {
@@ -426,41 +440,27 @@ export const HistoryList: React.FC = () => {
     ];
 
     return (
-        <div className="flex flex-col h-full min-h-[50vh] overflow-hidden relative">
-            <input 
-                type="file" 
-                ref={fileInputRef} 
-                className="hidden" 
-                accept=".json" 
-                onChange={handleFileChange}
-            />
-            
-            <Suspense fallback={null}>
-                <TeamStatsModal isOpen={showStats} onClose={() => setShowStats(false)} />
-            </Suspense>
-
-            <NotificationToast 
-                visible={showUndoToast} 
-                type="info" 
-                mainText="Match Deleted" 
-                subText="Tap to restore" 
-                onClose={() => setShowUndoToast(false)} 
-                systemIcon="delete"
-                onUndo={handleUndoDelete}
-            />
+        <div ref={scrollRef} onScroll={onScroll} className="flex flex-col h-full min-h-[50vh] overflow-y-auto custom-scrollbar relative">
+            <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={handleFileChange} />
+            <Suspense fallback={null}><TeamStatsModal isOpen={showStats} onClose={() => setShowStats(false)} /></Suspense>
+            <NotificationToast visible={showUndoToast} type="info" mainText={t('teamManager.playerRemoved')} subText={t('common.undo')} onClose={() => setShowUndoToast(false)} systemIcon="delete" onUndo={handleUndoDelete} />
 
             {/* SPLIT VIEW CONTAINER */}
-            <div className={`flex flex-col landscape:flex-row h-full overflow-hidden ${selectedMatch ? 'landscape:gap-0' : ''}`}>
+            <div className={`flex flex-col landscape:flex-row h-full overflow-visible ${selectedMatch ? 'landscape:gap-0' : ''}`}>
                 
                 {/* LEFT PANEL (LIST) */}
-                <div className={`
-                    flex-col h-full w-full landscape:w-[320px] lg:landscape:w-[380px] landscape:border-r border-black/5 dark:border-white/5
-                    flex
-                `}>
-                    {/* Header (Transparent & Clean) */}
-                    <div className="flex-shrink-0 z-30 p-2 sm:p-3 landscape:p-2 bg-transparent">
-                         <div className="flex flex-col gap-2">
-                            {/* Row 1: Search & Actions */}
+                <div className={`flex-col h-full w-full landscape:w-[320px] lg:landscape:w-[380px] landscape:border-r border-black/5 dark:border-white/5 ${showMobileDetail ? 'hidden landscape:flex' : 'flex'}`}>
+                    
+                    {/* SMART HEADER (Sticky inside scroll container) */}
+                    {/* UPDATED: FULL TRANSPARENCY AS REQUESTED */}
+                    <div className="sticky top-0 z-50 pt-safe-top pb-1 px-1 mb-1 pointer-events-none">
+                        <motion.div 
+                            initial={{ y: 0 }}
+                            animate={{ y: showHeader ? 0 : -100, opacity: showHeader ? 1 : 0 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            className="bg-transparent pb-2 pt-2 px-2 pointer-events-auto flex flex-col gap-2"
+                        >
+                            {/* Row 1: Search + Close */}
                             <div className="flex gap-2 items-center">
                                 <div className="relative flex-1 group">
                                     <div className="absolute inset-0 bg-slate-100 dark:bg-white/5 rounded-xl transition-all group-focus-within:ring-2 group-focus-within:ring-indigo-500/30"></div>
@@ -472,67 +472,52 @@ export const HistoryList: React.FC = () => {
                                         className="relative w-full bg-transparent border-none rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-slate-800 dark:text-white focus:outline-none placeholder:text-slate-400"
                                     />
                                 </div>
-                                
-                                <button onClick={() => setShowStats(true)} className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors shadow-sm active:scale-95" title="Stats">
-                                    <PieChart size={16} />
-                                </button>
-                                
-                                <ExportMenu onExportJSON={handleExportJSON} onExportCSV={handleExportCSV} />
-                                
-                                <button onClick={handleImportClick} className="p-2.5 rounded-xl bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-white hover:bg-indigo-50 dark:hover:bg-white/10 transition-colors shadow-sm active:scale-95" title={t('historyList.import')}>
-                                    <Download size={16} />
-                                </button>
+                                {onClose && (
+                                    <button 
+                                        onClick={onClose}
+                                        className="w-10 h-9 flex items-center justify-center bg-slate-100 dark:bg-black/20 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors active:scale-90 border border-black/5 dark:border-white/5 shadow-sm shrink-0"
+                                    >
+                                        <X size={18} strokeWidth={2.5} />
+                                    </button>
+                                )}
                             </div>
 
-                            {/* Row 2: Filters */}
-                            <div className="grid grid-cols-2 gap-2 relative z-20">
-                                <CustomSelect 
-                                    value={filterType}
-                                    onChange={(val) => setFilterType(val as FilterType)}
-                                    options={filterOptions}
-                                    icon={<Filter size={12} />}
-                                    align="left"
-                                />
-                                <CustomSelect 
-                                    value={sortOrder}
-                                    onChange={(val) => setSortOrder(val as SortType)}
-                                    options={sortOptions}
-                                    icon={<SortDesc size={12} />}
-                                    align="right"
-                                />
+                            {/* Row 2: Actions & Filters */}
+                            <div className="flex gap-2 items-center">
+                                <div className="grid grid-cols-2 gap-2 flex-1 relative z-20">
+                                    <CustomSelect value={filterType} onChange={(val) => setFilterType(val as FilterType)} options={filterOptions} icon={<Filter size={12} />} align="left" />
+                                    <CustomSelect value={sortOrder} onChange={(val) => setSortOrder(val as SortType)} options={sortOptions} icon={<SortDesc size={12} />} align="right" />
+                                </div>
+                                <div className="flex gap-1 shrink-0">
+                                    <button onClick={() => setShowStats(true)} className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-colors shadow-sm active:scale-95" title={t('stats.teamStats')}><PieChart size={16} /></button>
+                                    <ExportMenu onExportJSON={handleExportJSON} onExportCSV={handleExportCSV} />
+                                    <button onClick={handleImportClick} className="p-2.5 rounded-xl bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-white hover:bg-indigo-50 dark:hover:bg-white/10 transition-colors shadow-sm active:scale-95" title={t('common.import')}><Download size={16} /></button>
+                                </div>
                             </div>
-                        </div>
 
-                        <AnimatePresence>
-                            {importMsg && (
-                                <motion.div 
-                                    initial={{ opacity: 0, height: 0, marginTop: 0 }} 
-                                    animate={{ opacity: 1, height: 'auto', marginTop: 8 }}
-                                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                                    className={`text-[10px] px-3 py-2 rounded-lg font-bold flex items-center gap-2 ${importMsg.type === 'success' ? 'bg-emerald-500/20 text-emerald-600' : 'bg-rose-500/20 text-rose-600'}`}
-                                >
-                                    <AlertCircle size={12} /> {importMsg.text}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                            <AnimatePresence>
+                                {importMsg && (
+                                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className={`text-[10px] px-3 py-2 rounded-lg font-bold flex items-center gap-2 ${importMsg.type === 'success' ? 'bg-emerald-500/20 text-emerald-600' : 'bg-rose-500/20 text-rose-600'}`}>
+                                        <AlertCircle size={12} /> {importMsg.text}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </motion.div>
                     </div>
 
                     {/* List Content */}
-                    <div className="flex-1 min-h-0 bg-transparent">
+                    <div className="flex-1 min-w-0 bg-transparent px-1 pb-safe-bottom pt-2">
                         {filteredMatches.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full text-slate-400 opacity-60">
+                            <div className="flex flex-col items-center justify-center h-64 text-slate-400 opacity-60">
                                 <div className="p-4 bg-slate-100 dark:bg-white/5 rounded-full mb-3 border border-slate-200 dark:border-white/10">
                                     <FolderOpen size={32} strokeWidth={1} className="opacity-50" />
                                 </div>
                                 <h3 className="text-xs font-black uppercase tracking-widest mb-1 opacity-80">{t('historyList.empty')}</h3>
                             </div>
                         ) : (
-                            <Virtuoso 
-                                data={filteredMatches}
-                                totalCount={filteredMatches.length}
-                                className="custom-scrollbar"
-                                style={{ height: '100%' }}
-                                itemContent={(index, match) => (
+                            // Using standard mapping instead of Virtuoso here to simplify scroll container logic with sticky header
+                            <div className="space-y-2 pb-24">
+                                {filteredMatches.map(match => (
                                     <HistoryCard 
                                         key={match.id} 
                                         match={match} 
@@ -542,36 +527,24 @@ export const HistoryList: React.FC = () => {
                                         onToggle={() => handleItemClick(match)}
                                         onAnalyze={() => handleAnalyze(match)}
                                     />
-                                )}
-                            />
+                                ))}
+                            </div>
                         )}
                     </div>
                 </div>
 
-                {/* RIGHT PANEL - MOBILE PORTAL (Overlay on top of everything) */}
+                {/* RIGHT PANEL - MOBILE PORTAL */}
                 {showMobileDetail && selectedMatch && createPortal(
-                    <div className="fixed inset-0 z-[70] flex flex-col bg-slate-50 dark:bg-[#020617] animate-in slide-in-from-bottom-5 duration-200 overflow-hidden">
+                    <div className="fixed inset-0 z-[70] flex flex-col bg-slate-50/70 dark:bg-[#0f172a]/70 backdrop-blur-xl animate-in slide-in-from-bottom-5 duration-200 overflow-hidden landscape:hidden">
                         <MatchDetail match={selectedMatch} onBack={() => setShowMobileDetail(false)} />
                     </div>,
                     document.body
                 )}
 
-                {/* RIGHT PANEL - DESKTOP/LANDSCAPE (Inline Split View) */}
-                <div className={`
-                    hidden landscape:flex landscape:flex-1 landscape:h-full landscape:overflow-hidden landscape:relative landscape:z-40 landscape:bg-transparent
-                `}>
-                    {selectedMatch ? (
-                        <MatchDetail match={selectedMatch} onBack={() => setShowMobileDetail(false)} />
-                    ) : (
-                        <div className="hidden landscape:flex flex-1 items-center justify-center bg-transparent text-slate-300 dark:text-slate-700">
-                            <div className="flex flex-col items-center gap-4">
-                                <BarChart2 size={64} strokeWidth={1} className="opacity-20" />
-                                <p className="text-sm font-bold uppercase tracking-widest opacity-40">Select a match to view details</p>
-                            </div>
-                        </div>
-                    )}
+                {/* RIGHT PANEL - DESKTOP/LANDSCAPE */}
+                <div className={`hidden landscape:flex landscape:flex-1 landscape:h-full landscape:overflow-hidden landscape:relative landscape:z-40 landscape:bg-transparent`}>
+                    {selectedMatch ? (<MatchDetail match={selectedMatch} onBack={() => setShowMobileDetail(false)} />) : (<div className="hidden landscape:flex flex-1 items-center justify-center bg-transparent text-slate-300 dark:text-slate-700"><div className="flex flex-col items-center gap-4"><BarChart2 size={64} strokeWidth={1} className="opacity-20" /><p className="text-sm font-bold uppercase tracking-widest opacity-40">{t('history.welcomeDesc')}</p></div></div>)}
                 </div>
-
             </div>
         </div>
     );

@@ -2,7 +2,7 @@
 import React from 'react';
 import { 
   Trophy, Hand, Users, Edit3, UserCircle, RefreshCw, Scale, 
-  Layout, MousePointerClick, History, FileText, PieChart, Activity, Mic, List, Settings, Volume2, ArrowRightLeft, Layers
+  Layout, MousePointerClick, History, FileText, PieChart, Activity, Mic, List, Settings, Volume2, ArrowRightLeft, Layers, Download
 } from 'lucide-react';
 
 export interface TutorialStep {
@@ -57,6 +57,14 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialStep[]> = {
       icon: Volume2,
       color: 'pink',
       visualId: 'audio_narrator'
+    },
+    {
+      id: 'install',
+      titleKey: 'tutorial.install.title',
+      descKey: 'tutorial.install.descAndroid', // Generic motivation
+      icon: Download,
+      color: 'emerald',
+      visualId: 'install_app'
     }
   ],
 

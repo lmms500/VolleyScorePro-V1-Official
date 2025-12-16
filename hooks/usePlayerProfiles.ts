@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { PlayerProfile, PlayerRole, ProfileStats } from '../types';
 import { SecureStorage } from '../services/SecureStorage';
@@ -41,30 +40,23 @@ export const usePlayerProfiles = () => {
   }, [profiles]);
 
   /**
-   * Smart Upsert: 
-   * - If 'id' is provided, it forces an UPDATE on that specific profile.
-   * - If 'id' is NOT provided, it acts as CREATE, checking name for deduplication.
+   * Smart Upsert
    */
   const upsertProfile = useCallback((name: string, skillLevel: number, id?: string, extras?: { number?: string, avatar?: string, role?: PlayerRole }): PlayerProfile => {
     const cleanName = name.trim();
     const now = Date.now();
-    
     let existing: PlayerProfile | undefined;
     
-    // 1. EDIT MODE: Find strict match by ID
     if (id) {
         existing = profiles.get(id);
-    } 
-    // 2. CREATE MODE: Check for duplicate name
-    else {
+    } else {
         existing = findProfileByName(cleanName);
     }
     
     const newProfile: PlayerProfile = {
       id: existing?.id || uuidv4(),
-      name: cleanName, // Always update name
+      name: cleanName,
       skillLevel: Math.min(10, Math.max(1, skillLevel)),
-      // Merge logic: Use new val if provided, else fall back to existing, else undefined
       number: extras?.number !== undefined ? extras.number : existing?.number,
       avatar: extras?.avatar !== undefined ? extras.avatar : existing?.avatar,
       role: extras?.role !== undefined ? extras.role : existing?.role,
@@ -117,6 +109,38 @@ export const usePlayerProfiles = () => {
     return profileToDelete;
   }, [profiles]);
 
+  // NEW: Merge Profiles from Cloud
+  const mergeProfiles = useCallback((remoteProfiles: PlayerProfile[]) => {
+      setProfiles(prev => {
+          // Explicit generic typing ensures 'next' is Map<string, PlayerProfile>
+          const next = new Map<string, PlayerProfile>(prev);
+          let changes = false;
+          
+          remoteProfiles.forEach(remote => {
+              const local = next.get(remote.id);
+              // Simple Merge: If remote is newer or local doesn't exist, take remote.
+              // For safety, let's assume remote is valid if it doesn't exist locally.
+              // If it exists locally, we might want to keep the one with lastUpdated (if we tracked it robustly).
+              // For V1 Sync, we'll favor existing local unless it's missing.
+              // Actually, SyncService typically implies merging data.
+              
+              if (!local) {
+                  next.set(remote.id, remote);
+                  changes = true;
+              } else {
+                  // Conflict resolution. 
+                  // For now, if local has more matchesPlayed, keep local? Or trust lastUpdated.
+                  if ((remote.lastUpdated || 0) > (local.lastUpdated || 0)) {
+                      next.set(remote.id, remote);
+                      changes = true;
+                  }
+              }
+          });
+          
+          return changes ? next : prev;
+      });
+  }, []);
+
   const getProfile = useCallback((id: string) => profiles.get(id), [profiles]);
 
   return {
@@ -126,6 +150,7 @@ export const usePlayerProfiles = () => {
     findProfileByName,
     getProfile,
     batchUpdateStats,
+    mergeProfiles,
     isReady
   };
 };

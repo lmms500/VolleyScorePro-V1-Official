@@ -1,10 +1,10 @@
+
 import { useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
-import { KeepAwake } from '@capacitor-community/keep-awake';
 
 export const useNativeIntegration = (
     isMatchActive: boolean,
@@ -12,140 +12,95 @@ export const useNativeIntegration = (
     onBackAction: () => void,
     modalsOpen: boolean
 ) => {
-    // 1. Initial Native Setup
+    const isNative = Capacitor.isNativePlatform();
+
+    // 1. Initial Native Setup (Status Bar & Splash)
     useEffect(() => {
-        if (Capacitor.isNativePlatform()) {
+        if (isNative) {
             const initNative = async () => {
                 try {
+                    // Transparent Status Bar for "Edge-to-Edge" look
                     await StatusBar.setStyle({ style: Style.Dark });
-                    await StatusBar.setBackgroundColor({ color: '#00000000' }); 
-                    await StatusBar.setOverlaysWebView({ overlay: true });
+                    if (Capacitor.getPlatform() === 'android') {
+                        await StatusBar.setOverlaysWebView({ overlay: true });
+                        await StatusBar.setBackgroundColor({ color: '#00000000' });
+                    }
+                    
+                    // Hide Splash smoothly
                     setTimeout(async () => {
                         await SplashScreen.hide();
-                    }, 500);
+                    }, 300);
                 } catch (e) {
-                    console.error("Native init error:", e);
+                    console.warn("Native init warning:", e);
                 }
             };
             initNative();
         }
-    }, []);
+    }, [isNative]);
 
-    // 2. Keep Awake Logic (Screen Control)
-    useEffect(() => {
-        const manageScreenSleep = async () => {
-            if (!Capacitor.isNativePlatform()) return; // Optional: Could use WakeLock API for Web here too
-
-            try {
-                if (isMatchActive) {
-                    await KeepAwake.keepAwake();
-                    console.debug('[Native] KeepAwake Enabled');
-                } else {
-                    await KeepAwake.allowSleep();
-                    console.debug('[Native] KeepAwake Disabled');
-                }
-            } catch (e) {
-                console.warn('[Native] KeepAwake error:', e);
-            }
-        };
-        manageScreenSleep();
-        
-        // Cleanup on unmount
-        return () => {
-            if (Capacitor.isNativePlatform()) {
-                KeepAwake.allowSleep().catch(() => {});
-            }
-        };
-    }, [isMatchActive]);
-
-    // 3. Reactive Orientation Locking (Native + PWA Support)
+    // 2. Reactive Orientation Locking
     useEffect(() => {
         const lockOrientation = async () => {
             const targetOrientation = isFullscreen ? 'landscape' : 'portrait';
             
-            // A. Native Capacitor
-            if (Capacitor.isNativePlatform()) {
+            if (isNative) {
                 try {
                     await ScreenOrientation.lock({ orientation: targetOrientation });
                 } catch (e) {
-                    console.warn('Native orientation lock failed:', e);
+                    // Fallback or ignore if device doesn't support lock
                 }
             } 
-            // B. PWA / Web API
-            else if (typeof screen !== 'undefined' && 'orientation' in screen && typeof (screen.orientation as any).lock === 'function') {
-                try {
-                    // Note: Browsers may reject lock if not in fullscreen, but we attempt it anyway
-                    // for environments like Android AI Studio wrapper or PWA standalone.
-                    await (screen.orientation as any).lock(targetOrientation);
-                } catch (e) {
-                    // Expected in standard browser tabs without fullscreen interaction
-                    console.debug('Web orientation lock failed (requires fullscreen/user interaction):', e);
-                }
-            }
         };
         lockOrientation();
-    }, [isFullscreen]);
-
-    // 4. Lifecycle Robustness (App Background/Resume)
-    useEffect(() => {
-        if (!Capacitor.isNativePlatform()) return;
-
-        const listener = CapApp.addListener('appStateChange', async ({ isActive }) => {
-            if (isActive) {
-                // Re-enforce orientation lock on resume based on current state
-                try {
-                    const target = isFullscreen ? 'landscape' : 'portrait';
-                    await ScreenOrientation.lock({ orientation: target });
-                    
-                    // Re-enforce Keep Awake if match is active
-                    if (isMatchActive) {
-                        await KeepAwake.keepAwake();
-                    }
-                } catch (e) {
-                    console.warn('Resume native state sync failed', e);
-                }
-            }
-        });
-
+        
+        // Cleanup: Reset to portrait on unmount if needed, or leave as is
         return () => {
-            listener.then(l => l.remove());
-        };
-    }, [isFullscreen, isMatchActive]);
+            if (isNative && isFullscreen) {
+               ScreenOrientation.lock({ orientation: 'portrait' }).catch(() => {});
+            }
+        }
+    }, [isFullscreen, isNative]);
 
-    // 5. Hardware Back Button Handling (Android)
+    // 3. Hardware Back Button Handling (Android)
     useEffect(() => {
-        if (!Capacitor.isNativePlatform()) return;
+        if (!isNative) return;
 
         let lastBackPress = 0;
 
         const handleBackButton = async () => {
             const now = Date.now();
             
-            // If match is active and no modals are open, prevent accidental exit
-            if (isMatchActive && !modalsOpen) {
-                // Require double press to exit/minimize
+            if (modalsOpen) {
+                // If a modal is open (Settings, Roster, etc), close it via the provided callback
+                onBackAction();
+                return;
+            }
+
+            if (isMatchActive) {
+                // Prevent accidental exit during a game
+                // Could show a toast here: "Press back again to exit"
+                if (now - lastBackPress < 2000) {
+                    CapApp.minimizeApp(); // Minimize instead of Exit is standard Android behavior
+                } else {
+                    lastBackPress = now;
+                    // Optional: Show native toast "Press again to exit"
+                }
+            } else {
+                // On Home/Idle screen
                 if (now - lastBackPress < 2000) {
                     CapApp.minimizeApp();
                 } else {
                     lastBackPress = now;
                 }
-            } else {
-                if (!modalsOpen) {
-                     CapApp.minimizeApp();
-                }
             }
         };
 
         const listener = CapApp.addListener('backButton', () => {
-            if (modalsOpen) {
-                onBackAction(); 
-            } else {
-                handleBackButton();
-            }
+            handleBackButton();
         });
 
         return () => {
             listener.then(l => l.remove());
         };
-    }, [isMatchActive, modalsOpen, onBackAction]);
+    }, [isMatchActive, modalsOpen, onBackAction, isNative]);
 };

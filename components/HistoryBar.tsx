@@ -1,3 +1,4 @@
+
 import React, { memo, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { SetHistory, TeamColor } from '../types';
@@ -192,7 +193,8 @@ export const HistoryBar: React.FC<HistoryBarProps> = memo(({ history, setsA, set
         {/* Fullscreen Confetti Portal with TEAM COLORS */}
         {isPartyTime && createPortal(
             <div className="fixed inset-0 z-[100] pointer-events-none">
-                <Confetti colors={[colorA, colorB]} intensity="high" />
+                {/* Interactive Mode ensures confetti collides with UI elements */}
+                <Confetti colors={[colorA, colorB]} intensity="high" physicsVariant="interactive" />
             </div>,
             document.body
         )}

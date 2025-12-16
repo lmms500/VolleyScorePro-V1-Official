@@ -13,10 +13,24 @@ export const useServiceWorker = () => {
 
   const isNative = Capacitor.isNativePlatform();
 
-  useEffect(() => {
-    // CRITICAL: Disable SW logic in Native Apps to prevent update toasts/caching issues
-    if (isNative) return;
+  // 🛡️ NATIVE GUARD: If strictly native, return inert state immediately.
+  // This prevents any PWA UI (Update Buttons, Install Prompts) from leaking into the App Store build.
+  if (isNative) {
+      return {
+          needRefresh: false,
+          offlineReady: false,
+          updateServiceWorker: () => {},
+          checkForUpdates: () => Promise.resolve(),
+          closePrompt: () => {},
+          isChecking: false,
+          isInstallable: false, // Strict false for Native
+          promptInstall: () => Promise.resolve(),
+          isIOS: false,
+          isStandalone: true // Native behaves like Standalone
+      };
+  }
 
+  useEffect(() => {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       const updateSW = async () => {
           try {
@@ -41,10 +55,10 @@ export const useServiceWorker = () => {
         }
       });
     }
-  }, [isNative]);
+  }, []);
 
   const checkForUpdates = useCallback(async () => {
-    if (isNative || !('serviceWorker' in navigator)) return;
+    if (!('serviceWorker' in navigator)) return;
     
     setIsChecking(true);
     try {
@@ -61,7 +75,7 @@ export const useServiceWorker = () => {
     } finally {
         setTimeout(() => setIsChecking(false), 500);
     }
-  }, [isNative]);
+  }, []);
 
   const updateServiceWorker = useCallback(() => {
     if (registration && registration.waiting) {
@@ -74,22 +88,6 @@ export const useServiceWorker = () => {
     setNeedRefresh(false);
   };
 
-  // If Native, return "inert" state so UI doesn't show PWA elements
-  if (isNative) {
-      return {
-          needRefresh: false,
-          offlineReady: false,
-          updateServiceWorker: () => {},
-          checkForUpdates: () => Promise.resolve(),
-          closePrompt: () => {},
-          isChecking: false,
-          isInstallable: false,
-          promptInstall: () => Promise.resolve(),
-          isIOS: false,
-          isStandalone: true 
-      };
-  }
-
   return {
     needRefresh,
     offlineReady,
@@ -97,7 +95,6 @@ export const useServiceWorker = () => {
     checkForUpdates,
     closePrompt,
     isChecking,
-    // Pass-through install logic
     isInstallable,
     promptInstall,
     isIOS,

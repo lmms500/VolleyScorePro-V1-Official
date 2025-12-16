@@ -14,15 +14,17 @@ export const useHaptics = (enabled: boolean = true) => {
     
     try {
         if (isNative) {
-            // Capacitor generic vibrate only takes duration (not pattern)
-            // For native patterns, we rely on impact/notification methods below
+            // Native: Use generic vibrate for custom patterns only if needed, 
+            // but prefer impact/notification for best UX.
+            // Capacitor vibrate takes duration in ms.
             await Haptics.vibrate({ duration: Array.isArray(pattern) ? pattern[0] : pattern });
         } else if (typeof navigator !== 'undefined' && navigator.vibrate) {
-            // Web Vibration API
+            // Web: Full pattern support
             navigator.vibrate(pattern);
         }
     } catch (e) {
-        // Ignore errors
+        // Fail silently - haptics are enhancement, not critical
+        // console.warn("Haptics failed", e);
     }
   }, [enabled, isNative]);
 
@@ -38,11 +40,11 @@ export const useHaptics = (enabled: boolean = true) => {
             
             await Haptics.impact({ style: capStyle });
         } else {
-            // Web Fallback
+            // Web Fallback: Simulate weight with duration
             switch (style) {
               case 'light': trigger(10); break;
-              case 'medium': trigger(20); break;
-              case 'heavy': trigger(40); break;
+              case 'medium': trigger(15); break;
+              case 'heavy': trigger(25); break;
             }
         }
     } catch (e) {
@@ -62,11 +64,11 @@ export const useHaptics = (enabled: boolean = true) => {
 
             await Haptics.notification({ type: capType });
         } else {
-            // Web Fallback
+            // Web Fallback: Distinct patterns
             switch (type) {
-              case 'success': trigger([10, 50, 20]); break;
-              case 'warning': trigger([30, 50, 30]); break;
-              case 'error': trigger([50, 100, 50, 100, 50]); break;
+              case 'success': trigger([10, 30, 10]); break; // Double tap
+              case 'warning': trigger([30, 50, 30]); break; // Long-short-long
+              case 'error': trigger([50, 100, 50, 100, 50]); break; // Triple heavy
             }
         }
     } catch (e) {

@@ -131,8 +131,8 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
   ];
 
   const getManagerSteps = (): TutorialStep[] => [
-      { id: 'roster', title: t('tutorial.manager.roster'), desc: t('tutorial.manager.rosterDesc'), icon: Trophy, color: 'bg-indigo-500' },
-      { id: 'rotation', title: t('tutorial.manager.rotation'), desc: t('tutorial.manager.rotationDesc'), icon: Activity, color: 'bg-rose-500' }
+      { id: 'roster', title: t('tutorial.manager.rosterDesc'), desc: t('tutorial.manager.intro.desc'), icon: Trophy, color: 'bg-indigo-500' },
+      { id: 'rotation', title: t('tutorial.manager.rotationDesc'), desc: t('tutorial.manager.rotation.desc'), icon: Activity, color: 'bg-rose-500' }
   ];
 
   const getHistorySteps = (): TutorialStep[] => [
@@ -146,8 +146,8 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({
 
   if (tutorialKey === 'manager') {
       currentSteps = getManagerSteps();
-      welcomeTitle = t('tutorial.manager.welcome');
-      welcomeDesc = t('tutorial.manager.welcomeDesc');
+      welcomeTitle = t('teamManager.title');
+      welcomeDesc = t('tutorial.manager.intro.desc');
   } else if (tutorialKey === 'history') {
       currentSteps = getHistorySteps();
       welcomeTitle = t('tutorial.history.welcome');

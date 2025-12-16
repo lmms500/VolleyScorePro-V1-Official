@@ -15,7 +15,7 @@ interface UseVoiceControlProps {
   onSetServer: (team: TeamId) => void;
   onError?: (errorType: 'permission' | 'network' | 'generic', transcript?: string) => void;
   onUnknownCommand?: (transcript: string) => void;
-  onAmbiguousCommand?: (candidates: string[]) => void; // New Callback
+  onAmbiguousCommand?: (candidates: string[]) => void;
   
   language: string;
   teamAName: string;
@@ -74,7 +74,7 @@ export const useVoiceControl = ({
           return;
       }
 
-      // 2. Duplicate Text Check (For Undo safety)
+      // 2. Duplicate Text Check
       const textKey = `${intent.type}:${intent.rawText.toLowerCase()}`;
       if (processedTextSet.current.has(textKey) && intent.type === 'undo') {
           return;
@@ -96,7 +96,6 @@ export const useVoiceControl = ({
           if (intent.isNegative) {
               onSubtractPoint(intent.team);
           } else {
-              // Handle "Unknown" vs "Identified"
               const finalPlayerId = (enablePlayerStats && intent.player?.id) ? intent.player.id : (enablePlayerStats ? 'unknown' : undefined);
               onAddPoint(intent.team, finalPlayerId, intent.skill);
           }
@@ -107,10 +106,10 @@ export const useVoiceControl = ({
       const action = pendingActionRef.current;
       if (!action) return;
 
-      // Strategies: Local Fast-Path OR Cloud AI Fallback
-      // If local parser flagged uncertainty OR confidence is low, attempt AI.
-      if (action.requiresMoreInfo || action.confidence < 0.85) {
-          console.log('[Voice] Local parse incomplete/uncertain. Engaging Gemini AI...');
+      // OPTIMIZATION: Aggressively use AI if local parsing is shaky.
+      // Threshold raised to 0.9 to prefer AI accuracy over local heuristics in noisy environments.
+      if (action.requiresMoreInfo || action.confidence < 0.9) {
+          console.log('[Voice] Local parse low confidence. Engaging Gemini AI...');
           setIsProcessingAI(true);
           
           const aiResult = await geminiService.parseCommand(action.rawText, {
@@ -133,25 +132,22 @@ export const useVoiceControl = ({
               executeIntent(aiIntent);
               pendingActionRef.current = null;
               return;
-          } else if (action.type === 'server') {
-              // If AI failed on 'Server' and local was ambiguous, abort. Do not toggle blindly.
-              console.log('[Voice] AI failed to resolve Serve team. Aborting.');
-              pendingActionRef.current = null;
-              return;
-          }
+          } 
       }
 
       if (action.requiresMoreInfo) {
-          console.log('[Voice] Incomplete command, executing best effort.');
           if (action.team) {
+              // Fallback: Just give the point without details
               executeIntent({ ...action, player: undefined, skill: undefined });
+          } else if (onUnknownCommand) {
+              onUnknownCommand(action.rawText);
           }
       } else {
           executeIntent(action);
       }
 
       pendingActionRef.current = null;
-  }, [executeIntent, teamAName, teamBName, playersA, playersB, geminiService]);
+  }, [executeIntent, teamAName, teamBName, playersA, playersB, geminiService, onUnknownCommand]);
 
   // --- RESULT PROCESSOR ---
   const handleResult = useCallback((text: string, isFinal: boolean) => {
@@ -163,7 +159,6 @@ export const useVoiceControl = ({
 
       if (!intent) return;
 
-      // Handle Ambiguity First
       if (intent.isAmbiguous && intent.ambiguousCandidates) {
           if (isFinal) {
               pendingActionRef.current = null;
@@ -179,7 +174,7 @@ export const useVoiceControl = ({
       }
 
       if (intent.type === 'unknown' && isFinal) {
-          // Always try AI for unknown final commands
+          // Immediate AI escalation for unknown commands
           pendingActionRef.current = { ...intent, requiresMoreInfo: true };
           executeAction();
           return;

@@ -1,4 +1,3 @@
-
 import { Team, Player, RotationReport, DeletedPlayerRecord, RotationMode } from '../types';
 import { PLAYER_LIMIT_ON_COURT, PLAYERS_PER_TEAM } from '../constants';
 import { balanceTeamsSnake, distributeStandard, getStandardRotationResult, getBalancedRotationResult } from './balanceUtils';
@@ -137,12 +136,23 @@ export const handleAddPlayer = (
     newPlayer: Player, targetId: string
 ): { courtA: Team, courtB: Team, queue: Team[] } => {
     
-    // Duplicate Name Check (Global within active game context to prevent confusion)
-    const all = findAllPlayers(courtA, courtB, queue);
-    if (all.some(p => p.name.toLowerCase() === newPlayer.name.toLowerCase())) {
-        return { courtA, courtB, queue }; 
-    }
+    const allPlayersInGame = [
+      ...courtA.players, ...(courtA.reserves || []),
+      ...courtB.players, ...(courtB.reserves || []),
+      ...queue.flatMap(t => [...t.players, ...(t.reserves || [])])
+    ];
 
+    // Check for number uniqueness across the entire game
+    if (newPlayer.number) {
+        const validation = validateUniqueNumber(allPlayersInGame, newPlayer.number);
+        if (!validation.valid) {
+            // In this pure function, we can't show a toast, so we just block the addition.
+            // The calling hook should handle the validation before calling this.
+            console.warn(`Blocked adding player: ${validation.message}`);
+            return { courtA, courtB, queue };
+        }
+    }
+    
     const addToTeamSmart = (team: Team): Team => {
         if (team.players.length < PLAYERS_PER_TEAM) {
             return { ...team, players: [...team.players, newPlayer] };
@@ -159,7 +169,7 @@ export const handleAddPlayer = (
 
     const addToReservesDirect = (team: Team): Team => {
         if ((team.reserves || []).length < BENCH_LIMIT) {
-            return { ...team, reserves: [...(team.reserves || []), newPlayer] };
+            return { ...team, reserves: [...(team.reserves || []), newPlayer], hasActiveBench: true };
         }
         return team;
     };
@@ -349,85 +359,6 @@ export const handleDeletePlayer = (
     return { courtA, courtB, queue };
 };
 
-export const handleMovePlayer = (
-    courtA: Team, courtB: Team, queue: Team[], 
-    playerId: string, fromId: string, toId: string, newIndex?: number
-): { courtA: Team, courtB: Team, queue: Team[] } => {
-    
-    const getTargetListSize = (tid: string): number => {
-        if (tid === 'A') return courtA.players.length;
-        if (tid === 'B') return courtB.players.length;
-        if (tid === 'A_Reserves') return (courtA.reserves || []).length;
-        if (tid === 'B_Reserves') return (courtB.reserves || []).length;
-        
-        if (tid.endsWith('_Reserves')) {
-            const t = queue.find(x => `${x.id}_Reserves` === tid);
-            return t ? (t.reserves || []).length : 99;
-        }
-        const t = queue.find(x => x.id === tid);
-        return t ? t.players.length : 99;
-    };
-
-    if (fromId !== toId) {
-        const currentSize = getTargetListSize(toId);
-        const limit = toId.includes('Reserves') ? BENCH_LIMIT : PLAYERS_PER_TEAM;
-        
-        if (currentSize >= limit) {
-            console.warn(`[MoveBlocked] Target ${toId} is full (${currentSize}/${limit}).`);
-            return { courtA, courtB, queue };
-        }
-    }
-
-    let player: Player | undefined;
-         
-    const removeFromList = (list: Player[]) => {
-        const p = list.find(x => x.id === playerId);
-        if (p) { player = p; return list.filter(x => x.id !== playerId); }
-        return list;
-    };
-
-    let newA = { ...courtA };
-    let newB = { ...courtB };
-    let newQueue = queue.map(t => ({...t, players: [...t.players], reserves: [...(t.reserves||[])]}));
-    
-    // Remove Logic
-    if (fromId === 'A') newA.players = removeFromList(newA.players);
-    else if (fromId === 'A_Reserves') newA.reserves = removeFromList(newA.reserves || []);
-    else if (fromId === 'B') newB.players = removeFromList(newB.players);
-    else if (fromId === 'B_Reserves') newB.reserves = removeFromList(newB.reserves || []);
-    else {
-        newQueue = newQueue.map(t => {
-            if (fromId === t.id) return { ...t, players: removeFromList(t.players) };
-            if (fromId === `${t.id}_Reserves`) return { ...t, reserves: removeFromList(t.reserves || []) };
-            return t;
-        });
-    }
-    
-    if (!player) return { courtA, courtB, queue };
-
-    // Add Logic
-    const addToList = (list: Player[], p: Player, idx?: number) => {
-        const copy = [...list];
-        const safeIdx = (idx !== undefined && idx >= 0 && idx <= copy.length) ? idx : copy.length;
-        copy.splice(safeIdx, 0, p);
-        return copy;
-    };
-
-    if (toId === 'A') newA.players = addToList(newA.players, player, newIndex);
-    else if (toId === 'A_Reserves') newA.reserves = addToList(newA.reserves || [], player, newIndex);
-    else if (toId === 'B') newB.players = addToList(newB.players, player, newIndex);
-    else if (toId === 'B_Reserves') newB.reserves = addToList(newB.reserves || [], player, newIndex);
-    else {
-        newQueue = newQueue.map(t => {
-            if (toId === t.id) return { ...t, players: addToList(t.players, player, newIndex) };
-            if (toId === `${t.id}_Reserves`) return { ...t, reserves: addToList(t.reserves || [], player, newIndex) };
-            return t;
-        });
-    }
-
-    return { courtA: newA, courtB: newB, queue: newQueue };
-};
-
 export const handleRotate = (
     courtA: Team, courtB: Team, queue: Team[], winnerId: 'A'|'B', mode: RotationMode
 ): { courtA: Team, courtB: Team, queue: Team[], report: RotationReport | null } => {
@@ -446,13 +377,18 @@ export const handleRotate = (
         result = getStandardRotationResult(winnerTeam, loserTeam, queue);
     }
 
+    // CRITICAL FIX: The incoming team (result.incomingTeam) is a distinct Team object from the queue.
+    // It should replace the physical team on the court completely.
+    // We must NOT overwrite its 'reserves' or 'hasActiveBench' with the previous court occupant's data.
+    // The incoming team brings its own roster, bench, and settings.
+
     const nextCourtA = winnerId === 'A' 
-        ? { ...courtA } 
-        : { ...result.incomingTeam, reserves: courtA.reserves, hasActiveBench: courtA.hasActiveBench }; 
+        ? { ...courtA } // Winner stays, state preserved
+        : { ...result.incomingTeam }; // Incoming team completely replaces Loser A
         
     const nextCourtB = winnerId === 'B' 
-        ? { ...courtB } 
-        : { ...result.incomingTeam, reserves: courtB.reserves, hasActiveBench: courtB.hasActiveBench };
+        ? { ...courtB } // Winner stays, state preserved
+        : { ...result.incomingTeam }; // Incoming team completely replaces Loser B
 
     const report: RotationReport = {
         outgoingTeam: loserTeam,

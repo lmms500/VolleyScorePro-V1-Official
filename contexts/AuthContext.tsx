@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged } from 'firebase/auth';
-import { auth, googleProvider } from '../services/firebase';
+import { auth, googleProvider, isFirebaseInitialized } from '../services/firebase';
 import { Capacitor } from '@capacitor/core';
 
 interface AuthContextType {
@@ -18,6 +18,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!isFirebaseInitialized || !auth) {
+        setLoading(false);
+        return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setLoading(false);
@@ -26,10 +31,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signInWithGoogle = async () => {
+    if (!isFirebaseInitialized || !auth || !googleProvider) {
+        console.warn("Firebase not configured. Cannot sign in.");
+        alert("Sync is not available. Please configure Firebase API Keys.");
+        return;
+    }
+
     try {
       if (Capacitor.isNativePlatform()) {
-        // Native requires specific Capacitor Google Auth Plugin (setup required in native project)
-        // For now, we use redirect which works in some webviews or setup deep links
         await signInWithRedirect(auth, googleProvider);
       } else {
         await signInWithPopup(auth, googleProvider);
@@ -41,6 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
+    if (!isFirebaseInitialized || !auth) return;
     await signOut(auth);
   };
 

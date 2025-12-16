@@ -18,6 +18,7 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
   className = '', 
   intensity = 'medium',
   lowGraphics = false,
+  style,
   ...props 
 }) => {
   
@@ -53,8 +54,16 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
       className={`
         relative
         ${styleClass}
+        render-crisp
         ${className}
       `}
+      style={{
+        ...style,
+        // ISOLATION PROTOCOL: Creates a new stacking context. 
+        // This limits the scope of backdrop-filter recalculations to this element, 
+        // preventing it from repainting the entire body background.
+        isolation: 'isolate',
+      }}
       {...props}
     >
       {/* Noise Texture - Extremely subtle grain for organic feel */}

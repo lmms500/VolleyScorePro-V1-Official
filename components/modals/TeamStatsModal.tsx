@@ -110,10 +110,10 @@ export const TeamStatsModal: React.FC<TeamStatsModalProps> = ({ isOpen, onClose 
     }, [stats, searchTerm]);
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={t('stats.teamStats')} maxWidth="max-w-2xl">
-            <div className="flex flex-col h-[70vh]">
+        <Modal isOpen={isOpen} onClose={onClose} title={t('stats.teamStats')} variant="fullscreen">
+            <div className="flex flex-col h-full">
                 {/* Search Bar with invisible container background */}
-                <div className="mb-4 sticky top-0 z-10 py-1">
+                <div className="mb-4 sticky top-0 z-10 py-1 px-1">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                         <input 
@@ -127,7 +127,7 @@ export const TeamStatsModal: React.FC<TeamStatsModalProps> = ({ isOpen, onClose 
                 </div>
 
                 <motion.div 
-                    className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pb-4 px-1"
+                    className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pb-safe-bottom px-1"
                     variants={staggerContainer}
                     initial="hidden"
                     animate="visible"
@@ -143,7 +143,7 @@ export const TeamStatsModal: React.FC<TeamStatsModalProps> = ({ isOpen, onClose 
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-base sm:text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight truncate max-w-[70%]">{team.name}</h3>
                                     <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${team.winRate >= 50 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'}`}>
-                                        {team.winRate}% Win Rate
+                                        {team.winRate}% {t('stats.winRate')}
                                     </div>
                                 </div>
                                 

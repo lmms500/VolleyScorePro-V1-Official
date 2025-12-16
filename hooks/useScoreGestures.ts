@@ -10,9 +10,10 @@ interface UseScoreGesturesProps {
 }
 
 // Constants for gesture detection - Tuned for single-handed mobile use
-const SWIPE_THRESHOLD = 25; 
-const TAP_MAX_DURATION_MS = 800;
-const TAP_MAX_MOVE = 20;
+// Increased threshold to 35px to prevent accidental swipes when tapping vigorously
+const SWIPE_THRESHOLD = 35; 
+const TAP_MAX_DURATION_MS = 600; // Slightly tighter tap window
+const TAP_MAX_MOVE = 15; // Reduced move tolerance for taps to distinguish from drags
 
 export const useScoreGestures = ({ 
   onAdd, 
@@ -53,14 +54,24 @@ export const useScoreGestures = ({
     const absDeltaX = Math.abs(deltaX);
     const absDeltaY = Math.abs(deltaY);
 
+    // TAP LOGIC
     if (deltaTime < TAP_MAX_DURATION_MS && absDeltaX < TAP_MAX_MOVE && absDeltaY < TAP_MAX_MOVE) {
       if (e.cancelable) e.preventDefault(); 
       onAdd();
     } 
+    // SWIPE LOGIC
     else if (absDeltaY > SWIPE_THRESHOLD && absDeltaY > (absDeltaX * 1.5)) {
+        // Vertical swipe dominance check (must be mostly vertical)
         if (e.cancelable) e.preventDefault();
-        if (deltaY < 0) onAdd(); 
-        else onSubtract(); 
+        
+        if (deltaY < 0) {
+            // Swipe UP -> Treat as Add (Natural scrolling direction) or ignore? 
+            // V1 logic: Up was Add. Keeping consistent.
+            onAdd(); 
+        } else {
+            // Swipe DOWN -> Subtract
+            onSubtract(); 
+        }
     }
     
     startX.current = null;

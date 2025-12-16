@@ -19,7 +19,8 @@ export class GeminiCommandService {
   private devAi: GoogleGenAI | null = null;
 
   private constructor() {
-    // Only initialize Dev Key if available in build environment
+    // SECURITY: Strictly prioritize the environment variable API key as per protocol.
+    // This ensures the system is "pre-configured" when the env var is present.
     if (process.env.API_KEY) {
       this.devAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
     }
@@ -42,20 +43,22 @@ export class GeminiCommandService {
     }
   ): Promise<any> {
     
-    // 1. Try to load User API Key from storage (BYOK)
     let aiClient = this.devAi;
+
+    // HYBRID FALLBACK: In a deployed native app without baked-in env vars, 
+    // allow the user's stored key to take precedence if available.
     try {
-        const gameState = await SecureStorage.load<any>('action_log'); // 'action_log' key stores the whole GameState
+        const gameState = await SecureStorage.load<any>('action_log');
         if (gameState && gameState.config && gameState.config.userApiKey) {
             console.debug("[Gemini] Using User-Provided API Key");
             aiClient = new GoogleGenAI({ apiKey: gameState.config.userApiKey });
         }
     } catch (e) {
-        console.warn("[Gemini] Failed to check for user key, falling back to dev key.", e);
+        // Ignore storage errors, fall back to dev key
     }
 
     if (!aiClient) {
-        console.warn("[Gemini] No API Key available (neither User nor Dev).");
+        console.warn("[Gemini] No API Key available. Voice intelligence disabled.");
         return null;
     }
 
@@ -64,7 +67,8 @@ export class GeminiCommandService {
 
   private async parseLocal(client: GoogleGenAI, transcript: string, context: any): Promise<any> {
     try {
-      const model = "gemini-2.5-flash";
+      // Use Flash model for low-latency voice command processing
+      const model = "gemini-2.5-flash"; 
       const prompt = this.buildPrompt(transcript, context);
 
       const response = await client.models.generateContent({
@@ -73,7 +77,8 @@ export class GeminiCommandService {
         config: {
           responseMimeType: "application/json",
           responseSchema: commandSchema,
-          thinkingConfig: { thinkingBudget: 0 }
+          // Disable thinking for voice commands to ensure maximum speed/responsiveness
+          thinkingConfig: { thinkingBudget: 0 } 
         }
       });
 
@@ -82,7 +87,7 @@ export class GeminiCommandService {
       }
       return null;
     } catch (e) {
-      console.error("Gemini Local Error:", e);
+      console.error("[Gemini] API Error:", e);
       return null;
     }
   }
@@ -91,41 +96,44 @@ export class GeminiCommandService {
       const rosterA = context.playersA.map((p: any) => `${p.name} (ID: ${p.id})`).join(", ");
       const rosterB = context.playersB.map((p: any) => `${p.name} (ID: ${p.id})`).join(", ");
 
+      // Enhanced prompt with phonetic guards for volleyball terms
       return `
-        You are an expert Volleyball Referee Voice Assistant. Analyze the spoken command: "${transcript}".
+        You are an expert Volleyball Referee Assistant. Analyze the spoken command: "${transcript}".
         
         MATCH CONTEXT:
-        - Team A Name: "${context.teamAName}"
-        - Team A Roster: [${rosterA}]
-        - Team B Name: "${context.teamBName}"
-        - Team B Roster: [${rosterB}]
+        - Team A: "${context.teamAName}" (Roster: ${rosterA})
+        - Team B: "${context.teamBName}" (Roster: ${rosterB})
         
-        RULES FOR INTERPRETATION:
-        1. **TEAM NAME MAPPING**:
-           - Identify the Team Name in the transcript (e.g., "Flamengo", "Fluminense").
-           - Map it to 'A' if it matches Team A Name, or 'B' if it matches Team B Name.
-           - Fuzzy matching is allowed (e.g., "Flu" -> "Fluminense").
+        PHONETIC & SEMANTIC RULES:
+        1. **TEAM IDENTIFICATION**:
+           - Map transcript text to Team 'A' or 'B'.
+           - Fuzzy match names (e.g., "Flu" matches "Fluminense").
+           - "Home" -> 'A', "Guest" -> 'B'.
 
-        2. **SERVE / POSSESSION COMMANDS**:
-           - Keywords: "Serve", "Saque", "Sack" (phonetic for Saque), "Ball to", "Side out", "Rodar".
-           - "Serve [Team Name]" / "Sack [Team Name]" -> Return type: 'server', team: [A/B].
-           - "Ball to Team A" -> Return type: 'server', team: 'A'.
-           - NOTE: "Sack" is often a misheard "Saque" (Serve). Treat "Sack [Team]" as a Server Change for that team.
+        2. **SERVE / POSSESSION (Critical)**:
+           - Keywords: "Serve", "Side out", "Rotate", "Ball to".
+           - Phonetic Corrections: "Sack", "Surf", "Search", "Safe" -> Treat as "Serve".
+           - "Serve [Team]" -> type: 'server', team: [A/B].
+           - "Side out" implies the non-serving team takes possession.
 
-        3. **POINT COMMANDS**:
-           - Keywords: "Point", "Ponto", "Marcou", "Score".
-           - "Point [Team Name]" / "Ponto do [Team Name]" -> Return type: 'point', team: [A/B].
-           - If user says "Sack Point" or just "Sack" without a team context but implies scoring, infer type: 'point'. But "Sack [Team]" is usually 'server'.
+        3. **SCORING (Critical)**:
+           - Keywords: "Point", "Score", "Goal", "+1".
+           - Phonetic Corrections: "Pint", "Paint", "Port", "Pot" -> Treat as "Point".
+           - "Point [Team]" -> type: 'point', team: [A/B].
+           - "Ace" -> type: 'point', skill: 'ace'.
+           - "Block" / "Roof" -> type: 'point', skill: 'block'.
+           - "Kill" / "Spike" -> type: 'point', skill: 'attack'.
 
-        4. **PLAYER DISAMBIGUATION**: 
-           - If players share names, choose the one with the longest matching unique name part.
-           - "Ace [Player]" -> type: 'point', skill: 'ace'.
+        4. **PLAYER ATTRIBUTION**: 
+           - Match player names from the roster context.
+           - If a name is unique across both rosters, assign to that team.
+           - "Point by John" (where John is in Team A) -> type: 'point', team: 'A', playerId: [John's ID].
+
+        5. **SYSTEM COMMANDS**:
+           - "Timeout" / "Time out" -> type: 'timeout'.
+           - "Undo" / "Correction" / "Fix" -> type: 'undo'.
         
-        5. **INTENT**:
-           - "Timeout" -> type: 'timeout'.
-           - "Undo" / "Correction" -> type: 'undo'.
-        
-        Return JSON only.
+        Output JSON matching the schema.
       `;
   }
 }

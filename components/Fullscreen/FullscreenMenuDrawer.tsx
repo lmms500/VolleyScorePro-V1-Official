@@ -129,10 +129,17 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = ({
               border-l border-white/20 dark:border-white/10 
               shadow-2xl shadow-black/50
               flex flex-col
+              overflow-hidden
             `}
           >
-            {/* HEADER - Optimized for landscape vertical space */}
-            <div className="px-5 sm:px-8 pt-safe-top pb-3 sm:pb-6 landscape:pb-2 landscape:mt-2 flex justify-between items-center bg-transparent shrink-0 mt-4 sm:mt-6">
+            {/* Global Tactical Background Layer */}
+            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,_#e2e8f0_0%,_#f1f5f9_90%)] dark:bg-[radial-gradient(circle_at_50%_40%,_#1e293b_0%,_#020617_90%)] opacity-100" />
+                <div className="absolute inset-0 noise-overlay opacity-50" />
+            </div>
+
+            {/* HEADER */}
+            <div className="relative z-10 px-5 sm:px-8 pt-safe-top pb-3 sm:pb-6 landscape:pb-2 landscape:mt-2 flex justify-between items-center bg-transparent shrink-0 mt-4 sm:mt-6">
               <h2 className="text-[10px] sm:text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.25em] flex items-center gap-3">
                 <div className="w-1.5 h-4 sm:h-5 bg-indigo-500 rounded-full shadow-[0_0_10px_currentColor]" />
                 {t('game.menu')}
@@ -145,8 +152,8 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = ({
               </button>
             </div>
 
-            {/* CONTENT AREA - Auto Grid in Landscape */}
-            <div className="flex-1 px-5 sm:px-8 py-2 overflow-y-auto custom-scrollbar flex flex-col gap-3 sm:gap-4 landscape:grid landscape:grid-cols-2 landscape:content-center landscape:gap-4">
+            {/* CONTENT AREA */}
+            <div className="relative z-10 flex-1 px-5 sm:px-8 py-2 overflow-y-auto custom-scrollbar flex flex-col gap-3 sm:gap-4 landscape:grid landscape:grid-cols-2 landscape:content-center landscape:gap-4">
               
               <MenuButton 
                 onClick={() => { onClose(); onOpenRoster(); }}
@@ -179,8 +186,8 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = ({
 
             </div>
 
-            {/* FOOTER - Side-by-Side in Landscape, compressed vertical padding */}
-            <div className="p-5 sm:p-8 landscape:p-4 landscape:pb-safe-bottom space-y-4 sm:space-y-6 landscape:space-y-0 landscape:gap-4 shrink-0 bg-gradient-to-t from-white/50 via-white/20 to-transparent dark:from-black/40 dark:via-black/10 pb-safe-bottom">
+            {/* FOOTER */}
+            <div className="relative z-10 p-5 sm:p-8 landscape:p-4 landscape:pb-safe-bottom space-y-4 sm:space-y-6 landscape:space-y-0 landscape:gap-4 shrink-0 bg-gradient-to-t from-white/50 via-white/20 to-transparent dark:from-black/40 dark:via-black/10 pb-safe-bottom">
                  
                  <div className="h-px bg-black/5 dark:bg-white/5 w-full landscape:hidden" />
 

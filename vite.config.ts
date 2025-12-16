@@ -1,3 +1,4 @@
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
@@ -81,9 +82,10 @@ export default defineConfig({
         theme_color: '#020617',
         background_color: '#020617',
         display: 'standalone',
+        scope: '/',
+        start_url: '/',
         orientation: 'portrait',
         categories: ['sports', 'utilities', 'productivity'],
-        start_url: '.',
         id: 'volleyscore-pro-v2',
         icons: [
           {
