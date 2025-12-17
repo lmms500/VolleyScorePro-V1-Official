@@ -5,55 +5,49 @@ import { KeepAwake } from '@capacitor-community/keep-awake';
 
 export const useKeepAwake = (shouldKeepAwake: boolean) => {
   const isNative = Capacitor.isNativePlatform();
-  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+  const wakeLockRef = useRef<any>(null);
 
   useEffect(() => {
     const lockScreen = async () => {
       try {
         if (shouldKeepAwake) {
           if (isNative) {
-            // Native Implementation
             await KeepAwake.keepAwake();
-          } else {
-            // Web Implementation (WakeLock API)
-            if ('wakeLock' in navigator && !wakeLockRef.current) {
-              wakeLockRef.current = await navigator.wakeLock.request('screen');
+          } else if ('wakeLock' in navigator) {
+            // Web Fallback: WakeLock API
+            if (!wakeLockRef.current) {
+              wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
             }
           }
         } else {
-          // Release Lock
           if (isNative) {
             await KeepAwake.allowSleep();
-          } else {
-            if (wakeLockRef.current) {
-              await wakeLockRef.current.release();
-              wakeLockRef.current = null;
-            }
+          } else if (wakeLockRef.current) {
+            await wakeLockRef.current.release();
+            wakeLockRef.current = null;
           }
         }
       } catch (err) {
-        console.warn('KeepAwake failed:', err);
+        console.debug('[KeepAwake] Guard triggered:', err);
       }
     };
 
     lockScreen();
 
-    // Re-acquire web lock on visibility change (tabs/minimizing clears it)
-    const handleVisibilityChange = async () => {
+    const handleVisibility = () => {
       if (!isNative && shouldKeepAwake && document.visibilityState === 'visible') {
         lockScreen();
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('visibilitychange', handleVisibility);
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      // Cleanup on unmount
+      document.removeEventListener('visibilitychange', handleVisibility);
       if (isNative) {
         KeepAwake.allowSleep().catch(() => {});
-      } else {
-        if (wakeLockRef.current) wakeLockRef.current.release().catch(() => {});
+      } else if (wakeLockRef.current) {
+        wakeLockRef.current.release().catch(() => {});
       }
     };
   }, [shouldKeepAwake, isNative]);

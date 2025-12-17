@@ -3,13 +3,14 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, X, WifiOff, RefreshCw } from 'lucide-react';
 import { useServiceWorker } from '../../hooks/useServiceWorker';
-import { Capacitor } from '@capacitor/core';
+import { usePlatform } from '../../hooks/usePlatform';
 
 export const ReloadPrompt: React.FC = () => {
   const { needRefresh, offlineReady, updateServiceWorker, closePrompt } = useServiceWorker();
+  const { isNative } = usePlatform();
 
-  // Strictly disable for Native apps
-  if (Capacitor.isNativePlatform()) return null;
+  // 🛡️ NUNCA mostrar em apps nativos (App Store/Play Store)
+  if (isNative) return null;
 
   if (!offlineReady && !needRefresh) return null;
 
@@ -21,7 +22,7 @@ export const ReloadPrompt: React.FC = () => {
             initial={{ opacity: 0, y: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className="pointer-events-auto bg-slate-900/90 dark:bg-white/10 backdrop-blur-xl border border-white/10 text-white p-4 rounded-2xl shadow-2xl shadow-black/50 max-w-xs flex flex-col gap-3"
+            className="pointer-events-auto bg-slate-900/90 dark:bg-white/10 backdrop-blur-xl border border-white/10 text-white p-4 rounded-2xl shadow-2xl max-w-xs flex flex-col gap-3"
           >
             <div className="flex items-start gap-3">
               <div className={`p-2 rounded-full ${needRefresh ? 'bg-indigo-500' : 'bg-emerald-500'}`}>

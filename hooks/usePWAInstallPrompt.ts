@@ -16,59 +16,48 @@ export const usePWAInstallPrompt = () => {
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   
-  // Guard: Check Native Environment immediately
   const isNative = Capacitor.isNativePlatform();
 
   useEffect(() => {
-    // 🛡️ CRITICAL: If Native, strictly disable all PWA prompt logic
+    // 🛡️ NATIVE KILL SWITCH
     if (isNative) {
         setIsIOS(false);
-        setIsStandalone(true); // Treat as "already installed" to suppress prompts
+        setIsStandalone(true); 
         return;
     }
 
-    // Detect iOS (Only relevant if Web)
     const userAgent = window.navigator.userAgent.toLowerCase();
     const isIPad = navigator.maxTouchPoints > 0 && /macintosh/.test(userAgent);
     setIsIOS(/iphone|ipad|ipod/.test(userAgent) || isIPad);
 
-    // Detect Standalone Mode
     const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
     setIsStandalone(isStandaloneMode);
 
-    // Capture install prompt
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as IBeforeInstallPromptEvent);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handler);
-    };
+    return () => window.removeEventListener('beforeinstallprompt', handler);
   }, [isNative]);
 
   const promptInstall = useCallback(async () => {
-    // Safety check
     if (isNative || !deferredPrompt) return;
 
-    await deferredPrompt.prompt();
-
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
-      setDeferredPrompt(null);
-    } else {
-      console.log('User dismissed the install prompt');
+    try {
+        await deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') setDeferredPrompt(null);
+    } catch (e) {
+        console.warn("PWA Prompt failed", e);
     }
   }, [deferredPrompt, isNative]);
 
   return {
     isInstallable: !!deferredPrompt && !isStandalone && !isNative,
     isIOS: isIOS && !isStandalone && !isNative,
-    isStandalone: isStandalone || isNative, // Native apps consider themselves "installed"
+    isStandalone: isStandalone || isNative, 
     promptInstall
   };
 };
