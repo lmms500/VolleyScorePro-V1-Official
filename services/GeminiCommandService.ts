@@ -1,30 +1,43 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { Player, TeamId, SkillType } from "../types";
-import { SecureStorage } from "./SecureStorage";
+import { Player, TeamId, SkillType, VoiceCommandIntent } from "../types";
 
-const commandSchema = {
+// Schema defined inline to ensure strict typing with the SDK and remove external dependencies
+const VOICE_COMMAND_SCHEMA = {
   type: Type.OBJECT,
   properties: {
-    type: { type: Type.STRING, description: "One of: 'point', 'timeout', 'server', 'undo', 'unknown'" },
-    team: { type: Type.STRING, description: "'A' or 'B'. Infer from context, team name, or player name." },
-    playerId: { type: Type.STRING, description: "The UUID of the player if mentioned and identified in the roster. Use 'unknown' if player is mentioned but not in roster." },
-    skill: { type: Type.STRING, description: "One of: 'attack', 'block', 'ace', 'opponent_error'" },
-    isNegative: { type: Type.BOOLEAN, description: "True if the user wants to REMOVE/UNDO a point." }
-  }
+    type: { 
+      type: Type.STRING, 
+      description: "Tipo do comando: 'point', 'timeout', 'server', 'undo', 'unknown'" 
+    },
+    team: { 
+      type: Type.STRING, 
+      description: "ID do time: 'A' ou 'B'." 
+    },
+    playerId: { 
+      type: Type.STRING, 
+      description: "UUID do jogador. 'unknown' se não encontrado." 
+    },
+    skill: { 
+      type: Type.STRING, 
+      description: "Habilidade: 'attack', 'block', 'ace', 'opponent_error', 'generic'" 
+    },
+    isNegative: { 
+      type: Type.BOOLEAN, 
+      description: "True se for correção/remover ponto." 
+    }
+  },
+  required: ["type", "isNegative"]
 };
 
 export class GeminiCommandService {
   private static instance: GeminiCommandService;
-  private devAi: GoogleGenAI | null = null;
+  
+  // Configuration
+  private apiKey: string = process.env.API_KEY || ''; 
+  private proxyUrl: string = process.env.VITE_AI_PROXY_URL || '';
 
-  private constructor() {
-    // SECURITY: Strictly prioritize the environment variable API key as per protocol.
-    // This ensures the system is "pre-configured" when the env var is present.
-    if (process.env.API_KEY) {
-      this.devAi = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    }
-  }
+  private constructor() {}
 
   public static getInstance(): GeminiCommandService {
     if (!GeminiCommandService.instance) {
@@ -33,6 +46,9 @@ export class GeminiCommandService {
     return GeminiCommandService.instance;
   }
 
+  /**
+   * Main entry point. Decides between Local API or Cloud Gateway.
+   */
   public async parseCommand(
     transcript: string, 
     context: {
@@ -41,99 +57,129 @@ export class GeminiCommandService {
       playersA: Player[];
       playersB: Player[];
     }
-  ): Promise<any> {
-    
-    let aiClient = this.devAi;
-
-    // HYBRID FALLBACK: In a deployed native app without baked-in env vars, 
-    // allow the user's stored key to take precedence if available.
+  ): Promise<VoiceCommandIntent | null> {
     try {
-        const gameState = await SecureStorage.load<any>('action_log');
-        if (gameState && gameState.config && gameState.config.userApiKey) {
-            console.debug("[Gemini] Using User-Provided API Key");
-            aiClient = new GoogleGenAI({ apiKey: gameState.config.userApiKey });
+        // SECURITY GATEWAY PATTERN
+        // 1. Production Path: Use Proxy if available
+        if (this.proxyUrl) {
+            return await this.remoteParse(transcript, context);
+        } 
+        
+        // 2. Development Path: Use Local SDK if Key is available
+        if (this.apiKey) {
+            return await this.localParse(transcript, context);
         }
-    } catch (e) {
-        // Ignore storage errors, fall back to dev key
-    }
 
-    if (!aiClient) {
-        console.warn("[Gemini] No API Key available. Voice intelligence disabled.");
+        console.warn("[Gemini] AI Service not configured (Missing Proxy URL or API Key)");
+        return null;
+
+    } catch (e) {
+        console.error("[Gemini] Service Error:", e);
         return null;
     }
-
-    return this.parseLocal(aiClient, transcript, context);
   }
 
-  private async parseLocal(client: GoogleGenAI, transcript: string, context: any): Promise<any> {
+  private validateParsedCommand(data: any): VoiceCommandIntent | null {
+      if (!data || typeof data !== 'object') return null;
+      // Ensure required fields
+      if (!data.type) return null;
+      
+      const safeData = { ...data };
+      if (typeof safeData.isNegative !== 'boolean') safeData.isNegative = false;
+      if (safeData.type === 'unknown') return { type: 'unknown', confidence: 0, rawText: '' };
+      
+      // Map simplified AI structure to strictly typed intent
+      return {
+          type: safeData.type as any,
+          team: safeData.team as TeamId,
+          player: safeData.playerId ? { id: safeData.playerId, name: 'AI Identified' } : undefined,
+          skill: safeData.skill as SkillType,
+          isNegative: safeData.isNegative,
+          confidence: 0.9, // AI confidence is generally high if it returns struct
+          rawText: '' // Filled by caller if needed
+      };
+  }
+
+  /**
+   * Safe backend call. 
+   * The backend should handle authentication and rate limiting.
+   */
+  private async remoteParse(transcript: string, context: any): Promise<VoiceCommandIntent | null> {
+      try {
+          const response = await fetch(this.proxyUrl, {
+              method: 'POST',
+              headers: { 
+                  'Content-Type': 'application/json',
+                  // Optional: Add App-Check token here if using Firebase App Check
+              },
+              body: JSON.stringify({ 
+                  action: 'parse_command',
+                  payload: { transcript, context } 
+              })
+          });
+
+          if (!response.ok) throw new Error(`Proxy error: ${response.status}`);
+          
+          const result = await response.json();
+          return this.validateParsedCommand(result);
+      } catch (error) {
+          console.warn("[Gemini] Remote parse failed, attempting fallback if local key exists.");
+          if (this.apiKey) return this.localParse(transcript, context);
+          return null;
+      }
+  }
+
+  /**
+   * Client-side implementation.
+   * NOTE: API Key is exposed here. Use only for development or protected builds.
+   */
+  private async localParse(transcript: string, context: any): Promise<VoiceCommandIntent | null> {
+    const ai = new GoogleGenAI({ apiKey: this.apiKey });
+
     try {
-      // Use Flash model for low-latency voice command processing
-      const model = "gemini-2.5-flash"; 
+      // Updated to gemini-3-flash-preview for optimal latency/cost on basic text tasks
+      const model = "gemini-3-flash-preview"; 
       const prompt = this.buildPrompt(transcript, context);
 
-      const response = await client.models.generateContent({
+      const response = await ai.models.generateContent({
         model,
         contents: prompt,
         config: {
           responseMimeType: "application/json",
-          responseSchema: commandSchema,
-          // Disable thinking for voice commands to ensure maximum speed/responsiveness
-          thinkingConfig: { thinkingBudget: 0 } 
+          responseSchema: VOICE_COMMAND_SCHEMA,
+          thinkingConfig: { thinkingBudget: 0 } // Zero latency priority for voice commands
         }
       });
 
       if (response.text) {
-          return JSON.parse(response.text);
+          const result = JSON.parse(response.text);
+          return this.validateParsedCommand(result);
       }
       return null;
     } catch (e) {
-      console.error("[Gemini] API Error:", e);
-      return null;
+      // Do not log full error object in prod to avoid leaking headers
+      console.error("[Gemini] Local Parse Error");
+      throw e;
     }
   }
 
   private buildPrompt(transcript: string, context: any): string {
-      const rosterA = context.playersA.map((p: any) => `${p.name} (ID: ${p.id})`).join(", ");
-      const rosterB = context.playersB.map((p: any) => `${p.name} (ID: ${p.id})`).join(", ");
+      const rosterA = context.playersA.map((p: any) => `${p.name} (#${p.number})`).join(", ");
+      const rosterB = context.playersB.map((p: any) => `${p.name} (#${p.number})`).join(", ");
 
-      // Enhanced prompt with phonetic guards for volleyball terms
       return `
-        You are an expert Volleyball Referee Assistant. Analyze the spoken command: "${transcript}".
+        Interpret volleyball voice commands.
+        Context:
+        Team A: "${context.teamAName}" [${rosterA}]
+        Team B: "${context.teamBName}" [${rosterB}]
         
-        MATCH CONTEXT:
-        - Team A: "${context.teamAName}" (Roster: ${rosterA})
-        - Team B: "${context.teamBName}" (Roster: ${rosterB})
+        Input: "${transcript}"
         
-        PHONETIC & SEMANTIC RULES:
-        1. **TEAM IDENTIFICATION**:
-           - Map transcript text to Team 'A' or 'B'.
-           - Fuzzy match names (e.g., "Flu" matches "Fluminense").
-           - "Home" -> 'A', "Guest" -> 'B'.
-
-        2. **SERVE / POSSESSION (Critical)**:
-           - Keywords: "Serve", "Side out", "Rotate", "Ball to".
-           - Phonetic Corrections: "Sack", "Surf", "Search", "Safe" -> Treat as "Serve".
-           - "Serve [Team]" -> type: 'server', team: [A/B].
-           - "Side out" implies the non-serving team takes possession.
-
-        3. **SCORING (Critical)**:
-           - Keywords: "Point", "Score", "Goal", "+1".
-           - Phonetic Corrections: "Pint", "Paint", "Port", "Pot" -> Treat as "Point".
-           - "Point [Team]" -> type: 'point', team: [A/B].
-           - "Ace" -> type: 'point', skill: 'ace'.
-           - "Block" / "Roof" -> type: 'point', skill: 'block'.
-           - "Kill" / "Spike" -> type: 'point', skill: 'attack'.
-
-        4. **PLAYER ATTRIBUTION**: 
-           - Match player names from the roster context.
-           - If a name is unique across both rosters, assign to that team.
-           - "Point by John" (where John is in Team A) -> type: 'point', team: 'A', playerId: [John's ID].
-
-        5. **SYSTEM COMMANDS**:
-           - "Timeout" / "Time out" -> type: 'timeout'.
-           - "Undo" / "Correction" / "Fix" -> type: 'undo'.
-        
-        Output JSON matching the schema.
+        Rules:
+        - Identify Team A/B based on name similarity.
+        - Identify Player based on name/number similarity.
+        - Skill keywords: Ace, Block, Attack, Out/Error.
+        - "Remove point" -> isNegative: true.
       `;
   }
 }

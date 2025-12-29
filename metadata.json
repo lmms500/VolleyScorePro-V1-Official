@@ -1,8 +1,11 @@
 {
-  "name": "Copy of VolleyScore Pro Versão 1.0 - Official",
-  "description": "VolleyScore Pro 2 is the definitive volleyball companion. It combines a high-performance gesture-based scoreboard with deep team management. Features: Smart Rotation tracking (Standard & Balanced), customizable rules (Indoor/Beach, Sudden Death), career player statistics with 'Scout Mode', real-time voice commands, and rich match history with momentum graphs.",
-  "version": "2.0.6",
+  "name": "VolleyScore Pro 2",
+  "short_name": "VolleyScore",
+  "description": "Premium Volleyball Scoreboard & Analytics. Features Smart Rotation, AI Tactical Coaching, Pro Scout Mode, and Real-time Voice Control. Optimized for high-performance court usage.",
+  "version": "2.1.0",
   "requestFramePermissions": [
     "microphone"
-  ]
+  ],
+  "theme_color": "#020617",
+  "background_color": "#020617"
 }

@@ -158,7 +158,13 @@ export const TeamColumn = memo(({
 
       <div className="flex flex-col mb-2 w-full">
           <div className="flex items-center gap-3 mb-2 w-full">
-              <TeamLogoUploader currentLogo={team.logo} onUpdate={handleUpdateLogo} teamName={team.name} />
+              <TeamLogoUploader 
+                  currentLogo={team.logo} 
+                  onUpdate={handleUpdateLogo} 
+                  teamName={team.name} 
+                  teamId={id} 
+                  onColorUpdate={handleUpdateColor} 
+              />
               <div className="flex-1 min-w-0"><EditableTitle name={team.name} onSave={handleUpdateName} className={`text-lg landscape:text-base font-black uppercase tracking-tight ${colorConfig.text} ${colorConfig.textDark} drop-shadow-sm w-full`} /></div>
               <div className="flex gap-1.5 flex-wrap"><div className={`px-2 py-0.5 rounded-md text-[9px] font-bold border flex items-center gap-1 shadow-sm text-white ${colorConfig.bg} ${colorConfig.border}`}><Users size={10} strokeWidth={2.5} /> {displayedPlayers.length}</div><div className={`px-2 py-0.5 rounded-md text-[9px] font-bold border flex items-center gap-1 shadow-sm ${colorConfig.bg.replace('/20', '/40')} ${colorConfig.border} dark:text-white dark:border-white/20 text-slate-700`} title="Avg Team Skill"><Activity size={10} strokeWidth={2.5} /> {teamStrength}</div></div>
           </div>

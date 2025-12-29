@@ -5,7 +5,8 @@ import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { resolveTheme } from '../../utils/colors';
 import { TeamColor } from '../../types';
-import { useTimer } from '../../contexts/TimerContext';
+import { useTimerValue } from '../../contexts/TimerContext';
+import { TeamLogo } from '../ui/TeamLogo';
 
 interface FloatingTopBarProps {
   currentSet: number;
@@ -146,8 +147,8 @@ const TeamInfoSmart = memo<{
                     {name}
                 </span>
                 {logo && (
-                    <div className="w-6 h-6 rounded-full overflow-hidden border border-black/10 dark:border-white/20 shadow-sm flex-shrink-0 bg-white/50 dark:bg-black/20">
-                        <img src={logo} alt="" className="w-full h-full object-cover" />
+                    <div className="w-12 h-12 flex-shrink-0 flex items-center justify-center">
+                        <TeamLogo src={logo} alt="" className="w-full h-full object-contain drop-shadow-md" />
                     </div>
                 )}
             </div>
@@ -167,9 +168,8 @@ const TeamInfoSmart = memo<{
             </AnimatePresence>
         </div>
 
-        {/* Serving Indicator - Floating Ball */}
-        <div className="relative w-6 h-6 flex items-center justify-center flex-shrink-0">
-             {/* Passive dot */}
+        {/* Serving Indicator - Floating Ball - Improved Centering */}
+        <div className="relative w-8 h-full flex items-center justify-center flex-shrink-0">
              {!isServing && <div className={`w-1.5 h-1.5 rounded-full opacity-30 bg-slate-300 dark:bg-white/30`} />}
              
              <AnimatePresence>
@@ -182,8 +182,7 @@ const TeamInfoSmart = memo<{
                         transition={{ type: "spring", stiffness: 300, damping: 20 }}
                         className={`absolute inset-0 flex items-center justify-center ${theme.text} dark:text-white drop-shadow-md`}
                     >
-                        {/* High contrast ball for HUD */}
-                        <div className="bg-white rounded-full p-0.5 shadow-lg border border-black/5">
+                        <div className="bg-white rounded-full p-0.5 shadow-lg border border-black/5 flex items-center justify-center">
                             <Volleyball size={18} className={theme.text} fill="currentColor" fillOpacity={0.2} />
                         </div>
                     </motion.div>
@@ -206,7 +205,8 @@ const CenterDisplayStealth = memo<{
   isDeuce: boolean;
 }>(({ isTimerRunning, onToggleTimer, onResetTimer, currentSet, isTieBreak, inSuddenDeath, isDeuce }) => {
   const { t } = useTranslation();
-  const { seconds } = useTimer();
+  // Use specialized hook
+  const { seconds } = useTimerValue();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   let key = 'timer';

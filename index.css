@@ -3,61 +3,75 @@
 @tailwind components;
 @tailwind utilities;
 
-/* PWA & Mobile Optimizations */
+/* PRODUCTION MOBILE LOCKDOWN v2.0 */
 html, body {
   height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
-  overscroll-behavior-y: none;
-  background-color: #020617;
+  overflow: hidden; 
+  overscroll-behavior: none;
+  background-color: #020617; 
   -webkit-text-size-adjust: 100%; 
-  text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeSpeed; /* Prioriza velocidade em telas 120Hz */
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   -webkit-user-select: none;
-  -webkit-touch-callout: none;
   touch-action: none;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
 }
 
-/* --- HARDWARE ACCELERATION PROTOCOL --- */
-.hardware-accelerated {
+#root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* PERFORMANCE HINTS */
+.gpu-layer {
   transform: translateZ(0);
   backface-visibility: hidden;
   perspective: 1000px;
   will-change: transform, opacity;
 }
 
-/* Otimização para listas longas (Histórico/Roster) */
-.virtual-list-item {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 80px; /* Estimativa de altura para ajudar o browser */
+/* SMOOTH SCROLLING FOR MODALS */
+.custom-scrollbar {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-.pt-safe-top { padding-top: env(safe-area-inset-top); }
-.pb-safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
-.pl-safe-left { padding-left: env(safe-area-inset-left); }
-.pr-safe-right { padding-right: env(safe-area-inset-right); }
-
-::-webkit-scrollbar { display: none; width: 0px; background: transparent; }
-* { -ms-overflow-style: none; scrollbar-width: none; }
-
-body {
-  transition-property: color, background-color, border-color;
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 300ms;
-  font-family: 'Inter', sans-serif;
+/* OLED BLACK PRESERVATION */
+.dark-gradient-bg {
+  background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
 }
 
+/* RENDER OPTIMIZATIONS */
+.render-crisp {
+  image-rendering: -webkit-optimize-contrast;
+  shape-rendering: geometricPrecision; 
+}
+
+/* SAFE AREA HEIGHT FIXES */
+:root {
+  --sat: env(safe-area-inset-top);
+  --sar: env(safe-area-inset-right);
+  --sab: env(safe-area-inset-bottom);
+  --sal: env(safe-area-inset-left);
+}
+
+/* NOISE OVERLAY PREMIUM */
 .bg-noise {
   position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
+  top: 0; left: 0; width: 100%; height: 100%;
   pointer-events: none;
-  z-index: 0;
-  opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  z-index: 1;
+  opacity: 0.015;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }

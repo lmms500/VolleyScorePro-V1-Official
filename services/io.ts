@@ -46,17 +46,30 @@ const shareOrDownload = async (filename: string, jsonString: string, title: stri
     }
 };
 
+const sanitizeForExport = (data: any): any => {
+    const sensitiveKeys = ['userApiKey', 'apiKey', 'accessToken', 'refreshToken'];
+    return JSON.parse(JSON.stringify(data, (key, value) => {
+        if (sensitiveKeys.includes(key)) {
+            return undefined; // Strip sensitive keys
+        }
+        return value;
+    }));
+};
+
 export const downloadJSON = async (filename: string, data: any): Promise<void> => {
     const safeFilename = filename.endsWith('.json') ? filename : `${filename}.json`;
-    await shareOrDownload(safeFilename, JSON.stringify(data, null, 2), 'VolleyScore Backup');
+    const cleanData = sanitizeForExport(data);
+    await shareOrDownload(safeFilename, JSON.stringify(cleanData, null, 2), 'VolleyScore Backup');
 };
 
 export const exportActiveMatch = async (gameState: GameState): Promise<void> => {
+    const cleanState = sanitizeForExport(gameState);
+    
     const payload = {
         type: 'VS_ACTIVE_MATCH',
         version: '2.0.6',
         timestamp: Date.now(),
-        data: gameState
+        data: cleanState
     };
     
     const dateStr = new Date().toISOString().split('T')[0];

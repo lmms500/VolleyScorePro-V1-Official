@@ -74,15 +74,15 @@ export const modalVariants: Variants = {
     transition: { duration: 0.2 }
   },
   visible: { 
-    opacity: 1,
-    scale: 1,
+    opacity: 1, 
+    scale: 1, 
     y: 0,
-    filter: "none", // Fix: Explicitly remove blur
+    filter: "none", 
     transition: isReducedMotion ? { duration: 0.1 } : liquidSpring
   },
   exit: { 
     opacity: 0, 
-    scale: 0.96,
+    scale: 0.96, 
     y: 10,
     filter: "blur(4px)",
     transition: { duration: 0.2, ease: "easeIn" }
@@ -143,7 +143,7 @@ export const buttonTap: Variants = {
   idle: { scale: 1, filter: "brightness(1)" },
   tap: { 
     scale: isReducedMotion ? 1 : 0.94, 
-    filter: "brightness(1.1)", 
+    filter: "brightness(1.15)", 
     transition: { type: "spring", stiffness: 800, damping: 15 } 
   },
   hover: { 
@@ -152,12 +152,12 @@ export const buttonTap: Variants = {
   }
 };
 
-// 6. Liquid Ticker
+// 6. Liquid Ticker - Increased scale from 0.5 to 0.8 for smoother headroom
 export const tickerVariants: Variants = {
   enter: (direction: number) => ({
     y: isReducedMotion ? 0 : (direction > 0 ? "60%" : "-60%"), 
     opacity: 0,
-    scale: isReducedMotion ? 1 : 0.5,
+    scale: isReducedMotion ? 1 : 0.8,
     filter: isReducedMotion ? "blur(0px)" : "blur(10px)",
     position: "absolute"
   }),
@@ -173,7 +173,7 @@ export const tickerVariants: Variants = {
   exit: (direction: number) => ({
     y: isReducedMotion ? 0 : (direction > 0 ? "-60%" : "60%"),
     opacity: 0,
-    scale: isReducedMotion ? 1 : 0.5,
+    scale: isReducedMotion ? 1 : 0.8,
     filter: isReducedMotion ? "blur(0px)" : "blur(10px)",
     position: "absolute",
     zIndex: 0,
@@ -181,27 +181,43 @@ export const tickerVariants: Variants = {
   })
 };
 
-// 7. Pulse
+// 7. Pulse (Intensified for Critical Points)
 export const pulseHeartbeat: Variants = {
   idle: { scale: 1, opacity: 1 },
   pulse: {
-    scale: isReducedMotion ? 1 : [1, 1.05, 1],
+    scale: isReducedMotion ? 1 : [1, 1.08, 1],
     opacity: [1, 0.8, 1],
     transition: {
-      duration: 1.5,
+      duration: 1.2,
       repeat: Infinity,
       ease: "easeInOut"
     }
   }
 };
 
-// 8. Stamp
+// 8. Ghost Score (Background Highlight)
+export const ghostScoreVariants: Variants = {
+  hidden: { opacity: 0, scale: 0.5, filter: "blur(10px)" },
+  visible: { 
+    opacity: 0.08, 
+    scale: 1, 
+    filter: "blur(0px)",
+    transition: { duration: 0.8, ease: "easeOut" }
+  },
+  pulse: {
+    scale: [1, 1.1, 1],
+    opacity: [0.08, 0.12, 0.08],
+    transition: { duration: 2, repeat: Infinity, ease: "easeInOut" }
+  }
+};
+
+// 9. Stamp
 export const stampVariants: Variants = {
   hidden: { scale: 2, opacity: 0, filter: "blur(10px)" },
   visible: { 
     scale: 1, 
     opacity: 1, 
-    filter: "blur(0px)", // Stamp effect needs blur to animate sharpness.
+    filter: "none", 
     transition: isReducedMotion ? { duration: 0 } : softBounce
   },
   exit: { 
@@ -212,21 +228,24 @@ export const stampVariants: Variants = {
   }
 };
 
-// 9. Vignette
+// 10. Vignette (Sudden Death - Phase 1 Polish)
 export const vignettePulse: Variants = {
-  hidden: { opacity: 0 },
+  hidden: { 
+    opacity: 0,
+    scale: 1.2,
+    transition: { duration: 0.5 }
+  },
   pulse: {
-    opacity: [0.2, 0.6],
+    opacity: [0.4, 0.7],
+    scale: [1.05, 1],
     transition: {
-      duration: 1,
-      repeat: Infinity,
-      repeatType: "reverse",
-      ease: "easeInOut"
+      opacity: { duration: 1.5, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" },
+      scale: { duration: 3, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }
     }
   }
 };
 
-// 10. List Item
+// 11. List Item
 export const listItemVariants: Variants = {
   hidden: { opacity: 0, scale: 0.9, x: -10 },
   visible: { opacity: 1, scale: 1, x: 0, transition: isReducedMotion ? { duration: 0 } : liquidSpring },

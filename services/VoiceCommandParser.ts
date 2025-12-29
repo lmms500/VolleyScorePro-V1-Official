@@ -1,20 +1,8 @@
 
-import { TeamId, Player, SkillType } from '../types';
+import { TeamId, Player, SkillType, VoiceCommandIntent } from '../types';
 import { isFuzzyMatch } from '../utils/stringUtils';
 
-export interface VoiceCommandIntent {
-  type: 'point' | 'timeout' | 'server' | 'undo' | 'unknown';
-  team?: TeamId;
-  player?: { id: string; name: string };
-  skill?: SkillType;
-  isNegative?: boolean;
-  confidence: number;
-  rawText: string;
-  debugMessage?: string;
-  requiresMoreInfo?: boolean;
-  isAmbiguous?: boolean;
-  ambiguousCandidates?: string[];
-}
+// VoiceCommandIntent moved to types/domain.ts
 
 // --- VOCABULARY DEFINITIONS ---
 

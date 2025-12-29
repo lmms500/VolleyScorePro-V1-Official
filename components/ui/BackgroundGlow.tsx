@@ -1,6 +1,6 @@
 
 import React, { memo } from 'react';
-import { motion, Transition } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { TeamColor } from '../../types';
 import { getHexFromColor } from '../../utils/colors';
 
@@ -17,64 +17,61 @@ export const BackgroundGlow: React.FC<BackgroundGlowProps> = memo(({ isSwapped, 
   const hexA = getHexFromColor(colorA);
   const hexB = getHexFromColor(colorB);
 
-  // Configuração de física ultra-fluida para o fundo
-  const fluidTransition: Transition = {
-    type: "spring",
-    stiffness: 80, // Reduzido para menos cálculo de física por frame
-    damping: 30,    
-    mass: 2       
-  };
+  // Determinamos a cor ativa para cada "Lado Físico" da tela
+  // Lado Esquerdo (Top-Left): Se trocado, mostra cor do Time B. Se normal, Time A.
+  const activeLeftColor = isSwapped ? hexB : hexA;
+  
+  // Lado Direito (Bottom-Right): Se trocado, mostra cor do Time A. Se normal, Time B.
+  const activeRightColor = isSwapped ? hexA : hexB;
 
-  // Definição das posições
-  // Posição 1: Topo Esquerdo
-  const pos1 = { top: "-20%", left: "-20%", right: "auto", bottom: "auto" };
-  // Posição 2: Fundo Direito
-  const pos2 = { top: "auto", left: "auto", right: "-20%", bottom: "-20%" };
+  // --- LOW POWER MODE (STATIC CSS GRADIENT) ---
+  if (lowPowerMode) {
+      return (
+          <div 
+            className="fixed inset-0 z-0 pointer-events-none transition-all duration-700 ease-in-out"
+            style={{
+                // Gradiente diagonal fixo: Top-Left (Left Color) -> Bottom-Right (Right Color)
+                background: `linear-gradient(to bottom right, ${activeLeftColor}15, ${activeRightColor}15)`, 
+                backgroundSize: '100% 100%'
+            }}
+            aria-hidden="true"
+          />
+      );
+  }
 
-  // OTIMIZAÇÃO: Android odeia blurs gigantes.
-  // Modo Normal: Reduzido de 160px para 90px para aliviar GPU fill-rate.
-  // Modo LowPower: Sem blur, apenas opacidade baixa (muito mais rápido).
-  // FIX: Blend modes adjusted for Light Mode visibility (Multiply instead of Screen)
-  // UPDATED: Increased opacity significantly for light mode (opacity-60) vs dark mode (opacity-30)
-  const blurClass = lowPowerMode 
-    ? 'opacity-10' 
-    : 'blur-[80px] opacity-60 dark:opacity-30 mix-blend-multiply dark:mix-blend-screen saturate-200';
-
+  // --- HIGH PERFORMANCE MODE (GPU COMPOSITED) ---
   return (
     <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden select-none bg-slate-50 dark:bg-[#020617]" aria-hidden="true">
        
-       {/* BLOB TIME A */}
+       {/* SPOTLIGHT ESQUERDO (Top-Left) 
+           - Fixo geograficamente.
+           - Muda de cor suavemente quando os times trocam.
+           - Tamanho reduzido (65vmax) para não invadir o centro.
+       */}
        <motion.div
-         layout
          initial={false}
-         animate={{
-            ...(isSwapped ? pos2 : pos1),
-            backgroundColor: hexA
+         animate={{ backgroundColor: activeLeftColor }}
+         transition={{ duration: 0.8, ease: "easeInOut" }} // Troca de cor suave
+         className="absolute -top-[10%] -left-[10%] w-[65vmax] h-[65vmax] rounded-full will-change-[background-color] mix-blend-multiply dark:mix-blend-screen saturate-150 opacity-40 dark:opacity-25 blur-[90px]"
+         style={{ 
+             transform: 'translateZ(0)',
+             backfaceVisibility: 'hidden'
          }}
-         transition={fluidTransition}
-         className={`
-             absolute w-[80vw] h-[80vw] md:w-[50vw] md:h-[50vw]
-             rounded-full will-change-transform transform-gpu
-             ${blurClass}
-         `}
-         style={{ translateZ: 0 }} // Force Hardware Acceleration
        />
 
-       {/* BLOB TIME B */}
+       {/* SPOTLIGHT DIREITO (Bottom-Right)
+           - Fixo geograficamente.
+           - Cor oposta.
+       */}
        <motion.div
-         layout
          initial={false}
-         animate={{
-            ...(isSwapped ? pos1 : pos2),
-            backgroundColor: hexB
+         animate={{ backgroundColor: activeRightColor }}
+         transition={{ duration: 0.8, ease: "easeInOut" }}
+         className="absolute -bottom-[10%] -right-[10%] w-[65vmax] h-[65vmax] rounded-full will-change-[background-color] mix-blend-multiply dark:mix-blend-screen saturate-150 opacity-40 dark:opacity-25 blur-[90px]"
+         style={{ 
+             transform: 'translateZ(0)',
+             backfaceVisibility: 'hidden'
          }}
-         transition={fluidTransition}
-         className={`
-             absolute w-[80vw] h-[80vw] md:w-[50vw] md:h-[50vw]
-             rounded-full will-change-transform transform-gpu
-             ${blurClass}
-         `}
-         style={{ translateZ: 0 }} // Force Hardware Acceleration
        />
     </div>
   );

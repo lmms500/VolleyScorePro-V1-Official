@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { PlayerProfile, PlayerRole, ProfileStats } from '../types';
 import { SecureStorage } from '../services/SecureStorage';
@@ -42,7 +43,8 @@ export const usePlayerProfiles = () => {
   /**
    * Smart Upsert
    */
-  const upsertProfile = useCallback((name: string, skillLevel: number, id?: string, extras?: { number?: string, avatar?: string, role?: PlayerRole }): PlayerProfile => {
+  // Adicionado isPublic aos extras para permitir persistência de visibilidade em rankings
+  const upsertProfile = useCallback((name: string, skillLevel: number, id?: string, extras?: { number?: string, avatar?: string, role?: PlayerRole, isPublic?: boolean }): PlayerProfile => {
     const cleanName = name.trim();
     const now = Date.now();
     let existing: PlayerProfile | undefined;
@@ -60,6 +62,8 @@ export const usePlayerProfiles = () => {
       number: extras?.number !== undefined ? extras.number : existing?.number,
       avatar: extras?.avatar !== undefined ? extras.avatar : existing?.avatar,
       role: extras?.role !== undefined ? extras.role : existing?.role,
+      // Preservar flag de visibilidade pública se fornecida
+      isPublic: extras?.isPublic !== undefined ? extras.isPublic : existing?.isPublic,
       stats: existing?.stats, 
       createdAt: existing?.createdAt || now,
       lastUpdated: now
@@ -119,17 +123,11 @@ export const usePlayerProfiles = () => {
           remoteProfiles.forEach(remote => {
               const local = next.get(remote.id);
               // Simple Merge: If remote is newer or local doesn't exist, take remote.
-              // For safety, let's assume remote is valid if it doesn't exist locally.
-              // If it exists locally, we might want to keep the one with lastUpdated (if we tracked it robustly).
-              // For V1 Sync, we'll favor existing local unless it's missing.
-              // Actually, SyncService typically implies merging data.
-              
               if (!local) {
                   next.set(remote.id, remote);
                   changes = true;
               } else {
-                  // Conflict resolution. 
-                  // For now, if local has more matchesPlayed, keep local? Or trust lastUpdated.
+                  // Conflict resolution based on lastUpdated timestamp
                   if ((remote.lastUpdated || 0) > (local.lastUpdated || 0)) {
                       next.set(remote.id, remote);
                       changes = true;

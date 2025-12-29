@@ -1,9 +1,8 @@
 
-import { Capacitor } from '@capacitor/core';
+import { platformService } from './PlatformService';
 
 export class AdService {
   private static instance: AdService;
-  private isNative: boolean = Capacitor.isNativePlatform();
   private initialized: boolean = false;
   private bannerVisible: boolean = false;
 
@@ -18,6 +17,10 @@ export class AdService {
   public static getInstance(): AdService {
     if (!AdService.instance) AdService.instance = new AdService();
     return AdService.instance;
+  }
+
+  private get isNative() {
+      return platformService.isNative;
   }
 
   public async initialize(): Promise<void> {

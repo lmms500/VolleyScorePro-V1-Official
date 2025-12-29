@@ -21,7 +21,9 @@ export const DEFAULT_CONFIG: GameConfig = {
   reducedMotion: false,
   // Default Security & Access State
   adsRemoved: false,
-  developerMode: false
+  developerMode: false,
+  // Added missing broadcastTheme to satisfy GameConfig type
+  broadcastTheme: 'minimal'
 };
 
 export const MIN_LEAD_TO_WIN = 2;

@@ -33,7 +33,8 @@
     "download": "Download",
     "analysis": "Analysis",
     "logs": "Logs",
-    "undo": "Undo"
+    "undo": "Undo",
+    "summary": "Summary"
   },
   "controls": {
     "undo": "Undo",
@@ -63,7 +64,11 @@
     "golden_point": "GOLDEN POINT",
     "match_point": "MATCH POINT",
     "set_point": "SET POINT",
-    "tie_break": "TIE BREAK"
+    "tie_break": "TIE BREAK",
+    "offline": "Offline Mode",
+    "live": "LIVE",
+    "broadcasting": "Broadcasting",
+    "liveNow": "Live Now"
   },
   "roles": {
     "setter": "Setter",
@@ -618,5 +623,37 @@
       "rotate": "Rotate",
       "undoRotate": "Undo",
       "hint": "Players rotate automatically on Side-Out."
+  },
+  "liveSync": {
+    "title": "VolleyLink Live",
+    "activeSession": "Active Session",
+    "copyOverlay": "Copy Overlay Link (OBS)",
+    "overlayCopied": "Overlay Link copied to clipboard!",
+    "broadcastTitle": "Broadcast Match",
+    "broadcastSub": "You control the score",
+    "watchTitle": "Watch Match",
+    "watchSub": "Follow in real-time",
+    "enterCode": "Enter Room Code",
+    "connecting": "Connecting...",
+    "connected": "Connected to Room {code}",
+    "hosting": "Session {code} Started",
+    "hostingSub": "You are the Host",
+    "syncRequirement": "Sync requires an active internet connection. Host must be logged in.",
+    "copy": "Copy"
+  },
+  "social": {
+    "ranking": "Ranking",
+    "liveFeed": "Live Feed",
+    "syncing": "Syncing Global Data...",
+    "impact": "Impact",
+    "watching": "Watch Match"
+  },
+  "analysis": {
+    "aiCoach": "AI Tactical Coach",
+    "processing": "Processing match kinematics...",
+    "insight": "Coach's Insight",
+    "projection": "Future Projection (Predictive AI)",
+    "nextSteps": "Next Steps",
+    "downloadReport": "Download Technical Report"
   }
 }

@@ -1,7 +1,8 @@
 
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { X, ChevronRight, Check, ChevronLeft, Pause, Play, Download } from 'lucide-react';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { TutorialKey } from '../../hooks/useTutorial';
@@ -25,18 +26,19 @@ const overlayVariants = {
   exit: { opacity: 0 }
 };
 
-const modalVariants = {
+// Added explicit Variants type and used 'as const' for transition types
+const modalVariants: Variants = {
   hidden: { scale: 0.95, opacity: 0, y: 20 },
   visible: { 
     scale: 1, 
     opacity: 1, 
     y: 0,
-    transition: { type: "spring", stiffness: 350, damping: 30 }
+    transition: { type: "spring" as const, stiffness: 350, damping: 30 }
   },
   exit: { scale: 0.95, opacity: 0, y: 10 }
 };
 
-const contentVariants = {
+const contentVariants: Variants = {
   enter: (direction: number) => ({
     x: direction > 0 ? 50 : -50,
     opacity: 0,
@@ -47,7 +49,7 @@ const contentVariants = {
     x: 0,
     opacity: 1,
     scale: 1,
-    transition: { duration: 0.4, type: "spring", bounce: 0, stiffness: 300, damping: 30 }
+    transition: { duration: 0.4, type: "spring" as const, bounce: 0, stiffness: 300, damping: 30 }
   },
   exit: (direction: number) => ({
     zIndex: 0,

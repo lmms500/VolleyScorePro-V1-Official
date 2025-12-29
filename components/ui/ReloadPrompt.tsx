@@ -3,14 +3,13 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, X, WifiOff, RefreshCw } from 'lucide-react';
 import { useServiceWorker } from '../../hooks/useServiceWorker';
-import { usePlatform } from '../../hooks/usePlatform';
+import { platformService } from '../../services/PlatformService';
 
 export const ReloadPrompt: React.FC = () => {
   const { needRefresh, offlineReady, updateServiceWorker, closePrompt } = useServiceWorker();
-  const { isNative } = usePlatform();
-
+  
   // 🛡️ NUNCA mostrar em apps nativos (App Store/Play Store)
-  if (isNative) return null;
+  if (platformService.isNative) return null;
 
   if (!offlineReady && !needRefresh) return null;
 

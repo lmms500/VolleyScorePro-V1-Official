@@ -1,17 +1,27 @@
 
-import React, { createContext, useContext, useState, useRef, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useRef, useEffect, useCallback, useMemo } from 'react';
 
-interface TimerContextType {
-  seconds: number;
+// --- Split Context Architecture ---
+
+// 1. Controls Context (Stable)
+// Components using this will NOT re-render every second.
+interface TimerControls {
   isRunning: boolean;
   start: () => void;
   stop: () => void;
   reset: () => void;
   setSeconds: (s: number) => void;
-  getTime: () => number; // Non-reactive getter for logic/storage
+  getTime: () => number; // Non-reactive getter
 }
 
-const TimerContext = createContext<TimerContextType | undefined>(undefined);
+// 2. Value Context (Volatile)
+// Components using this WILL re-render every second.
+interface TimerValue {
+  seconds: number;
+}
+
+const TimerControlsContext = createContext<TimerControls | undefined>(undefined);
+const TimerValueContext = createContext<TimerValue | undefined>(undefined);
 
 export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [seconds, setSecondsState] = useState(0);
@@ -62,17 +72,56 @@ export const TimerProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   }, []);
 
+  // Optimization: Memoize controls to ensure stability
+  const controls = useMemo(() => ({
+    isRunning,
+    start,
+    stop,
+    reset,
+    setSeconds,
+    getTime
+  }), [isRunning, start, stop, reset, setSeconds, getTime]);
+
+  // Value object changes every second
+  const values = useMemo(() => ({ seconds }), [seconds]);
+
   return (
-    <TimerContext.Provider value={{ seconds, isRunning, start, stop, reset, setSeconds, getTime }}>
-      {children}
-    </TimerContext.Provider>
+    <TimerControlsContext.Provider value={controls}>
+      <TimerValueContext.Provider value={values}>
+        {children}
+      </TimerValueContext.Provider>
+    </TimerControlsContext.Provider>
   );
 };
 
-export const useTimer = () => {
-  const context = useContext(TimerContext);
-  if (!context) {
-    throw new Error('useTimer must be used within a TimerProvider');
-  }
+// --- HOOKS ---
+
+/**
+ * Use this for Start/Stop buttons or logic.
+ * Will NOT re-render on every tick.
+ */
+export const useTimerControls = () => {
+  const context = useContext(TimerControlsContext);
+  if (!context) throw new Error('useTimerControls must be used within a TimerProvider');
   return context;
+};
+
+/**
+ * Use this ONLY for displaying the time (e.g. 12:00).
+ * Will re-render every second.
+ */
+export const useTimerValue = () => {
+  const context = useContext(TimerValueContext);
+  if (!context) throw new Error('useTimerValue must be used within a TimerProvider');
+  return context;
+};
+
+/**
+ * @deprecated Use useTimerControls or useTimerValue for better performance.
+ * Legacy wrapper for backward compatibility.
+ */
+export const useTimer = () => {
+  const controls = useTimerControls();
+  const value = useTimerValue();
+  return { ...controls, ...value };
 };

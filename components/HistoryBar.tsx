@@ -6,7 +6,7 @@ import { Clock, PartyPopper } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { listItemVariants } from '../utils/animations';
 import { resolveTheme } from '../utils/colors';
-import { useTimer } from '../contexts/TimerContext';
+import { useTimerValue } from '../contexts/TimerContext';
 import { useHaptics } from '../hooks/useHaptics';
 import { useGameAudio } from '../hooks/useGameAudio';
 import { Confetti } from './ui/Confetti';
@@ -14,6 +14,7 @@ import { NotificationToast } from './ui/NotificationToast';
 import { DEFAULT_CONFIG } from '../constants';
 import { useTranslation } from '../contexts/LanguageContext';
 import { useCollider } from '../hooks/useCollider';
+import { useRoster } from '../contexts/GameContext';
 
 interface HistoryBarProps {
   history: SetHistory[];
@@ -23,7 +24,6 @@ interface HistoryBarProps {
   colorB: TeamColor;
 }
 
-// --- APP LOGO COMPONENT (Embedded SVG) ---
 const AppLogo = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
     <rect width="512" height="512" rx="128" fill="#0f172a"/>
@@ -34,31 +34,26 @@ const AppLogo = ({ className }: { className?: string }) => (
     <path d="M396 312C396 312 332 292 256 256" stroke="url(#paint4_linear_logo)" strokeWidth="32" strokeLinecap="round"/>
     <defs>
       <linearGradient id="paint0_linear_logo" x1="96" y1="96" x2="416" y2="416" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#6366f1"/>
-        <stop offset="1" stopColor="#f43f5e"/>
+        <stop stopColor="#6366f1"/><stop offset="1" stopColor="#f43f5e"/>
       </linearGradient>
       <linearGradient id="paint1_linear_logo" x1="256" y1="96" x2="380" y2="180" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#6366f1"/>
-        <stop offset="1" stopColor="#818cf8"/>
+        <stop stopColor="#6366f1"/><stop offset="1" stopColor="#818cf8"/>
       </linearGradient>
       <linearGradient id="paint2_linear_logo" x1="256" y1="416" x2="132" y2="332" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#f43f5e"/>
-        <stop offset="1" stopColor="#fb7185"/>
+        <stop stopColor="#f43f5e"/><stop offset="1" stopColor="#fb7185"/>
       </linearGradient>
       <linearGradient id="paint3_linear_logo" x1="116" y1="200" x2="256" y2="256" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#6366f1"/>
-        <stop offset="1" stopColor="#f43f5e"/>
+        <stop stopColor="#6366f1"/><stop offset="1" stopColor="#f43f5e"/>
       </linearGradient>
       <linearGradient id="paint4_linear_logo" x1="396" y1="312" x2="256" y2="256" gradientUnits="userSpaceOnUse">
-        <stop stopColor="#f43f5e"/>
-        <stop offset="1" stop-color="#6366f1"/>
+        <stop stopColor="#f43f5e"/><stop offset="1" stopColor="#6366f1"/>
       </linearGradient>
     </defs>
   </svg>
 );
 
 const GameTimer = memo(() => {
-  const { seconds } = useTimer();
+  const { seconds } = useTimerValue();
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
   const s = seconds % 60;
@@ -68,16 +63,14 @@ const GameTimer = memo(() => {
     : `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 
   return (
-    <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 tabular-nums tracking-wider">
+    <span className="text-[10px] font-mono font-extrabold text-slate-500 dark:text-slate-400 tabular-nums tracking-wider">
       {formattedTime}
     </span>
   );
 });
 
-// Componente encapsulado para registrar colisão individual de cada item do histórico
-const CollidableSetItem: React.FC<{ set: SetHistory, themeA: any, themeB: any }> = ({ set, themeA, themeB }) => {
+const CollidableSetItem: React.FC<{ set: SetHistory, themeA: any, themeB: any }> = memo(({ set, themeA, themeB }) => {
     const isA = set.winner === 'A';
-    // Register individual collider for this specific pill
     const itemRef = useCollider(`hist-set-${set.setNumber}`);
 
     return (
@@ -90,17 +83,18 @@ const CollidableSetItem: React.FC<{ set: SetHistory, themeA: any, themeB: any }>
             layout
             className={`
                 flex-shrink-0 flex items-center justify-center h-6 px-2 rounded-lg
-                bg-white/50 dark:bg-white/5 border border-black/5 dark:border-white/5
+                bg-white/60 dark:bg-white/[0.05] border border-black/5 dark:border-white/5
+                ring-1 ring-inset ring-black/5 dark:ring-white/10
             `}
         >
-            <div className="flex items-center text-[10px] font-bold leading-none gap-1">
-                <span className={isA ? `${themeA.text} ${themeA.textDark}` : 'text-slate-400 opacity-60'}>{set.scoreA}</span>
-                <span className='opacity-20 text-slate-500'>:</span>
-                <span className={!isA ? `${themeB.text} ${themeB.textDark}` : 'text-slate-400 opacity-60'}>{set.scoreB}</span>
+            <div className="flex items-center text-[10px] font-extrabold leading-none gap-1">
+                <span className={isA ? `${themeA.text} ${themeA.textDark}` : 'text-slate-400/80'}>{set.scoreA}</span>
+                <span className='opacity-30 text-slate-500'>:</span>
+                <span className={!isA ? `${themeB.text} ${themeB.textDark}` : 'text-slate-400/80'}>{set.scoreB}</span>
             </div>
         </motion.div>
     );
-};
+});
 
 const SetHistoryList = memo(({ history, colorA, colorB }: { history: SetHistory[], colorA: TeamColor, colorB: TeamColor }) => {
     const themeA = resolveTheme(colorA);
@@ -113,7 +107,6 @@ const SetHistoryList = memo(({ history, colorA, colorB }: { history: SetHistory[
                  <CollidableSetItem key={`${set.setNumber}-${idx}`} set={set} themeA={themeA} themeB={themeB} />
               ))}
             </AnimatePresence>
-            {/* Spacer for easier scrolling */}
             <div className="w-2 flex-shrink-0 h-1"></div>
         </div>
     );
@@ -137,37 +130,26 @@ const ScoreTickerSimple = memo(({ value, color }: { value: number, color: TeamCo
 });
 
 export const HistoryBar: React.FC<HistoryBarProps> = memo(({ history, setsA, setsB, colorA, colorB }) => {
-  // EASTER EGG LOGIC
   const [tapCount, setTapCount] = useState(0);
   const [isPartyTime, setIsPartyTime] = useState(false);
   const [showEggToast, setShowEggToast] = useState(false);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const haptics = useHaptics();
-  const audio = useGameAudio(DEFAULT_CONFIG); // Use default/saved config for sound toggle check
+  const audio = useGameAudio(DEFAULT_CONFIG);
   const { t } = useTranslation();
+  const { config } = useRoster(); // Access global config to check lowGraphics
   
-  // Register Colliders for specific solid elements (not the whole bar)
   const logoRef = useCollider('hist-logo');
   const setsScoreRef = useCollider('hist-score');
   const timerRef = useCollider('hist-timer');
 
   const handleLogoTap = () => {
-    // Impact feedback on every tap
     haptics.impact('light');
-    
     setTapCount(prev => {
         const newCount = prev + 1;
-        
-        // Clear existing reset timer
         if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-        
-        // Set new reset timer (reset count if idle for 2 seconds)
-        resetTimerRef.current = setTimeout(() => {
-            setTapCount(0);
-        }, 2000);
-
-        // Trigger Easter Egg at 5 taps
+        resetTimerRef.current = setTimeout(() => setTapCount(0), 2000);
         if (newCount === 5) {
             triggerEasterEgg();
             return 0;
@@ -180,57 +162,48 @@ export const HistoryBar: React.FC<HistoryBarProps> = memo(({ history, setsA, set
       setIsPartyTime(true);
       setShowEggToast(true);
       haptics.notification('success');
-      audio.playUnlock(); // Play fanfare sound
-      
-      // Stop party after 5 seconds
-      setTimeout(() => {
-          setIsPartyTime(false);
-      }, 5000);
+      audio.playUnlock();
+      setTimeout(() => setIsPartyTime(false), 5000);
   };
 
   return (
     <>
-        {/* Fullscreen Confetti Portal with TEAM COLORS */}
         {isPartyTime && createPortal(
             <div className="fixed inset-0 z-[100] pointer-events-none">
-                {/* Interactive Mode ensures confetti collides with UI elements */}
-                <Confetti colors={[colorA, colorB]} intensity="high" physicsVariant="interactive" />
+                <Confetti 
+                    colors={[colorA, colorB]} 
+                    intensity="high" 
+                    physicsVariant="interactive" 
+                    enabled={!config.lowGraphics} 
+                />
             </div>,
             document.body
         )}
 
-        {/* Easter Egg Toast - Explicit "Prank" UI */}
         <NotificationToast 
             visible={showEggToast} 
             type="success" 
             mainText={t('easterEgg.title')}
             subText={t('easterEgg.subtitle')}
             onClose={() => setShowEggToast(false)} 
-            systemIcon="party" // Mapped to PartyPopper in NotificationToast
+            systemIcon="party"
         />
 
         <motion.div 
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 30 }}
           className="max-w-3xl mx-auto h-10 flex items-center justify-between px-3 w-full gap-2 relative z-10"
         >
-          {/* Branding / Logo - Clickable for Easter Egg */}
           <motion.div 
             ref={logoRef}
             className="flex-shrink-0 cursor-pointer active:scale-90 transition-transform"
             onClick={handleLogoTap}
-            animate={isPartyTime ? { 
-                rotate: [0, 360, 720, 1080], 
-                scale: [1, 1.2, 1],
-            } : { rotate: 0, scale: 1 }}
-            transition={isPartyTime ? { duration: 1.5, ease: "easeInOut" } : {}}
+            animate={isPartyTime ? { rotate: [0, 360, 720, 1080], scale: [1, 1.2, 1] } : { rotate: 0, scale: 1 }}
           >
-              <AppLogo className="w-8 h-8 rounded-full border border-black/5 dark:border-white/10 shadow-sm" />
+              <AppLogo className="w-8 h-8 rounded-full border border-black/10 dark:border-white/20 shadow-sm" />
           </motion.div>
 
-          {/* Placar Sets - Super Minimal */}
-          <div ref={setsScoreRef} className="flex-shrink-0 flex items-center gap-2 px-3 h-8 rounded-full bg-white/60 dark:bg-white/5 border border-white/40 dark:border-white/5 backdrop-blur-md shadow-sm shadow-black/5">
+          <div ref={setsScoreRef} className="flex-shrink-0 flex items-center gap-2 px-3 h-8 rounded-full bg-white/70 dark:bg-white/[0.05] border border-white/40 dark:border-white/5 ring-1 ring-inset ring-black/5 dark:ring-white/10 backdrop-blur-md shadow-sm shadow-black/5">
              <div className="flex items-center gap-1.5 text-sm font-black tracking-tight leading-none">
                  <ScoreTickerSimple value={setsA} color={colorA} />
                  <span className="text-slate-300 dark:text-slate-600 text-[10px] font-medium">-</span>
@@ -238,13 +211,11 @@ export const HistoryBar: React.FC<HistoryBarProps> = memo(({ history, setsA, set
              </div>
           </div>
 
-          {/* Lista de Sets - Flexible area */}
           <div className="flex-1 mx-1 overflow-hidden h-full flex items-center">
               <SetHistoryList history={history} colorA={colorA} colorB={colorB} />
           </div>
 
-          {/* Timer Pill */}
-          <div ref={timerRef} className="flex-shrink-0 flex items-center gap-1.5 px-3 h-8 rounded-full bg-slate-100/50 dark:bg-black/20 border border-black/5 dark:border-white/5 backdrop-blur-md">
+          <div ref={timerRef} className="flex-shrink-0 flex items-center gap-1.5 px-3 h-8 rounded-full bg-slate-100/60 dark:bg-black/40 border border-black/5 dark:border-white/5 ring-1 ring-inset ring-black/5 dark:ring-white/10 backdrop-blur-md">
             <Clock size={10} className="text-slate-400" strokeWidth={2.5} />
             <GameTimer />
           </div>

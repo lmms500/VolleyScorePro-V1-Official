@@ -23,7 +23,7 @@ const createTheme = (color: string, baseIntensity: number = 500, textIntensity: 
     bgDark: `dark:bg-${color}-${baseIntensity}/20`,
     border: `border-${color}-${baseIntensity}/40`,
     halo: `bg-${color}-${baseIntensity}`,
-    glow: `shadow-[0_0_15px_rgba(var(--color-${color}-${baseIntensity}),0.5)]`, // Relies on Tailwind var or approximation
+    glow: `shadow-[0_0_15px_rgba(var(--color-${color}-${baseIntensity}),0.5)]`, 
     crown: `text-${color}-${baseIntensity}`,
     ring: `ring-${color}-${baseIntensity}`,
     gradient: `from-${color}-${baseIntensity}/15 to-transparent`,
@@ -54,14 +54,9 @@ export const TEAM_COLORS: Record<string, ColorTheme> = {
     lime: createTheme('lime', 500, 800, 300),
     
     // YELLOWS & ORANGES
-    yellow: createTheme('yellow', 400, 800, 200), // Slightly lighter base for visibility
+    yellow: createTheme('yellow', 400, 800, 200), 
     amber: createTheme('amber', 500, 800, 300),
     orange: createTheme('orange', 500, 800, 300),
-    
-    // NEUTRALS / GRAYS
-    slate: createTheme('slate', 500, 800, 300),
-    zinc: createTheme('zinc', 500, 800, 300),
-    stone: createTheme('stone', 500, 800, 300),
 };
 
 const HEX_MAP: Record<string, string> = {
@@ -82,25 +77,45 @@ const HEX_MAP: Record<string, string> = {
     yellow: '#facc15',
     amber: '#f59e0b',
     orange: '#f97316',
-    slate: '#64748b',
-    zinc: '#71717a',
-    stone: '#78716c',
 };
 
 export const COLOR_KEYS = Object.keys(TEAM_COLORS);
 
 /**
  * Resolves a color string (preset key or hex code) into a full theme object.
+ * Supports "custom:HEX1:HEX2" for dynamic gradients.
  */
 export const resolveTheme = (color: TeamColor | undefined): ColorTheme => {
-    if (!color) return TEAM_COLORS['slate'];
+    if (!color) return TEAM_COLORS['indigo'];
     
     // 1. Check if it is a preset
     if (TEAM_COLORS[color]) {
         return TEAM_COLORS[color];
     }
 
-    // 2. Assume it is a Hex Code (Legacy fallback)
+    // 2. Check for Custom Gradient Format "custom:primaryHex:secondaryHex"
+    if (color.startsWith('custom:')) {
+        const parts = color.split(':');
+        const primary = parts[1] || '#6366f1';
+        const secondary = parts[2] || primary; // Fallback to solid if only 1 provided
+
+        return {
+            text: `text-[${primary}]`,
+            textDark: `dark:text-[${primary}]`,
+            bg: `bg-[${primary}]/20`,
+            bgDark: `dark:bg-[${primary}]/20`,
+            border: `border-[${primary}]/40`,
+            halo: `bg-[${primary}]`,
+            glow: `shadow-[0_0_15px_${primary}80]`,
+            crown: `text-[${secondary}]`,
+            ring: `ring-[${primary}]`,
+            // The magic happens here: Custom gradient
+            gradient: `from-[${primary}]/20 to-[${secondary}]/20`, 
+            solid: `bg-[${primary}]`
+        };
+    }
+
+    // 3. Assume it is a Hex Code (Legacy fallback)
     const safeColor = color.trim();
     return {
         text: `text-[${safeColor}]`,
@@ -121,8 +136,54 @@ export const resolveTheme = (color: TeamColor | undefined): ColorTheme => {
  * Returns a valid HEX code for Canvas/SVG usage.
  */
 export const getHexFromColor = (color: TeamColor | undefined): string => {
-    if (!color) return HEX_MAP['slate'];
+    if (!color) return HEX_MAP['indigo'];
     if (HEX_MAP[color]) return HEX_MAP[color];
+    
+    if (color.startsWith('custom:')) {
+        const parts = color.split(':');
+        return parts[1] || '#6366f1';
+    }
+
     if (color.startsWith('#')) return color;
-    return HEX_MAP['slate'];
+    return HEX_MAP['indigo'];
+};
+
+/**
+ * Smart Color Matching Algorithm
+ * Finds the nearest predefined TeamColor for a given Hex.
+ */
+export const findNearestTeamColor = (targetHex: string): TeamColor => {
+    const hexToRgb = (hex: string) => {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    };
+
+    const target = hexToRgb(targetHex);
+    if (!target) return 'indigo';
+
+    let minDistance = Infinity;
+    let nearestColor: TeamColor = 'indigo';
+
+    for (const [key, mapHex] of Object.entries(HEX_MAP)) {
+        const current = hexToRgb(mapHex);
+        if (!current) continue;
+
+        // Euclidean distance in RGB space
+        const distance = Math.sqrt(
+            Math.pow(target.r - current.r, 2) +
+            Math.pow(target.g - current.g, 2) +
+            Math.pow(target.b - current.b, 2)
+        );
+
+        if (distance < minDistance) {
+            minDistance = distance;
+            nearestColor = key;
+        }
+    }
+
+    return nearestColor;
 };

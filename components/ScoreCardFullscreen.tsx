@@ -40,65 +40,56 @@ const ScoreNumberDisplay = memo(({
     numberRef, 
     isCritical,
     isMatchPoint,
+    isSetPoint,
     isServing,
     colliderRef,
-    team
+    lowGraphics
 }: any) => {
 
     const haloColorClass = isMatchPoint ? 'bg-amber-500 saturate-150' : theme.halo;
 
     return (
-        <div 
-            className="relative grid place-items-center w-full pointer-events-none overflow-visible" 
-            style={{ 
-                lineHeight: 1,
-            }}
-        >
-            {/* Background Halo - Behind the number */}
-            <motion.div
-                className={`
-                    col-start-1 row-start-1
-                    rounded-full aspect-square pointer-events-none z-0
-                    ${haloColorClass}
-                    justify-self-center self-center
-                    mix-blend-multiply dark:mix-blend-screen
-                    blur-[120px] will-change-[transform,opacity]
-                `}
-                style={{ 
-                    width: '1.4em', 
-                    height: '1.4em',
-                    transform: 'translate3d(0,0,0)'
-                }}
-                animate={
-                    isPressed 
-                    ? { scale: 1.1, opacity: 0.6 } 
-                    : isCritical 
-                        ? { 
-                            scale: [1, 1.25, 1],
-                            opacity: isMatchPoint ? [0.6, 0.9, 0.6] : [0.4, 0.7, 0.4],
-                        }
-                        : { 
-                            scale: 1, 
-                            opacity: isServing ? 0.5 : 0
-                        }
-                }
-                transition={
-                    isCritical 
-                    ? { duration: 2, repeat: Infinity, ease: "easeInOut" }
-                    : { duration: 0.4, ease: "easeOut" }
-                }
-            />
+        <div className="relative grid place-items-center w-full pointer-events-none overflow-visible" style={{ lineHeight: 1 }}>
+            
+            {/* Background Halo - Conditional Rendering for Low Graphics */}
+            {!lowGraphics && (
+                <motion.div
+                    className={`
+                        col-start-1 row-start-1
+                        rounded-full aspect-square pointer-events-none z-1
+                        ${haloColorClass}
+                        justify-self-center self-center
+                        mix-blend-multiply dark:mix-blend-screen
+                        blur-[120px] will-change-[transform,opacity]
+                    `}
+                    style={{ width: '1.4em', height: '1.4em', transform: 'translate3d(0,0,0)' }}
+                    animate={
+                        isPressed 
+                        ? { scale: 1.1, opacity: 0.6 } 
+                        : isCritical 
+                            ? { 
+                                scale: [1, 1.25, 1],
+                                opacity: isMatchPoint ? [0.6, 1.0, 0.6] : [0.4, 0.8, 0.4],
+                            }
+                            : { scale: 1, opacity: isServing ? 0.5 : 0 }
+                    }
+                    transition={
+                        isCritical 
+                        ? { duration: 1.2, repeat: Infinity, ease: "easeInOut" }
+                        : { duration: 0.4, ease: "easeOut" }
+                    }
+                />
+            )}
 
-            {/* The Number - In front of Halo + Collision Target */}
+            {/* The Number - Increased padding (p-20) to prevent ticker clipping during animation */}
             <motion.div 
                 ref={numberRef} 
                 className="col-start-1 row-start-1 relative z-10 flex flex-col items-center justify-center will-change-transform overflow-visible"
                 variants={pulseHeartbeat}
                 animate={isCritical ? "pulse" : "idle"}
             >
-                <div ref={scoreRefCallback} className="overflow-visible p-4">
-                    {/* COLLIDER IS HERE: Wraps the actual number text */}
-                    <div ref={colliderRef}>
+                <div ref={scoreRefCallback} className="overflow-visible p-20">
+                    <div ref={colliderRef} className="overflow-visible">
                         <ScoreTicker 
                             value={score}
                             className={`
@@ -129,7 +120,6 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
   const containerRef = useRef<HTMLDivElement>(null);
   const numberRef = useRef<HTMLDivElement>(null);
   
-  // Physics Collider specifically for the fullscreen number
   const colliderRef = useCollider(`sc-fs-${teamId}`);
 
   const audio = useGameAudio(config);
@@ -139,7 +129,7 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
     setIsPressed(true);
     onInteractionStart?.();
 
-    if (containerRef.current) {
+    if (containerRef.current && !config.lowGraphics) {
         const rect = containerRef.current.getBoundingClientRect();
         setRipple({
             x: e.clientX - rect.left,
@@ -147,7 +137,7 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
             id: Date.now()
         });
     }
-  }, [onInteractionStart]);
+  }, [onInteractionStart, config.lowGraphics]);
 
   const handleEnd = useCallback(() => {
     setIsPressed(false);
@@ -194,10 +184,11 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
   const isCritical = isMatchPoint || isSetPoint;
   
   const textEffectClass = useMemo(() => {
-    // Stronger Drop Shadow for better contrast against glow
+    if (config.lowGraphics) return '';
     if (isMatchPoint) return 'drop-shadow-[0_0_60px_rgba(251,191,36,0.9)]'; 
+    if (isSetPoint) return 'drop-shadow-[0_0_40px_rgba(255,255,255,0.15)]';
     return ''; 
-  }, [isMatchPoint]);
+  }, [isMatchPoint, isSetPoint, config.lowGraphics]);
 
   const isLeftSide = reverseLayout ? teamId === 'B' : teamId === 'A';
 
@@ -236,7 +227,7 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
             {...gestureHandlers}
         >
             <AnimatePresence>
-                {ripple && (
+                {ripple && !config.lowGraphics && (
                     <motion.div
                         key={ripple.id}
                         initial={{ scale: 0, opacity: 0.3 }}
@@ -244,12 +235,7 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.4, ease: "easeOut" }}
                         className="absolute w-12 h-12 rounded-full bg-white pointer-events-none z-0 mix-blend-overlay"
-                        style={{
-                            left: ripple.x,
-                            top: ripple.y,
-                            x: '-50%',
-                            y: '-50%'
-                        }}
+                        style={{ left: ripple.x, top: ripple.y, x: '-50%', y: '-50%' }}
                     />
                 )}
             </AnimatePresence>
@@ -261,13 +247,9 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
                     ${isPressed ? 'scale-95' : 'scale-100'}
                     will-change-transform overflow-visible
                 `}
-                style={{ 
-                    // Reduced min size from 8rem to 5rem to accommodate small landscape screens better without clipping
-                    fontSize: 'clamp(5rem, 28vmax, 22rem)',
-                    lineHeight: 1
-                }}
+                style={{ fontSize: 'clamp(5rem, 28vmax, 22rem)', lineHeight: 1 }}
             >
-                <div className={`transform transition-transform duration-500 w-full flex justify-center ${offsetClass}`}>
+                <div className={`transform transition-transform duration-500 w-full flex justify-center overflow-visible ${offsetClass}`}>
                     <ScoreNumberDisplay 
                         score={score} 
                         theme={theme} 
@@ -277,9 +259,10 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
                         numberRef={numberRef}
                         isCritical={isCritical}
                         isMatchPoint={isMatchPoint}
+                        isSetPoint={isSetPoint}
                         isServing={isServing}
                         colliderRef={colliderRef}
-                        team={team}
+                        lowGraphics={config.lowGraphics}
                     />
                 </div>
             </div>

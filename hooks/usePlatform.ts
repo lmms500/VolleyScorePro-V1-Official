@@ -1,57 +1,41 @@
 
 import { useState, useEffect } from 'react';
+import { platformService, IPlatformCapabilities } from '../services/PlatformService';
 import { Capacitor } from '@capacitor/core';
 
-export interface PlatformState {
-  isNative: boolean;      // Capacitor (Android/iOS)
-  isPWA: boolean;         // Web Standalone (PWA Instalado)
-  isWeb: boolean;         // Browser regular (Chrome, Safari, etc)
-  isIOS: boolean;
-  isAndroid: boolean;
+export interface PlatformState extends IPlatformCapabilities {
   platform: 'ios' | 'android' | 'web';
 }
 
 export const usePlatform = (): PlatformState => {
-  const [state, setState] = useState<PlatformState>(() => {
-    const native = Capacitor.isNativePlatform();
-    const plat = Capacitor.getPlatform() as 'ios' | 'android' | 'web';
-    
-    // Detecção inicial síncrona para evitar saltos de UI
-    const isStandalone = typeof window !== 'undefined' && (
-      window.matchMedia('(display-mode: standalone)').matches || 
-      (window.navigator as any).standalone === true
-    );
-
-    const ua = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : '';
-    
-    return {
-      isNative: native,
-      isPWA: isStandalone && !native,
-      isWeb: !isStandalone && !native,
-      isIOS: /iphone|ipad|ipod/.test(ua),
-      isAndroid: /android/.test(ua),
-      platform: plat
-    };
-  });
+  const [state, setState] = useState<PlatformState>(() => ({
+    isNative: platformService.isNative,
+    isWeb: platformService.isWeb,
+    isIOS: platformService.isIOS,
+    isAndroid: platformService.isAndroid,
+    isPWA: platformService.isPWA,
+    isStandalone: platformService.isStandalone,
+    platform: Capacitor.getPlatform() as 'ios' | 'android' | 'web'
+  }));
 
   useEffect(() => {
-    const checkPlatform = () => {
-      const native = Capacitor.isNativePlatform();
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
-      const ua = navigator.userAgent.toLowerCase();
-
+    const handleResize = () => {
+      // Re-check standalone status on resize/orientation change (edge cases)
+      // We essentially force a re-read from the service which handles caching, 
+      // but strictly for React reactivity we set state again if needed.
       setState({
-        isNative: native,
-        isPWA: isStandalone && !native,
-        isWeb: !isStandalone && !native,
-        isIOS: /iphone|ipad|ipod/.test(ua),
-        isAndroid: /android/.test(ua),
+        isNative: platformService.isNative,
+        isWeb: platformService.isWeb,
+        isIOS: platformService.isIOS,
+        isAndroid: platformService.isAndroid,
+        isPWA: platformService.isPWA,
+        isStandalone: platformService.isStandalone,
         platform: Capacitor.getPlatform() as 'ios' | 'android' | 'web'
       });
     };
 
-    window.addEventListener('resize', checkPlatform);
-    return () => window.removeEventListener('resize', checkPlatform);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   return state;

@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, X, Smartphone } from 'lucide-react';
+import { X, Smartphone } from 'lucide-react';
 import { useTranslation } from '../../contexts/LanguageContext';
-import { Capacitor } from '@capacitor/core';
+import { platformService } from '../../services/PlatformService';
 
 interface InstallReminderProps {
   isVisible: boolean;
@@ -17,11 +17,10 @@ export const InstallReminder: React.FC<InstallReminderProps> = ({
   isVisible, onInstall, onDismiss, canInstall, isIOS 
 }) => {
   const { t } = useTranslation();
-  const isNative = Capacitor.isNativePlatform();
-
+  
   // 🛡️ CRITICAL: Absolute Kill Switch for Native Apps
   // Prevents "Add to Home Screen" banner from appearing inside the App Store version
-  if (isNative) return null;
+  if (platformService.isNative) return null;
 
   // Logic: Only show if visible AND (Android Installable OR iOS Instructions needed)
   if (!isVisible) return null;

@@ -1,14 +1,21 @@
 
 import React, { useState, useMemo, useRef, useEffect, memo } from 'react';
-import { Check, Lock, Edit2, ImageIcon, Info, ListOrdered } from 'lucide-react';
+import { Check, Lock, Edit2, ImageIcon, Info, ListOrdered, Loader2, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { TeamColor } from '../../types';
-import { COLOR_KEYS, getHexFromColor } from '../../utils/colors';
+import { COLOR_KEYS, getHexFromColor, findNearestTeamColor } from '../../utils/colors';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { Button } from '../ui/Button';
+import { imageService } from '../../services/ImageService';
+import { TeamLogo } from '../ui/TeamLogo';
 
 // --- COLOR PICKER ---
 export const ColorPicker = memo(({ selected, onChange, usedColors }: { selected: TeamColor, onChange: (c: TeamColor) => void, usedColors: Set<string> }) => {
+    
+    // Check if current selection is custom
+    const isCustom = selected.startsWith('custom:');
+    const customHex = isCustom ? getHexFromColor(selected) : null;
+
     const sortedPalette = useMemo(() => {
         return [...COLOR_KEYS].sort((a, b) => {
             if (a === selected) return -1;
@@ -29,6 +36,8 @@ export const ColorPicker = memo(({ selected, onChange, usedColors }: { selected:
                 style={{ overscrollBehaviorX: 'contain' }}
             >
                 <div className="flex items-center gap-3 w-max pr-6 p-2"> 
+                    
+                    {/* Render Palette Presets */}
                     {sortedPalette.map(color => {
                          const isSelected = selected === color;
                          const isTaken = usedColors.has(color) && !isSelected;
@@ -80,6 +89,23 @@ export const ColorPicker = memo(({ selected, onChange, usedColors }: { selected:
                              </button>
                          );
                     })}
+
+                    {/* Special Case: Custom Color Active */}
+                    {isCustom && customHex && (
+                        <div className="flex items-center justify-center pl-2 border-l border-black/10 dark:border-white/10">
+                             <div 
+                                className="relative w-9 h-9 landscape:w-7 landscape:h-7 rounded-full shrink-0 flex items-center justify-center scale-110 z-10 ring-2 ring-offset-2 ring-offset-slate-100 dark:ring-offset-slate-900 ring-indigo-500 shadow-lg"
+                                style={{ backgroundColor: customHex }}
+                             >
+                                <motion.div 
+                                    layoutId="selected-color-check" 
+                                    className="absolute inset-0 flex items-center justify-center"
+                                >
+                                    <Sparkles size={14} className="text-white drop-shadow-md" strokeWidth={2.5} />
+                                </motion.div>
+                             </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -95,15 +121,211 @@ export const EditableTitle = memo(({ name, onSave, className, isPlayer }: { name
   useEffect(() => { if(isEditing) inputRef.current?.focus(); }, [isEditing]);
   const save = () => { setIsEditing(false); if(val.trim() && val !== name) onSave(val.trim()); else setVal(name); };
   if(isEditing) return <input ref={inputRef} type="text" className={`bg-transparent text-slate-900 dark:text-white border-b-2 border-indigo-500 outline-none w-full px-0 py-1 font-bold placeholder-slate-400 ${isPlayer ? 'text-sm' : 'text-xl uppercase tracking-tight'}`} value={val} onChange={e => setVal(e.target.value)} onBlur={save} onKeyDown={e => { if(e.key === 'Enter') save(); if(e.key === 'Escape') setIsEditing(false); }} onPointerDown={e => e.stopPropagation()} />;
-  return <div className={`flex items-center gap-2 group cursor-pointer min-w-0 ${className}`} onClick={() => setIsEditing(true)}><span className="truncate text-slate-900 dark:text-white">{name}</span><Edit2 size={12} className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 flex-shrink-0" /></div>;
+  return <div className={`flex items-center gap-2 group cursor-pointer min-w-0 ${className}`} onClick={() => setIsEditing(true)}><span className="truncate text-slate-900 dark:text-white">{name}</span><Edit2 size={12} className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" /></div>;
 });
 
-// --- TEAM LOGO UPLOADER ---
-export const TeamLogoUploader = memo(({ currentLogo, onUpdate, teamName }: { currentLogo?: string, onUpdate: (logo: string) => void, teamName: string }) => {
+// --- TEAM LOGO UPLOADER (OPTIMIZED WITH SMART PALETTE EXTRACTION) ---
+export const TeamLogoUploader = memo(({ currentLogo, onUpdate, teamName, teamId, onColorUpdate }: { currentLogo?: string, onUpdate: (logo: string) => void, teamName: string, teamId?: string, onColorUpdate?: (color: TeamColor) => void }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (file) { const reader = new FileReader(); reader.onloadend = () => { if (typeof reader.result === 'string') { onUpdate(reader.result); } }; reader.readAsDataURL(file); } };
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    // Helper: Convert RGB to HSL to filter out greys/blacks/whites and group similar hues
+    const rgbToHsl = (r: number, g: number, b: number) => {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h = 0, s = 0, l = (max + min) / 2;
+
+        if (max !== min) {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                case g: h = (b - r) / d + 2; break;
+                case b: h = (r - g) / d + 4; break;
+            }
+            h /= 6;
+        }
+        return [h * 360, s, l];
+    };
+
+    const hexFromRgb = (r: number, g: number, b: number) => {
+        return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+    };
+
+    // Helper to extract palette
+    const extractPalette = (imgSrc: string) => {
+        if (!onColorUpdate) return;
+        
+        const image = new Image();
+        image.crossOrigin = "Anonymous";
+        image.src = imgSrc;
+        
+        image.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
+
+                // Scale down for performance
+                canvas.width = 100; 
+                canvas.height = 100;
+                ctx.drawImage(image, 0, 0, 100, 100);
+
+                const data = ctx.getImageData(0, 0, 100, 100).data;
+                
+                // Color Buckets (Hue-based)
+                // We'll group colors by Hue to find distinct primary and secondary colors
+                const buckets: Record<number, { r: number, g: number, b: number, count: number }> = {};
+                const distinctColors: { hex: string, count: number, hue: number }[] = [];
+
+                for (let i = 0; i < data.length; i += 4) {
+                    const r = data[i];
+                    const g = data[i + 1];
+                    const b = data[i + 2];
+                    const a = data[i + 3];
+
+                    // 1. Skip transparent
+                    if (a < 128) continue;
+
+                    const [h, s, l] = rgbToHsl(r, g, b);
+
+                    // 2. Skip Achromatic (Greys, Blacks, Whites)
+                    // Unless the whole logo is monochrome (handled later)
+                    if (s < 0.1 || l < 0.15 || l > 0.90) continue;
+
+                    // 3. Bucket by Hue (grouping every 20 degrees for granularity)
+                    const bucketIndex = Math.floor(h / 20); 
+
+                    if (!buckets[bucketIndex]) {
+                        buckets[bucketIndex] = { r: 0, g: 0, b: 0, count: 0 };
+                    }
+                    buckets[bucketIndex].r += r;
+                    buckets[bucketIndex].g += g;
+                    buckets[bucketIndex].b += b;
+                    buckets[bucketIndex].count++;
+                }
+
+                // Process Buckets
+                for (const key in buckets) {
+                    const b = buckets[key];
+                    if (b.count > 50) { // Noise filter
+                        const r = Math.round(b.r / b.count);
+                        const g = Math.round(b.g / b.count);
+                        const bl = Math.round(b.b / b.count);
+                        distinctColors.push({
+                            hex: hexFromRgb(r, g, bl),
+                            count: b.count,
+                            hue: parseInt(key) * 20
+                        });
+                    }
+                }
+
+                // Sort by prevalence
+                distinctColors.sort((a, b) => b.count - a.count);
+
+                if (distinctColors.length > 0) {
+                    const primary = distinctColors[0];
+                    
+                    // Find a secondary color that is significantly distinct in hue
+                    let secondary = distinctColors.find(c => Math.abs(c.hue - primary.hue) > 40);
+                    
+                    // If no distinct hue found (monochromatic logo), check brightness/sat or just use primary
+                    if (!secondary && distinctColors.length > 1) {
+                        secondary = distinctColors[1]; // Fallback to next most common
+                    }
+
+                    if (secondary) {
+                        // We found 2 distinct colors! Create custom gradient.
+                        const customTheme = `custom:${primary.hex}:${secondary.hex}`;
+                        onColorUpdate(customTheme);
+                    } else {
+                        // Single dominant color -> Fallback to nearest preset for safety
+                        const nearest = findNearestTeamColor(primary.hex);
+                        onColorUpdate(nearest);
+                    }
+                } else {
+                    // Fallback for monochrome logos (Black/White only)
+                    // We default to Indigo as a safe vibrant color, or could try to detect if it's purely black vs white.
+                    // But usually, user wants a "Color" for the team.
+                }
+
+            } catch (e) {
+                console.warn("[SmartColor] Extraction failed", e);
+            }
+        };
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => { 
+        const file = e.target.files?.[0]; 
+        if (file) { 
+            setIsProcessing(true);
+            const reader = new FileReader(); 
+            
+            reader.onloadend = async () => { 
+                if (typeof reader.result === 'string') { 
+                    try {
+                        const rawBase64 = reader.result;
+                        
+                        // 1. Try extract color palette
+                        if (onColorUpdate) extractPalette(rawBase64);
+
+                        // 2. Save optimized image
+                        const optimizedUri = await imageService.saveImage(rawBase64, teamId || teamName.replace(/\s/g, ''));
+                        onUpdate(optimizedUri);
+                    } catch (err) {
+                        console.error("Logo upload failed", err);
+                        onUpdate(reader.result as string);
+                    } finally {
+                        setIsProcessing(false);
+                    }
+                } 
+            }; 
+            reader.readAsDataURL(file); 
+        } 
+    };
+
     const triggerUpload = () => fileInputRef.current?.click();
-    return <div className="relative group flex-shrink-0"><button onClick={triggerUpload} className="w-10 h-10 landscape:w-8 landscape:h-8 rounded-full border-2 border-white dark:border-white/10 bg-slate-100 dark:bg-white/5 flex items-center justify-center overflow-hidden hover:opacity-90 transition-opacity shadow-sm" title={`Change ${teamName} Logo`}>{currentLogo ? <img src={currentLogo} alt={teamName} className="w-full h-full object-cover" /> : <ImageIcon size={16} className="text-slate-400 dark:text-slate-500" />}<div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]"><Edit2 size={12} className="text-white" /></div></button><input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} /></div>;
+
+    return (
+        <div className="relative group flex-shrink-0">
+            <button 
+                onClick={triggerUpload} 
+                disabled={isProcessing}
+                className="w-16 h-16 rounded-full flex items-center justify-center hover:opacity-90 transition-opacity relative" 
+                title={`Change ${teamName} Logo`}
+            >
+                {isProcessing ? (
+                    <Loader2 size={16} className="animate-spin text-indigo-500" />
+                ) : (
+                    currentLogo ? (
+                        <TeamLogo src={currentLogo} alt={teamName} className="w-full h-full object-contain drop-shadow-md" />
+                    ) : (
+                        <div className="w-full h-full rounded-full border-2 border-dashed border-slate-300 dark:border-white/10 bg-slate-100 dark:bg-white/5 flex items-center justify-center">
+                            <ImageIcon size={20} className="text-slate-400 dark:text-slate-500" />
+                        </div>
+                    )
+                )}
+                
+                {!isProcessing && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px] rounded-full">
+                        <Edit2 size={12} className="text-white" />
+                    </div>
+                )}
+            </button>
+            <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
+            
+            {/* Auto-Color Magic Wand Indicator (Visual Flair) */}
+            {isProcessing && onColorUpdate && (
+                <motion.div 
+                    initial={{ scale: 0 }} 
+                    animate={{ scale: 1 }} 
+                    className="absolute -top-1 -right-1 bg-amber-400 text-white rounded-full p-0.5 z-20 shadow-sm"
+                >
+                    <Sparkles size={8} fill="currentColor" />
+                </motion.div>
+            )}
+        </div>
+    );
 });
 
 // --- BATCH INPUT SECTION ---

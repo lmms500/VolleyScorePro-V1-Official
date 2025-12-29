@@ -33,7 +33,7 @@ export const useSensoryFX = (state: GameState) => {
         // Haptic Slide: Light -> Medium -> Light
         haptics.trigger([10, 50, 20]); 
         prevSwapped.current = state.swappedSides;
-        return; // Return early to avoid conflicting with other sounds if swapping happens same tick (unlikely)
+        return; 
     }
 
     // 2. SUDDEN DEATH ENTRY
@@ -41,16 +41,13 @@ export const useSensoryFX = (state: GameState) => {
         audio.playSuddenDeath();
         haptics.notification('warning'); // Heavy double vibrate
         prevSuddenDeath.current = state.inSuddenDeath;
-        // Don't return, allow score sound if needed (though usually 0-0 reset happens)
     }
 
     // 3. TIMEOUTS (New)
-    // Trigger Whistle when timeout count increases
     if (state.timeoutsA > prevTimeoutsA.current || state.timeoutsB > prevTimeoutsB.current) {
         audio.playWhistle();
-        haptics.notification('warning');
+        haptics.notification('warning'); // Warning fits well for timeout alert
         
-        // Update refs immediately to prevent loops
         prevTimeoutsA.current = state.timeoutsA;
         prevTimeoutsB.current = state.timeoutsB;
         return; 
@@ -58,8 +55,16 @@ export const useSensoryFX = (state: GameState) => {
 
     // 4. SCORING LOGIC
     const scoreChanged = state.scoreA !== prevScoreA.current || state.scoreB !== prevScoreB.current;
-    // Only care if score INCREASED (Undo handles its own sound in reducer/handler usually, or we can add here)
+    
+    // Check Direction
     const scoreIncreased = state.scoreA > prevScoreA.current || state.scoreB > prevScoreB.current;
+    const scoreDecreased = state.scoreA < prevScoreA.current || state.scoreB < prevScoreB.current;
+
+    // Undo Feedback
+    if (scoreChanged && scoreDecreased && !state.isMatchOver) {
+        // Distinct "Retraction" feeling
+        haptics.impact('medium');
+    }
 
     // Detect Deuce State (Tied at Set Point threshold or higher)
     const isTieBreak = state.config.hasTieBreak && state.currentSet === state.config.maxSets;
@@ -75,17 +80,15 @@ export const useSensoryFX = (state: GameState) => {
 
     if (scoreChanged && scoreIncreased) {
         if (state.isMatchOver) {
-            // Match Win handled by MatchOverModal usually, but we can reinforce here
-            // However, avoid double triggering if modal handles it.
-            // Let's assume this hook handles the "Winning Point" sound.
             audio.playMatchWin();
-            haptics.notification('success');
+            haptics.notification('success'); // Success is usually a double tap
         } else if (isMatchPoint) {
             audio.playMatchPointAlert();
-            haptics.impact('heavy');
+            // Heavy Impact + Oscillation
+            haptics.trigger([50, 100, 50, 50]); 
         } else if (isSetPoint) {
             audio.playSetPointAlert();
-            haptics.impact('medium');
+            haptics.impact('heavy'); // Single heavy for set point
         } else if (isDeuce) {
             audio.playDeuce();
             haptics.impact('medium');

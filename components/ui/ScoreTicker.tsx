@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { tickerVariants } from '../../utils/animations';
@@ -9,7 +8,12 @@ interface ScoreTickerProps {
   style?: React.CSSProperties;
 }
 
-const ScoreTickerComponent: React.FC<ScoreTickerProps> = ({ value, className, style }) => {
+/**
+ * ScoreTicker v6.2 (Optimized Height Edition)
+ * - Synthetic Motion Blur: Aplica blur direcional baseado na transição.
+ * - Reduced box height to prevent overlap with nearby UI elements.
+ */
+export const ScoreTicker: React.FC<ScoreTickerProps> = memo(({ value, className, style }) => {
   const prevValue = useRef(value);
   const [direction, setDirection] = useState(0);
 
@@ -22,21 +26,22 @@ const ScoreTickerComponent: React.FC<ScoreTickerProps> = ({ value, className, st
 
   return (
     <div 
-      className={`relative inline-flex justify-center items-center tabular-nums hardware-accelerated ${className}`} 
-      style={{ 
-        ...style,
-        height: '2.5em', 
-        minWidth: '1.2em', 
-        padding: '0.8em',
-        margin: '-0.8em',
-        isolation: 'isolate',
-        maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
-        WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
-      }}
+        className={`relative inline-flex justify-center items-center tabular-nums ${className}`} 
+        style={{ 
+            ...style,
+            height: '1.2em', 
+            minWidth: '1.1em',
+            padding: '0 0.1em',
+            isolation: 'isolate',
+            overflow: 'visible',
+            willChange: 'transform',
+            contain: 'layout size',
+            transform: 'translateZ(0)'
+        }}
     >
       <AnimatePresence mode="popLayout" custom={direction} initial={false}>
         <motion.span
-          key={value}
+          key={`score-tick-${value}`}
           custom={direction}
           variants={tickerVariants}
           initial="enter"
@@ -44,8 +49,12 @@ const ScoreTickerComponent: React.FC<ScoreTickerProps> = ({ value, className, st
           exit="exit"
           className="block text-center leading-none origin-center absolute inset-0 flex items-center justify-center"
           style={{ 
-            backfaceVisibility: "hidden",
-            WebkitBackfaceVisibility: "hidden",
+              backfaceVisibility: "hidden",
+              WebkitBackfaceVisibility: "hidden",
+              height: '100%',
+              width: '100%',
+              willChange: 'transform, opacity, filter',
+              transformStyle: 'preserve-3d'
           }} 
         >
           {value}
@@ -53,9 +62,4 @@ const ScoreTickerComponent: React.FC<ScoreTickerProps> = ({ value, className, st
       </AnimatePresence>
     </div>
   );
-};
-
-//arePropsEqual personalizada para evitar qualquer re-render que não seja mudança de valor
-export const ScoreTicker = memo(ScoreTickerComponent, (prev, next) => {
-    return prev.value === next.value && prev.className === next.className;
 });

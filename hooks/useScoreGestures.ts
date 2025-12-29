@@ -9,11 +9,12 @@ interface UseScoreGesturesProps {
   onInteractionEnd?: () => void;
 }
 
-// Constants for gesture detection - Tuned for single-handed mobile use
-// Increased threshold to 35px to prevent accidental swipes when tapping vigorously
-const SWIPE_THRESHOLD = 35; 
-const TAP_MAX_DURATION_MS = 600; // Slightly tighter tap window
-const TAP_MAX_MOVE = 15; // Reduced move tolerance for taps to distinguish from drags
+/**
+ * VolleyScore Pro - High-Performance Gesture Engine v2.5 (High-Refresh Edition)
+ */
+const SWIPE_THRESHOLD = 38; // Reduzido para maior agilidade em telas 120Hz
+const TAP_MAX_DURATION_MS = 350; // Janela menor para prevenir atraso no feedback visual
+const TAP_MAX_MOVE = 8; // Menor tolerância para evitar confundir micro-swipes com taps
 
 export const useScoreGestures = ({ 
   onAdd, 
@@ -26,17 +27,21 @@ export const useScoreGestures = ({
   const startX = useRef<number | null>(null);
   const startY = useRef<number | null>(null);
   const startTime = useRef<number | null>(null);
+  const lastInteractionTime = useRef<number>(0);
 
   const handlePointerDown = (e: React.PointerEvent) => {
     if (isLocked) return;
     if (!e.isPrimary) return;
     
-    // Pass event so parent can track coordinates
+    // Cooldown de 100ms para evitar bounce mecânico de dedos rápidos
+    const now = Date.now();
+    if (now - lastInteractionTime.current < 100) return;
+
     if (onInteractionStart) onInteractionStart(e);
     
     startX.current = e.clientX;
     startY.current = e.clientY;
-    startTime.current = Date.now();
+    startTime.current = now;
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
@@ -54,24 +59,17 @@ export const useScoreGestures = ({
     const absDeltaX = Math.abs(deltaX);
     const absDeltaY = Math.abs(deltaY);
 
-    // TAP LOGIC
+    // Prioridade para o feedback visual imediato
+    lastInteractionTime.current = Date.now();
+
+    // LÓGICA DE TAP (Curto e parado)
     if (deltaTime < TAP_MAX_DURATION_MS && absDeltaX < TAP_MAX_MOVE && absDeltaY < TAP_MAX_MOVE) {
-      if (e.cancelable) e.preventDefault(); 
       onAdd();
     } 
-    // SWIPE LOGIC
-    else if (absDeltaY > SWIPE_THRESHOLD && absDeltaY > (absDeltaX * 1.5)) {
-        // Vertical swipe dominance check (must be mostly vertical)
-        if (e.cancelable) e.preventDefault();
-        
-        if (deltaY < 0) {
-            // Swipe UP -> Treat as Add (Natural scrolling direction) or ignore? 
-            // V1 logic: Up was Add. Keeping consistent.
-            onAdd(); 
-        } else {
-            // Swipe DOWN -> Subtract
-            onSubtract(); 
-        }
+    // LÓGICA DE SWIPE VERTICAL (Dominância)
+    else if (absDeltaY > SWIPE_THRESHOLD && absDeltaY > absDeltaX) {
+        if (deltaY < 0) onAdd(); 
+        else onSubtract(); 
     }
     
     startX.current = null;
@@ -86,14 +84,9 @@ export const useScoreGestures = ({
     startTime.current = null;
   };
 
-  const handleClick = (e: React.MouseEvent) => {
-      e.stopPropagation();
-  };
-
   return {
     onPointerDown: handlePointerDown,
     onPointerUp: handlePointerUp,
-    onPointerCancel: handlePointerCancel,
-    onClick: handleClick
+    onPointerCancel: handlePointerCancel
   };
 };

@@ -1,3 +1,4 @@
+
 {
   "app": {
     "loading": "Carregando..."
@@ -31,7 +32,9 @@
     "share": "Enviar",
     "download": "Baixar",
     "analysis": "Análise",
-    "logs": "Logs"
+    "logs": "Logs",
+    "undo": "Desfazer",
+    "summary": "Resumo"
   },
   "controls": {
     "undo": "Desfazer",
@@ -61,7 +64,11 @@
     "golden_point": "GOLDEN POINT",
     "match_point": "MATCH POINT",
     "set_point": "SET POINT",
-    "tie_break": "TIE BREAK"
+    "tie_break": "TIE BREAK",
+    "offline": "Modo Offline",
+    "live": "AO VIVO",
+    "broadcasting": "Transmitindo",
+    "liveNow": "Ao Vivo Agora"
   },
   "roles": {
     "setter": "Levantador",
@@ -313,8 +320,7 @@
       "tipTitle": "Formatos Inteligentes:",
       "tipFormat": "• Nome\n• 10 Nome (Número + Nome)\n• 10 Nome 9 (Completo com Skill)",
       "tipDesc": "",
-      "placeholder": "Lucas\n10 Pedro\n5 João 9",
-      "generate": "Gerar Lista"
+      "placeholder": "Nome 8\n10 Nome 9\nNome"
     },
     "profiles": {
       "empty": "Vazio.",
@@ -606,11 +612,43 @@
       "offlineReady": "Offline Pronto",
       "newVersion": "Nova versão disponível. Recarregue para atualizar.",
       "appReady": "App pronto para uso offline.",
-      "reload": "Recarregar"
+      "reload": "Recarregue"
   },
   "resultCard": {
       "title": "Resultado",
       "scorecard": "Súmula",
       "winner": "Vencedor"
+  },
+  "liveSync": {
+    "title": "VolleyLink Live",
+    "activeSession": "Sessão Ativa",
+    "copyOverlay": "Copiar Link de Overlay (OBS)",
+    "overlayCopied": "Link do Overlay copiado para a área de transferência!",
+    "broadcastTitle": "Transmitir Partida",
+    "broadcastSub": "Você controla o placar",
+    "watchTitle": "Assistir Partida",
+    "watchSub": "Acompanhe em tempo real",
+    "enterCode": "Digite o Código da Sala",
+    "connecting": "Conectando...",
+    "connected": "Conectado à Sala {code}",
+    "hosting": "Sessão {code} Iniciada",
+    "hostingSub": "Você é o Host",
+    "syncRequirement": "A sincronização requer internet ativa. O Host deve estar logado.",
+    "copy": "Copiar"
+  },
+  "social": {
+    "ranking": "Ranking",
+    "liveFeed": "Live Feed",
+    "syncing": "Sincronizando Dados Globais...",
+    "impact": "Impacto",
+    "watching": "Assistir Partida"
+  },
+  "analysis": {
+    "aiCoach": "AI Tactical Coach",
+    "processing": "Processando cinemática da partida...",
+    "insight": "Insight do Treinador",
+    "projection": "Projeção Futura (Predictive AI)",
+    "nextSteps": "Próximos Passos",
+    "downloadReport": "Baixar Relatório Técnico"
   }
 }

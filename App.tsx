@@ -1,14 +1,12 @@
 
-import React, { useState, useEffect, lazy, Suspense, useCallback, useRef } from 'react';
-import { GameProvider, useGame } from './contexts/GameContext';
-import { usePWAInstallPrompt } from './hooks/usePWAInstallPrompt';
-import { useTutorial } from './hooks/useTutorial';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { GameProvider, useActions, useScore, useRoster } from './contexts/GameContext'; // UPDATED IMPORTS
 import { useNativeIntegration } from './hooks/useNativeIntegration';
 import { usePlatform } from './hooks/usePlatform';
 import { useVoiceControl } from './hooks/useVoiceControl';
 import { useKeepAwake } from './hooks/useKeepAwake';
+import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
 
-// EAGER IMPORTS
 import { ScoreCardNormal } from './components/ScoreCardNormal';
 import { ScoreCardFullscreen } from './components/ScoreCardFullscreen';
 import { HistoryBar } from './components/HistoryBar';
@@ -21,403 +19,379 @@ import { LayoutProvider } from './contexts/LayoutContext';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { SuddenDeathOverlay } from './components/ui/CriticalPointAnimation';
 import { BackgroundGlow } from './components/ui/BackgroundGlow';
-import { ReloadPrompt } from './components/ui/ReloadPrompt';
-import { InstallReminder } from './components/ui/InstallReminder';
 import { NotificationToast } from './components/ui/NotificationToast';
 import { useTranslation } from './contexts/LanguageContext';
 import { useHudMeasure } from './hooks/useHudMeasure';
-import { useHistoryStore, Match } from './stores/historyStore';
 import { useGameAudio } from './hooks/useGameAudio';
 import { useHaptics } from './hooks/useHaptics';
 import { useScoreAnnouncer } from './hooks/useScoreAnnouncer';
-import { TeamId, SkillType, TeamColor, PlayerProfile } from './types';
-import { Minimize2, Loader2, Heart } from 'lucide-react';
-import { TimerProvider, useTimer } from './contexts/TimerContext';
+import { TeamId, SkillType, GameState } from './types';
+import { Minimize2, Radio, WifiOff } from 'lucide-react';
+import { TimerProvider, useTimerControls } from './contexts/TimerContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext'; 
-import { v4 as uuidv4 } from 'uuid';
-import { LayoutGroup } from 'framer-motion';
-import { GlobalLoader } from './components/ui/GlobalLoader';
+import { LayoutGroup, motion, AnimatePresence } from 'framer-motion';
 import { useSensoryFX } from './hooks/useSensoryFX';
 import { setGlobalReducedMotion } from './utils/animations';
-import { calculateMatchDeltas } from './utils/statsEngine';
+import { SyncEngine } from './services/SyncEngine';
+import { BroadcastOverlay } from './components/Broadcast/BroadcastOverlay';
+import { TimeoutOverlay } from './components/Fullscreen/TimeoutOverlay';
+import { FloatingTimeout } from './components/ui/FloatingTimeout';
 
-// ADS
 import { adService } from './services/AdService';
 import { SmartBanner } from './components/Ads/SmartBanner';
 import { useAdFlow } from './hooks/useAdFlow';
 
-// SYNC
-import { SyncService } from './services/SyncService';
-
-// LAZY LOADED CHUNKS
-const SettingsModal = lazy(() => import('./components/modals/SettingsModal').then(m => ({ default: m.SettingsModal })));
-const TeamManagerModal = lazy(() => import('./components/modals/TeamManagerModal').then(m => ({ default: m.TeamManagerModal })));
-const MatchOverModal = lazy(() => import('./components/modals/MatchOverModal').then(m => ({ default: m.MatchOverModal })));
-const ConfirmationModal = lazy(() => import('./components/modals/ConfirmationModal').then(m => ({ default: m.ConfirmationModal })));
-const HistoryModal = lazy(() => import('./components/modals/HistoryModal').then(m => ({ default: m.HistoryModal })));
-const RichTutorialModal = lazy(() => import('./components/modals/RichTutorialModal').then(m => ({ default: m.RichTutorialModal })));
-const CourtModal = lazy(() => import('./components/modals/CourtModal').then(m => ({ default: m.CourtModal })));
+// NOVOS CONTEXTOS
+import { ModalProvider, useModals } from './contexts/ModalContext';
+import { NotificationProvider, useNotification } from './contexts/NotificationContext';
+import { ModalManager } from './components/modals/ModalManager';
+import { useActiveTimeout } from './hooks/useActiveTimeout';
 
 const GameContent = () => {
-  const game = useGame();
-  const { 
-    state, addPoint, subtractPoint, setServer, useTimeout, undo, toggleSides, applySettings, 
-    resetMatch, generateTeams, togglePlayerFixed, removePlayer, movePlayer, updateTeamName, updateTeamColor, updateTeamLogo,
-    updatePlayer, addPlayer, undoRemovePlayer, commitDeletions, 
-    rotateTeams, setRotationMode, balanceTeams, savePlayerToProfile, revertPlayerChanges, upsertProfile, 
-    deleteProfile, sortTeam, toggleTeamBench, substitutePlayers, deletePlayer, reorderQueue, disbandTeam,
-    batchUpdateStats, profiles, restoreTeam, onRestorePlayer, resetRosters, relinkProfile, manualRotate, swapPositions
-  } = game;
+  // --- REFACTORED: SPLIT CONTEXT CONSUMPTION ---
+  const actions = useActions();
+  const scoreState = useScore();
+  const rosterState = useRoster();
+  
+  // Destructure what we need
+  const { addPoint, subtractPoint, setServer, useTimeout, undo, toggleSides, rotateTeams, resetMatch, setState, substitutePlayers, applySettings } = actions;
+  
+  // Fix: matchLog and actionLog are in scoreState now
+  const { scoreA, scoreB, setsA, setsB, currentSet, servingTeam, isMatchOver, matchWinner, timeoutsA, timeoutsB, inSuddenDeath, pendingSideSwitch, isTimerRunning, swappedSides, history, isMatchActive, isMatchPointA, isMatchPointB, isSetPointA, isSetPointB, isDeuce, isTieBreak, setsNeededToWin, matchLog, actionLog } = scoreState;
+  
+  // Fix: Removed matchLog from rosterState destructuring
+  const { teamARoster, teamBRoster, queue, teamAName, teamBName, config, rotationReport, rotationMode, syncRole, sessionId, canUndo } = rosterState;
+
+  // Reconstruct a "fake" state object for hooks that expect it (until they are refactored)
+  // Note: This object identity changes frequently, but hooks inside usually depend on specific properties.
+  const combinedState = useMemo(() => ({
+      ...scoreState,
+      ...rosterState
+  } as unknown as GameState), [scoreState, rosterState]);
 
   const { t, language } = useTranslation();
-  const historyStore = useHistoryStore();
   const { isNative } = usePlatform();
-  const timer = useTimer();
+  
+  // PERFORMANCE FIX: Use Controls only (stable), not Value (volatile seconds)
+  const timer = useTimerControls();
+  
   const { user } = useAuth();
-  
-  const pwa = usePWAInstallPrompt();
-  const tutorial = useTutorial((pwa.isStandalone || isNative), state.config.developerMode);
-  
-  const [showSettings, setShowSettings] = useState(false);
-  const [showManager, setShowManager] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
-  const [showCourt, setShowCourt] = useState(false); 
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [showFullscreenMenu, setShowFullscreenMenu] = useState(false);
-  
+  const { openModal, closeModal, closeAll, activeModal } = useModals();
+  const { showNotification, state: notifyState, hideNotification } = useNotification();
+  const { triggerSupportAd, showAdConfirm, confirmWatchAd, cancelWatchAd, isAdLoading } = useAdFlow();
+
+  // Performance Monitoring
+  usePerformanceMonitor({
+      isEnabled: !config.lowGraphics, // Only monitor if high graphics are on
+      onDowngrade: () => {
+          applySettings({ ...config, lowGraphics: true }, false);
+          showNotification({ 
+              mainText: "Performance Optimized", 
+              subText: "Low Graphics enabled automatically.", 
+              type: 'info',
+              systemIcon: 'save'
+          });
+      }
+  });
+
+  // TIMEOUT STATE TRACKING (Now using managed hook)
+  const { activeTeam: activeTimeoutTeam, secondsLeft: timeoutSeconds, isMinimized: isTimeoutMinimized, startTimeout, stopTimeout, minimize: minimizeTimeout, maximize: maximizeTimeout } = useActiveTimeout();
+  const prevTimeoutsA = useRef(timeoutsA);
+  const prevTimeoutsB = useRef(timeoutsB);
+
+  useEffect(() => {
+      // Detect Timeout Trigger
+      if (timeoutsA > prevTimeoutsA.current) startTimeout('A');
+      if (timeoutsB > prevTimeoutsB.current) startTimeout('B');
+      
+      // Update refs
+      prevTimeoutsA.current = timeoutsA;
+      prevTimeoutsB.current = timeoutsB;
+  }, [timeoutsA, timeoutsB, startTimeout]);
+
+  // Minimize timeout when modals open
+  useEffect(() => {
+      if (activeTimeoutTeam && activeModal !== 'none' && !isTimeoutMinimized) {
+          minimizeTimeout();
+      }
+  }, [activeModal, activeTimeoutTeam, isTimeoutMinimized, minimizeTimeout]);
+
+  const handleTimeoutUndo = useCallback(() => {
+      undo(); // Revert the timeout in game state
+      stopTimeout();
+      showNotification({ type: 'info', mainText: t('notifications.actionUndone') });
+  }, [undo, t, showNotification, stopTimeout]);
+
+  const handleTacticalBoard = useCallback(() => {
+      minimizeTimeout();
+      openModal('court');
+  }, [minimizeTimeout, openModal]);
+
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  useEffect(() => {
+      const hOnline = () => setIsOnline(true);
+      const hOffline = () => setIsOnline(false);
+      window.addEventListener('online', hOnline);
+      window.addEventListener('offline', hOffline);
+      return () => {
+          window.removeEventListener('online', hOnline);
+          window.removeEventListener('offline', hOffline);
+      };
+  }, []);
+
+  const [isBroadcastMode, setIsBroadcastMode] = useState(false);
+  useEffect(() => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('mode') === 'broadcast') {
+          setIsBroadcastMode(true);
+          const sessionCode = params.get('code');
+          if (sessionCode) {
+              SyncEngine.getInstance().subscribeToMatch(sessionCode, (remoteState) => {
+                  setState({ type: 'LOAD_STATE', payload: { ...remoteState, syncRole: 'spectator', sessionId: sessionCode } });
+              });
+          }
+      }
+  }, [setState]);
+
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [interactingTeam, setInteractingTeam] = useState<TeamId | null>(null);
-
   const [scoreElA, setScoreElA] = useState<HTMLElement | null>(null);
   const [scoreElB, setScoreElB] = useState<HTMLElement | null>(null);
 
-  const [notificationState, setNotificationState] = useState<{ 
-      visible: boolean;
-      type: 'success' | 'error' | 'info';
-      mainText: string;
-      subText?: string;
-      skill?: SkillType;
-      color?: TeamColor;
-      systemIcon?: 'transfer' | 'save' | 'mic' | 'alert' | 'block' | 'undo' | 'delete' | 'add' | 'roster' | 'party';
-      onUndo?: () => void;
-      timestamp?: number;
-  }>({
-      visible: false, type: 'success', mainText: '', color: 'slate'
-  });
-
-  const handleShowToast = useCallback((mainText: string, type: 'success' | 'error' | 'info', subText?: string, systemIcon?: any, onUndo?: () => void) => {
-      setNotificationState({
-          visible: true,
-          type,
-          mainText,
-          subText,
-          systemIcon,
-          onUndo,
-          timestamp: Date.now()
-      });
-  }, []);
-
-  const savedMatchIdRef = useRef<string | null>(null);
-  const audio = useGameAudio(state.config);
+  const audio = useGameAudio(config);
   const haptics = useHaptics(true);
 
-  // --- NATIVE INTEGRATION HOOK ---
-  const anyModalOpen = showSettings || showManager || showHistory || showCourt || showResetConfirm || showFullscreenMenu || !!tutorial.activeTutorial;
-  const handleNativeBack = useCallback(() => {
-      if (showFullscreenMenu) setShowFullscreenMenu(false);
-      else if (showSettings) setShowSettings(false);
-      else if (showManager) setShowManager(false);
-      else if (showHistory) setShowHistory(false);
-      else if (showCourt) setShowCourt(false);
-      else if (showResetConfirm) setShowResetConfirm(false);
-  }, [showFullscreenMenu, showSettings, showManager, showHistory, showCourt, showResetConfirm]);
+  const isHost = syncRole === 'host';
+  const isSpectator = syncRole === 'spectator';
 
-  useNativeIntegration(game.isMatchActive, isFullscreen, handleNativeBack, anyModalOpen);
+  const handleHostSession = async (code: string) => {
+      if (!user) return;
+      await SyncEngine.getInstance().hostMatch(code, user.uid, combinedState);
+      setState({ type: 'SET_SYNC_ROLE', role: 'host', sessionId: code });
+      showNotification({ mainText: t('liveSync.hosting', {code}), type: 'success', subText: t('liveSync.hostingSub'), systemIcon: 'mic' });
+  };
 
-  // --- TIMER SYNC ---
-  useEffect(() => {
-    if (state.isTimerRunning && !timer.isRunning) {
-      timer.start();
-    } else if (!state.isTimerRunning && timer.isRunning) {
-      timer.stop();
-    }
-  }, [state.isTimerRunning, timer]);
+  const handleJoinSession = (code: string) => {
+      setState({ type: 'SET_SYNC_ROLE', role: 'spectator', sessionId: code });
+      SyncEngine.getInstance().subscribeToMatch(code, (remoteState) => {
+          setState({ type: 'LOAD_STATE', payload: { ...remoteState, syncRole: 'spectator', sessionId: code } });
+      });
+      showNotification({ mainText: t('liveSync.connected', {code}), type: 'info', subText: t('liveSync.watchTitle'), systemIcon: 'mic' });
+  };
 
   useEffect(() => {
-    if (state.scoreA === 0 && state.scoreB === 0 && state.setsA === 0 && state.setsB === 0 && state.history.length === 0) {
+      if (isHost && sessionId) {
+          SyncEngine.getInstance().broadcastState(sessionId, combinedState);
+      }
+  }, [scoreA, scoreB, setsA, setsB, servingTeam, isHost, sessionId, combinedState]);
+
+  const anyModalOpen = activeModal !== 'none' || !!activeTimeoutTeam;
+  useNativeIntegration(isMatchActive, isFullscreen, closeModal, anyModalOpen);
+
+  useEffect(() => {
+    if (isTimerRunning && !timer.isRunning) timer.start();
+    else if (!isTimerRunning && timer.isRunning) timer.stop();
+  }, [isTimerRunning, timer]);
+
+  useEffect(() => {
+    if (scoreA === 0 && scoreB === 0 && setsA === 0 && setsB === 0 && history.length === 0) {
       timer.reset();
     }
-  }, [state.scoreA, state.scoreB, state.setsA, state.setsB, state.history.length, timer]);
+  }, [scoreA, scoreB, setsA, setsB, history.length, timer]);
 
-  // --- MODAL MANAGEMENT ON GAME OVER ---
   useEffect(() => {
-    if (state.isMatchOver) {
-      if (showCourt) setShowCourt(false);
-      if (showSettings) setShowSettings(false);
-      if (showManager) setShowManager(false);
-      if (showHistory) setShowHistory(false);
-      if (showFullscreenMenu) setShowFullscreenMenu(false);
-      setInteractingTeam(null);
-    }
-  }, [state.isMatchOver, showCourt, showSettings, showManager, showHistory, showFullscreenMenu]);
+    if (isMatchOver) closeAll();
+  }, [isMatchOver, closeAll]);
 
-  useSensoryFX(state);
-  useKeepAwake(game.isMatchActive);
-
-  // --- AD LOGIC ---
-  const { triggerSupportAd, showAdConfirm, confirmWatchAd, cancelWatchAd, isAdLoading } = useAdFlow();
+  useSensoryFX(combinedState);
+  useKeepAwake(isMatchActive);
 
   useEffect(() => {
     adService.initialize();
   }, []);
 
   useEffect(() => {
-    if (!isFullscreen && !state.config.adsRemoved) {
-      adService.showBanner();
-    } else {
-      adService.hideBanner();
-    }
-  }, [isFullscreen, state.config.adsRemoved]);
+    if (!isFullscreen && !config.adsRemoved) adService.showBanner();
+    else adService.hideBanner();
+  }, [isFullscreen, config.adsRemoved]);
 
   useEffect(() => {
-    setGlobalReducedMotion(state.config.reducedMotion);
-  }, [state.config.reducedMotion]);
+    setGlobalReducedMotion(config.reducedMotion);
+  }, [config.reducedMotion]);
 
-  // --- GLOBAL SYNC PROTOCOL ---
-  useEffect(() => {
-    if (user) {
-        const unsyncedMatches = historyStore.matches.slice(0, 10);
-        unsyncedMatches.forEach(m => SyncService.pushMatch(user.uid, m));
-        const currentProfiles = Array.from(profiles.values()) as PlayerProfile[];
-        if (currentProfiles.length > 0) {
-            SyncService.pushProfiles(user.uid, currentProfiles);
-        }
-    }
-  }, [user]);
-
-  // --- MATCH SAVING LOGIC & PROFILE SYNC ---
-  useEffect(() => {
-    if (state.isMatchOver && state.matchWinner && !savedMatchIdRef.current) {
-        if (state.history.length === 0 && state.scoreA === 0 && state.scoreB === 0) return;
-        const newMatchId = uuidv4();
-        savedMatchIdRef.current = newMatchId;
-        const matchData: Match = {
-            id: newMatchId,
-            date: new Date().toISOString(),
-            timestamp: Date.now(),
-            durationSeconds: state.matchDurationSeconds,
-            teamAName: state.teamAName,
-            teamBName: state.teamBName,
-            setsA: state.setsA,
-            setsB: state.setsB,
-            winner: state.matchWinner,
-            sets: state.history,
-            actionLog: state.matchLog,
-            config: state.config,
-            teamARoster: state.teamARoster,
-            teamBRoster: state.teamBRoster
-        };
-        historyStore.addMatch(matchData);
-        if (user) SyncService.pushMatch(user.uid, matchData);
-        if (state.matchLog.length > 0) {
-            const rosterToProfileMap = new Map<string, string>();
-            const playerTeamMap = new Map<string, TeamId>(); 
-            const mapPlayer = (p: any, tid: TeamId) => {
-                if (p.profileId) {
-                    rosterToProfileMap.set(p.id, p.profileId);
-                    playerTeamMap.set(p.profileId, tid);
-                }
-            };
-            state.teamARoster.players.forEach(p => mapPlayer(p, 'A'));
-            state.teamARoster.reserves?.forEach(p => mapPlayer(p, 'A'));
-            state.teamBRoster.players.forEach(p => mapPlayer(p, 'B'));
-            state.teamBRoster.reserves?.forEach(p => mapPlayer(p, 'B'));
-            const mappedLog = state.matchLog.map(log => {
-                if (log.type === 'POINT' && log.playerId) {
-                    const profileId = rosterToProfileMap.get(log.playerId);
-                    return { ...log, playerId: profileId || log.playerId };
-                }
-                return log;
-            });
-            const deltas = calculateMatchDeltas(mappedLog, state.matchWinner, playerTeamMap);
-            batchUpdateStats(deltas);
-            if (user) {
-                setTimeout(() => {
-                    const currentProfiles = Array.from(profiles.values()) as PlayerProfile[];
-                    SyncService.pushProfiles(user.uid, currentProfiles);
-                }, 1000);
-            }
-            setNotificationState({ visible: true, type: 'success', mainText: t('notifications.matchSaved'), subText: user ? "Saved & Synced" : t('notifications.profileSynced'), systemIcon: 'save' });
-        }
-    } else if (!state.isMatchOver && savedMatchIdRef.current) {
-        savedMatchIdRef.current = null;
-    }
-  }, [state.isMatchOver, state.matchWinner, historyStore, t, batchUpdateStats, state.matchLog, state.teamARoster, state.teamBRoster, user, profiles]);
-
-  useScoreAnnouncer({ state, enabled: state.config.announceScore });
+  useScoreAnnouncer({ state: combinedState, enabled: config.announceScore });
 
   const handleAddPointGeneric = useCallback((teamId: TeamId, playerId?: string, skill?: SkillType) => {
-      const cleanPlayerId = (playerId && playerId.length > 0) ? playerId : undefined;
-      const metadata = cleanPlayerId ? { playerId: cleanPlayerId, skill: skill || 'generic' } : undefined;
+      if (isSpectator) return; 
+      const metadata = (playerId && playerId !== 'unknown') ? { playerId, skill: skill || 'generic' } : undefined;
       audio.playTap(); 
       addPoint(teamId, metadata);
-      const team = teamId === 'A' ? state.teamARoster : state.teamBRoster;
+      const team = teamId === 'A' ? teamARoster : teamBRoster;
       const color = team.color || (teamId === 'A' ? 'indigo' : 'rose');
       let mainText = team.name;
-      let subText = t('notifications.forTeam', { teamName: team.name });
-      if (skill === 'opponent_error') {
-          mainText = t('scout.skills.opponent_error');
-      } else if (cleanPlayerId) {
-          if (cleanPlayerId === 'unknown') mainText = t('scout.unknownPlayer');
-          else {
-              const player = team.players.find(p => p.id === cleanPlayerId) || team.reserves?.find(p => p.id === cleanPlayerId);
-              if (player) mainText = player.name;
-          }
+      if (skill === 'opponent_error') mainText = t('scout.skills.opponent_error');
+      else if (playerId && playerId !== 'unknown') {
+          const player = team.players.find(p => p.id === playerId) || team.reserves?.find(p => p.id === playerId);
+          if (player) mainText = player.name;
       }
-      setNotificationState({ visible: true, type: 'success', mainText: mainText, subText: subText, skill: skill, color: color, timestamp: Date.now() });
-  }, [addPoint, audio, state.teamARoster, state.teamBRoster, t]);
-
-  const handleAddA = useCallback((teamId: TeamId, playerId?: string, skill?: any) => { handleAddPointGeneric('A', playerId, skill); }, [handleAddPointGeneric]);
-  const handleAddB = useCallback((teamId: TeamId, playerId?: string, skill?: any) => { handleAddPointGeneric('B', playerId, skill); }, [handleAddPointGeneric]);
-
-  const handleSubA = useCallback(() => {
-    audio.playUndo(); haptics.impact('heavy'); subtractPoint('A');
-    setNotificationState({ visible: true, type: 'info', mainText: t('notifications.pointRemoved'), subText: t('notifications.pointRemovedSub'), systemIcon: 'undo', timestamp: Date.now() });
-  }, [subtractPoint, audio, haptics, t]);
-  
-  const handleSubB = useCallback(() => {
-    audio.playUndo(); haptics.impact('heavy'); subtractPoint('B');
-    setNotificationState({ visible: true, type: 'info', mainText: t('notifications.pointRemoved'), subText: t('notifications.pointRemovedSub'), systemIcon: 'undo', timestamp: Date.now() });
-  }, [subtractPoint, audio, haptics, t]);
+      showNotification({ type: 'success', mainText, subText: t('notifications.forTeam', { teamName: team.name }), skill, color });
+  }, [addPoint, audio, teamARoster, teamBRoster, t, isSpectator, showNotification]);
 
   const handleUndo = useCallback(() => {
-    if (state.isMatchOver && savedMatchIdRef.current) {
-        historyStore.deleteMatch(savedMatchIdRef.current);
-        savedMatchIdRef.current = null;
-    }
+    if (isSpectator) return;
     undo();
     audio.playUndo(); haptics.impact('medium');
-    setNotificationState({ visible: true, type: 'info', mainText: t('notifications.actionUndone'), subText: t('notifications.actionUndoneSub'), systemIcon: 'undo', timestamp: Date.now() });
-  }, [state.isMatchOver, undo, historyStore, audio, haptics, t]);
+    showNotification({ type: 'info', mainText: t('notifications.actionUndone'), subText: t('notifications.actionUndoneSub'), systemIcon: 'undo' });
+  }, [isMatchOver, undo, audio, haptics, t, isSpectator, showNotification]);
 
   const handleToggleSides = useCallback(() => {
+      if (isSpectator) return;
       toggleSides();
-      setNotificationState({ visible: true, type: 'info', mainText: t('notifications.sidesSwapped'), subText: t('notifications.sidesSwappedSub'), systemIcon: 'transfer', timestamp: Date.now() });
-  }, [toggleSides, t]);
+      showNotification({ type: 'info', mainText: t('notifications.sidesSwapped'), subText: t('notifications.sidesSwappedSub'), systemIcon: 'transfer' });
+  }, [toggleSides, t, isSpectator, showNotification]);
 
-  const handleNextGame = () => { if (state.config.adsRemoved) { rotateTeams(); } else { triggerSupportAd(() => rotateTeams()); } };
-  const handleResetGame = () => { if (state.config.adsRemoved) { resetMatch(); } else { triggerSupportAd(() => resetMatch()); } };
+  const performReset = useCallback(() => {
+      resetMatch();
+  }, [resetMatch]);
 
-  const { isListening, toggleListening, isProcessingAI } = useVoiceControl({
-      enabled: state.config.voiceControlEnabled,
-      enablePlayerStats: state.config.enablePlayerStats, 
+  const handleResetWithAd = useCallback(() => {
+      if (config.adsRemoved) {
+          performReset();
+      } else {
+          triggerSupportAd(performReset);
+      }
+  }, [config.adsRemoved, triggerSupportAd, performReset]);
+
+  const handleNextGame = useCallback(() => { 
+      if (config.adsRemoved) rotateTeams(); 
+      else triggerSupportAd(() => rotateTeams()); 
+  }, [config.adsRemoved, triggerSupportAd, rotateTeams]);
+
+  const { isListening, toggleListening } = useVoiceControl({
+      enabled: config.voiceControlEnabled && !isSpectator,
+      enablePlayerStats: config.enablePlayerStats, 
       onAddPoint: handleAddPointGeneric,
-      onSubtractPoint: (team: TeamId) => team === 'A' ? handleSubA() : handleSubB(),
+      onSubtractPoint: (team: TeamId) => { if (isSpectator) return; subtractPoint(team); },
       onUndo: handleUndo,
-      onTimeout: (team: TeamId) => { useTimeout(team); },
-      onSetServer: (team: TeamId) => { setServer(team); },
-      language: language,
-      teamAName: state.teamAName,
-      teamBName: state.teamBName,
-      playersA: state.teamARoster.players,
-      playersB: state.teamBRoster.players,
-      servingTeam: state.servingTeam
+      onThinkingState: (thinking) => thinking ? showNotification({ mainText: t('notifications.thinking'), type: 'info', subText: t('notifications.aiProcessing'), systemIcon: 'mic' }) : hideNotification(),
+      onTimeout: (team: TeamId) => useTimeout(team),
+      onSetServer: (team: TeamId) => setServer(team),
+      language, teamAName: teamAName, teamBName: teamBName, playersA: teamARoster.players, playersB: teamBRoster.players, servingTeam: servingTeam
   });
 
-  const hudPlacement = useHudMeasure({ leftScoreEl: scoreElA, rightScoreEl: scoreElB, enabled: isFullscreen && !state.config.voiceControlEnabled, maxSets: state.config.maxSets });
-  const handleToggleFullscreen = () => { setIsFullscreen(!isFullscreen); haptics.impact('light'); };
+  const hudPlacement = useHudMeasure({ leftScoreEl: scoreElA, rightScoreEl: scoreElB, enabled: isFullscreen && !config.voiceControlEnabled, maxSets: config.maxSets });
+  
+  // Safe access to matchLog using fallback empty array
+  const lastScorer = useMemo(() => {
+      const logs = matchLog || [];
+      const lastPoint = [...logs].reverse().find(log => log.type === 'POINT');
+      return lastPoint ? (lastPoint as any).team : null;
+  }, [matchLog]);
 
-  const cardA = <ScoreCardNormal key="card-A" teamId="A" team={state.teamARoster} score={state.scoreA} setsWon={state.setsA} isServing={state.servingTeam === 'A'} onAdd={handleAddA} onSubtract={handleSubA} onSetServer={() => setServer('A')} timeouts={state.timeoutsA} onTimeout={() => useTimeout('A')} isMatchPoint={game.isMatchPointA} isSetPoint={game.isSetPointA} isDeuce={game.isDeuce} inSuddenDeath={state.inSuddenDeath} setsNeededToWin={game.setsNeededToWin} colorTheme={state.teamARoster.color} config={state.config} />;
-  const cardB = <ScoreCardNormal key="card-B" teamId="B" team={state.teamBRoster} score={state.scoreB} setsWon={state.setsB} isServing={state.servingTeam === 'B'} onAdd={handleAddB} onSubtract={handleSubB} onSetServer={() => setServer('B')} timeouts={state.timeoutsB} onTimeout={() => useTimeout('B')} isMatchPoint={game.isMatchPointB} isSetPoint={game.isSetPointB} isDeuce={game.isDeuce} inSuddenDeath={state.inSuddenDeath} setsNeededToWin={game.setsNeededToWin} colorTheme={state.teamBRoster.color} config={state.config} />;
-  const normalCards = state.swappedSides ? [cardB, cardA] : [cardA, cardB];
+  if (isBroadcastMode) return <div className="w-full h-screen bg-transparent overflow-hidden"><BroadcastOverlay state={combinedState} /></div>;
 
-  const overlayZIndex = showCourt ? "z-[110]" : "z-[60]";
+  const cardA = <ScoreCardNormal key="card-A" teamId="A" team={teamARoster} score={scoreA} setsWon={setsA} isServing={servingTeam === 'A'} onAdd={(tid, pid, sk) => handleAddPointGeneric('A', pid, sk)} onSubtract={() => subtractPoint('A')} onSetServer={() => setServer('A')} timeouts={timeoutsA} onTimeout={() => useTimeout('A')} isMatchPoint={isMatchPointA} isSetPoint={isSetPointA} isLastScorer={lastScorer === 'A'} isDeuce={isDeuce} inSuddenDeath={inSuddenDeath} setsNeededToWin={setsNeededToWin} colorTheme={teamARoster.color} config={config} isLocked={isSpectator || interactingTeam === 'B'} />;
+  const cardB = <ScoreCardNormal key="card-B" teamId="B" team={teamBRoster} score={scoreB} setsWon={setsB} isServing={servingTeam === 'B'} onAdd={(tid, pid, sk) => handleAddPointGeneric('B', pid, sk)} onSubtract={() => subtractPoint('B')} onSetServer={() => setServer('B')} timeouts={timeoutsB} onTimeout={() => useTimeout('B')} isMatchPoint={isMatchPointB} isSetPoint={isSetPointB} isLastScorer={lastScorer === 'B'} isDeuce={isDeuce} inSuddenDeath={inSuddenDeath} setsNeededToWin={setsNeededToWin} colorTheme={teamBRoster.color} config={config} isLocked={isSpectator || interactingTeam === 'A'} />;
+  const normalCards = swappedSides ? [cardB, cardA] : [cardA, cardB];
 
   return (
-    <div 
-        className="relative w-full h-[100dvh] bg-slate-50 dark:bg-[#020617] overflow-hidden select-none touch-none flex flex-col pt-safe-top pb-safe-bottom pl-safe-left pr-safe-right"
-        style={{ 
-            paddingTop: 'env(safe-area-inset-top)',
-            paddingBottom: 'env(safe-area-inset-bottom)',
-            paddingLeft: 'env(safe-area-inset-left)',
-            paddingRight: 'env(safe-area-inset-right)'
-        }}
-    >
-        <BackgroundGlow isSwapped={state.swappedSides} isFullscreen={isFullscreen} colorA={state.teamARoster.color} colorB={state.teamBRoster.color} lowPowerMode={state.config.lowGraphics} />
-        <SuddenDeathOverlay active={state.inSuddenDeath} />
+    <div className="relative w-full h-[100dvh] bg-slate-50 dark:bg-[#020617] overflow-hidden select-none touch-none flex flex-col pt-safe-top pb-safe-bottom pl-safe-left pr-safe-right">
+        <BackgroundGlow isSwapped={swappedSides} isFullscreen={isFullscreen} colorA={teamARoster.color} colorB={teamBRoster.color} lowPowerMode={config.lowGraphics} />
+        <SuddenDeathOverlay active={inSuddenDeath} />
+        
+        <AnimatePresence>
+            {!isOnline && (
+                <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -50, opacity: 0 }} className="fixed top-2 left-1/2 -translate-x-1/2 z-[110] px-4 py-1.5 bg-rose-600 text-white rounded-full flex items-center gap-2 shadow-2xl border border-white/20 backdrop-blur-md">
+                    <WifiOff size={14} strokeWidth={3} /><span className="text-[10px] font-black uppercase tracking-widest">{t('status.offline')}</span>
+                </motion.div>
+            )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+            {activeTimeoutTeam && !isTimeoutMinimized && (
+                <motion.div 
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[100]"
+                >
+                    <TimeoutOverlay 
+                        team={activeTimeoutTeam === 'A' ? teamARoster : teamBRoster} 
+                        teamId={activeTimeoutTeam}
+                        secondsLeft={timeoutSeconds}
+                        onResume={stopTimeout}
+                        onUndo={handleTimeoutUndo}
+                        onTactical={handleTacticalBoard}
+                        onMinimize={minimizeTimeout}
+                    />
+                </motion.div>
+            )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+            {isTimeoutMinimized && activeTimeoutTeam && (
+                <FloatingTimeout 
+                    secondsLeft={timeoutSeconds} 
+                    color={activeTimeoutTeam === 'A' ? teamARoster.color || 'indigo' : teamBRoster.color || 'rose'}
+                    onMaximize={maximizeTimeout}
+                />
+            )}
+        </AnimatePresence>
+
+        {(isHost || isSpectator) && (
+            <div className="fixed top-2 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-1 pointer-events-none">
+                <div className={`px-3 py-1 rounded-full flex items-center gap-2 backdrop-blur-md border ${isHost ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-500' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 shadow-lg shadow-emerald-500/10'}`}>
+                    <Radio size={12} className="animate-pulse" /><span className="text-[10px] font-black uppercase tracking-[0.2em]">{isHost ? `${t('status.broadcasting')}: ${sessionId}` : `${t('status.live')}: ${sessionId}`}</span>
+                </div>
+            </div>
+        )}
+
         {isFullscreen && (
             <>
-                <MeasuredFullscreenHUD placement={hudPlacement} setsLeft={state.swappedSides ? state.setsB : state.setsA} setsRight={state.swappedSides ? state.setsA : state.setsB} colorLeft={state.swappedSides ? state.teamBRoster.color : state.teamARoster.color || 'indigo'} colorRight={state.swappedSides ? state.teamARoster.color : state.teamBRoster.color || 'rose'} />
-                <FloatingTopBar currentSet={state.currentSet} isTieBreak={game.isTieBreak} onToggleTimer={() => game.setState({ type: 'TOGGLE_TIMER' })} onResetTimer={() => game.setState({ type: 'RESET_TIMER' })} isTimerRunning={state.isTimerRunning} teamNameA={state.teamAName} teamNameB={state.teamBName} teamLogoA={state.teamARoster.logo} teamLogoB={state.teamBRoster.logo} colorA={state.teamARoster.color || 'indigo'} colorB={state.teamBRoster.color || 'rose'} isServingLeft={state.servingTeam === (state.swappedSides ? 'B' : 'A')} isServingRight={state.servingTeam === (state.swappedSides ? 'A' : 'B')} onSetServerA={() => setServer('A')} onSetServerB={() => setServer('B')} timeoutsA={state.timeoutsA} timeoutsB={state.timeoutsB} onTimeoutA={() => useTimeout('A')} onTimeoutB={() => useTimeout('B')} isMatchPointA={game.isMatchPointA} isSetPointA={game.isSetPointA} isMatchPointB={game.isMatchPointB} isSetPointB={game.isSetPointB} isDeuce={game.isDeuce} inSuddenDeath={state.inSuddenDeath} reverseLayout={state.swappedSides} />
-                <FloatingControlBar onUndo={handleUndo} canUndo={game.canUndo} onSwap={handleToggleSides} onReset={() => setShowResetConfirm(true)} onMenu={() => setShowFullscreenMenu(true)} onCourt={() => setShowCourt(true)} voiceEnabled={state.config.voiceControlEnabled} isListening={isListening} onToggleListening={toggleListening} />
+                <MeasuredFullscreenHUD placement={hudPlacement} setsLeft={swappedSides ? setsB : setsA} setsRight={swappedSides ? setsA : setsB} colorLeft={swappedSides ? teamBRoster.color : teamARoster.color || 'indigo'} colorRight={swappedSides ? teamARoster.color : teamBRoster.color || 'rose'} />
+                <FloatingTopBar currentSet={currentSet} isTieBreak={isTieBreak} onToggleTimer={() => setState({ type: 'TOGGLE_TIMER' })} onResetTimer={() => setState({ type: 'RESET_TIMER' })} isTimerRunning={isTimerRunning} teamNameA={teamAName} teamNameB={teamBName} teamLogoA={teamARoster.logo} teamLogoB={teamBRoster.logo} colorA={teamARoster.color || 'indigo'} colorB={teamBRoster.color || 'rose'} isServingLeft={servingTeam === (swappedSides ? 'B' : 'A')} isServingRight={servingTeam === (swappedSides ? 'A' : 'B')} onSetServerA={() => setServer('A')} onSetServerB={() => setServer('B')} timeoutsA={timeoutsA} timeoutsB={timeoutsB} onTimeoutA={() => useTimeout('A')} onTimeoutB={() => useTimeout('B')} isMatchPointA={isMatchPointA} isSetPointA={isSetPointA} isMatchPointB={isMatchPointB} isSetPointB={isSetPointB} isDeuce={isDeuce} inSuddenDeath={inSuddenDeath} reverseLayout={swappedSides} />
+                <FloatingControlBar onUndo={handleUndo} canUndo={canUndo && !isSpectator} onSwap={handleToggleSides} onReset={() => openModal('resetConfirm')} onMenu={() => openModal('fsMenu')} onCourt={() => openModal('court')} voiceEnabled={config.voiceControlEnabled && !isSpectator} isListening={isListening} onToggleListening={toggleListening} />
                 <button onClick={() => setIsFullscreen(false)} className="absolute top-4 right-4 z-[60] p-2 rounded-full bg-black/20 dark:bg-white/10 hover:bg-black/40 dark:hover:bg-white/20 backdrop-blur-md text-slate-300 dark:text-slate-400 hover:white transition-all active:scale-95 border border-white/5"><Minimize2 size={18} strokeWidth={2} /></button>
+                <FullscreenMenuDrawer 
+                    isOpen={activeModal === 'fsMenu'}
+                    onClose={closeModal}
+                    onOpenSettings={() => openModal('settings')}
+                    onOpenRoster={() => openModal('manager')}
+                    onOpenHistory={() => openModal('history')}
+                    onExitFullscreen={() => setIsFullscreen(false)}
+                />
             </>
         )}
-        <FullscreenMenuDrawer isOpen={showFullscreenMenu} onClose={() => setShowFullscreenMenu(false)} onOpenSettings={() => setShowSettings(true)} onOpenRoster={() => setShowManager(true)} onOpenHistory={() => setShowHistory(true)} onExitFullscreen={() => setIsFullscreen(false)} />
+
         <div className={`relative w-full flex-1 flex flex-col min-h-0 ${isFullscreen ? 'p-0' : 'p-2 sm:p-4'}`}>
-            {!isFullscreen && <HistoryBar history={state.history} setsA={state.setsA} setsB={state.setsB} colorA={state.teamARoster.color || 'indigo'} colorB={state.teamBRoster.color || 'rose'} />}
+            {!isFullscreen && <HistoryBar history={history} setsA={setsA} setsB={setsB} colorA={teamARoster.color || 'indigo'} colorB={teamBRoster.color || 'rose'} />}
             <LayoutGroup>
                 <div className={`flex-1 flex flex-col landscape:flex-row gap-2 sm:gap-4 min-h-0 my-2 sm:my-4 justify-between`}>
                     {isFullscreen ? (
                         <>
-                            <ScoreCardFullscreen teamId="A" team={state.teamARoster} score={state.scoreA} onAdd={handleAddA} onSubtract={handleSubA} isMatchPoint={game.isMatchPointA} isSetPoint={game.isSetPointA} isDeuce={game.isDeuce} inSuddenDeath={state.inSuddenDeath} colorTheme={state.teamARoster.color} isLocked={interactingTeam === 'B'} onInteractionStart={() => setInteractingTeam('A')} onInteractionEnd={() => setInteractingTeam(null)} reverseLayout={state.swappedSides} scoreRefCallback={setScoreElA} isServing={state.servingTeam === 'A'} config={state.config} />
-                            <ScoreCardFullscreen teamId="B" team={state.teamBRoster} score={state.scoreB} onAdd={handleAddB} onSubtract={handleSubB} isMatchPoint={game.isMatchPointB} isSetPoint={game.isSetPointB} isDeuce={game.isDeuce} inSuddenDeath={state.inSuddenDeath} colorTheme={state.teamBRoster.color} isLocked={interactingTeam === 'A'} onInteractionStart={() => setInteractingTeam('B')} onInteractionEnd={() => setInteractingTeam(null)} reverseLayout={state.swappedSides} scoreRefCallback={setScoreElB} isServing={state.servingTeam === 'B'} config={state.config} />
+                            <ScoreCardFullscreen teamId="A" team={teamARoster} score={scoreA} onAdd={(tid, pid, sk) => handleAddPointGeneric('A', pid, sk)} onSubtract={() => subtractPoint('A')} isMatchPoint={isMatchPointA} isSetPoint={isSetPointA} isDeuce={isDeuce} inSuddenDeath={inSuddenDeath} colorTheme={teamARoster.color} isLocked={isSpectator || interactingTeam === 'B'} onInteractionStart={() => setInteractingTeam('A')} onInteractionEnd={() => setInteractingTeam(null)} reverseLayout={swappedSides} scoreRefCallback={setScoreElA} isServing={servingTeam === 'A'} config={config} />
+                            <ScoreCardFullscreen teamId="B" team={teamBRoster} score={scoreB} onAdd={(tid, pid, sk) => handleAddPointGeneric('B', pid, sk)} onSubtract={() => subtractPoint('B')} isMatchPoint={isMatchPointB} isSetPoint={isSetPointB} isDeuce={isDeuce} inSuddenDeath={inSuddenDeath} colorTheme={teamBRoster.color} isLocked={isSpectator || interactingTeam === 'A'} onInteractionStart={() => setInteractingTeam('B')} onInteractionEnd={() => setInteractingTeam(null)} reverseLayout={swappedSides} scoreRefCallback={setScoreElB} isServing={servingTeam === 'B'} config={config} />
                         </>
                     ) : ( normalCards )}
                 </div>
             </LayoutGroup>
-            {!isFullscreen && <Controls onUndo={handleUndo} canUndo={game.canUndo} onSwap={handleToggleSides} onSettings={() => setShowSettings(true)} onRoster={() => setShowManager(true)} onHistory={() => setShowHistory(true)} onReset={() => setShowResetConfirm(true)} onToggleFullscreen={handleToggleFullscreen} voiceEnabled={state.config.voiceControlEnabled} isListening={isListening} onToggleListening={toggleListening} />}
+            {!isFullscreen && <Controls onUndo={handleUndo} canUndo={canUndo && !isSpectator} onSwap={handleToggleSides} onSettings={() => openModal('settings')} onRoster={() => openModal('manager')} onHistory={() => openModal('history')} onReset={() => openModal('resetConfirm')} onToggleFullscreen={() => setIsFullscreen(!isFullscreen)} voiceEnabled={config.voiceControlEnabled && !isSpectator} isListening={isListening} onToggleListening={toggleListening} onLiveSync={() => openModal('liveSync')} syncActive={isHost || isSpectator} />}
         </div>
-        <SmartBanner isVisible={!isFullscreen && !state.config.adsRemoved} />
-        <Suspense fallback={<GlobalLoader />}>
-            {showSettings && <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} config={state.config} isMatchActive={game.isMatchActive} onSave={(newConfig, reset) => { applySettings(newConfig, reset); setShowSettings(false); }} zIndex={overlayZIndex} />}
-            {showManager && (
-                <TeamManagerModal 
-                    isOpen={showManager} onClose={() => setShowManager(false)}
-                    courtA={state.teamARoster} courtB={state.teamBRoster} queue={state.queue}
-                    onGenerate={generateTeams} onUpdateTeamName={updateTeamName} onUpdateTeamColor={updateTeamColor} onUpdateTeamLogo={updateTeamLogo}
-                    onUpdatePlayer={updatePlayer}
-                    onToggleFixed={togglePlayerFixed} onRemove={removePlayer} onDeletePlayer={deletePlayer} onMove={movePlayer}
-                    onAddPlayer={addPlayer} onUndoRemove={undoRemovePlayer} canUndoRemove={game.hasDeletedPlayers} onCommitDeletions={commitDeletions}
-                    deletedCount={game.deletedCount} onSetRotationMode={setRotationMode} rotationMode={game.rotationMode}
-                    onBalanceTeams={balanceTeams} onSavePlayerToProfile={savePlayerToProfile} onRevertPlayerChanges={revertPlayerChanges}
-                    deleteProfile={deleteProfile} upsertProfile={upsertProfile} profiles={profiles} onSortTeam={sortTeam}
-                    toggleTeamBench={toggleTeamBench} substitutePlayers={substitutePlayers} matchLog={state.matchLog}
-                    enablePlayerStats={state.config.enablePlayerStats} reorderQueue={reorderQueue} disbandTeam={disbandTeam}
-                    restoreTeam={restoreTeam} onRestorePlayer={(p, t, i) => onRestorePlayer && onRestorePlayer(p, t, i)} resetRosters={resetRosters} relinkProfile={relinkProfile}
-                    onShowToast={handleShowToast}
-                    developerMode={state.config.developerMode}
-                    zIndex={overlayZIndex}
-                />
-            )}
-            {showCourt && (
-                <CourtModal 
-                    isOpen={showCourt} onClose={() => setShowCourt(false)} 
-                    teamA={state.teamARoster} teamB={state.teamBRoster} 
-                    scoreA={state.scoreA} scoreB={state.scoreB} 
-                    servingTeam={state.servingTeam} onManualRotate={manualRotate} 
-                    onAddPoint={handleAddPointGeneric} onSubtractPoint={(teamId) => teamId === 'A' ? handleSubA() : handleSubB()} 
-                    onMovePlayer={swapPositions} onSubstitute={substitutePlayers} 
-                    currentSet={state.currentSet} setsA={state.setsA} setsB={state.setsB} 
-                    isMatchPointA={game.isMatchPointA} isMatchPointB={game.isMatchPointB} 
-                    isSetPointA={game.isSetPointA} isSetPointB={game.isSetPointB} 
-                    isDeuce={game.isDeuce} inSuddenDeath={state.inSuddenDeath} 
-                    matchLog={state.matchLog}
-                    config={state.config}
-                    onOpenManager={() => setShowManager(true)}
-                    onOpenHistory={() => setShowHistory(true)}
-                    onOpenSettings={() => setShowSettings(true)}
-                />
-            )}
-            {state.isMatchOver && <MatchOverModal isOpen={state.isMatchOver} state={state} onRotate={handleNextGame} onReset={handleResetGame} onUndo={handleUndo} />}
-            <ConfirmationModal isOpen={showAdConfirm} onClose={cancelWatchAd} onConfirm={confirmWatchAd} title="Support VolleyScore" message="Watch a short ad to support development?" confirmLabel={isAdLoading ? "Loading..." : "Watch Ad"} icon={Heart} />
-            {showResetConfirm && <ConfirmationModal isOpen={showResetConfirm} onClose={() => setShowResetConfirm(false)} onConfirm={resetMatch} title={t('confirm.reset.title')} message={t('confirm.reset.message')} confirmLabel={t('confirm.reset.confirmButton')} />}
-            {showHistory && <HistoryModal isOpen={showHistory} onClose={() => setShowHistory(false)} developerMode={state.config.developerMode} zIndex={overlayZIndex} />}
-            {tutorial.activeTutorial === 'main' && <RichTutorialModal isOpen={true} tutorialKey="main" onClose={tutorial.completeTutorial} canInstall={pwa.isInstallable} onInstall={pwa.promptInstall} isStandalone={pwa.isStandalone} isIOS={pwa.isIOS} />}
-        </Suspense>
-        <ReloadPrompt />
-        <InstallReminder isVisible={tutorial.showReminder} onInstall={pwa.promptInstall} onDismiss={tutorial.dismissReminder} canInstall={pwa.isInstallable} isIOS={pwa.isIOS} />
-        <NotificationToast key={notificationState.timestamp} visible={notificationState.visible && !showCourt} type={notificationState.type} mainText={notificationState.mainText} subText={notificationState.subText} teamColor={notificationState.color} skill={notificationState.skill} onClose={() => setNotificationState(prev => ({ ...prev, visible: false }))} isFullscreen={isFullscreen} systemIcon={notificationState.systemIcon} onUndo={notificationState.onUndo} />
+        
+        <SmartBanner isVisible={!isFullscreen && !config.adsRemoved} />
+        
+        <ModalManager 
+            handleNextGame={handleNextGame} 
+            handleResetGame={handleResetWithAd} 
+            handleHostSession={handleHostSession} 
+            handleJoinSession={handleJoinSession}
+            handleSubstitution={substitutePlayers}
+            handleShowToast={showNotification}
+            showAdConfirm={showAdConfirm}
+            confirmWatchAd={confirmWatchAd}
+            cancelWatchAd={cancelWatchAd}
+            isAdLoading={isAdLoading}
+        />
+        
+        <NotificationToast key={notifyState.timestamp} visible={notifyState.visible} type={notifyState.type} mainText={notifyState.mainText} subText={notifyState.subText} teamColor={notifyState.color} skill={notifyState.skill} onClose={hideNotification} isFullscreen={isFullscreen} systemIcon={notifyState.systemIcon} onUndo={notifyState.onUndo} />
     </div>
   );
 };
@@ -429,7 +403,11 @@ function App() {
         <AuthProvider>
           <TimerProvider>
             <GameProvider>
-              <GameContent />
+                <ModalProvider>
+                    <NotificationProvider>
+                        <GameContent />
+                    </NotificationProvider>
+                </ModalProvider>
             </GameProvider>
           </TimerProvider>
         </AuthProvider>

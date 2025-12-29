@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
-import { GameConfig, SetHistory, TeamId, ActionLog, Team } from '../types';
+import { GameConfig, SetHistory, TeamId, ActionLog, Team, MatchAnalysis, TimelineNode } from '../types';
 import { SecureStorage } from '../services/SecureStorage';
 
 export type MatchSettings = GameConfig;
@@ -22,6 +22,8 @@ export interface Match {
   sets: SetHistory[];
   actionLog?: ActionLog[];
   config: MatchSettings;
+  aiAnalysis?: MatchAnalysis;
+  timeline?: TimelineNode[]; // Pre-calculated timeline for performance
 }
 
 interface HistoryStoreState {
@@ -35,6 +37,7 @@ interface HistoryStoreActions {
   exportJSON: () => string;
   importJSON: (jsonStr: string, options?: { merge: boolean }) => { success: boolean; errors?: string[] };
   mergeMatches: (newMatches: Match[]) => void;
+  setMatchAnalysis: (matchId: string, analysis: MatchAnalysis) => void;
 }
 
 const secureStorageAdapter: StateStorage = {
@@ -69,6 +72,12 @@ export const useHistoryStore = create<HistoryStoreState & HistoryStoreActions>()
 
       clearHistory: () => {
         set({ matches: [] });
+      },
+
+      setMatchAnalysis: (matchId, analysis) => {
+          set((state) => ({
+              matches: state.matches.map(m => m.id === matchId ? { ...m, aiAnalysis: analysis } : m)
+          }));
       },
 
       mergeMatches: (newMatches) => {

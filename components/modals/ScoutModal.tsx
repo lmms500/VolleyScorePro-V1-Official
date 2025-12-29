@@ -1,9 +1,10 @@
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Team, SkillType, TeamColor } from '../../types';
 import { Swords, Shield, Target, AlertTriangle, X, ChevronLeft, HelpCircle } from 'lucide-react';
-import { motion, AnimatePresence, PanInfo, useDragControls, Transition } from 'framer-motion';
+import { motion, AnimatePresence, PanInfo, useDragControls, Transition, Variants } from 'framer-motion';
 import { resolveTheme } from '../../utils/colors';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { useHaptics } from '../../hooks/useHaptics';
@@ -25,7 +26,8 @@ const springTransition: Transition = {
     mass: 0.8
 };
 
-const slideVariants = {
+// Added explicit Variants type to slideVariants
+const slideVariants: Variants = {
     enter: (direction: number) => ({
         x: direction > 0 ? "20%" : "-20%",
         opacity: 0,
@@ -41,7 +43,7 @@ const slideVariants = {
         x: direction < 0 ? "20%" : "-20%",
         opacity: 0,
         scale: 0.98,
-        transition: { duration: 0.15, ease: "easeIn" }
+        transition: { duration: 0.15, ease: "easeIn" as const } // Added as const for literal string
     })
 };
 

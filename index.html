@@ -1,20 +1,13 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#020617" />
-    <meta name="description" content="VolleyScore Pro 2 is the definitive volleyball companion. It combines a high-performance gesture-based scoreboard with deep team management. Features: Smart Rotation tracking (Standard & Balanced), customizable rules (Indoor/Beach, Sudden Death), career player statistics with 'Scout Mode', real-time voice commands, and rich match history with momentum graphs.">
+    <meta name="description" content="VolleyScore Pro 2 is the definitive volleyball companion. High-performance gesture-based scoreboard with team management.">
     
-    <!-- 
-      SECURITY: ADAPTIVE CSP (DEVELOPMENT MODE)
-      This policy is permissive to allow:
-      1. AI Studio Preview functionality (*.google.com, unsafe-eval)
-      2. Hot Module Replacement (WSS, unsafe-inline)
-      3. External CDNs (Tailwind, Fonts)
-      
-      NOTE: App.tsx will inject a STRICTER policy at runtime if NODE_ENV === 'production'.
-    -->
+    <!-- Security: Production Content Security Policy -->
     <meta id="csp-meta" http-equiv="Content-Security-Policy" content="
       default-src 'self' https://*.google.com https://*.googleapis.com;
       script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://esm.sh https://apis.google.com https://*.google.com https://*.gstatic.com data: blob:;
@@ -28,24 +21,21 @@
       base-uri 'self';
     ">
 
+    <!-- iOS Native App Emulation -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="VolleyScore" />
     <meta name="application-name" content="VolleyScore Pro" />
     
-    <!-- PWA Icons -->
+    <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
-    <link rel="mask-icon" href="/logo.svg" color="#6366f1" />
+    <link rel="apple-touch-icon" href="/logo.svg" />
     
     <title>VolleyScore Pro 2</title>
     
-    <!-- Dependencies: Latest Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      // FIX: Configure Tailwind to use 'class' strategy for dark mode
       tailwind.config = {
         darkMode: 'class',
         theme: {
@@ -58,13 +48,11 @@
       }
     </script>
 
-    <!-- Theme Initialization Script (Avoids FOUC) -->
     <script>
       (function() {
         try {
           var savedTheme = localStorage.getItem('appTheme');
           var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          // Apply dark mode if saved as 'dark' OR if no save exists and system is dark
           if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
             document.documentElement.classList.add('dark');
             document.querySelector('meta[name="theme-color"]').setAttribute('content', '#020617');
@@ -72,166 +60,60 @@
             document.documentElement.classList.remove('dark');
             document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f1f5f9');
           }
-        } catch (e) {
-          console.error("Theme init error", e);
-        }
+        } catch (e) {}
       })();
     </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" crossorigin="anonymous">
-    
-    <style>
-      /* PWA & Mobile Optimizations - True Fullscreen Reset */
-      html, body {
-        height: 100%;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        overflow: hidden; /* Prevents scroll bounce */
-        overscroll-behavior: none;
-        background-color: #000000; /* Deep black backing for notch/dynamic island */
-        
-        /* Disable automatic text size adjustment (iPhone rotate fix) */
-        -webkit-text-size-adjust: 100%; 
-        text-size-adjust: 100%;
-        
-        /* Remove tap highlight color */
-        -webkit-tap-highlight-color: transparent;
-        
-        /* Prevent accidental selection on hold */
-        user-select: none;
-        -webkit-user-select: none;
-        
-        /* CRITICAL: Disables native browser touch actions (zoom, pan) to allow app logic to handle it */
-        touch-action: none;
-      }
-      
-      /* GLOBAL SCROLLBAR HIDING */
-      ::-webkit-scrollbar {
-        display: none;
-        width: 0px;
-        background: transparent;
-      }
-      
-      * {
-        -ms-overflow-style: none;  /* IE and Edge */
-        scrollbar-width: none;  /* Firefox */
-      }
-
-      /* Global Smooth Theme Transition */
-      body {
-        transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
-        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-        transition-duration: 300ms;
-      }
-
-      /* Force color-scheme to match class for scrollbars/native UI */
-      html.dark {
-        color-scheme: dark;
-      }
-      html:not(.dark) {
-        color-scheme: light;
-      }
-      
-      body {
-        font-family: 'Inter', sans-serif;
-      }
-      
-      /* Noise Texture - More subtle (0.02) */
-      .bg-noise {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        pointer-events: none;
-        z-index: 50;
-        opacity: 0.02;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-      }
-
-      /* Re-enable touch-action for specific scrollable areas */
-      .custom-scrollbar, .overflow-y-auto, .overflow-x-auto {
-          touch-action: pan-y; /* Allow vertical scroll */
-      }
-      .touch-pan-x {
-          touch-action: pan-x; /* Allow horizontal scroll explicitly */
-      }
-
-      /* Mask Utilities for Scroll Indicators (Gradient Fade) */
-      .mask-linear-fade-sides {
-        -webkit-mask-image: linear-gradient(to right, transparent 0%, black 15px, black calc(100% - 15px), transparent 100%);
-        mask-image: linear-gradient(to right, transparent 0%, black 15px, black calc(100% - 15px), transparent 100%);
-      }
-      .mask-linear-fade-right {
-        -webkit-mask-image: linear-gradient(to right, black calc(100% - 20px), transparent 100%);
-        mask-image: linear-gradient(to right, black calc(100% - 20px), transparent 100%);
-      }
-      .mask-linear-fade-left {
-        -webkit-mask-image: linear-gradient(to left, black calc(100% - 20px), transparent 100%);
-        mask-image: linear-gradient(to left, black calc(100% - 20px), transparent 100%);
-      }
-
-      /* --- IRON GLASS PROTOCOL: GPU ISOLATION --- */
-      .glass-hardware-accelerated {
-        -webkit-transform: translate3d(0, 0, 0);
-        transform: translate3d(0, 0, 0);
-        -webkit-backface-visibility: hidden;
-        backface-visibility: hidden;
-        perspective: 1000px;
-        will-change: transform, opacity;
-      }
-    </style>
   <script type="importmap">
 {
   "imports": {
-    "idb-keyval": "https://esm.sh/idb-keyval@^6.2.2",
-    "framer-motion": "https://esm.sh/framer-motion@^12.23.26",
-    "react-dom": "https://esm.sh/react-dom@^19.2.2",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.2/",
-    "@google/genai": "https://esm.sh/@google/genai@^1.33.0",
-    "lucide-react": "https://esm.sh/lucide-react@^0.560.0",
-    "uuid": "https://esm.sh/uuid@^13.0.0",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
-    "path": "https://esm.sh/path@^0.12.7",
-    "vite": "https://esm.sh/vite@^7.2.7",
-    "react/": "https://esm.sh/react@^19.2.2/",
-    "react": "https://esm.sh/react@^19.2.2",
-    "zustand/": "https://esm.sh/zustand@^5.0.9/",
-    "zustand": "https://esm.sh/zustand@^5.0.9",
-    "@dnd-kit/utilities": "https://esm.sh/@dnd-kit/utilities@^3.2.2",
-    "firebase/": "https://esm.sh/firebase@^12.6.0/",
-    "@dnd-kit/sortable": "https://esm.sh/@dnd-kit/sortable@^10.0.0",
-    "@capacitor/share": "https://esm.sh/@capacitor/share@^8.0.0",
-    "url": "https://esm.sh/url@^0.11.4",
-    "@capacitor/cli": "https://esm.sh/@capacitor/cli@^8.0.0",
-    "@dnd-kit/core": "https://esm.sh/@dnd-kit/core@^6.3.1",
-    "vite-plugin-pwa": "https://esm.sh/vite-plugin-pwa@^1.2.0",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "@capacitor/core": "https://esm.sh/@capacitor/core@^8.0.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "framer-motion": "https://esm.sh/framer-motion@^12.23.26",
+    "react-dom": "https://esm.sh/react-dom@^19.2.3",
+    "lucide-react": "https://esm.sh/lucide-react@^0.561.0",
+    "@dnd-kit/core": "https://esm.sh/@dnd-kit/core@^6.3.1",
+    "uuid": "https://esm.sh/uuid@^13.0.0",
+    "vite": "https://esm.sh/vite@^7.3.0",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "vite-plugin-pwa": "https://esm.sh/vite-plugin-pwa@^1.2.0",
+    "path": "https://esm.sh/path@^0.12.7",
+    "url": "https://esm.sh/url@^0.11.4",
+    "@capacitor/preferences": "https://esm.sh/@capacitor/preferences@^8.0.0",
+    "idb-keyval": "https://esm.sh/idb-keyval@^6.2.2",
+    "zustand": "https://esm.sh/zustand@^5.0.9",
+    "zustand/": "https://esm.sh/zustand@^5.0.9/",
     "@capacitor/filesystem": "https://esm.sh/@capacitor/filesystem@^8.0.0",
-    "@capacitor/app": "https://esm.sh/@capacitor/app@^8.0.0",
+    "@capacitor/share": "https://esm.sh/@capacitor/share@^8.0.0",
     "react-virtuoso": "https://esm.sh/react-virtuoso@^4.17.0",
     "html-to-image": "https://esm.sh/html-to-image@^1.11.13",
-    "@capacitor/splash-screen": "https://esm.sh/@capacitor/splash-screen@^8.0.0",
     "@capacitor/haptics": "https://esm.sh/@capacitor/haptics@^8.0.0",
-    "@capacitor-community/keep-awake": "https://esm.sh/@capacitor-community/keep-awake@^7.1.0",
+    "@capacitor/cli": "https://esm.sh/@capacitor/cli@^8.0.0",
+    "@capacitor/app": "https://esm.sh/@capacitor/app@^8.0.0",
+    "@capacitor/splash-screen": "https://esm.sh/@capacitor/splash-screen@^8.0.0",
     "@capacitor/status-bar": "https://esm.sh/@capacitor/status-bar@^8.0.0",
     "@capacitor/screen-orientation": "https://esm.sh/@capacitor/screen-orientation@^8.0.0",
-    "@capacitor/preferences": "https://esm.sh/@capacitor/preferences@^8.0.0",
-    "@capacitor-community/text-to-speech": "https://esm.sh/@capacitor-community/text-to-speech@^6.1.0",
+    "@capacitor/keyboard": "https://esm.sh/@capacitor/keyboard@^8.0.0",
     "@capacitor-community/speech-recognition": "https://esm.sh/@capacitor-community/speech-recognition@^7.0.1",
-    "@capacitor/toast": "https://esm.sh/@capacitor/toast@^8.0.0",
-    "@capacitor/keyboard": "https://esm.sh/@capacitor/keyboard@^8.0.0"
+    "@capacitor-community/text-to-speech": "https://esm.sh/@capacitor-community/text-to-speech@^6.1.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
+    "firebase/": "https://esm.sh/firebase@^12.7.0/",
+    "@dnd-kit/sortable": "https://esm.sh/@dnd-kit/sortable@^10.0.0",
+    "@dnd-kit/utilities": "https://esm.sh/@dnd-kit/utilities@^3.2.2",
+    "@capacitor-community/keep-awake": "https://esm.sh/@capacitor-community/keep-awake@^7.1.0",
+    "jspdf": "https://esm.sh/jspdf@^2.5.1"
   }
 }
 </script>
 </head>
-  <body class="bg-slate-100 dark:bg-[#020617] text-slate-900 dark:text-slate-100 antialiased h-screen overflow-hidden selection:bg-indigo-500 selection:text-white transition-colors duration-300">
+  <body class="bg-slate-100 dark:bg-[#020617] text-slate-900 dark:text-slate-100 antialiased h-screen overflow-hidden selection:bg-indigo-500 selection:text-white">
     <div class="bg-noise"></div>
     <div id="root" class="h-full w-full flex flex-col relative z-10"></div>
-    
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>

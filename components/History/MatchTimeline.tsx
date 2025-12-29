@@ -13,25 +13,11 @@ import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { toPng } from 'html-to-image';
+import { TimelineNode } from '../../types/domain';
+import { generateTimelineNodes } from '../../utils/timelineGenerator';
 
 interface MatchTimelineProps {
   match: Match;
-}
-
-interface TimelineNode {
-  id: string; // Unique composite ID
-  type: 'START' | 'POINT' | 'TIMEOUT' | 'SET_END' | 'SUDDEN_DEATH' | 'END';
-  timestamp: number;
-  timeLabel: string;
-  team: TeamId | null; // Null for system events
-  scoreSnapshot: string; // "10-9"
-  description: string;
-  player?: string;
-  skill?: SkillType;
-  
-  // Visualization Props
-  isTop: boolean; // Team A is Top, Team B is Bottom
-  staggerLevel: number; // 0 (Base), 1 (Far), 2 (Very Far) - For zig-zag
 }
 
 // --- ANIMATION VARIANTS ---
@@ -77,181 +63,12 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
   };
 
   // --- 1. CORE LOGIC ENGINE ---
+  // Use cached timeline if available, otherwise generate it (legacy compatibility)
   const timelineNodes = useMemo(() => {
-    if (!match.actionLog || match.actionLog.length === 0) return [];
-
-    // 1.1. STRICT SORTING: The absolute source of truth is Time.
-    const sortedLogs = [...match.actionLog].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-    
-    // Determine accurate Start Time
-    // match.timestamp is usually the END time (when saved).
-    // Start time is estimated by subtracting duration, or using the first log's time.
-    const firstLogTs = sortedLogs.length > 0 ? (sortedLogs[0].timestamp || 0) : 0;
-    const estimatedStart = match.timestamp - (match.durationSeconds * 1000);
-    // Use first log if valid and earlier than save time, otherwise estimate
-    const startTime = (firstLogTs > 0 && firstLogTs < match.timestamp) ? firstLogTs : estimatedStart;
-
-    const nodes: TimelineNode[] = [];
-
-    // Running State
-    let scoreA = 0;
-    let scoreB = 0;
-    let currentSet = 1;
-    let wasInSuddenDeath = false;
-    
-    // Staggering State
-    let lastTeam: TeamId | null = null;
-    let streakCount = 0;
-
-    // Helper: Player Name Resolution
-    const getPlayerName = (id: string | null | undefined): string => {
-        if (!id || id === 'unknown') return '';
-        const pA = match.teamARoster?.players.find(p => p.id === id) || match.teamARoster?.reserves?.find(p => p.id === id);
-        if (pA) return pA.name;
-        const pB = match.teamBRoster?.players.find(p => p.id === id) || match.teamBRoster?.reserves?.find(p => p.id === id);
-        return pB ? pB.name : '';
-    };
-
-    // Helper: Format Time
-    const getTimeLabel = (ts: number) => {
-        const diff = Math.max(0, Math.floor((ts - startTime) / 60000));
-        return `${diff}'`;
-    };
-
-    // 1.2. INITIAL NODE
-    nodes.push({
-        id: 'node-start',
-        type: 'START',
-        timestamp: startTime,
-        timeLabel: '0\'',
-        team: null,
-        scoreSnapshot: '0-0',
-        description: 'START',
-        isTop: false,
-        staggerLevel: 0
-    });
-
-    sortedLogs.forEach((log, idx) => {
-        
-        // Detect Sudden Death Transition
-        // Logic: If the log says we ARE in sudden death (prevInSuddenDeath=true),
-        // but our local tracker says we weren't before, then the transition happened just now.
-        // The PREVIOUS point caused the tie, so we insert the marker NOW, before processing this new point.
-        if (log.type === 'POINT' && log.prevInSuddenDeath === true && !wasInSuddenDeath) {
-             nodes.push({
-                id: `sd-start-${idx}`,
-                type: 'SUDDEN_DEATH',
-                timestamp: (log.timestamp || 0) - 1, // Slightly before the point
-                timeLabel: getTimeLabel((log.timestamp || 0)),
-                team: null,
-                scoreSnapshot: `${scoreA}-${scoreB}`, // Snapshot before reset (e.g. 14-14)
-                description: t('status.sudden_death'),
-                isTop: false,
-                staggerLevel: 0
-            });
-            wasInSuddenDeath = true;
-            
-            // CRITICAL FIX: Reset scores because game engine resets to 0-0 in 3pt Sudden Death
-            // This ensures subsequent points (1-0, 2-0) match the timeline logic and set targets
-            scoreA = 0;
-            scoreB = 0;
-        } 
-        // Reset local tracker if we leave SD (e.g. new set started normally)
-        else if (log.type === 'POINT' && log.prevInSuddenDeath === false) {
-            wasInSuddenDeath = false;
-        }
-
-        if (log.type === 'POINT') {
-            // Update Score State
-            if (log.team === 'A') scoreA++; else scoreB++;
-
-            // Stagger Logic: Zig-Zag for consecutive team points
-            if (log.team === lastTeam) {
-                streakCount++;
-            } else {
-                streakCount = 0;
-            }
-            lastTeam = log.team;
-            
-            const staggerLevel = streakCount % 2; 
-
-            let desc = t('common.add');
-            if (log.skill === 'attack') desc = t('scout.skills.attack');
-            if (log.skill === 'block') desc = t('scout.skills.block');
-            if (log.skill === 'ace') desc = t('scout.skills.ace');
-            if (log.skill === 'opponent_error') desc = t('scout.skills.opponent_error');
-
-            nodes.push({
-                id: `node-${idx}`,
-                type: 'POINT',
-                timestamp: log.timestamp || 0,
-                timeLabel: getTimeLabel(log.timestamp || 0),
-                team: log.team,
-                scoreSnapshot: `${scoreA}-${scoreB}`,
-                description: desc,
-                player: getPlayerName(log.playerId),
-                skill: log.skill,
-                isTop: log.team === 'A',
-                staggerLevel: staggerLevel
-            });
-
-            // Set End Detection: Check against Match History Sets
-            // We verify if the current running score matches the stored set result
-            const setRecord = match.sets.find(s => s.setNumber === currentSet);
-            if (setRecord && scoreA === setRecord.scoreA && scoreB === setRecord.scoreB) {
-                nodes.push({
-                    id: `set-end-${currentSet}`,
-                    type: 'SET_END',
-                    timestamp: (log.timestamp || 0) + 1,
-                    timeLabel: getTimeLabel((log.timestamp || 0)),
-                    team: null,
-                    scoreSnapshot: `${scoreA}-${scoreB}`,
-                    description: `SET ${currentSet}`,
-                    isTop: false,
-                    staggerLevel: 0
-                });
-                
-                // Reset for next set logic simulation
-                scoreA = 0;
-                scoreB = 0;
-                currentSet++;
-                lastTeam = null;
-                streakCount = 0;
-                wasInSuddenDeath = false; // Reset SD tracker on set change
-            }
-        } 
-        else if (log.type === 'TIMEOUT') {
-            nodes.push({
-                id: `to-${idx}`,
-                type: 'TIMEOUT',
-                timestamp: log.timestamp || 0,
-                timeLabel: getTimeLabel(log.timestamp || 0),
-                team: log.team,
-                scoreSnapshot: `${scoreA}-${scoreB}`,
-                description: t('game.timeout'),
-                isTop: log.team === 'A', // Timeouts appear on the team's side
-                staggerLevel: 2 // Push timeouts further out to distinct them
-            });
-        }
-    });
-
-    // 1.3. END NODE
-    // Ensure END timestamp is after the last log
-    const lastLogTs = sortedLogs.length > 0 ? (sortedLogs[sortedLogs.length - 1].timestamp || 0) : startTime;
-    
-    nodes.push({
-        id: 'node-end',
-        type: 'END',
-        timestamp: lastLogTs + 1000,
-        timeLabel: '',
-        team: null,
-        scoreSnapshot: '',
-        description: 'END',
-        isTop: false,
-        staggerLevel: 0
-    });
-
-    return nodes;
+      if (match.timeline && match.timeline.length > 0) {
+          return match.timeline;
+      }
+      return generateTimelineNodes(match, t);
   }, [match, t]);
 
   // --- 2. EXPORT HANDLERS ---
