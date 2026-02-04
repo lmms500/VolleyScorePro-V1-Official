@@ -6,7 +6,7 @@ import { metaReducer } from './meta';
 // Registry of which reducer handles which action type
 // This isn't strictly necessary for execution but helps with code organization/splitting
 const SCORING_ACTIONS = new Set(['POINT', 'SUBTRACT_POINT', 'TIMEOUT', 'TOGGLE_SIDES', 'SET_SERVER']);
-const META_ACTIONS = new Set(['LOAD_STATE', 'APPLY_SETTINGS', 'RESET_MATCH', 'RESET_TIMER', 'TOGGLE_TIMER', 'SET_SYNC_ROLE', 'UNDO']);
+const META_ACTIONS = new Set(['LOAD_STATE', 'APPLY_SETTINGS', 'RESET_MATCH', 'RESET_TIMER', 'TOGGLE_TIMER', 'SET_SYNC_ROLE', 'DISCONNECT_SYNC', 'SET_MATCH_DURATION', 'UNDO']);
 
 export const gameReducer = (state: GameState, action: GameAction): GameState => {
     // 1. High-Frequency Scoring Logic

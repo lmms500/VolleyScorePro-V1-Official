@@ -491,6 +491,10 @@
         "title": "Configuración",
         "desc": "Elige 'Indoor' o 'Playa' en Ajustes. Configura sets (1/3/5) y reglas de tie-break antes de iniciar."
       },
+      "audio": {
+        "title": "Narrador de Audio",
+        "desc": "La app habla el marcador, servidor y momentos críticos como 'Match Point' automáticamente."
+      },
       "narrator": {
         "title": "Narrador de Audio",
         "desc": "La app habla el marcador, servidor y momentos críticos como 'Match Point' automáticamente."

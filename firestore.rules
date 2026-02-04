@@ -15,6 +15,27 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuthenticated();
       allow write: if isOwner(userId);
+      
+      // User's Match History (nested under user)
+      match /matches/{matchId} {
+        allow read: if isOwner(userId);  // Only owner can read their matches
+        allow create: if isOwner(userId);  // Only owner can create
+        allow update, delete: if isOwner(userId);  // Only owner can edit/delete
+        
+        // Match details - Nested subcollections
+        match /sets/{setId} {
+          allow read, write: if isOwner(userId);
+        }
+        
+        match /actions/{actionId} {
+          allow read, write: if isOwner(userId);
+        }
+      }
+      
+      // User's Player Profiles (nested under user)
+      match /profiles/{profileId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     // Rosters (Team Data) - Authenticated users can read/write
@@ -27,29 +48,33 @@ service cloud.firestore {
       }
     }
 
-    // Matches (Game History) - Authenticated users can read/write
-    match /matches/{matchId} {
-      allow read, write: if isAuthenticated();
-      
-      // Match details
-      match /sets/{setId} {
-        allow read, write: if isAuthenticated();
-      }
-      
-      match /actions/{actionId} {
-        allow read, write: if isAuthenticated();
-      }
-    }
-
-    // Player Profiles - Authenticated users can read/write
-    match /profiles/{profileId} {
-      allow read, write: if isAuthenticated();
-    }
-
     // Public league/tournament data (optional)
     match /public/{document=**} {
       allow read: if true;
       allow write: if isAuthenticated();
+    }
+
+    // Live Matches - Real-time broadcast sessions
+    // Anyone can read, authenticated users can create, only host can update/delete
+    match /live_matches/{sessionId} {
+      allow read: if true;  // Public: spectators and OBS overlays can read
+      
+      allow create: if isAuthenticated();  // Only authenticated users create sessions
+      
+      // Update: Only the host (user who created) can update the match state
+      allow update: if isAuthenticated() && 
+        (
+          // If hostUid exists in document, only they can update
+          (!resource.data.keys().hasAny(['hostUid'])) || 
+          (resource.data.hostUid == request.auth.uid)
+        );
+      
+      // Delete: Only the host can delete (when ending session)
+      allow delete: if isAuthenticated() && 
+        (
+          (!resource.data.keys().hasAny(['hostUid'])) || 
+          (resource.data.hostUid == request.auth.uid)
+        );
     }
   }
 }

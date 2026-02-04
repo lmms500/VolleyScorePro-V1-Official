@@ -45,20 +45,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithGoogle = async () => {
     if (!isFirebaseInitialized || !auth || !googleProvider) {
         console.warn("[Auth] Firebase not initialized. Login unavailable.");
+        alert("Firebase não está configurado corretamente. Verifique a configuração no arquivo .env");
         return;
     }
 
     try {
       setLoading(true);
+      console.log("[Auth] Starting Google Sign-In...");
+      
       // Native platforms or small screens prefer redirect for better UX and reliability
       if (Capacitor.isNativePlatform() || window.innerWidth < 768) {
+        console.log("[Auth] Using redirect flow for mobile/native");
         await signInWithRedirect(auth, googleProvider);
       } else {
+        console.log("[Auth] Using popup flow for desktop");
         const result = await signInWithPopup(auth, googleProvider);
+        console.log("[Auth] Sign-in successful:", result.user.displayName);
         setUser(result.user);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("[Auth] Google Sign-In Failed:", error);
+      
+      // Mensagens de erro mais específicas
+      if (error.code === 'auth/popup-closed-by-user') {
+        alert("Login cancelado. Por favor, tente novamente.");
+      } else if (error.code === 'auth/popup-blocked') {
+        alert("Pop-up bloqueado pelo navegador. Por favor, permita pop-ups para este site.");
+      } else if (error.code === 'auth/unauthorized-domain') {
+        alert("Domínio não autorizado. Configure o domínio no Firebase Console.\n\nVeja o arquivo GOOGLE_AUTH_FIX.md para instruções.");
+      } else {
+        alert(`Erro ao fazer login: ${error.message}\n\nVeja o console para mais detalhes.`);
+      }
+      
       throw error;
     } finally {
       setLoading(false);

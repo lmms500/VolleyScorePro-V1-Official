@@ -1,5 +1,5 @@
 
-import React, { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useRef, useState, memo } from 'react';
 import { useModals } from '../../contexts/ModalContext';
 import { useActions, useScore, useRoster } from '../../contexts/GameContext'; // UPDATED: Split imports
 import { useTranslation } from '../../contexts/LanguageContext';
@@ -9,6 +9,7 @@ import { TeamId, SkillType, GameState } from '../../types';
 import { useTutorial } from '../../hooks/useTutorial';
 import { useServiceWorker } from '../../hooks/useServiceWorker';
 import { usePWAInstallPrompt } from '../../hooks/usePWAInstallPrompt';
+import { useSpectatorCount } from '../../hooks/useSpectatorCount';
 import { useHistoryStore, Match } from '../../stores/historyStore';
 import { calculateMatchDeltas } from '../../utils/statsEngine';
 import { useAuth } from '../../contexts/AuthContext';
@@ -32,6 +33,8 @@ interface ModalManagerProps {
     handleResetGame: () => void;
     handleHostSession: (code: string) => void;
     handleJoinSession: (code: string) => void;
+    handleStopBroadcast?: () => void;
+    handleLeaveSession?: () => void;
     handleSubstitution: (teamId: string, pIn: string, pOut: string) => void;
     handleShowToast: any;
     showAdConfirm: boolean;
@@ -40,8 +43,9 @@ interface ModalManagerProps {
     isAdLoading: boolean;
 }
 
-export const ModalManager: React.FC<ModalManagerProps> = ({ 
+export const ModalManager: React.FC<ModalManagerProps> = memo(({ 
     handleNextGame, handleResetGame, handleHostSession, handleJoinSession, 
+    handleStopBroadcast, handleLeaveSession,
     handleSubstitution, handleShowToast,
     showAdConfirm, confirmWatchAd, cancelWatchAd, isAdLoading
 }) => {
@@ -56,7 +60,7 @@ export const ModalManager: React.FC<ModalManagerProps> = ({
   // Reconstruct necessary state parts for child components
   // We avoid creating the full GameState on every render unless needed, but for MatchOver saving we need it all.
   const { isMatchOver, matchWinner, scoreA, scoreB, setsA, setsB, matchDurationSeconds, history, inSuddenDeath, servingTeam, currentSet, timeoutsA, timeoutsB, isDeuce, isMatchPointA, isMatchPointB, isSetPointA, isSetPointB, matchLog, actionLog } = scoreState;
-  const { teamAName, teamBName, teamARoster, teamBRoster, config } = rosterState;
+  const { teamAName, teamBName, teamARoster, teamBRoster, config, syncRole, sessionId } = rosterState;
 
   // Hooks managed here now
   const pwa = usePWAInstallPrompt();
@@ -68,6 +72,9 @@ export const ModalManager: React.FC<ModalManagerProps> = ({
   // Match Saving Logic
   const savedMatchIdRef = useRef<string | null>(null);
   const [activeSavedMatchId, setActiveSavedMatchId] = useState<string | null>(null);
+  
+  // Real-time spectator count from Firestore
+  const spectatorCount = useSpectatorCount(sessionId);
 
   useEffect(() => {
     if (isMatchOver && matchWinner && !savedMatchIdRef.current) {
@@ -100,7 +107,16 @@ export const ModalManager: React.FC<ModalManagerProps> = ({
         const finalMatchData = { ...baseMatchData, timeline };
         
         historyStore.addMatch(finalMatchData);
-        if (user) SyncService.pushMatch(user.uid, finalMatchData);
+        if (user) {
+            // Fire and forget - don't block UI
+            SyncService.pushMatch(user.uid, finalMatchData).then(syncSuccess => {
+                if (!syncSuccess) {
+                    console.warn('[ModalManager] Match saved locally but cloud sync failed. Will retry next app launch.');
+                }
+            }).catch(err => {
+                console.error('[ModalManager] Unexpected sync error:', err);
+            });
+        }
         
         const playerTeamMap = new Map<string, TeamId>(); 
         const mapPlayer = (p: any, tid: TeamId) => { if (p.profileId) playerTeamMap.set(p.profileId, tid); };
@@ -177,7 +193,18 @@ export const ModalManager: React.FC<ModalManagerProps> = ({
       )}
 
       {activeModal === 'liveSync' && (
-        <LiveSyncModal isOpen={true} onClose={closeModal} onHost={handleHostSession} onJoin={handleJoinSession} />
+        <LiveSyncModal 
+          isOpen={true} 
+          onClose={closeModal} 
+          onHost={handleHostSession} 
+          onJoin={handleJoinSession}
+          sessionId={sessionId}
+          isHost={syncRole === 'host'}
+          isSpectator={syncRole === 'spectator'}
+          onStopBroadcast={handleStopBroadcast}
+          onLeaveSession={handleLeaveSession}
+          spectatorCount={spectatorCount}
+        />
       )}
 
       {activeModal === 'resetConfirm' && (
@@ -210,7 +237,8 @@ export const ModalManager: React.FC<ModalManagerProps> = ({
                     savedMatchIdRef.current = null;
                 }
             }} 
-            savedMatchId={activeSavedMatchId} 
+            savedMatchId={activeSavedMatchId}
+            isSpectator={syncRole === 'spectator'}
         />
       )}
 
@@ -237,4 +265,4 @@ export const ModalManager: React.FC<ModalManagerProps> = ({
 
     </Suspense>
   );
-};
+});

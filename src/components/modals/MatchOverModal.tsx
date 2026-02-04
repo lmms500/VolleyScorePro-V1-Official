@@ -24,9 +24,10 @@ interface MatchOverModalProps {
   onReset: () => void;
   onUndo: () => void;
   savedMatchId: string | null;
+  isSpectator?: boolean;
 }
 
-export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, onRotate, onReset, onUndo, savedMatchId }) => {
+export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, onRotate, onReset, onUndo, savedMatchId, isSpectator = false }) => {
   const { t } = useTranslation();
   const [view, setView] = useState<'summary' | 'analysis'>('summary');
   const [renderShareCard, setRenderShareCard] = useState(false);
@@ -159,6 +160,18 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                         </div>
 
                         <div className="flex flex-col h-full p-6 pt-0 landscape:pt-8 overflow-y-auto custom-scrollbar">
+                            {/* AVISO PARA ESPECTADORES */}
+                            {isSpectator && (
+                                <motion.div 
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="w-full mb-4 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400"
+                                >
+                                    <p className="text-[11px] font-bold uppercase tracking-widest">👀 {t('liveSync.spectatorMode') || 'Spectator Mode'}</p>
+                                    <p className="text-[9px] font-medium opacity-80 mt-1">{t('matchOver.waitingForHost') || 'Waiting for host to start next match...'}</p>
+                                </motion.div>
+                            )}
+
                             {/* BOTÃO MÁGICO IA */}
                             <motion.button 
                                 whileTap={{ scale: 0.95 }}
@@ -193,7 +206,7 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
 
                             {/* AÇÕES PRINCIPAIS */}
                             <div className="flex flex-col gap-3 mt-auto pt-4 pb-8">
-                                <Button onClick={onRotate} disabled={!canInteract} size="lg" className="w-full shadow-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black h-16 rounded-2xl uppercase tracking-widest">
+                                <Button onClick={onRotate} disabled={!canInteract || isSpectator} size="lg" className="w-full shadow-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black h-16 rounded-2xl uppercase tracking-widest" title={isSpectator ? 'Only host can start next game' : ''}>
                                     {t('matchOver.nextGameButton')}
                                 </Button>
                                 
@@ -207,10 +220,10 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-2">
-                                    <Button onClick={onUndo} disabled={!canInteract} variant="ghost" className="bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 rounded-2xl h-12 text-[10px] font-black uppercase tracking-widest">
+                                    <Button onClick={onUndo} disabled={!canInteract || isSpectator} variant="ghost" className="bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 rounded-2xl h-12 text-[10px] font-black uppercase tracking-widest" title={isSpectator ? 'Only host can undo' : ''}>
                                         <Undo2 size={16} className="mr-2" /> {t('controls.undo')}
                                     </Button>
-                                    <Button onClick={onReset} disabled={!canInteract} variant="ghost" className="bg-rose-500/10 text-rose-500 rounded-2xl h-12 text-[10px] font-black uppercase tracking-widest border border-rose-500/10">
+                                    <Button onClick={onReset} disabled={!canInteract || isSpectator} variant="ghost" className="bg-rose-500/10 text-rose-500 rounded-2xl h-12 text-[10px] font-black uppercase tracking-widest border border-rose-500/10" title={isSpectator ? 'Only host can reset' : ''}>
                                         <RotateCcw size={16} className="mr-2" /> {t('controls.reset')}
                                     </Button>
                                 </div>

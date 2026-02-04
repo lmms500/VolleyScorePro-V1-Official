@@ -23,7 +23,7 @@ const createTheme = (color: string, baseIntensity: number = 500, textIntensity: 
     bgDark: `dark:bg-${color}-${baseIntensity}/20`,
     border: `border-${color}-${baseIntensity}/40`,
     halo: `bg-${color}-${baseIntensity}`,
-    glow: `shadow-[0_0_15px_rgba(var(--color-${color}-${baseIntensity}),0.5)]`, 
+    glow: `drop-shadow-[0_0_15px_rgba(var(--tw-color-${color}-${baseIntensity}),0.6)]`,
     crown: `text-${color}-${baseIntensity}`,
     ring: `ring-${color}-${baseIntensity}`,
     gradient: `from-${color}-${baseIntensity}/15 to-transparent`,
@@ -78,6 +78,8 @@ const HEX_MAP: Record<string, string> = {
     amber: '#f59e0b',
     orange: '#f97316',
 };
+
+export { HEX_MAP };
 
 export const COLOR_KEYS = Object.keys(TEAM_COLORS);
 

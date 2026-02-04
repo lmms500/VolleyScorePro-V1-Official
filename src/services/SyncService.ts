@@ -14,7 +14,10 @@ export const SyncService = {
      * Uploads a single match to the cloud.
      */
     async pushMatch(userId: string, match: Match): Promise<boolean> {
-        if (!isFirebaseInitialized || !db || !userId || !match.id) return false;
+        if (!isFirebaseInitialized || !db || !userId || !match.id) {
+            console.warn('[Sync] pushMatch: Missing required parameters');
+            return false;
+        }
         
         try {
             const matchRef = doc(db, 'users', userId, 'matches', match.id);
@@ -29,10 +32,18 @@ export const SyncService = {
             };
 
             await setDoc(matchRef, payload, { merge: true });
-            console.debug(`[Sync] Match ${match.id} pushed.`);
+            console.debug(`[Sync] Match ${match.id} pushed successfully.`);
             return true;
-        } catch (e) {
-            console.error('[Sync] pushMatch failed:', e);
+        } catch (e: any) {
+            const errorMsg = e?.message || String(e);
+            console.error('[Sync] pushMatch failed:', errorMsg);
+            
+            // Don't retry on permission errors - will cause infinite loop
+            if (errorMsg.includes('permission') || errorMsg.includes('Permission')) {
+                console.error('[Sync] Permission denied - check Firestore rules');
+                return false;
+            }
+            
             return false;
         }
     },

@@ -1,6 +1,6 @@
 
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo, useCallback } from 'react';
 import { Undo2, ArrowLeftRight, RotateCcw, Menu, ChevronDown, ChevronUp, Mic, MicOff, Grid } from 'lucide-react';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { useLayoutManager } from '../../contexts/LayoutContext';
@@ -20,7 +20,7 @@ interface FloatingControlBarProps {
   onToggleListening: () => void;
 }
 
-export const FloatingControlBar: React.FC<FloatingControlBarProps> = ({ 
+export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({ 
   onUndo, canUndo, onSwap, onReset, onMenu, onCourt, voiceEnabled, isListening, onToggleListening
 }) => {
   const { t } = useTranslation();
@@ -28,6 +28,14 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = ({
   const [isHovering, setIsHovering] = useState(false);
   
   const { scale, registerElement } = useLayoutManager();
+  
+  const handleMinimize = useCallback(() => setIsMinimized(prev => !prev), []);
+  const handleUndo = useCallback(() => { onUndo(); setIsHovering(false); }, [onUndo]);
+  const handleSwap = useCallback(() => { onSwap(); setIsHovering(false); }, [onSwap]);
+  const handleReset = useCallback(() => { onReset(); setIsHovering(false); }, [onReset]);
+  const handleMenu = useCallback(() => { onMenu(); setIsHovering(false); }, [onMenu]);
+  const handleCourt = useCallback(() => { onCourt(); setIsHovering(false); }, [onCourt]);
+  const handleToggleListening = useCallback(() => { onToggleListening(); setIsHovering(false); }, [onToggleListening]);
   const { ref, width, height } = useElementSize<HTMLDivElement>();
 
   useEffect(() => {
@@ -132,4 +140,4 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = ({
       </AnimatePresence>
     </div>
   );
-};
+});

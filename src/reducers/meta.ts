@@ -36,6 +36,12 @@ export const metaReducer = (state: GameState, action: GameAction): GameState => 
         case 'SET_SYNC_ROLE':
             return { ...state, syncRole: action.role, sessionId: action.sessionId };
 
+        case 'DISCONNECT_SYNC':
+            return { ...state, syncRole: 'local', sessionId: undefined };
+
+        case 'SET_MATCH_DURATION':
+            return { ...state, matchDurationSeconds: action.duration };
+
         case 'UNDO': {
             if (state.lastSnapshot) return { ...state.lastSnapshot };
             if (state.isMatchOver || state.actionLog.length === 0) return state;

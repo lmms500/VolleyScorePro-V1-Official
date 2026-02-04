@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">VolleyScore Pro</string>
+    <string name="title_activity_main">VolleyScore Pro</string>
+    <string name="package_name">com.volleyscore.pro2</string>
+    <string name="custom_url_scheme">com.volleyscore.pro2</string>
+</resources>

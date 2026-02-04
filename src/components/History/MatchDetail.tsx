@@ -11,7 +11,9 @@ import { resolveTheme, getHexFromColor } from '../../utils/colors';
 import { MatchTimeline } from './MatchTimeline';
 import { MomentumGraph } from './MomentumGraph';
 import { staggerContainer, staggerItem } from '../../utils/animations';
-import { ProAnalysis } from './ProAnalysis';
+// DISABLED FOR PLAY STORE v1: Pro Analysis
+// import { ProAnalysis } from './ProAnalysis';
+import { isFeatureEnabled } from '../../config/featureFlags';
 
 interface MatchDetailProps {
   match: Match;
@@ -80,20 +82,22 @@ export const MatchDetail: React.FC<MatchDetailProps> = ({ match, onBack }) => {
                     <ArrowLeft size={16} /> {t('common.back')}
                 </button>
 
-                <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl border border-black/5 dark:border-white/10">
-                    <button 
-                        onClick={() => setView('stats')} 
-                        className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${view === 'stats' ? 'bg-white dark:bg-slate-800 text-indigo-500 shadow-sm' : 'text-slate-400'}`}
-                    >
-                        {t('common.summary')}
-                    </button>
-                    <button 
-                        onClick={() => setView('analysis')} 
-                        className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 ${view === 'analysis' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400'}`}
-                    >
-                        <Sparkles size={12} /> Pro Analysis
-                    </button>
-                </div>
+                {isFeatureEnabled('PLAYER_ANALYSIS_ENABLED') && (
+                    <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl border border-black/5 dark:border-white/10">
+                        <button 
+                            onClick={() => setView('stats')} 
+                            className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${view === 'stats' ? 'bg-white dark:bg-slate-800 text-indigo-500 shadow-sm' : 'text-slate-400'}`}
+                        >
+                            {t('common.summary')}
+                        </button>
+                        <button 
+                            onClick={() => setView('analysis')} 
+                            className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 ${view === 'analysis' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400'}`}
+                        >
+                            <Sparkles size={12} /> Pro Analysis
+                        </button>
+                    </div>
+                )}
             </div>
 
             <motion.div 
@@ -128,11 +132,12 @@ export const MatchDetail: React.FC<MatchDetailProps> = ({ match, onBack }) => {
                         {/* TIMELINE */}
                         <MatchTimeline match={match} />
                     </div>
-                ) : (
+                ) : isFeatureEnabled('PLAYER_ANALYSIS_ENABLED') ? (
                     <div className="pt-4">
-                        <ProAnalysis match={match} />
+                        {/* <ProAnalysis match={match} /> */}
+                        DISABLED FOR PLAY STORE v1
                     </div>
-                )}
+                ) : null}
             </motion.div>
         </div>
     );

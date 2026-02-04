@@ -13,6 +13,7 @@ export interface TutorialStep {
   color: string; // Tailwind color class for the graphic header (e.g. 'indigo', 'rose')
   visualId?: string; // Links to TutorialVisuals.tsx
   CustomComponent?: React.ReactNode;
+  isInteractive?: boolean; // If true, step requires user interaction to complete
 }
 
 export const TUTORIAL_SCENARIOS: Record<string, TutorialStep[]> = {
@@ -32,7 +33,8 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialStep[]> = {
       descKey: 'tutorial.gestures.desc', 
       icon: Hand, 
       color: 'violet',
-      visualId: 'gestures'
+      visualId: 'gestures',
+      isInteractive: true
     },
     { 
       id: 'config', 
@@ -43,25 +45,17 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialStep[]> = {
       visualId: 'settings_config' 
     },
     {
-      id: 'voice',
-      titleKey: 'tutorial.voice.title',
-      descKey: 'tutorial.voice.desc',
-      icon: Mic,
+      id: 'audio',
+      titleKey: 'tutorial.main.audio.title',
+      descKey: 'tutorial.main.audio.desc',
+      icon: Volume2,
       color: 'sky',
       visualId: 'voice_control'
     },
     {
-      id: 'narrator',
-      titleKey: 'tutorial.main.narrator.title',
-      descKey: 'tutorial.main.narrator.desc',
-      icon: Volume2,
-      color: 'pink',
-      visualId: 'audio_narrator'
-    },
-    {
       id: 'install',
       titleKey: 'tutorial.install.title',
-      descKey: 'tutorial.install.descAndroid', // Generic motivation
+      descKey: 'tutorial.install.descAndroid',
       icon: Download,
       color: 'emerald',
       visualId: 'install_app'
@@ -76,7 +70,7 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialStep[]> = {
       descKey: 'tutorial.manager.intro.desc', 
       icon: Users, 
       color: 'indigo',
-      visualId: 'team_management'
+      visualId: 'team_composition'
     },
     { 
       id: 'structure', 
@@ -92,7 +86,7 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialStep[]> = {
       descKey: 'tutorial.manager.profiles.desc', 
       icon: UserCircle, 
       color: 'violet',
-      visualId: 'player_profile'
+      visualId: 'player_stats'
     },
     { 
       id: 'subs', 

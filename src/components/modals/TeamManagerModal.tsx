@@ -1,5 +1,5 @@
 
-import React, { useMemo, useCallback, memo, useRef, lazy } from 'react';
+import React, { useMemo, useCallback, memo, useRef, lazy, useEffect, Suspense } from 'react';
 import { Modal } from '../ui/Modal';
 import { Player, TeamColor, PlayerRole, PlayerProfile } from '../../types';
 import { List, Search, X, ListOrdered, Plus } from 'lucide-react';
@@ -38,7 +38,14 @@ const dispatchScrollEvent = () => { if (typeof globalThis !== 'undefined' && glo
 
 export const TeamManagerModal: React.FC<TeamManagerModalProps> = memo((props) => {
   const { t } = useTranslation();
-  const { activeTutorial, completeTutorial } = useTutorial(false, props.developerMode);
+  const { activeTutorial, triggerTutorial, completeTutorial, isLoaded } = useTutorial(false, props.developerMode);
+  
+  // Trigger tutorial when modal opens
+  useEffect(() => {
+    if (isLoaded && props.isOpen) {
+      triggerTutorial('manager');
+    }
+  }, [isLoaded, props.isOpen, triggerTutorial]);
   
   // Data from Hooks
   const { teamARoster: courtA, teamBRoster: courtB, queue, profiles, config, canUndo, rotationMode } = useRoster();
@@ -197,7 +204,9 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = memo((props) =>
 
   return createPortal(
     <Modal isOpen={props.isOpen} onClose={props.onClose} title="" showCloseButton={false} variant="fullscreen" zIndex={props.zIndex}>
-        {activeTutorial === 'manager' && (<RichTutorialModal isOpen={true} tutorialKey="manager" onClose={completeTutorial} />)}
+        <Suspense fallback={null}>
+          {activeTutorial === 'manager' && (<RichTutorialModal isOpen={true} tutorialKey="manager" onClose={completeTutorial} />)}
+        </Suspense>
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
             <div ref={scrollRef} onScroll={onScroll} className="h-full overflow-y-auto custom-scrollbar w-full max-w-6xl mx-auto render-crisp relative">
                 

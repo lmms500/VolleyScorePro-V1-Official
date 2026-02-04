@@ -237,7 +237,9 @@ export type GameAction =
   | { type: 'ROSTER_DISBAND_TEAM'; teamId: string }
   | { type: 'ROSTER_RESTORE_TEAM'; team: Team; index: number }
   | { type: 'MANUAL_ROTATION'; teamId: string; direction: 'clockwise' | 'counter' }
-  | { type: 'SET_SYNC_ROLE'; role: SyncRole; sessionId?: string };
+  | { type: 'SET_SYNC_ROLE'; role: SyncRole; sessionId?: string }
+  | { type: 'DISCONNECT_SYNC' }
+  | { type: 'SET_MATCH_DURATION'; duration: number };
 
 export interface GameState {
   teamAName: string;

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo, useCallback } from 'react';
 import { X, Users, Settings, LogOut, Sun, Moon, History, ChevronRight } from 'lucide-react';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
@@ -14,7 +14,7 @@ interface FullscreenMenuDrawerProps {
   onExitFullscreen: () => void;
 }
 
-const MenuButton = ({ 
+const MenuButton = memo(({ 
   icon: Icon, 
   label, 
   subLabel, 
@@ -95,13 +95,19 @@ const MenuButton = ({
       </div>
     </motion.button>
   );
-};
+});
 
-export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = ({
+export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = memo(({
   isOpen, onClose, onOpenSettings, onOpenRoster, onOpenHistory, onExitFullscreen
 }) => {
   const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
+  
+  const handleSettings = useCallback(() => { onOpenSettings(); onClose(); }, [onOpenSettings, onClose]);
+  const handleRoster = useCallback(() => { onOpenRoster(); onClose(); }, [onOpenRoster, onClose]);
+  const handleHistory = useCallback(() => { onOpenHistory(); onClose(); }, [onOpenHistory, onClose]);
+  const handleExit = useCallback(() => { onExitFullscreen(); onClose(); }, [onExitFullscreen, onClose]);
+  const handleThemeToggle = useCallback(() => setTheme(theme === 'light' ? 'dark' : 'light'), [theme, setTheme]);
 
   return (
     <AnimatePresence>
@@ -156,7 +162,7 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = ({
             <div className="relative z-10 flex-1 px-5 sm:px-8 py-2 overflow-y-auto custom-scrollbar flex flex-col gap-3 sm:gap-4 landscape:grid landscape:grid-cols-2 landscape:content-center landscape:gap-4">
               
               <MenuButton 
-                onClick={() => { onClose(); onOpenRoster(); }}
+                onClick={handleRoster}
                 icon={Users}
                 label={t('controls.teams')}
                 subLabel={t('teamManager.title')}
@@ -165,7 +171,7 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = ({
               />
 
               <MenuButton 
-                onClick={() => { onClose(); onOpenHistory(); }}
+                onClick={handleHistory}
                 icon={History}
                 label={t('controls.history')}
                 subLabel={t('historyList.title')}
@@ -175,7 +181,7 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = ({
 
               <div className="landscape:col-span-2">
                 <MenuButton 
-                    onClick={() => { onClose(); onOpenSettings(); }}
+                    onClick={handleSettings}
                     icon={Settings}
                     label={t('controls.settings')}
                     subLabel={t('settings.title')}
@@ -214,7 +220,7 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = ({
 
                     {/* Exit Button */}
                     <button 
-                        onClick={() => { onClose(); onExitFullscreen(); }} 
+                        onClick={handleExit} 
                         className="
                         w-full landscape:flex-1 flex items-center justify-center gap-3 p-4 sm:p-5 landscape:p-3 rounded-[1.25rem] sm:rounded-[1.5rem] 
                         bg-rose-500/10 hover:bg-rose-500/20
@@ -234,4 +240,4 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = ({
       )}
     </AnimatePresence>
   );
-};
+});

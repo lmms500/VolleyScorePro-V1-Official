@@ -9,6 +9,21 @@ import {
     ClipboardList, Scale, FileJson, Settings, Smartphone, ArrowDown
 } from 'lucide-react';
 import { useTranslation } from '../../contexts/LanguageContext';
+import { InteractiveGestureDemo } from './InteractiveGestureDemo';
+import {
+  DragDropScene,
+  SubstitutionScene,
+  RotationScene,
+  SkillBalanceScene,
+  BatchInputScene,
+  MomentumScene,
+  ScoutModeScene,
+  ExportScene,
+  VoiceControlScene,
+  SettingsScene,
+  TeamCompositionScene,
+  PlayerStatsScene
+} from './MotionScenes';
 
 // Common interface for all visuals
 interface VisualProps {
@@ -50,29 +65,57 @@ const AppLogoSVG = ({ className }: { className?: string }) => (
   </svg>
 );
 
-// --- SCENE 0: APP LOGO ---
+// --- SCENE 0: APP LOGO (REFINED) ---
 const AppLogoVisual = ({ isPaused }: { isPaused: boolean }) => (
   <div className="w-full h-full flex items-center justify-center bg-slate-50 dark:bg-white/5 relative overflow-hidden">
+    {/* ENTRANCE & PULSING GLOW - Synchronized */}
+    <motion.div
+      className="absolute rounded-full bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-indigo-500/20 blur-3xl"
+      initial={{ scale: 0, opacity: 0 }}
+      animate={isPaused ? { scale: 1, opacity: 0.4 } : { scale: [0.6, 1, 0.8, 1, 0.7], opacity: [0.2, 0.5, 0.3, 0.6, 0.25] }}
+      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+      style={{ width: 200, height: 200 }}
+    />
+    
+    {/* CONCENTRIC RINGS - Emanating from center */}
+    {[0, 1, 2].map((ring) => (
       <motion.div
-        className="absolute rounded-full bg-indigo-500/10 blur-3xl"
-        initial={{ width: 150, height: 150, opacity: 0.2 }}
-        animate={isPaused ? { width: 150, height: 150, opacity: 0.2 } : { width: [150, 250, 150], height: [150, 250, 150], opacity: [0.2, 0.6, 0.2] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        key={`ring-${ring}`}
+        className="absolute rounded-full border border-indigo-400/30 dark:border-indigo-500/20"
+        style={{ width: 120 + ring * 60, height: 120 + ring * 60 }}
+        initial={{ opacity: 0, scale: 0.5 }}
+        animate={isPaused ? { opacity: 0 } : { opacity: [0, 0.5, 0], scale: [0.5, 1.5, 0.5] }}
+        transition={{
+          duration: 2.5,
+          repeat: Infinity,
+          delay: ring * 0.5,
+          ease: "easeOut"
+        }}
       />
-      <motion.div 
-        className="relative z-10"
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.6, type: "spring", bounce: 0.5 }}
+    ))}
+
+    {/* LOGO CONTAINER - Entrance spring, Loop rotation */}
+    <motion.div 
+      className="relative z-10"
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ duration: 0.6, type: "spring", bounce: 0.6, damping: 8 }}
+    >
+      {/* SUBTLE CONTINUOUS ROTATION + BOB */}
+      <motion.div
+        className="w-32 h-32 drop-shadow-2xl"
+        animate={isPaused ? { y: 0, rotate: 0 } : { 
+          y: [0, -12, 0],
+          rotate: [0, 360]
+        }}
+        transition={{ 
+          y: { duration: 3.5, repeat: Infinity, ease: "easeInOut" },
+          rotate: { duration: 12, repeat: Infinity, ease: "linear" }
+        }}
       >
-          <motion.div
-            className="w-32 h-32 drop-shadow-2xl"
-            animate={isPaused ? { y: 0 } : { y: [0, -15, 0] }}
-            transition={{ y: { duration: 4, repeat: Infinity, ease: "easeInOut" } }}
-          >
-              <AppLogoSVG className="w-full h-full" />
-          </motion.div>
+        <AppLogoSVG className="w-full h-full" />
       </motion.div>
+    </motion.div>
   </div>
 );
 
@@ -739,28 +782,30 @@ const AudioNarratorVisual = ({ color, isPaused }: VisualProps) => {
 };
 
 // --- MAIN EXPORT ---
-export const TutorialVisual: React.FC<{ visualId: string; colorTheme: any; isPaused: boolean }> = ({ visualId, colorTheme, isPaused }) => {
+export const TutorialVisual: React.FC<{ visualId: string; colorTheme: any; isPaused: boolean; onComplete?: () => void }> = ({ visualId, colorTheme, isPaused, onComplete }) => {
     // Map theme object back to a tailwind text class string required by visuals
     const color = colorTheme?.crown || 'text-indigo-500';
 
     const visualMap: Record<string, React.ReactElement> = {
         'app_logo': <AppLogoVisual isPaused={isPaused} />,
-        'gestures': <GesturesVisual color={color} isPaused={isPaused} />,
-        'settings_config': <SettingsConfigVisual color={color} isPaused={isPaused} />,
-        'voice_control': <AudioNarratorVisual color={color} isPaused={isPaused} />, 
+        'gestures': <InteractiveGestureDemo colorTheme={colorTheme} onComplete={onComplete || (() => {})} />,
+        'settings_config': <SettingsScene color={color} isPaused={isPaused} />,
+        'voice_control': <VoiceControlScene color={color} isPaused={isPaused} />, 
         'audio_narrator': <AudioNarratorVisual color={color} isPaused={isPaused} />,
         'team_management': <SceneCommandCenter color={color} isPaused={isPaused} />,
-        'drag_and_drop': <SceneDragDrop color={color} isPaused={isPaused} />,
+        'team_composition': <TeamCompositionScene color={color} isPaused={isPaused} />,
+        'drag_and_drop': <DragDropScene color={color} isPaused={isPaused} />,
         'player_profile': <SceneProfiles color={color} isPaused={isPaused} />,
-        'substitutions': <SceneSubstitutions color={color} isPaused={isPaused} />,
-        'rotations': <SceneRotation color={color} isPaused={isPaused} />,
-        'skill_balance_v2': <SceneBalance color={color} isPaused={isPaused} />,
-        'batch_input': <SceneBatchInput color={color} isPaused={isPaused} />,
+        'player_stats': <PlayerStatsScene color={color} isPaused={isPaused} />,
+        'substitutions': <SubstitutionScene color={color} isPaused={isPaused} />,
+        'rotations': <RotationScene color={color} isPaused={isPaused} />,
+        'skill_balance_v2': <SkillBalanceScene color={color} isPaused={isPaused} />,
+        'batch_input': <BatchInputScene color={color} isPaused={isPaused} />,
         'history_analytics': <SceneHistorySummary color={color} isPaused={isPaused} />,
-        'history_timeline': <SceneMomentum color={color} isPaused={isPaused} />,
-        'scout_mode_advanced': <SceneScout color={color} isPaused={isPaused} />,
-        'export_data': <SceneExport color={color} isPaused={isPaused} />,
-        'install_app': <SceneInstall color={color} isPaused={isPaused} />, // Added
+        'history_timeline': <MomentumScene color={color} isPaused={isPaused} />,
+        'scout_mode_advanced': <ScoutModeScene color={color} isPaused={isPaused} />,
+        'export_data': <ExportScene color={color} isPaused={isPaused} />,
+        'install_app': <SceneInstall color={color} isPaused={isPaused} />,
     };
 
     return visualMap[visualId] || <AppLogoVisual isPaused={isPaused} />;

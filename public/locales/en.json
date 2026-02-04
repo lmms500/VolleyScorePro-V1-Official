@@ -498,6 +498,10 @@
         "title": "Match Setup",
         "desc": "Select 'Indoor' or 'Beach' presets in Settings. Configure sets (1/3/5) and tie-break rules before starting."
       },
+      "audio": {
+        "title": "Audio Narrator",
+        "desc": "The app speaks the score, server, and critical moments like 'Match Point' automatically."
+      },
       "narrator": {
         "title": "Audio Narrator",
         "desc": "The app speaks the score, server, and critical moments like 'Match Point' automatically."
@@ -628,7 +632,11 @@
   "liveSync": {
     "title": "VolleyLink Live",
     "activeSession": "Active Session",
-    "copyOverlay": "Copy Overlay Link (OBS)",
+    "broadcasting": "Broadcasting",
+    "watching": "Watching",
+    "copyCode": "Copy Match Code",
+    "codeCopied": "Match code copied to clipboard!",
+    "copyObsLink": "Copy Overlay Link (OBS)",
     "overlayCopied": "Overlay Link copied to clipboard!",
     "broadcastTitle": "Broadcast Match",
     "broadcastSub": "You control the score",
@@ -640,7 +648,13 @@
     "hosting": "Session {code} Started",
     "hostingSub": "You are the Host",
     "syncRequirement": "Sync requires an active internet connection. Host must be logged in.",
-    "copy": "Copy"
+    "copy": "Copy",
+    "connect": "Connect",
+    "stopBroadcast": "Stop Broadcasting",
+    "leaveSession": "Leave Session",
+    "broadcastStopped": "Broadcast Stopped",
+    "sessionLeft": "You left the session",
+    "nowLocal": "Local mode enabled"
   },
   "social": {
     "ranking": "Ranking",

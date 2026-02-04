@@ -5,6 +5,7 @@ import { VoiceRecognitionService } from '../services/VoiceRecognitionService';
 import { VoiceCommandParser } from '../services/VoiceCommandParser';
 import { GeminiCommandService } from '../services/GeminiCommandService';
 import { useTranslation } from '../contexts/LanguageContext';
+import { FEATURE_FLAGS } from '../constants';
 
 interface UseVoiceControlProps {
   enabled: boolean;
@@ -42,8 +43,8 @@ export const useVoiceControl = ({
           teamAName, teamBName, playersA, playersB, statsEnabled: enablePlayerStats, servingTeam
       });
 
-      // 2. Se local falhar ou for incerto, chamar Gemini
-      if (!localIntent || localIntent.type === 'unknown' || localIntent.confidence < 0.8) {
+      // 2. Se local falhar ou for incerto, chamar Gemini (if AI is enabled)
+      if (FEATURE_FLAGS.ENABLE_AI_VOICE_COMMANDS && (!localIntent || localIntent.type === 'unknown' || localIntent.confidence < 0.8)) {
           if (!isFinal) return; // Esperar frase completa para IA
 
           setIsProcessingAI(true);
@@ -59,8 +60,8 @@ export const useVoiceControl = ({
           if (aiResult && aiResult.type !== 'unknown') {
               processIntent(aiResult);
           }
-      } else {
-          // Local resolveu com confiança
+      } else if (localIntent && localIntent.type !== 'unknown') {
+          // Local resolveu com confiança (ou IA desativada)
           processIntent(localIntent);
       }
   }, [language, teamAName, teamBName, playersA, playersB, enablePlayerStats, servingTeam, onThinkingState]);

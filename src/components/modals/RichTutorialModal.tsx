@@ -68,6 +68,7 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
   const [direction, setDirection] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isReady, setIsReady] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
 
   // Filter steps: Only remove 'install' step if explicitly in Standalone/Native mode
   // This ensures browser users (including iOS) see the prompt to install/add to home screen
@@ -87,6 +88,7 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
       setDirection(0);
       setIsPaused(false);
       setIsReady(false);
+      setCompletedSteps(new Set());
     }
   }, [isOpen, tutorialKey]);
 
@@ -102,20 +104,31 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
 
   const isInstallStep = currentStep.id === 'install';
 
+  // Determine if current step is interactive and whether it's been completed
+  const isStepInteractive = currentStep.isInteractive === true;
+  const isStepCompleted = completedSteps.has(currentStep.id);
+  const isNextButtonDisabled = isStepInteractive && !isStepCompleted;
+
   const handleNext = () => {
     if (currentStepIndex < steps.length - 1) {
       setDirection(1);
       setCurrentStepIndex(prev => prev + 1);
+    } else if (isInstallStep && canInstall && onInstall) {
+      // Install step with installation capability
+      onInstall();
+      // We close immediately to show the browser prompt
+      onClose(tutorialKey);
     } else {
-      // Last step logic
-      if (isInstallStep && canInstall && onInstall) {
-          onInstall();
-          // We close immediately to show the browser prompt
-          onClose(tutorialKey);
-      } else {
-          onClose(tutorialKey);
-      }
+      // Last step - just close
+      onClose(tutorialKey);
     }
+  };
+
+  const handleStepComplete = () => {
+    // Mark current step as completed
+    const updated = new Set(completedSteps);
+    updated.add(currentStep.id);
+    setCompletedSteps(updated);
   };
 
   const handleBack = () => {
@@ -207,7 +220,7 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
             <div className="flex flex-col landscape:flex-row w-full h-full">
                 
                 {/* 1. HERO VISUAL AREA (Left in Landscape) */}
-                <div className="h-64 landscape:h-full landscape:w-1/2 w-full relative overflow-hidden bg-slate-50/50 dark:bg-white/5 border-b landscape:border-b-0 landscape:border-r border-black/5 dark:border-white/5 flex items-center justify-center">
+                <div className="h-[440px] sm:h-[520px] landscape:h-full landscape:w-1/2 w-full relative bg-slate-50/50 dark:bg-white/5 border-b landscape:border-b-0 landscape:border-r border-black/5 dark:border-white/5 flex items-center justify-center overflow-hidden" style={{ touchAction: 'none' }}>
                     <AnimatePresence initial={false} custom={direction} mode="wait">
                         <motion.div
                             key={`vis-${currentStep.id}`}
@@ -221,7 +234,8 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
                             <TutorialVisual 
                                 visualId={currentStep.visualId || 'app_logo'} 
                                 colorTheme={colorTheme} 
-                                isPaused={effectiveIsPaused} 
+                                isPaused={effectiveIsPaused}
+                                onComplete={handleStepComplete}
                             />
                         </motion.div>
                     </AnimatePresence>
@@ -230,7 +244,7 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
                 {/* 2. TEXT & NAVIGATION AREA (Right in Landscape) */}
                 <div className="landscape:w-1/2 flex flex-col h-full bg-transparent relative z-20">
                     
-                    <div className="flex-1 flex flex-col items-center justify-center text-center px-8 pt-8 pb-4 landscape:pt-12 overflow-y-auto custom-scrollbar">
+                    <div className="flex-1 flex flex-col items-center justify-center text-center px-6 sm:px-8 pt-6 sm:pt-8 pb-4 landscape:pt-12 overflow-y-auto custom-scrollbar">
                         <AnimatePresence initial={false} custom={direction} mode="wait">
                             <motion.div
                                 key={`txt-${currentStep.id}`}
@@ -256,16 +270,16 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
                                     ))}
                                 </div>
 
-                                <h2 className="text-3xl landscape:text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight mb-4 leading-none">
+                                <h2 className="text-2xl sm:text-3xl landscape:text-2xl font-black text-slate-800 dark:text-white uppercase tracking-tight mb-3 sm:mb-4 leading-none">
                                 {t(currentStep.titleKey)}
                                 </h2>
                                 
-                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs landscape:max-w-sm">
+                                <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-xs landscape:max-w-sm">
                                     {t(getDescriptionKey())}
                                 </p>
                                 
                                 {currentStep.id === 'welcome' && (
-                                    <p className="mt-4 text-[10px] text-slate-400 dark:text-slate-600 italic">
+                                    <p className="mt-3 sm:mt-4 text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-600 italic">
                                         {t('tutorial.welcome.optIn')}
                                     </p>
                                 )}
@@ -294,9 +308,13 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
 
                             <button 
                                 onClick={handleNext}
+                                disabled={isNextButtonDisabled}
                                 className={`
-                                    flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95
-                                    ${colorTheme.halo.replace('bg-', 'bg-')}
+                                    flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95
+                                    ${isNextButtonDisabled
+                                      ? 'opacity-50 cursor-not-allowed bg-slate-300 dark:bg-slate-700'
+                                      : `${colorTheme.halo.replace('bg-', 'bg-')} ${isStepCompleted ? 'animate-pulse' : ''}`
+                                    }
                                 `}
                             >
                                 {currentStepIndex < steps.length - 1 ? (

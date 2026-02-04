@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 
-export type ModalType = 'settings' | 'manager' | 'history' | 'court' | 'resetConfirm' | 'liveSync' | 'adConfirm' | 'fsMenu' | 'none';
+export type ModalType = 'settings' | 'manager' | 'history' | 'court' | 'resetConfirm' | 'liveSync' | 'adConfirm' | 'fsMenu' | 'match_over' | 'none';
 
 interface ModalContextType {
   activeModal: ModalType;

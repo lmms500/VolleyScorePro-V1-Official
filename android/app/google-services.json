@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "812069353468",
+    "project_id": "volleyscore-pro",
+    "storage_bucket": "volleyscore-pro.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:812069353468:android:840d423a48aad959d0e479",
+        "android_client_info": {
+          "package_name": "com.volleyscore.pro2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "812069353468-icg9j6kpgmvgpbstibv2cdvq6kmpbr9g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBqgXBd0lHtcwdwMEUaKNfaXk7FiJAuhE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "812069353468-icg9j6kpgmvgpbstibv2cdvq6kmpbr9g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

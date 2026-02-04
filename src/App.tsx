@@ -6,6 +6,7 @@ import { usePlatform } from './hooks/usePlatform';
 import { useVoiceControl } from './hooks/useVoiceControl';
 import { useKeepAwake } from './hooks/useKeepAwake';
 import { usePerformanceMonitor } from './hooks/usePerformanceMonitor';
+import { FEATURE_FLAGS } from './constants';
 
 import { ScoreCardNormal } from './components/ScoreCardNormal';
 import { ScoreCardFullscreen } from './components/ScoreCardFullscreen';
@@ -27,13 +28,14 @@ import { useHaptics } from './hooks/useHaptics';
 import { useScoreAnnouncer } from './hooks/useScoreAnnouncer';
 import { TeamId, SkillType, GameState } from './types';
 import { Minimize2, Radio, WifiOff } from 'lucide-react';
-import { TimerProvider, useTimerControls } from './contexts/TimerContext';
+import { TimerProvider, useTimerControls, useTimerValue } from './contexts/TimerContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext'; 
 import { LayoutGroup, motion, AnimatePresence } from 'framer-motion';
 import { useSensoryFX } from './hooks/useSensoryFX';
 import { setGlobalReducedMotion } from './utils/animations';
 import { SyncEngine } from './services/SyncEngine';
 import { BroadcastOverlay } from './components/Broadcast/BroadcastOverlay';
+import { ObsScoreDisplay } from './components/Broadcast/ObsScoreDisplay';
 import { TimeoutOverlay } from './components/Fullscreen/TimeoutOverlay';
 import { FloatingTimeout } from './components/ui/FloatingTimeout';
 
@@ -46,6 +48,8 @@ import { ModalProvider, useModals } from './contexts/ModalContext';
 import { NotificationProvider, useNotification } from './contexts/NotificationContext';
 import { ModalManager } from './components/modals/ModalManager';
 import { useActiveTimeout } from './hooks/useActiveTimeout';
+import { useTimeoutSync } from './hooks/useTimeoutSync';
+import { useRemoteTimeoutSync } from './hooks/useRemoteTimeoutSync';
 
 const GameContent = () => {
   // --- REFACTORED: SPLIT CONTEXT CONSUMPTION ---
@@ -57,7 +61,7 @@ const GameContent = () => {
   const { addPoint, subtractPoint, setServer, useTimeout, undo, toggleSides, rotateTeams, resetMatch, setState, substitutePlayers, applySettings } = actions;
   
   // Fix: matchLog and actionLog are in scoreState now
-  const { scoreA, scoreB, setsA, setsB, currentSet, servingTeam, isMatchOver, matchWinner, timeoutsA, timeoutsB, inSuddenDeath, pendingSideSwitch, isTimerRunning, swappedSides, history, isMatchActive, isMatchPointA, isMatchPointB, isSetPointA, isSetPointB, isDeuce, isTieBreak, setsNeededToWin, matchLog, actionLog } = scoreState;
+  const { scoreA, scoreB, setsA, setsB, currentSet, servingTeam, isMatchOver, matchWinner, timeoutsA, timeoutsB, inSuddenDeath, pendingSideSwitch, isTimerRunning, swappedSides, history, isMatchActive, isMatchPointA, isMatchPointB, isSetPointA, isSetPointB, isDeuce, isTieBreak, setsNeededToWin, matchLog, actionLog, matchDurationSeconds } = scoreState;
   
   // Fix: Removed matchLog from rosterState destructuring
   const { teamARoster, teamBRoster, queue, teamAName, teamBName, config, rotationReport, rotationMode, syncRole, sessionId, canUndo } = rosterState;
@@ -141,6 +145,9 @@ const GameContent = () => {
 
   const [isBroadcastMode, setIsBroadcastMode] = useState(false);
   useEffect(() => {
+      // FEATURE FLAG: Disable VolleyLink Live for PlayStore release
+      if (!FEATURE_FLAGS.ENABLE_LIVE_SYNC) return;
+      
       const params = new URLSearchParams(window.location.search);
       if (params.get('mode') === 'broadcast') {
           setIsBroadcastMode(true);
@@ -165,13 +172,18 @@ const GameContent = () => {
   const isSpectator = syncRole === 'spectator';
 
   const handleHostSession = async (code: string) => {
-      if (!user) return;
+      // FEATURE FLAG: VolleyLink Live disabled for PlayStore v1.0
+      if (!FEATURE_FLAGS.ENABLE_LIVE_SYNC || !user) return;
+      
       await SyncEngine.getInstance().hostMatch(code, user.uid, combinedState);
       setState({ type: 'SET_SYNC_ROLE', role: 'host', sessionId: code });
       showNotification({ mainText: t('liveSync.hosting', {code}), type: 'success', subText: t('liveSync.hostingSub'), systemIcon: 'mic' });
   };
 
   const handleJoinSession = (code: string) => {
+      // FEATURE FLAG: VolleyLink Live disabled for PlayStore v1.0
+      if (!FEATURE_FLAGS.ENABLE_LIVE_SYNC) return;
+      
       setState({ type: 'SET_SYNC_ROLE', role: 'spectator', sessionId: code });
       SyncEngine.getInstance().subscribeToMatch(code, (remoteState) => {
           setState({ type: 'LOAD_STATE', payload: { ...remoteState, syncRole: 'spectator', sessionId: code } });
@@ -179,19 +191,77 @@ const GameContent = () => {
       showNotification({ mainText: t('liveSync.connected', {code}), type: 'info', subText: t('liveSync.watchTitle'), systemIcon: 'mic' });
   };
 
-  useEffect(() => {
-      if (isHost && sessionId) {
-          SyncEngine.getInstance().broadcastState(sessionId, combinedState);
+  const handleStopBroadcast = async () => {
+      // FEATURE FLAG: VolleyLink Live disabled for PlayStore v1.0
+      if (!FEATURE_FLAGS.ENABLE_LIVE_SYNC || !sessionId) return;
+      try {
+          await SyncEngine.getInstance().endSession(sessionId);
+          setState({ type: 'DISCONNECT_SYNC' });
+          showNotification({ mainText: t('liveSync.broadcastStopped'), type: 'success', subText: t('liveSync.nowLocal'), systemIcon: 'mic' });
+      } catch (e) {
+          console.error('[App] Failed to stop broadcast:', e);
+          showNotification({ mainText: 'Erro ao encerrar transmissão', type: 'error', subText: String(e), systemIcon: 'mic' });
       }
-  }, [scoreA, scoreB, setsA, setsB, servingTeam, isHost, sessionId, combinedState]);
+  };
+
+  const handleLeaveSession = () => {
+      // FEATURE FLAG: VolleyLink Live disabled for PlayStore v1.0
+      if (!FEATURE_FLAGS.ENABLE_LIVE_SYNC) return;
+      setState({ type: 'DISCONNECT_SYNC' });
+      showNotification({ mainText: t('liveSync.sessionLeft'), type: 'info', subText: t('liveSync.nowLocal'), systemIcon: 'mic' });
+  };
+
+  useEffect(() => {
+      // FEATURE FLAG: VolleyLink Live disabled for PlayStore v1.0
+      if (!FEATURE_FLAGS.ENABLE_LIVE_SYNC || !isHost || !sessionId) return;
+      SyncEngine.getInstance().broadcastState(sessionId, combinedState);
+  }, [isHost, sessionId, combinedState]);
+
+  // Sync timeout separately with debounce to avoid Firestore queue overflow
+  // FEATURE FLAG: Only sync if VolleyLink Live is enabled
+  FEATURE_FLAGS.ENABLE_LIVE_SYNC && useTimeoutSync(sessionId, activeTimeoutTeam, timeoutSeconds, isTimeoutMinimized, isHost);
+
+  // Spectators: Listen for remote timeout changes from host
+  // FEATURE FLAG: Only enable if VolleyLink Live is enabled
+  FEATURE_FLAGS.ENABLE_LIVE_SYNC && useRemoteTimeoutSync(sessionId, (remoteState) => {
+    if (isSpectator) {
+      if (remoteState.activeTeam && remoteState.activeTeam !== activeTimeoutTeam) {
+        startTimeout(remoteState.activeTeam, remoteState.secondsLeft ?? 30);
+        if (remoteState.isMinimized) {
+          minimizeTimeout();
+        }
+      } else if (!remoteState.activeTeam && activeTimeoutTeam) {
+        stopTimeout();
+      } else if (activeTimeoutTeam && remoteState.isMinimized !== isTimeoutMinimized) {
+        if (remoteState.isMinimized) minimizeTimeout();
+        else maximizeTimeout();
+      }
+    }
+  });
+
+  // Spectators: Auto-open match over modal when host finishes
+  useEffect(() => {
+    if (isSpectator && isMatchOver && activeModal === 'none') {
+      openModal('match_over');
+    }
+  }, [isSpectator, isMatchOver, activeModal, openModal]);
 
   const anyModalOpen = activeModal !== 'none' || !!activeTimeoutTeam;
   useNativeIntegration(isMatchActive, isFullscreen, closeModal, anyModalOpen);
 
+  // Sync Timer with Game State
   useEffect(() => {
     if (isTimerRunning && !timer.isRunning) timer.start();
     else if (!isTimerRunning && timer.isRunning) timer.stop();
   }, [isTimerRunning, timer]);
+
+  // Update matchDurationSeconds in game state as timer ticks
+  const timerValue = useTimerValue();
+  useEffect(() => {
+    if (isMatchActive && timerValue.seconds !== matchDurationSeconds) {
+      setState({ type: 'SET_MATCH_DURATION', duration: timerValue.seconds });
+    }
+  }, [timerValue.seconds, isMatchActive, matchDurationSeconds]);
 
   useEffect(() => {
     if (scoreA === 0 && scoreB === 0 && setsA === 0 && setsB === 0 && history.length === 0) {
@@ -288,7 +358,18 @@ const GameContent = () => {
       return lastPoint ? (lastPoint as any).team : null;
   }, [matchLog]);
 
-  if (isBroadcastMode) return <div className="w-full h-screen bg-transparent overflow-hidden"><BroadcastOverlay state={combinedState} /></div>;
+  // Check if OBS layout is requested
+  const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+  const obsLayout = params.get('obsLayout') as 'horizontal' | 'vertical' | null;
+
+  if (isBroadcastMode) {
+    if (obsLayout) {
+      // OBS-optimized display (spectator-only, high performance)
+      return <div className="w-full h-screen bg-slate-950 overflow-hidden"><ObsScoreDisplay state={combinedState} layout={obsLayout} /></div>;
+    }
+    // Standard broadcast overlay
+    return <div className="w-full h-screen bg-transparent overflow-hidden"><BroadcastOverlay state={combinedState} /></div>;
+  }
 
   const cardA = <ScoreCardNormal key="card-A" teamId="A" team={teamARoster} score={scoreA} setsWon={setsA} isServing={servingTeam === 'A'} onAdd={(tid, pid, sk) => handleAddPointGeneric('A', pid, sk)} onSubtract={() => subtractPoint('A')} onSetServer={() => setServer('A')} timeouts={timeoutsA} onTimeout={() => useTimeout('A')} isMatchPoint={isMatchPointA} isSetPoint={isSetPointA} isLastScorer={lastScorer === 'A'} isDeuce={isDeuce} inSuddenDeath={inSuddenDeath} setsNeededToWin={setsNeededToWin} colorTheme={teamARoster.color} config={config} isLocked={isSpectator || interactingTeam === 'B'} />;
   const cardB = <ScoreCardNormal key="card-B" teamId="B" team={teamBRoster} score={scoreB} setsWon={setsB} isServing={servingTeam === 'B'} onAdd={(tid, pid, sk) => handleAddPointGeneric('B', pid, sk)} onSubtract={() => subtractPoint('B')} onSetServer={() => setServer('B')} timeouts={timeoutsB} onTimeout={() => useTimeout('B')} isMatchPoint={isMatchPointB} isSetPoint={isSetPointB} isLastScorer={lastScorer === 'B'} isDeuce={isDeuce} inSuddenDeath={inSuddenDeath} setsNeededToWin={setsNeededToWin} colorTheme={teamBRoster.color} config={config} isLocked={isSpectator || interactingTeam === 'A'} />;
@@ -336,12 +417,15 @@ const GameContent = () => {
             )}
         </AnimatePresence>
 
-        {(isHost || isSpectator) && (
-            <div className="fixed top-2 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-1 pointer-events-none">
-                <div className={`px-3 py-1 rounded-full flex items-center gap-2 backdrop-blur-md border ${isHost ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-500' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 shadow-lg shadow-emerald-500/10'}`}>
+        {FEATURE_FLAGS.ENABLE_LIVE_SYNC && (isHost || isSpectator) && (
+            <button
+                onClick={() => openModal('liveSync')}
+                className="fixed top-2 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-1 pointer-events-auto"
+            >
+                <div className={`px-3 py-1 rounded-full flex items-center gap-2 backdrop-blur-md border transition-all hover:scale-105 active:scale-95 ${isHost ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-500 hover:bg-indigo-500/20 hover:border-indigo-500/40' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 shadow-lg shadow-emerald-500/10 hover:bg-emerald-500/20 hover:border-emerald-500/40'}`}>
                     <Radio size={12} className="animate-pulse" /><span className="text-[10px] font-black uppercase tracking-[0.2em]">{isHost ? `${t('status.broadcasting')}: ${sessionId}` : `${t('status.live')}: ${sessionId}`}</span>
                 </div>
-            </div>
+            </button>
         )}
 
         {isFullscreen && (
@@ -373,7 +457,7 @@ const GameContent = () => {
                     ) : ( normalCards )}
                 </div>
             </LayoutGroup>
-            {!isFullscreen && <Controls onUndo={handleUndo} canUndo={canUndo && !isSpectator} onSwap={handleToggleSides} onSettings={() => openModal('settings')} onRoster={() => openModal('manager')} onHistory={() => openModal('history')} onReset={() => openModal('resetConfirm')} onToggleFullscreen={() => setIsFullscreen(!isFullscreen)} voiceEnabled={config.voiceControlEnabled && !isSpectator} isListening={isListening} onToggleListening={toggleListening} onLiveSync={() => openModal('liveSync')} syncActive={isHost || isSpectator} />}
+            {!isFullscreen && <Controls onUndo={handleUndo} canUndo={canUndo && !isSpectator} onSwap={handleToggleSides} onSettings={() => openModal('settings')} onRoster={() => openModal('manager')} onHistory={() => openModal('history')} onReset={() => openModal('resetConfirm')} onToggleFullscreen={() => setIsFullscreen(!isFullscreen)} voiceEnabled={config.voiceControlEnabled && !isSpectator} isListening={isListening} onToggleListening={toggleListening} onLiveSync={FEATURE_FLAGS.ENABLE_LIVE_SYNC ? () => openModal('liveSync') : undefined} syncActive={FEATURE_FLAGS.ENABLE_LIVE_SYNC && (isHost || isSpectator)} />}
         </div>
         
         <SmartBanner isVisible={!isFullscreen && !config.adsRemoved} />
@@ -383,6 +467,8 @@ const GameContent = () => {
             handleResetGame={handleResetWithAd} 
             handleHostSession={handleHostSession} 
             handleJoinSession={handleJoinSession}
+            handleStopBroadcast={handleStopBroadcast}
+            handleLeaveSession={handleLeaveSession}
             handleSubstitution={substitutePlayers}
             handleShowToast={showNotification}
             showAdConfirm={showAdConfirm}

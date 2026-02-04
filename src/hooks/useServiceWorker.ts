@@ -46,14 +46,27 @@ export const useServiceWorker = () => {
       
       updateSW();
 
-      // Listen for controller change (reload page when new SW takes over)
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!refreshing) {
-          refreshing = true;
+      // Listen for controller change (NEW SW activated)
+      // Only reload if user explicitly requested update via updateServiceWorker()
+      let isUserInitiatedUpdate = false;
+      
+      const handleControllerChange = () => {
+        if (isUserInitiatedUpdate) {
           window.location.reload();
         }
-      });
+      };
+      
+      navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+
+      // Store reference to mark user-initiated updates
+      (window as any).__markSWUpdateAsUserInitiated = () => {
+        isUserInitiatedUpdate = true;
+      };
+
+      return () => {
+        navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+        delete (window as any).__markSWUpdateAsUserInitiated;
+      };
     }
   }, []);
 
@@ -79,6 +92,10 @@ export const useServiceWorker = () => {
 
   const updateServiceWorker = useCallback(() => {
     if (registration && registration.waiting) {
+      // Mark that this is a user-initiated update, so we can reload on controller change
+      if ((window as any).__markSWUpdateAsUserInitiated) {
+        (window as any).__markSWUpdateAsUserInitiated();
+      }
       registration.waiting.postMessage({ type: 'SKIP_WAITING' });
     }
   }, [registration]);

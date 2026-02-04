@@ -48,3 +48,27 @@ export const getBenchLimit = (mode: GameMode) => mode === 'beach' ? BEACH_BENCH_
 // Legacy constant for backwards compatibility where mode isn't available (defaulting to max)
 export const PLAYER_LIMIT_ON_COURT = 6;
 export const PLAYERS_PER_TEAM = 6; // Max roster size logic (can be overridden by dynamic logic)
+
+// ========================================
+// FEATURE FLAGS - PlayStore Release v1.0
+// ========================================
+// These flags control experimental/premium features during alpha launch
+export const FEATURE_FLAGS = {
+  // Real-time Broadcasting (VolleyLink Live)
+  // Disabled for initial PlayStore release to focus on core functionality
+  ENABLE_LIVE_SYNC: false,
+  ENABLE_BROADCAST_OVERLAY: false,
+  
+  // Artificial Intelligence / Gemini Integration
+  // Disabled for initial release; requires additional optimization
+  ENABLE_AI_VOICE_COMMANDS: false,
+  ENABLE_GEMINI_SERVICE: false,
+  
+  // Cloud Sync (Firebase sync - can stay enabled for backup/auth)
+  ENABLE_CLOUD_SYNC: true,
+  ENABLE_GOOGLE_AUTH: true,
+  
+  // Developer / Debug Features
+  ENABLE_DEVELOPER_MODE: false,
+  ENABLE_CONSOLE_LOGS: false,
+};

@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TeamColor, SkillType } from '../../types';
@@ -47,7 +47,7 @@ const systemIconsMap: Record<string, any> = {
     party: PartyPopper
 };
 
-export const NotificationToast: React.FC<NotificationToastProps> = ({ 
+export const NotificationToast: React.FC<NotificationToastProps> = memo(({ 
   visible, type, mainText, subText, teamColor, skill, onClose, duration = 3000, isFullscreen, systemIcon, onUndo
 }) => {
   const onCloseRef = useRef(onClose);
@@ -270,4 +270,4 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
     </div>,
     document.body
   );
-};
+});
