@@ -1,0 +1,55 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check authentication
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // User Profiles - Own profile editable, others readable
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+    }
+
+    // Rosters (Team Data) - Authenticated users can read/write
+    match /rosters/{rosterId} {
+      allow read, write: if isAuthenticated();
+      
+      // Players within roster
+      match /players/{playerId} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+
+    // Matches (Game History) - Authenticated users can read/write
+    match /matches/{matchId} {
+      allow read, write: if isAuthenticated();
+      
+      // Match details
+      match /sets/{setId} {
+        allow read, write: if isAuthenticated();
+      }
+      
+      match /actions/{actionId} {
+        allow read, write: if isAuthenticated();
+      }
+    }
+
+    // Player Profiles - Authenticated users can read/write
+    match /profiles/{profileId} {
+      allow read, write: if isAuthenticated();
+    }
+
+    // Public league/tournament data (optional)
+    match /public/{document=**} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+  }
+}

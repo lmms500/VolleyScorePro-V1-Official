@@ -155,7 +155,8 @@
       "tieBreakTo25": "25 pts",
       "deuceLogic": "Deuce",
       "deuceStandard": "+2 Ventaja",
-      "deuceSuddenDeath": "Muerte Súbita"
+      "deuceSuddenDeath": "Muerte Súbita",
+      "autoSwapSides": "Cambio Auto de Lados"
     },
     "audio": {
       "soundEffects": "SFX",

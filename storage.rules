@@ -1,0 +1,55 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isImageFile() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isSmallImage() {
+      return request.resource.size < 5 * 1024 * 1024; // 5MB max
+    }
+
+    // User Profile Pictures
+    match /users/{userId}/profile-picture {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) && isImageFile() && isSmallImage();
+      allow delete: if isOwner(userId);
+    }
+
+    // Player Profile Pictures
+    match /profiles/{profileId}/avatar {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isImageFile() && isSmallImage();
+      allow delete: if isAuthenticated();
+    }
+
+    // Team Logos
+    match /rosters/{rosterId}/logo {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isImageFile() && isSmallImage();
+      allow delete: if isAuthenticated();
+    }
+
+    // Match Photos/Screenshots
+    match /matches/{matchId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isImageFile() && isSmallImage();
+      allow delete: if isAuthenticated();
+    }
+
+    // Deny everything else
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

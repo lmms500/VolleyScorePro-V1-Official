@@ -2,8 +2,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Reconstruct __dirname for ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -11,14 +11,8 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   resolve: {
-    // CRITICAL: Force all React imports to resolve to the project's root node_modules.
-    // This fixes "Minified React error #31" and Context API failures caused by multiple React instances.
-    alias: {
-      'react': path.resolve(__dirname, 'node_modules/react'),
-      'react-dom/client': path.resolve(__dirname, 'node_modules/react-dom/client'),
-      'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
-    },
-    // Ensure Vite does not duplicate these packages
+    // Let Vite resolve React correctly - don't override with manual alias
+    // Vite respects package.json exports field automatically
     dedupe: ['react', 'react-dom'],
   },
   build: {
@@ -26,31 +20,20 @@ export default defineConfig({
     minify: 'esbuild',
     cssCodeSplit: true,
     sourcemap: false,
+    // Ensure React is loaded first
     rollupOptions: {
+      // Force React to be external to prevent duplication
+      external: [],
       output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            // Group 1: React Core
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
-              return 'vendor-react';
-            }
-            // Group 2: Firebase SDKs
-            if (id.includes('firebase')) {
-              return 'vendor-firebase';
-            }
-            // Group 3: UI & Animation Libraries
-            if (
-              id.includes('framer-motion') || 
-              id.includes('lucide-react') || 
-              id.includes('@radix-ui') ||
-              id.includes('clsx') ||
-              id.includes('tailwind-merge')
-            ) {
-              return 'vendor-ui';
-            }
-            // Group 4: Other dependencies
-            return 'vendor';
-          }
+        // Force specific order of chunk loading
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash][extname]',
+        manualChunks: {
+          // React MUST be first chunk to avoid initialization errors
+          'react-core': ['react', 'react-dom'],
+          'vendor-firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
+          'vendor-ui': ['framer-motion', 'lucide-react'],
         },
       },
     },
@@ -66,6 +49,8 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
+        // Suppress chrome extension message channel errors
+        navigationPreload: false,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -93,10 +78,11 @@ export default defineConfig({
         description: 'VolleyScore Pro 2 is the definitive volleyball companion. It combines a high-performance gesture-based scoreboard with deep team management. Features: Smart Rotation tracking (Standard & Balanced), customizable rules (Indoor/Beach, Sudden Death), career player statistics with "Scout Mode", real-time voice commands, and rich match history with momentum graphs.',
         theme_color: '#020617',
         background_color: '#020617',
-        display: 'standalone',
+        display: 'fullscreen',
+        display_override: ['fullscreen', 'standalone'],
         scope: '/',
-        start_url: '/',
-        orientation: 'portrait',
+        start_url: '/?fullscreen=true',
+        orientation: 'any',
         categories: ['sports', 'utilities', 'productivity'],
         id: 'volleyscore-pro-v2',
         icons: [
@@ -117,22 +103,6 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
-          }
-        ],
-        screenshots: [
-          {
-            src: "screenshot-desktop.png",
-            sizes: "1280x720",
-            type: "image/png",
-            form_factor: "wide",
-            label: "Scoreboard View"
-          },
-          {
-            src: "screenshot-mobile.png",
-            sizes: "750x1334",
-            type: "image/png",
-            form_factor: "narrow",
-            label: "Mobile Interface"
           }
         ]
       }

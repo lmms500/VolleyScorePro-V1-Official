@@ -1,5 +1,6 @@
 
 import { CapacitorConfig } from '@capacitor/cli';
+import type { KeyboardResize, KeyboardStyle } from '@capacitor/keyboard';
 
 const config: CapacitorConfig = {
   appId: 'com.volleyscore.pro2',
@@ -23,8 +24,8 @@ const config: CapacitorConfig = {
       overlaysWebView: true,
     },
     Keyboard: {
-      resize: "none",
-      style: "dark"
+      resize: "body" as KeyboardResize,
+      style: "DARK" as KeyboardStyle
     }
   }
 };
