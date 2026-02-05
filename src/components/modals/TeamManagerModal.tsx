@@ -210,8 +210,8 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = memo((props) =>
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
             <div ref={scrollRef} onScroll={onScroll} className="h-full overflow-y-auto custom-scrollbar w-full max-w-6xl mx-auto render-crisp relative">
                 
-                {/* STICKY HEADER */}
-                <div className="sticky top-0 z-50 pt-safe-top pb-2 px-1 mb-1 pointer-events-none">
+                {/* STICKY HEADER - Otimizado para proximidade do notch */}
+                <div className="sticky top-0 z-50 pt-safe-top px-1 pointer-events-none">
                     <motion.div initial={{ y: 0 }} animate={{ y: showHeader ? 0 : -100, opacity: showHeader ? 1 : 0 }} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="bg-slate-50/70 dark:bg-[#020617]/70 backdrop-blur-xl border-b border-white/20 dark:border-white/10 shadow-sm rounded-b-2xl pb-2 pt-2 px-2 pointer-events-auto">
                         <div className="flex gap-2 mb-2">
                             <div className="flex flex-1 bg-slate-100 dark:bg-white/5 rounded-2xl p-1 gap-1">
@@ -237,8 +237,8 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = memo((props) =>
                     </motion.div>
                 </div>
 
-                {/* CONTENT AREA */}
-                <div className="relative flex flex-col min-h-0 pt-2">
+                {/* CONTENT AREA - Gap mínimo do header */}
+                <div className="relative flex flex-col min-h-0 pt-1">
                     {activeTab === 'roster' && (
                         <div className="px-1 pb-32">
                             <RosterBoard courtLimit={courtLimit} benchLimit={benchLimit} />

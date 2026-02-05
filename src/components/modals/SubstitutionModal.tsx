@@ -1,45 +1,45 @@
 
 import React, { useState, useEffect, memo } from 'react';
-import { createPortal } from 'react-dom';
 import { Modal } from '../ui/Modal';
+import { ModalHeader } from '../ui/ModalHeader';
 import { Team, Player, TeamColor } from '../../types';
 import { Button } from '../ui/Button';
-import { RefreshCw, User, Hash, ArrowRight, ArrowLeft, ArrowRightLeft } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { User, Hash, ArrowRight, ArrowLeft, Check } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useHaptics } from '../../hooks/useHaptics';
 import { resolveTheme } from '../../utils/colors';
 import { useTranslation } from '../../contexts/LanguageContext';
 
 interface SubstitutionModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  team: Team;
-  onConfirm: (playerInId: string, playerOutId: string) => void;
-  zIndex?: string; 
+    isOpen: boolean;
+    onClose: () => void;
+    team: Team;
+    onConfirm: (playerInId: string, playerOutId: string) => void;
+    zIndex?: string;
 }
 
 type SubPair = { outId: string; inId: string };
 
 // --- COMPONENT 1: COMPACT GRID CARD (LANDSCAPE) ---
-const CompactPlayerCard = memo(({ 
-    player, 
-    isSelected, 
+const CompactPlayerCard = memo(({
+    player,
+    isSelected,
     isPending,
     pairIndex,
-    type, 
+    type,
     onSelect,
-    teamColor 
-}: { 
-    player: Player, 
-    isSelected: boolean, 
+    teamColor
+}: {
+    player: Player,
+    isSelected: boolean,
     isPending: boolean,
     pairIndex: number | null,
-    type: 'in' | 'out', 
+    type: 'in' | 'out',
     onSelect: (id: string, type: 'in' | 'out') => void,
     teamColor: TeamColor
 }) => {
-    const isOut = type === 'out'; 
-    
+    const isOut = type === 'out';
+
     // Active states
     let activeClass = '';
     if (isSelected || isPending) {
@@ -73,7 +73,7 @@ const CompactPlayerCard = memo(({
                     {pairIndex + 1}
                 </div>
             )}
-            
+
             {/* Context Icon (Arrow) */}
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-20 transition-opacity pointer-events-none">
                 {isOut ? <ArrowRight size={24} /> : <ArrowLeft size={24} />}
@@ -83,30 +83,30 @@ const CompactPlayerCard = memo(({
 });
 
 // --- COMPONENT 2: ROW BLOCK CARD (PORTRAIT) ---
-const PlayerCardBlock = memo(({ 
-    player, 
-    isSelected, 
+const PlayerCardBlock = memo(({
+    player,
+    isSelected,
     isPending,
     pairIndex,
-    type, 
+    type,
     onSelect,
-    teamColor 
-}: { 
-    player: Player, 
-    isSelected: boolean, 
+    teamColor
+}: {
+    player: Player,
+    isSelected: boolean,
     isPending: boolean,
     pairIndex: number | null,
-    type: 'in' | 'out', 
+    type: 'in' | 'out',
     onSelect: (id: string, type: 'in' | 'out') => void,
     teamColor: TeamColor
 }) => {
-    const isOut = type === 'out'; 
+    const isOut = type === 'out';
     const theme = resolveTheme(teamColor);
-    
+
     let activeBorder = '';
     let activeBg = '';
     let activeRing = '';
-    
+
     if (isSelected || isPending) {
         if (isOut) {
             activeBorder = 'border-rose-500 dark:border-rose-400';
@@ -124,7 +124,7 @@ const PlayerCardBlock = memo(({
         border-slate-200 dark:border-white/10 
         hover:border-slate-300 dark:hover:border-white/20
     `;
-    
+
     return (
         <motion.button
             whileTap={{ scale: 0.98 }}
@@ -133,7 +133,7 @@ const PlayerCardBlock = memo(({
                 relative flex items-center justify-between p-3 rounded-2xl border transition-all duration-300 
                 w-full h-14 overflow-hidden group isolate
                 ${isSelected || isPending
-                    ? `${activeBg} ${activeBorder} ${activeRing} z-10` 
+                    ? `${activeBg} ${activeBorder} ${activeRing} z-10`
                     : `${passiveClass} hover:bg-white/80 dark:hover:bg-white/10`
                 }
                 ${isPending ? 'animate-pulse' : ''}
@@ -142,8 +142,8 @@ const PlayerCardBlock = memo(({
             <div className="flex items-center gap-3 min-w-0">
                 <div className={`
                     w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black
-                    ${isSelected 
-                        ? (isOut ? 'bg-rose-500 text-white' : 'bg-emerald-500 text-white') 
+                    ${isSelected
+                        ? (isOut ? 'bg-rose-500 text-white' : 'bg-emerald-500 text-white')
                         : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-400'}
                 `}>
                     {player.number || <Hash size={12} />}
@@ -156,7 +156,7 @@ const PlayerCardBlock = memo(({
             <div className="flex items-center gap-2">
                 {player.isFixed && <User size={12} className="text-amber-500 opacity-60" fill="currentColor" />}
                 {pairIndex !== null && (
-                    <motion.div 
+                    <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm ${isOut ? 'bg-rose-600' : 'bg-emerald-600'}`}
@@ -169,203 +169,117 @@ const PlayerCardBlock = memo(({
     );
 });
 
-export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({ 
-  isOpen, onClose, team, onConfirm, zIndex = "z-[60]"
+export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
+    isOpen, onClose, team, onConfirm, zIndex = "z-[60]"
 }) => {
-  const { t } = useTranslation();
-  const [pairs, setPairs] = useState<SubPair[]>([]);
-  const [pendingOutId, setPendingOutId] = useState<string | null>(null);
-  const haptics = useHaptics();
+    const { t } = useTranslation();
+    const [pairs, setPairs] = useState<SubPair[]>([]);
+    const [pendingOutId, setPendingOutId] = useState<string | null>(null);
+    const haptics = useHaptics();
 
-  useEffect(() => {
-    if (isOpen) {
-        setPairs([]);
-        setPendingOutId(null);
-    }
-  }, [isOpen]);
+    useEffect(() => {
+        if (isOpen) {
+            setPairs([]);
+            setPendingOutId(null);
+        }
+    }, [isOpen]);
 
-  const handleConfirm = () => {
-      if (pairs.length > 0) {
-          haptics.notification('success');
-          pairs.forEach(pair => {
-              onConfirm(pair.inId, pair.outId);
-          });
-          onClose(); 
-      }
-  };
+    const handleConfirm = () => {
+        if (pairs.length > 0) {
+            haptics.notification('success');
+            pairs.forEach(pair => {
+                onConfirm(pair.inId, pair.outId);
+            });
+            onClose();
+        }
+    };
 
-  const handleSelect = (id: string, type: 'in' | 'out') => {
-      haptics.impact('light');
-      const existingPairIndex = pairs.findIndex(p => p.outId === id || p.inId === id);
-      
-      if (existingPairIndex !== -1) {
-          const newPairs = [...pairs];
-          newPairs.splice(existingPairIndex, 1);
-          setPairs(newPairs);
-          return;
-      }
+    const handleSelect = (id: string, type: 'in' | 'out') => {
+        haptics.impact('light');
+        const existingPairIndex = pairs.findIndex(p => p.outId === id || p.inId === id);
 
-      if (type === 'out') {
-          if (pendingOutId === id) setPendingOutId(null);
-          else setPendingOutId(id);
-      } else {
-          if (pendingOutId) {
-              const newPair = { outId: pendingOutId, inId: id };
-              setPairs([...pairs, newPair]);
-              setPendingOutId(null);
-              haptics.notification('success');
-          }
-      }
-  };
+        if (existingPairIndex !== -1) {
+            const newPairs = [...pairs];
+            newPairs.splice(existingPairIndex, 1);
+            setPairs(newPairs);
+            return;
+        }
 
-  const courtPlayers = team.players || [];
-  const benchPlayers = team.reserves || [];
-  const theme = resolveTheme(team.color || 'slate');
+        if (type === 'out') {
+            if (pendingOutId === id) setPendingOutId(null);
+            else setPendingOutId(id);
+        } else {
+            if (pendingOutId) {
+                const newPair = { outId: pendingOutId, inId: id };
+                setPairs([...pairs, newPair]);
+                setPendingOutId(null);
+                haptics.notification('success');
+            }
+        }
+    };
 
-  const getPairIndex = (id: string) => {
-      const idx = pairs.findIndex(p => p.outId === id || p.inId === id);
-      return idx === -1 ? null : idx;
-  };
+    const courtPlayers = team.players || [];
+    const benchPlayers = team.reserves || [];
+    const theme = resolveTheme(team.color || 'slate');
 
-  if (!isOpen) return null;
+    const getPairIndex = (id: string) => {
+        const idx = pairs.findIndex(p => p.outId === id || p.inId === id);
+        return idx === -1 ? null : idx;
+    };
 
-  return createPortal(
-    <Modal 
-        isOpen={isOpen} 
-        onClose={onClose} 
-        title="" 
-        maxWidth="max-w-md landscape:max-w-5xl"
-        backdropClassName="bg-black/60 backdrop-blur-md"
-        zIndex={zIndex}
-        variant="floating"
-    >
-        {/* CONTAINER WITH RESPONSIVE LAYOUT */}
-        <div className="flex flex-col h-full bg-[#f8fafc] dark:bg-slate-900 text-slate-900 dark:text-white rounded-3xl overflow-hidden p-6 gap-6 w-full max-h-[85vh] landscape:max-h-full landscape:h-full landscape:p-3 landscape:gap-3">
-            
-            {/* --- HEADER (PORTRAIT ONLY) --- */}
-            <div className="flex flex-col items-center justify-between border-b border-black/5 dark:border-white/10 pb-4 shrink-0 gap-4 landscape:hidden">
-                <div className="flex items-center gap-3 w-full">
-                    <div className={`w-10 h-10 rounded-xl ${theme.bg.replace('/20', '')} flex items-center justify-center text-white shadow-lg`}>
-                        <RefreshCw size={20} />
-                    </div>
-                    <div className="text-left flex-1">
-                        <h2 className="text-xl font-black uppercase tracking-tight leading-none">{team.name}</h2>
-                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{t('substitution.title')}</span>
-                    </div>
-                    <button onClick={onClose} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-colors">
-                        <ArrowRightLeft size={18} />
-                    </button>
-                </div>
-            </div>
+    // --- Confirm Button for Header ---
+    const confirmButton = (
+        <Button
+            onClick={handleConfirm}
+            disabled={pairs.length === 0}
+            size="sm"
+            variant="ghost"
+            className={`
+        px-3 py-1.5 rounded-lg font-bold uppercase tracking-wider text-[10px] transition-all
+        ${pairs.length > 0
+                    ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                    : 'text-slate-500 cursor-not-allowed'}
+      `}
+        >
+            <Check size={16} className="mr-1" />
+            {pairs.length > 0 ? pairs.length : ''}
+        </Button>
+    );
 
-            {/* --- COMPACT TOOLBAR (LANDSCAPE ONLY) --- */}
-            <div className="hidden landscape:flex items-center justify-between shrink-0 gap-4 bg-slate-100 dark:bg-white/5 p-2 rounded-xl">
-                {/* Back Arrow */}
-                <button 
-                    onClick={onClose} 
-                    className="w-10 h-10 flex items-center justify-center rounded-xl bg-white dark:bg-white/5 text-slate-500 dark:text-slate-400 hover:bg-white/10 hover:text-white transition-all active:scale-95"
-                >
-                    <ArrowLeft size={20} strokeWidth={2.5} />
-                </button>
+    return (
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title=""
+            showCloseButton={false}
+            variant="fullscreen"
+            zIndex={zIndex}
+        >
+            {/* ModalHeader */}
+            <ModalHeader
+                title={t('substitution.title')}
+                subtitle={team.name}
+                onClose={onClose}
+                rightContent={confirmButton}
+            />
 
-                {/* Center Title */}
-                <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-lg ${theme.bg.replace('/20', '')} flex items-center justify-center text-white`}>
-                        <RefreshCw size={14} />
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-xs font-black uppercase tracking-tight leading-none">{team.name}</span>
-                        <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Substitution</span>
-                    </div>
-                </div>
+            {/* CONTAINER WITH RESPONSIVE LAYOUT */}
+            <div className="flex flex-col flex-1 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white overflow-hidden">
 
-                {/* Confirm Button */}
-                <Button 
-                    onClick={handleConfirm} 
-                    disabled={pairs.length === 0}
-                    size="sm"
-                    className={`
-                        px-4 h-10 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all
-                        ${pairs.length > 0 
-                            ? `${theme.halo.replace('bg-', 'bg-')} text-white shadow-lg shadow-${team.color}-500/20` 
-                            : 'bg-white/10 text-slate-500 cursor-not-allowed'}
-                    `}
-                >
-                    {pairs.length > 0 ? t('substitution.confirm', {count: pairs.length}) : t('substitution.select')}
-                </Button>
-            </div>
+                {/* --- RESPONSIVE CONTENT AREA --- */}
 
-            {/* --- RESPONSIVE CONTENT AREA --- */}
-            
-            {/* PORTRAIT VIEW (Stacked Rows) */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar px-1 py-2 grid grid-cols-2 gap-6 landscape:hidden">
-                <div className="space-y-3">
-                    <div className="flex items-center gap-2 px-1 mb-2">
-                        <div className="p-1.5 rounded-lg bg-rose-500/10 text-rose-500"><ArrowRight size={14} strokeWidth={3} /></div>
-                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">{t('substitution.outCourt')}</h3>
-                    </div>
-                    <div className="flex flex-col gap-3">
-                        {courtPlayers.map(p => (
-                            <PlayerCardBlock 
-                                key={p.id} 
-                                player={p} 
-                                isSelected={getPairIndex(p.id) !== null}
-                                isPending={pendingOutId === p.id}
-                                pairIndex={getPairIndex(p.id)}
-                                type="out"
-                                onSelect={handleSelect}
-                                teamColor={team.color || 'slate'}
-                            />
-                        ))}
-                    </div>
-                </div>
-
-                <div className="space-y-3">
-                    <div className="flex items-center gap-2 px-1 mb-2">
-                        <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500"><ArrowLeft size={14} strokeWidth={3} /></div>
-                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">{t('substitution.inBench')}</h3>
-                    </div>
-                    <div className="flex flex-col gap-3">
-                        {benchPlayers.map(p => (
-                            <PlayerCardBlock 
-                                key={p.id} 
-                                player={p} 
-                                isSelected={getPairIndex(p.id) !== null} 
-                                isPending={false}
-                                pairIndex={getPairIndex(p.id)}
-                                type="in"
-                                onSelect={handleSelect}
-                                teamColor={team.color || 'slate'}
-                            />
-                        ))}
-                        {benchPlayers.length === 0 && (
-                            <div className="py-8 flex flex-col items-center justify-center text-slate-400/60 gap-2 border-2 border-dashed border-slate-200 dark:border-white/5 rounded-2xl bg-slate-50/50 dark:bg-white/[0.01]">
-                                <User size={20} />
-                                <span className="text-[10px] font-bold uppercase tracking-wider">{t('substitution.emptyBench')}</span>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {/* LANDSCAPE VIEW (Side-by-Side Grid) */}
-            <div className="hidden landscape:grid flex-1 grid-cols-2 gap-4 min-h-0 overflow-hidden">
-                
-                {/* LEFT: COURT (OUT) */}
-                <div className="flex flex-col h-full bg-rose-500/5 rounded-2xl border border-rose-500/10 overflow-hidden">
-                    <div className="flex items-center gap-2 p-3 pb-2 flex-shrink-0 bg-rose-500/10">
-                        <div className="p-1 rounded-md bg-rose-500 text-white shadow-sm"><ArrowRight size={12} strokeWidth={3} /></div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-rose-400">{t('substitution.outCourt')}</span>
-                        <div className="ml-auto px-1.5 py-0.5 rounded-full bg-rose-500/20 text-[9px] font-bold text-rose-300">{courtPlayers.length}</div>
-                    </div>
-                    
-                    {/* Fixed Height Scroll Area with Padding for Rings */}
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
-                        <div className="grid grid-cols-3 gap-3 content-start">
+                {/* PORTRAIT VIEW (Stacked Rows) */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar px-4 py-4 grid grid-cols-2 gap-6 landscape:hidden">
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-2 px-1 mb-2">
+                            <div className="p-1.5 rounded-lg bg-rose-500/10 text-rose-500"><ArrowRight size={14} strokeWidth={3} /></div>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">{t('substitution.outCourt')}</h3>
+                        </div>
+                        <div className="flex flex-col gap-3">
                             {courtPlayers.map(p => (
-                                <CompactPlayerCard 
-                                    key={p.id} 
-                                    player={p} 
+                                <PlayerCardBlock
+                                    key={p.id}
+                                    player={p}
                                     isSelected={getPairIndex(p.id) !== null}
                                     isPending={pendingOutId === p.id}
                                     pairIndex={getPairIndex(p.id)}
@@ -376,66 +290,100 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
                             ))}
                         </div>
                     </div>
-                </div>
 
-                {/* RIGHT: BENCH (IN) */}
-                <div className="flex flex-col h-full bg-emerald-500/5 rounded-2xl border border-emerald-500/10 overflow-hidden">
-                    <div className="flex items-center gap-2 p-3 pb-2 flex-shrink-0 bg-emerald-500/10">
-                        <div className="p-1 rounded-md bg-emerald-500 text-white shadow-sm"><ArrowLeft size={12} strokeWidth={3} /></div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">{t('substitution.inBench')}</span>
-                        <div className="ml-auto px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-[9px] font-bold text-emerald-300">{benchPlayers.length}</div>
-                    </div>
-
-                    {/* Fixed Height Scroll Area with Padding for Rings */}
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
-                        <div className="grid grid-cols-3 gap-3 content-start">
-                            {benchPlayers.length === 0 ? (
-                                <div className="col-span-3 flex flex-col items-center justify-center py-8 text-slate-500 opacity-50 gap-2 border border-dashed border-white/10 rounded-xl">
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-2 px-1 mb-2">
+                            <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-500"><ArrowLeft size={14} strokeWidth={3} /></div>
+                            <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">{t('substitution.inBench')}</h3>
+                        </div>
+                        <div className="flex flex-col gap-3">
+                            {benchPlayers.map(p => (
+                                <PlayerCardBlock
+                                    key={p.id}
+                                    player={p}
+                                    isSelected={getPairIndex(p.id) !== null}
+                                    isPending={false}
+                                    pairIndex={getPairIndex(p.id)}
+                                    type="in"
+                                    onSelect={handleSelect}
+                                    teamColor={team.color || 'slate'}
+                                />
+                            ))}
+                            {benchPlayers.length === 0 && (
+                                <div className="py-8 flex flex-col items-center justify-center text-slate-400/60 gap-2 border-2 border-dashed border-slate-200 dark:border-white/5 rounded-2xl bg-slate-50/50 dark:bg-white/[0.01]">
                                     <User size={20} />
-                                    <span className="text-[10px] font-bold uppercase">{t('substitution.emptyBench')}</span>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider">{t('substitution.emptyBench')}</span>
                                 </div>
-                            ) : (
-                                benchPlayers.map(p => (
-                                    <CompactPlayerCard 
-                                        key={p.id} 
-                                        player={p} 
-                                        isSelected={getPairIndex(p.id) !== null} 
-                                        isPending={false}
-                                        pairIndex={getPairIndex(p.id)}
-                                        type="in"
-                                        onSelect={handleSelect}
-                                        teamColor={team.color || 'slate'}
-                                    />
-                                ))
                             )}
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {/* PORTRAIT FOOTER ACTION */}
-            <div className="pt-4 border-t border-black/5 dark:border-white/5 landscape:hidden">
-                <Button 
-                    onClick={handleConfirm} 
-                    disabled={pairs.length === 0}
-                    className={`
-                        w-full py-5 text-sm font-black tracking-[0.2em] uppercase rounded-2xl shadow-xl transition-all duration-300
-                        ${pairs.length > 0 
-                            ? `${theme.halo.replace('bg-', 'bg-')} text-white shadow-lg scale-[1.02] hover:scale-[1.03]` 
-                            : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-slate-600 border border-slate-200 dark:border-white/5 cursor-not-allowed'}
-                    `}
-                    size="lg"
-                >
-                    <div className="flex items-center justify-center gap-3">
-                        <RefreshCw size={18} /> 
-                        <span>
-                            {pairs.length > 0 ? t('substitution.confirm', {count: pairs.length}) : t('substitution.select')}
-                        </span>
+                {/* LANDSCAPE VIEW (Side-by-Side Grid) */}
+                <div className="hidden landscape:grid flex-1 grid-cols-2 gap-4 min-h-0 overflow-hidden p-3">
+
+                    {/* LEFT: COURT (OUT) */}
+                    <div className="flex flex-col h-full bg-rose-500/5 rounded-2xl border border-rose-500/10 overflow-hidden">
+                        <div className="flex items-center gap-2 p-3 pb-2 flex-shrink-0 bg-rose-500/10">
+                            <div className="p-1 rounded-md bg-rose-500 text-white shadow-sm"><ArrowRight size={12} strokeWidth={3} /></div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-rose-400">{t('substitution.outCourt')}</span>
+                            <div className="ml-auto px-1.5 py-0.5 rounded-full bg-rose-500/20 text-[9px] font-bold text-rose-300">{courtPlayers.length}</div>
+                        </div>
+
+                        {/* Fixed Height Scroll Area with Padding for Rings */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
+                            <div className="grid grid-cols-3 gap-3 content-start">
+                                {courtPlayers.map(p => (
+                                    <CompactPlayerCard
+                                        key={p.id}
+                                        player={p}
+                                        isSelected={getPairIndex(p.id) !== null}
+                                        isPending={pendingOutId === p.id}
+                                        pairIndex={getPairIndex(p.id)}
+                                        type="out"
+                                        onSelect={handleSelect}
+                                        teamColor={team.color || 'slate'}
+                                    />
+                                ))}
+                            </div>
+                        </div>
                     </div>
-                </Button>
+
+                    {/* RIGHT: BENCH (IN) */}
+                    <div className="flex flex-col h-full bg-emerald-500/5 rounded-2xl border border-emerald-500/10 overflow-hidden">
+                        <div className="flex items-center gap-2 p-3 pb-2 flex-shrink-0 bg-emerald-500/10">
+                            <div className="p-1 rounded-md bg-emerald-500 text-white shadow-sm"><ArrowLeft size={12} strokeWidth={3} /></div>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">{t('substitution.inBench')}</span>
+                            <div className="ml-auto px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-[9px] font-bold text-emerald-300">{benchPlayers.length}</div>
+                        </div>
+
+                        {/* Fixed Height Scroll Area with Padding for Rings */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
+                            <div className="grid grid-cols-3 gap-3 content-start">
+                                {benchPlayers.length === 0 ? (
+                                    <div className="col-span-3 flex flex-col items-center justify-center py-8 text-slate-500 opacity-50 gap-2 border border-dashed border-white/10 rounded-xl">
+                                        <User size={20} />
+                                        <span className="text-[10px] font-bold uppercase">{t('substitution.emptyBench')}</span>
+                                    </div>
+                                ) : (
+                                    benchPlayers.map(p => (
+                                        <CompactPlayerCard
+                                            key={p.id}
+                                            player={p}
+                                            isSelected={getPairIndex(p.id) !== null}
+                                            isPending={false}
+                                            pairIndex={getPairIndex(p.id)}
+                                            type="in"
+                                            onSelect={handleSelect}
+                                            teamColor={team.color || 'slate'}
+                                        />
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </Modal>,
-    document.body
-  );
+        </Modal>
+    );
 };

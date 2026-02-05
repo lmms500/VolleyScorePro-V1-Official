@@ -76,46 +76,34 @@
 
 ---
 
-## 🔄 PENDENTE
-
-### 5. App.tsx (508 linhas) - ⚠️ ALTO RISCO
-
+### 5. App.tsx (509 → 45 linhas) - ✅ TOTALMENTE CONCLUÍDO
 **Arquivo:** `src/App.tsx`
 
-**ATENÇÃO:** Núcleo do app. Usar Opus 4.5.
-
-**Plano de execução:**
-1. App.tsx já está mais limpo com ScoreCardContainer
-2. Extrair lógicas isoladas:
-
-```
-src/
-├── App.tsx                     # Apenas providers (~50 linhas)
-├── screens/
-│   ├── GameScreen.tsx          # GameContent atual (~250 linhas)
-│   ├── BroadcastScreen.tsx     # Modo transmissão OBS (~50 linhas)
-│   └── components/
-│       ├── TimeoutManager.tsx  # Lógica de timeout (~80 linhas)
-│       └── SyncManager.tsx     # Lógica VolleyLink (~100 linhas)
-```
-
-3. **Ordem de extração:**
-   - Primeiro: Extrair BroadcastScreen (linhas 366-373)
-   - Segundo: Extrair TimeoutManager (linhas 102-134)
-   - Terceiro: Extrair SyncManager (linhas 147-241)
-   - Quarto: Limpar GameContent com ScoreCardContainer
+**O que foi feito:**
+- Criada pasta `src/screens/` com:
+  - `BroadcastScreen.tsx` (~35 linhas) - Tela dedicada para modo transmissão OBS/Spectator
+  - `GameScreen.tsx` (~290 linhas) - Toda UI do jogo extraída do App.tsx
+  - `index.ts` - Re-exports
+- Criado `src/hooks/useTimeoutManager.ts` (~95 linhas) - Encapsula toda lógica de timeout
+- Criado `src/hooks/useSyncManager.ts` (~175 linhas) - Encapsula toda lógica de VolleyLink Live
+- App.tsx agora contém **APENAS providers** (~45 linhas)
+- ScoreCardContainer usado no modo normal (reduz prop drilling)
+- **Redução total:** 509 → 45 linhas (~91% menor!)
+- **Build testado e funcionando**
 
 ---
 
 ## 📋 CHECKLIST DE EXECUÇÃO
 
 Para cada arquivo refatorado:
-- [ ] Criar novos arquivos
-- [ ] Mover código preservando imports
-- [ ] Atualizar arquivo original para importar/re-exportar
-- [ ] `npm run build` - deve compilar sem erros
-- [ ] Testar funcionalidade no app
+- [x] Criar novos arquivos
+- [x] Mover código preservando imports
+- [x] Atualizar arquivo original para importar/re-exportar
+- [x] `npm run build` - deve compilar sem erros
+- [ ] Testar funcionalidade no app (manual)
 - [ ] Commit se tudo OK
+
+**Status:** Build passando ✅
 
 ---
 
@@ -126,22 +114,32 @@ Cole isto no início do novo chat:
 ```
 Estou continuando uma refatoração do VolleyScore Pro v2.
 
-Leia o arquivo c:\Dev\VolleyScore-Pro\REFACTORING_PLAN.md para ver o que foi feito e o que falta.
+Leia o arquivo c:\Dev\VolleyScore-Pro\REFACTORING_PLAN.md para ver o que foi feito.
 
-Os itens 1, 2, 3 e 4 já foram concluídos:
-- MotionScenes.tsx ✅
-- TutorialVisuals.tsx ✅
-- useVolleyGame.ts ✅
-- ScoreCardContainer ✅
+Todos os 5 itens principais foram concluídos:
+- MotionScenes.tsx ✅ (1.308 → 32 linhas)
+- TutorialVisuals.tsx ✅ (812 → 54 linhas)
+- useVolleyGame.ts ✅ (356 → 126 linhas)
+- ScoreCardContainer ✅ (novo componente)
+- App.tsx ✅ (509 → 45 linhas) - **TOTALMENTE REFATORADO**
 
-Continue com o item 5 (App.tsx) - é ALTO RISCO e quero usar Opus 4.5.
+Novos arquivos criados:
+- useTimeoutManager.ts (~95 linhas)
+- useSyncManager.ts (~175 linhas)
+- BroadcastScreen.tsx (~35 linhas)
+- GameScreen.tsx (~290 linhas) ✅ NOVO
+
+**Refatoração concluída!**
+- App.tsx agora contém apenas providers
+- GameScreen.tsx contém toda a UI do jogo
+- ScoreCardContainer usado no modo normal
 
 Siga a arquitetura definida no .clinerules do projeto.
 ```
 
 ---
 
-## 📁 ESTRUTURA FINAL ESPERADA
+## 📁 ESTRUTURA FINAL
 
 ```
 src/
@@ -167,13 +165,16 @@ src/
 │   ├── useGameState.ts       ✅ FEITO
 │   ├── useGamePersistence.ts ✅ FEITO
 │   ├── useGameActions.ts     ✅ FEITO
-│   └── useTeamGenerator.ts   ✅ FEITO
-├── screens/                  ⏳ PENDENTE
-│   ├── GameScreen.tsx
-│   └── BroadcastScreen.tsx
-└── App.tsx                   ⏳ PENDENTE (será simplificado)
+│   ├── useTeamGenerator.ts   ✅ FEITO
+│   ├── useTimeoutManager.ts  ✅ FEITO (novo)
+│   └── useSyncManager.ts     ✅ FEITO (novo)
+├── screens/                  ✅ FEITO
+│   ├── BroadcastScreen.tsx   (~35 linhas)
+│   ├── GameScreen.tsx        ✅ NOVO (~290 linhas)
+│   └── index.ts
+└── App.tsx                   ✅ REFATORADO (509 → 45 linhas - apenas providers)
 ```
 
 ---
 
-*Última atualização: 2026-02-04 (Item 4 concluído - ScoreCardContainer)*
+*Última atualização: 2026-02-04 (Refatoração completa - App.tsx 509 → 45 linhas)*

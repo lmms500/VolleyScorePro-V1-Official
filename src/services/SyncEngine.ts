@@ -3,6 +3,7 @@ import { doc, onSnapshot, setDoc, updateDoc, increment, serverTimestamp, Documen
 import { db, isFirebaseInitialized } from './firebase';
 import { GameState } from '../types';
 import { SecureStorage } from './SecureStorage';
+import { logger } from '../utils/logger';
 
 interface SyncSessionSchema {
     hostUid: string;
@@ -23,12 +24,12 @@ const SYNC_QUEUE_KEY = 'sync_pending_queue';
 export class SyncEngine {
     private static instance: SyncEngine;
     private activeUnsubscribe: Unsubscribe | null = null;
-    
+
     // Offline Resilience State
     private isOnline: boolean = typeof navigator !== 'undefined' ? navigator.onLine : true;
     private pendingState: { sessionId: string, state: GameState } | null = null;
     private isFlushing: boolean = false;
-    
+
     // Reconnection Logic
     private reconnectAttempts: number = 0;
     private maxReconnectAttempts: number = 10;
@@ -51,25 +52,25 @@ export class SyncEngine {
         try {
             const stored = await SecureStorage.load<{ sessionId: string, state: GameState }>(SYNC_QUEUE_KEY);
             if (stored && !this.pendingState) {
-                console.log('[SyncEngine] Restored pending state from storage.');
+                logger.log('[SyncEngine] Restored pending state from storage.');
                 this.pendingState = stored;
                 if (this.isOnline) {
                     this.flushQueue();
                 }
             }
         } catch (e) {
-            console.error('[SyncEngine] Failed to recover queue:', e);
+            logger.error('[SyncEngine] Failed to recover queue:', e);
         }
     }
 
     private handleOnline = () => {
-        console.log('[SyncEngine] Network recovered. Flushing queue...');
+        logger.log('[SyncEngine] Network recovered. Flushing queue...');
         this.isOnline = true;
         this.flushQueue();
     };
 
     private handleOffline = () => {
-        console.warn('[SyncEngine] Network lost. Queuing updates.');
+        logger.warn('[SyncEngine] Queuing updates.');
         this.isOnline = false;
     };
 
@@ -78,7 +79,7 @@ export class SyncEngine {
      */
     public async hostMatch(sessionId: string, userId: string, initialState: GameState): Promise<void> {
         if (!isFirebaseInitialized || !db) {
-            console.warn('[SyncEngine] Firebase not initialized');
+            logger.warn('[SyncEngine] Firebase not initialized');
             return;
         }
 
@@ -94,7 +95,7 @@ export class SyncEngine {
         try {
             await setDoc(sessionRef, payload);
         } catch (e) {
-            console.error('[SyncEngine] Host initialization failed:', e);
+            logger.error('[SyncEngine] Host initialization failed:', e);
             // We don't queue initial creation as it requires Ack, but UI should handle retry
         }
     }
@@ -108,12 +109,12 @@ export class SyncEngine {
     public async broadcastState(sessionId: string, state: GameState): Promise<void> {
         // Always update pending state to the LATEST version
         this.pendingState = { sessionId, state };
-        
+
         // Persist immediately for recovery
-        SecureStorage.save(SYNC_QUEUE_KEY, this.pendingState).catch(e => 
-            console.warn('[SyncEngine] Failed to persist queue:', e)
+        SecureStorage.save(SYNC_QUEUE_KEY, this.pendingState).catch(e =>
+            logger.warn('[SyncEngine] Failed to persist queue:', e)
         );
-        
+
         // Attempt flush immediately if online
         if (this.isOnline && !this.isFlushing) {
             this.flushQueue();
@@ -144,18 +145,18 @@ export class SyncEngine {
                 state: this.sanitizeForFirebase(state),
                 lastUpdate: serverTimestamp()
             }, { merge: true });
-            
+
             // Clear the queue only if no newer state arrived during send
             if (this.pendingState?.sessionId === sessionId) {
                 this.pendingState = null;
                 await SecureStorage.remove(SYNC_QUEUE_KEY);
             }
         } catch (e) {
-            console.error("[SyncEngine] Broadcast failed (will retry):", e);
+            logger.error("[SyncEngine] Broadcast failed (will retry):", e);
             // Retain pendingState so it retries on next online event
         } finally {
             this.isFlushing = false;
-            
+
             // If a newer state queued while flushing, send it immediately
             if (this.pendingState && this.isOnline) {
                 this.flushQueue();
@@ -169,31 +170,31 @@ export class SyncEngine {
      * Auto-reconnect with exponential backoff if subscription fails.
      */
     public subscribeToMatch(
-        sessionId: string, 
+        sessionId: string,
         onUpdate: (state: GameState) => void,
         onError?: (error: Error) => void,
         onReconnecting?: (attempt: number) => void
     ): () => void {
         if (!isFirebaseInitialized || !db) {
             if (onError) onError(new Error("Firebase not initialized"));
-            return () => {};
+            return () => { };
         }
-        
+
         if (this.activeUnsubscribe) {
             this.activeUnsubscribe();
             this.activeUnsubscribe = null;
         }
 
         const sessionRef = doc(db, 'live_matches', sessionId);
-        
-        updateDoc(sessionRef, { connectedCount: increment(1) }).catch(e => console.warn("Failed to inc stats", e));
+
+        updateDoc(sessionRef, { connectedCount: increment(1) }).catch(e => logger.warn("Failed to inc stats", e));
 
         // Reset reconnect counter on successful subscription
         this.reconnectAttempts = 0;
         this.reconnectDelay = 1000;
 
         this.activeUnsubscribe = onSnapshot(
-            sessionRef, 
+            sessionRef,
             (snapshot: DocumentSnapshot) => {
                 if (snapshot.exists()) {
                     const data = snapshot.data() as SyncSessionSchema;
@@ -208,7 +209,7 @@ export class SyncEngine {
                 }
             },
             (error: FirestoreError) => {
-                console.error("[SyncEngine] Subscription error:", error);
+                logger.error("[SyncEngine] Subscription error:", error);
                 this.handleSubscriptionError(
                     error,
                     sessionId, onUpdate, onError, onReconnecting
@@ -221,7 +222,7 @@ export class SyncEngine {
                 this.activeUnsubscribe();
                 this.activeUnsubscribe = null;
             }
-            updateDoc(sessionRef, { connectedCount: increment(-1) }).catch(() => {});
+            updateDoc(sessionRef, { connectedCount: increment(-1) }).catch(() => { });
         };
     }
 
@@ -239,13 +240,13 @@ export class SyncEngine {
 
         this.reconnectAttempts++;
         const delay = Math.min(this.reconnectDelay * Math.pow(1.5, this.reconnectAttempts), 30000);
-        
+
         if (onReconnecting) {
             onReconnecting(this.reconnectAttempts);
         }
 
-        console.log(`[SyncEngine] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-        
+        logger.log(`[SyncEngine] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+
         setTimeout(() => {
             if (this.isOnline) {
                 this.subscribeToMatch(sessionId, onUpdate, onError, onReconnecting);
@@ -266,11 +267,11 @@ export class SyncEngine {
         // More memorable and harder to mistype than 6 random digits
         const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';  // Exclude I, O (confusing)
         let code = '';
-        
+
         for (let i = 0; i < 3; i++) {
             code += letters[Math.floor(Math.random() * letters.length)];
         }
-        
+
         code += String(Math.floor(Math.random() * 100)).padStart(2, '0');
         return code;  // e.g., "ABC-12"
     }
@@ -280,26 +281,26 @@ export class SyncEngine {
      */
     public async endSession(sessionId: string): Promise<void> {
         if (!isFirebaseInitialized || !db) {
-            console.warn('[SyncEngine] Firebase not initialized');
+            logger.warn('[SyncEngine] Firebase not initialized');
             return;
         }
 
         const sessionRef = doc(db, 'live_matches', sessionId);
-        
+
         try {
             // Use setDoc merge to set status without affecting other fields
             await setDoc(sessionRef, {
                 status: 'finished',
                 lastUpdate: serverTimestamp()
             }, { merge: true });
-            
+
             // Clear any pending broadcasts
             this.pendingState = null;
             await SecureStorage.remove(SYNC_QUEUE_KEY);
-            
-            console.log('[SyncEngine] Session ended:', sessionId);
+
+            logger.log('[SyncEngine] Session ended:', sessionId);
         } catch (e) {
-            console.error('[SyncEngine] Failed to end session:', e);
+            logger.error('[SyncEngine] Failed to end session:', e);
             throw e;
         }
     }

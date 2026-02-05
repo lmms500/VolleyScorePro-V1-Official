@@ -12,13 +12,15 @@ interface ScoreCardContainerProps {
   isLocked?: boolean;
   onInteractionStart?: () => void;
   onInteractionEnd?: () => void;
+  swappedSides?: boolean;
 }
 
 export const ScoreCardContainer: React.FC<ScoreCardContainerProps> = memo(({
   teamId,
   isLocked = false,
   onInteractionStart,
-  onInteractionEnd
+  onInteractionEnd,
+  swappedSides = false
 }) => {
   const { t } = useTranslation();
   const { showNotification } = useNotification();
@@ -145,6 +147,7 @@ export const ScoreCardContainer: React.FC<ScoreCardContainerProps> = memo(({
       onInteractionStart={onInteractionStart}
       onInteractionEnd={onInteractionEnd}
       config={config}
+      swappedSides={swappedSides}
     />
   );
 });

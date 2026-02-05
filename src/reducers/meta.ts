@@ -25,12 +25,41 @@ export const metaReducer = (state: GameState, action: GameAction): GameState => 
         }
 
         case 'RESET_MATCH':
-            return { ...state, scoreA: 0, scoreB: 0, setsA: 0, setsB: 0, currentSet: 1, history: [], actionLog: [], matchLog: [], isMatchOver: false, matchWinner: null, servingTeam: null, swappedSides: false, timeoutsA: 0, timeoutsB: 0, inSuddenDeath: false, pendingSideSwitch: false, matchDurationSeconds: 0, isTimerRunning: false, lastSnapshot: undefined, teamARoster: { ...state.teamARoster, tacticalOffset: 0 }, teamBRoster: { ...state.teamBRoster, tacticalOffset: 0 } };
+            return {
+                ...state,
+                // [NEW] Identidade da Sessão - Fix para Bug de Undo
+                gameId: action.gameId || Date.now().toString(),
+                gameCreatedAt: Date.now(),
+                // [CRÍTICO] Reset de Estado de Score
+                scoreA: 0,
+                scoreB: 0,
+                setsA: 0,
+                setsB: 0,
+                currentSet: 1,
+                // [CRÍTICO] Limpeza de Histórico (Correção do Bug de Undo)
+                history: [],
+                actionLog: [],
+                matchLog: [],
+                lastSnapshot: undefined,
+                // Reset de estado da partida
+                isMatchOver: false,
+                matchWinner: null,
+                servingTeam: null,
+                swappedSides: false,
+                timeoutsA: 0,
+                timeoutsB: 0,
+                inSuddenDeath: false,
+                pendingSideSwitch: false,
+                matchDurationSeconds: 0,
+                isTimerRunning: false,
+                teamARoster: { ...state.teamARoster, tacticalOffset: 0 },
+                teamBRoster: { ...state.teamBRoster, tacticalOffset: 0 }
+            };
 
-        case 'RESET_TIMER': 
+        case 'RESET_TIMER':
             return { ...state, matchDurationSeconds: 0, isTimerRunning: false };
-        
-        case 'TOGGLE_TIMER': 
+
+        case 'TOGGLE_TIMER':
             return { ...state, isTimerRunning: !state.isTimerRunning };
 
         case 'SET_SYNC_ROLE':
@@ -61,23 +90,23 @@ export const metaReducer = (state: GameState, action: GameAction): GameState => 
             if (lastAction.type === 'POINT') {
                 let teamA = state.teamARoster;
                 let teamB = state.teamBRoster;
-                
+
                 if (lastAction.autoRotated) {
                     if (lastAction.team === 'A') teamA = { ...teamA, players: rotateCounterClockwise(teamA.players) };
                     else teamB = { ...teamB, players: rotateCounterClockwise(teamB.players) };
                 }
-                return { 
-                    ...state, 
-                    actionLog: newLog, 
-                    matchLog: newMatchLog, 
-                    scoreA: lastAction.prevScoreA, 
-                    scoreB: lastAction.prevScoreB, 
-                    servingTeam: lastAction.prevServingTeam, 
-                    inSuddenDeath: lastAction.prevInSuddenDeath ?? false, 
+                return {
+                    ...state,
+                    actionLog: newLog,
+                    matchLog: newMatchLog,
+                    scoreA: lastAction.prevScoreA,
+                    scoreB: lastAction.prevScoreB,
+                    servingTeam: lastAction.prevServingTeam,
+                    inSuddenDeath: lastAction.prevInSuddenDeath ?? false,
                     swappedSides: lastAction.prevSwappedSides,
-                    pendingSideSwitch: false, 
-                    teamARoster: teamA, 
-                    teamBRoster: teamB 
+                    pendingSideSwitch: false,
+                    teamARoster: teamA,
+                    teamBRoster: teamB
                 };
             }
             return state;

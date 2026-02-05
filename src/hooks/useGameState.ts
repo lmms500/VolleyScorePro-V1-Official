@@ -8,6 +8,8 @@ import { DEFAULT_CONFIG } from '../constants';
  * Used as the starting point for the reducer and for resetting matches.
  */
 export const INITIAL_STATE: GameState = {
+  gameId: Date.now().toString(),
+  gameCreatedAt: Date.now(),
   teamAName: 'Team A',
   teamBName: 'Team B',
   scoreA: 0,

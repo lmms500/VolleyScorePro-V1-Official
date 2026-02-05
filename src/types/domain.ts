@@ -11,7 +11,7 @@ export type GameMode = 'indoor' | 'beach';
 export type SkillType = 'attack' | 'block' | 'ace' | 'opponent_error' | 'generic';
 export type PlayerId = string;
 export type PlayerRole = 'setter' | 'hitter' | 'middle' | 'libero' | 'none';
-export type TeamColor = string; 
+export type TeamColor = string;
 
 export interface ProfileStats {
   matchesPlayed: number;
@@ -76,7 +76,7 @@ export interface Player {
 }
 
 export interface Team {
-  id: string; 
+  id: string;
   name: string;
   color: TeamColor;
   logo?: string;
@@ -96,9 +96,9 @@ export interface SetHistory {
 export interface RotationReport {
   outgoingTeam: Team;
   incomingTeam: Team;
-  retainedPlayers: Player[]; 
-  stolenPlayers: Player[]; 
-  queueAfterRotation: Team[]; 
+  retainedPlayers: Player[];
+  stolenPlayers: Player[];
+  queueAfterRotation: Team[];
   logs?: string[];
 }
 
@@ -109,28 +109,28 @@ export interface DeletedPlayerRecord {
 }
 
 export interface RosterSnapshot {
-    teamARoster: Team;
-    teamBRoster: Team;
-    queue: Team[];
-    rotationReport: RotationReport | null;
+  teamARoster: Team;
+  teamBRoster: Team;
+  queue: Team[];
+  rotationReport: RotationReport | null;
 }
 
 // --- VISUALIZATION TYPES ---
 
 export interface TimelineNode {
-  id: string; 
+  id: string;
   type: 'START' | 'POINT' | 'TIMEOUT' | 'SET_END' | 'SUDDEN_DEATH' | 'END';
   timestamp: number;
   timeLabel: string;
-  team: TeamId | null; 
-  scoreSnapshot: string; 
+  team: TeamId | null;
+  scoreSnapshot: string;
   description: string;
   player?: string;
   skill?: SkillType;
-  
+
   // Visualization Props
-  isTop: boolean; 
-  staggerLevel: number; 
+  isTop: boolean;
+  staggerLevel: number;
 }
 
 // --- AI & ANALYSIS TYPES ---
@@ -164,37 +164,37 @@ export interface VoiceCommandIntent {
   ambiguousCandidates?: string[];
 }
 
-export type ActionLog = 
-  | { 
-      type: 'POINT'; 
-      team: TeamId;
-      prevScoreA: number;
-      prevScoreB: number;
-      prevServingTeam: TeamId | null;
-      prevInSuddenDeath: boolean;
-      prevSwappedSides: boolean;
-      timestamp?: number;
-      playerId?: string | null;
-      skill?: SkillType;
-      autoRotated?: boolean;
-    }
-  | { 
-      type: 'TIMEOUT'; 
-      team: TeamId;
-      prevTimeoutsA: number;
-      prevTimeoutsB: number;
-      timestamp?: number;
-    }
+export type ActionLog =
   | {
-      type: 'ROTATION';
-      snapshot: RosterSnapshot;
-      timestamp?: number;
+    type: 'POINT';
+    team: TeamId;
+    prevScoreA: number;
+    prevScoreB: number;
+    prevServingTeam: TeamId | null;
+    prevInSuddenDeath: boolean;
+    prevSwappedSides: boolean;
+    timestamp?: number;
+    playerId?: string | null;
+    skill?: SkillType;
+    autoRotated?: boolean;
   }
   | {
-      type: 'MANUAL_ROTATION';
-      teamId: string;
-      direction: 'clockwise' | 'counter';
-      timestamp?: number;
+    type: 'TIMEOUT';
+    team: TeamId;
+    prevTimeoutsA: number;
+    prevTimeoutsB: number;
+    timestamp?: number;
+  }
+  | {
+    type: 'ROTATION';
+    snapshot: RosterSnapshot;
+    timestamp?: number;
+  }
+  | {
+    type: 'MANUAL_ROTATION';
+    teamId: string;
+    direction: 'clockwise' | 'counter';
+    timestamp?: number;
   };
 
 export type GameAction =
@@ -203,11 +203,11 @@ export type GameAction =
   | { type: 'SUBTRACT_POINT'; team: TeamId }
   | { type: 'TIMEOUT'; team: TeamId }
   | { type: 'UNDO' }
-  | { type: 'RESET_MATCH' }
+  | { type: 'RESET_MATCH'; gameId?: string }
   | { type: 'TOGGLE_SIDES' }
   | { type: 'SET_SERVER'; team: TeamId }
   | { type: 'APPLY_SETTINGS'; config: GameConfig; shouldReset: boolean }
-  | { type: 'ROTATE_TEAMS' }
+  | { type: 'ROTATE_TEAMS'; gameId?: string }
   | { type: 'RESET_TIMER' }
   | { type: 'TOGGLE_TIMER' }
   | { type: 'ROSTER_UPDATE_TEAM_NAME'; teamId: string; name: string }
@@ -242,6 +242,8 @@ export type GameAction =
   | { type: 'SET_MATCH_DURATION'; duration: number };
 
 export interface GameState {
+  gameId: string;        // Identificador único da partida atual
+  gameCreatedAt: number; // Data de criação da partida
   teamAName: string;
   teamBName: string;
   scoreA: number;
@@ -266,7 +268,7 @@ export interface GameState {
   isTimerRunning: boolean;
   teamARoster: Team;
   teamBRoster: Team;
-  queue: Team[]; 
+  queue: Team[];
   rotationReport: RotationReport | null;
   deletedPlayerHistory: DeletedPlayerRecord[];
   rotationMode: RotationMode;

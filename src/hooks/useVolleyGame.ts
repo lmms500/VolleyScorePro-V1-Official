@@ -39,11 +39,29 @@ export const useVolleyGame = () => {
   const deleteProfileRef = useRef(deleteProfile);
   const profilesRef = useRef(profiles);
 
+  // [NEW] Ref para rastrear o ID da Sessão Ativa (Independente de Render cycle)
+  // Isso é fundamental para a correção do Bug de Undo
+  const currentGameIdRef = useRef(state.gameId);
+
   useLayoutEffect(() => {
     upsertProfileRef.current = upsertProfile;
     deleteProfileRef.current = deleteProfile;
     profilesRef.current = profiles;
   }); // Updates synchronously after every render
+
+  // [FIX] Sincronização do ID apenas no carregamento inicial
+  // NÃO sincronizar em toda mudança de gameId - isso anularia a proteção!
+  // O ref só deve ser atualizado:
+  // 1. No carregamento inicial (quando um jogo salvo é carregado)
+  // 2. Explicitamente em startNewGame
+  const hasInitializedGameIdRef = useRef(false);
+  useLayoutEffect(() => {
+    if (isLoaded && !hasInitializedGameIdRef.current && state.gameId) {
+      currentGameIdRef.current = state.gameId;
+      hasInitializedGameIdRef.current = true;
+      console.log('[VolleyGame] Initialized gameId ref from loaded state:', state.gameId);
+    }
+  }, [isLoaded, state.gameId]);
 
   // Persistence (load/save)
   useGamePersistence({
@@ -72,12 +90,64 @@ export const useVolleyGame = () => {
     mergeProfiles
   });
 
-  // Combine actions with team generator functions
+  // [NEW] Interceptador de Undo - Correção do Bug
+  const safeUndo = useCallback(() => {
+    // 1. Verificação básica
+    if (!stateRef.current.actionLog.length && !stateRef.current.lastSnapshot) return;
+
+    // 2. Validação de Sessão (Correção do Bug)
+    // Se o estado atual tem um ID diferente do que a sessão / ref "sabe",
+    // significa que estamos num estado inconsistente ou obsoleto.
+    if (stateRef.current.gameId !== currentGameIdRef.current) {
+      console.warn('[VolleyGame] UNDO BLOCKED: State GameID mismatch. Ignoring safeUndo to prevent restoration of stale state.');
+      return;
+    }
+
+    // 3. Executa o undo real se passou nas verificações
+    dispatch({ type: 'UNDO' });
+  }, [dispatch, stateRef]);
+
+  // [NEW] Função de Start New Game com ID seguro
+  const startNewGame = useCallback(() => {
+    const newGameId = Date.now().toString();
+
+    // 1. Atualiza a referência IMEDIATAMENTE antes do dispatch
+    currentGameIdRef.current = newGameId;
+
+    // 2. Despacha Reset com o novo ID
+    dispatch({
+      type: 'RESET_MATCH',
+      gameId: newGameId
+    });
+
+    console.log('[VolleyGame] Started New Game:', newGameId);
+  }, [dispatch]);
+
+  // [NEW] Função de Rotate Teams com ID seguro (para botão "Próximo")
+  const safeRotateTeams = useCallback(() => {
+    const newGameId = Date.now().toString();
+
+    // 1. Atualiza a referência IMEDIATAMENTE antes do dispatch
+    currentGameIdRef.current = newGameId;
+
+    // 2. Despacha Rotate com o novo ID
+    dispatch({
+      type: 'ROTATE_TEAMS',
+      gameId: newGameId
+    });
+
+    console.log('[VolleyGame] Rotated Teams - New Game:', newGameId);
+  }, [dispatch]);
+
+  // [MODIFIED] Compor objeto de actions final com overrides seguros
   const actions = useMemo(() => ({
     ...baseActions,
     generateTeams,
-    balanceTeams
-  }), [baseActions, generateTeams, balanceTeams]);
+    balanceTeams,
+    undo: safeUndo,              // Override com versão segura
+    resetMatch: startNewGame,    // Override com versão segura
+    rotateTeams: safeRotateTeams // Override com versão segura (botão "Próximo")
+  }), [baseActions, generateTeams, balanceTeams, safeUndo, startNewGame, safeRotateTeams]);
 
   // --- COMPUTED VALUES ---
   const setsNeededToWin = SETS_TO_WIN_MATCH(state.config.maxSets);
@@ -105,6 +175,9 @@ export const useVolleyGame = () => {
     batchUpdateStats,
     mergeProfiles,
 
+    // [NEW] Expose explicitly for direct access
+    startNewGame,
+
     // Computed values
     canUndo: state.actionLog.length > 0,
     hasDeletedPlayers: state.deletedPlayerHistory.length > 0,
@@ -123,3 +196,4 @@ export const useVolleyGame = () => {
 
 // Re-export INITIAL_STATE for external use
 export { INITIAL_STATE } from './useGameState';
+

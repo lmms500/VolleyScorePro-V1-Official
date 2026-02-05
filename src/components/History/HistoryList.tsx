@@ -3,17 +3,17 @@ import { createPortal } from 'react-dom';
 import { useHistoryStore, Match } from '../../stores/historyStore';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { downloadJSON, exportMatchesToCSV, parseJSONFile } from '../../services/io';
-import { 
-  Search, Clock, Trash2, ChevronDown, ChevronUp, 
-  Download, Upload, Filter, AlertCircle, BarChart2, Crown, Calendar, SortDesc, Check, FileSpreadsheet, FileJson, PieChart, FolderOpen, X, Users, Globe, Radio
+import {
+    Search, Clock, Trash2, ChevronDown, ChevronUp,
+    Download, Upload, Filter, AlertCircle, BarChart2, Crown, Calendar, SortDesc, Check, FileSpreadsheet, FileJson, PieChart, FolderOpen, X, Users, Globe, Radio
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../ui/Button';
 import { MatchDetail } from './MatchDetail';
 import { resolveTheme, getHexFromColor } from '../../utils/colors';
-import { Virtuoso, VirtuosoHandle } from 'react-virtuoso'; 
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { NotificationToast } from '../ui/NotificationToast';
-import { GlobalLeaderboard } from '../Social/GlobalLeaderboard';
+// import { GlobalLeaderboard } from '../Social/GlobalLeaderboard'; // DISABLED - Global tab hidden
 import { useActions } from '../../contexts/GameContext'; // UPDATED: useActions only
 import { SyncEngine } from '../../services/SyncEngine';
 
@@ -41,7 +41,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({ value, onChange, options, i
         const handleClickOutside = (event: MouseEvent) => {
             if (containerRef.current && !containerRef.current.contains(event.target as Node)) setIsOpen(false);
         };
-        if(isOpen) document.addEventListener('mousedown', handleClickOutside);
+        if (isOpen) document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isOpen]);
 
@@ -73,7 +73,7 @@ const ExportMenu = ({ onExportJSON, onExportCSV }: { onExportJSON: () => void, o
     const containerRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => { if (containerRef.current && !containerRef.current.contains(event.target as Node)) setIsOpen(false); };
-        if(isOpen) document.addEventListener('mousedown', handleClickOutside);
+        if (isOpen) document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isOpen]);
     return (
@@ -91,12 +91,12 @@ const ExportMenu = ({ onExportJSON, onExportCSV }: { onExportJSON: () => void, o
     );
 };
 
-const HistoryCard: React.FC<{ 
-    match: Match; 
+const HistoryCard: React.FC<{
+    match: Match;
     onDelete: (id: string) => void;
     isExpanded: boolean;
-    onToggle: () => void;
-    onAnalyze: () => void;
+    onToggle: (id: string) => void;
+    onAnalyze: (match: Match) => void;
     isSelected?: boolean;
 }> = React.memo(({ match, onDelete, isExpanded, onToggle, onAnalyze, isSelected }) => {
     const { t } = useTranslation();
@@ -113,11 +113,11 @@ const HistoryCard: React.FC<{
     const hexB = getHexFromColor(match.teamBRoster?.color || 'rose');
 
     return (
-        <div className="pb-3 px-1 landscape:pb-2 landscape:px-0"> 
+        <div className="pb-3 px-1 landscape:pb-2 landscape:px-0">
             <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`group relative rounded-2xl landscape:rounded-xl shadow-sm hover:shadow-md transition-colors border ${isSelected ? 'bg-indigo-50/80 dark:bg-indigo-500/10 border-indigo-500/30' : 'bg-white dark:bg-white/[0.03] border-transparent hover:bg-white/80 dark:hover:bg-white/[0.05]'}`}>
                 {(isWinnerA && !isSelected) && <div className="absolute inset-0 opacity-[0.02] pointer-events-none rounded-2xl transition-colors duration-500" style={{ background: `linear-gradient(135deg, ${hexA}, transparent)` }} />}
                 {(isWinnerB && !isSelected) && <div className="absolute inset-0 opacity-[0.02] pointer-events-none rounded-2xl transition-colors duration-500" style={{ background: `linear-gradient(135deg, ${hexB}, transparent)` }} />}
-                <div className="relative z-10 p-4 landscape:p-3 cursor-pointer flex flex-col gap-3" onClick={onToggle}>
+                <div className="relative z-10 p-4 landscape:p-3 cursor-pointer flex flex-col gap-3" onClick={() => onToggle(match.id)}>
                     <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-slate-400">
                         <div className="flex items-center gap-2"><span>{date}</span><span className="w-0.5 h-0.5 rounded-full bg-slate-300"></span><span>{time}</span></div>
                         <div className="flex items-center gap-1"><Clock size={10} /> {durationStr}</div>
@@ -133,8 +133,8 @@ const HistoryCard: React.FC<{
                     {isExpanded && (
                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="relative z-10 border-t border-black/5 dark:border-white/5 bg-slate-50/50 dark:bg-black/10">
                             <div className="p-4 flex flex-col items-center space-y-4">
-                                <div className="w-full overflow-x-auto pb-1 no-scrollbar flex justify-center"><div className="flex gap-2">{match.sets.map((set, idx) => { const isSetWinnerA = set.winner === 'A'; const setTheme = isSetWinnerA ? themeA : themeB; return (<div key={idx} className="flex flex-col items-center flex-shrink-0"><span className="text-[8px] font-bold text-slate-300 uppercase mb-1">{t('history.setLabel', {setNumber: set.setNumber})}</span><div className={`min-w-[3rem] text-center px-1.5 py-1.5 rounded-lg text-[10px] font-black border backdrop-blur-sm shadow-sm tabular-nums ${setTheme.bg} ${setTheme.text} ${setTheme.textDark} ${setTheme.border}`}>{set.scoreA}-{set.scoreB}</div></div>); })}</div></div>
-                                <div className="flex items-center gap-2 w-full"><Button onClick={(e) => { e.stopPropagation(); onAnalyze(); }} className="flex-1 bg-slate-800 text-white hover:bg-slate-700 h-9 text-[10px] landscape:hidden" size="sm"><BarChart2 size={14} /> {t('historyList.analysis')}</Button><button onClick={(e) => { e.stopPropagation(); onDelete(match.id); }} className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/20 active:scale-95 flex-1 landscape:flex-none" title={t('historyList.delete')}><Trash2 size={14} className="mx-auto" /></button></div>
+                                <div className="w-full overflow-x-auto pb-1 no-scrollbar flex justify-center"><div className="flex gap-2">{match.sets.map((set, idx) => { const isSetWinnerA = set.winner === 'A'; const setTheme = isSetWinnerA ? themeA : themeB; return (<div key={idx} className="flex flex-col items-center flex-shrink-0"><span className="text-[8px] font-bold text-slate-300 uppercase mb-1">{t('history.setLabel', { setNumber: set.setNumber })}</span><div className={`min-w-[3rem] text-center px-1.5 py-1.5 rounded-lg text-[10px] font-black border backdrop-blur-sm shadow-sm tabular-nums ${setTheme.bg} ${setTheme.text} ${setTheme.textDark} ${setTheme.border}`}>{set.scoreA}-{set.scoreB}</div></div>); })}</div></div>
+                                <div className="flex items-center gap-2 w-full"><button onClick={(e) => { e.stopPropagation(); onDelete(match.id); }} className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/20 active:scale-95 flex-1" title={t('historyList.delete')}><Trash2 size={14} className="mx-auto" /></button></div>
                             </div>
                         </motion.div>
                     )}
@@ -148,9 +148,9 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
     const { matches, deleteMatch, addMatch, importJSON, exportJSON } = useHistoryStore();
     const { t } = useTranslation();
     const { setState } = useActions(); // UPDATED: useActions
-    
-    // TAB NAVIGATION
-    const [activeTab, setActiveTab] = useState<'local' | 'global'>('local');
+
+    // TAB NAVIGATION - DISABLED (Local only)
+    // const [activeTab, setActiveTab] = useState<'local' | 'global'>('local');
 
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState<FilterType>('all');
@@ -202,12 +202,25 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
         }
     }, [matches, deleteMatch, selectedMatch]);
 
+    // Stable handler for toggling card expansion
+    const handleToggle = useCallback((id: string) => {
+        setExpandedId(prev => prev === id ? null : id);
+        const match = matches.find(m => m.id === id);
+        if (match) setSelectedMatch(match);
+    }, [matches]);
+
+    // Stable handler for analyzing a match
+    const handleAnalyze = useCallback((match: Match) => {
+        setSelectedMatch(match);
+        setShowMobileDetail(true);
+    }, []);
+
     // Enhanced scroll handler for Virtuoso
     const handleScroll = useCallback((scrollTop: number) => {
         const currentY = scrollTop;
         // Bounce protection
         if (currentY < 0) return;
-        
+
         const diff = currentY - lastScrollY.current;
         if (diff > 10 && showHeader && currentY > 50) setShowHeader(false);
         else if (diff < -5 && !showHeader) setShowHeader(true);
@@ -246,102 +259,70 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
         setTimeout(() => setImportMsg(null), 3000);
     };
 
-    const rowRenderer = (index: number, match: Match) => (
+    // Memoized rowRenderer for Virtuoso to avoid re-renders
+    const rowRenderer = useCallback((index: number, match: Match) => (
         <div className="py-1">
-            <HistoryCard 
-                key={match.id} 
-                match={match} 
-                onDelete={handleDelete} 
-                isExpanded={expandedId === match.id} 
-                isSelected={selectedMatch?.id === match.id} 
-                onToggle={() => {setExpandedId(prev => prev === match.id ? null : match.id); setSelectedMatch(match);}} 
-                onAnalyze={() => {setSelectedMatch(match); setShowMobileDetail(true);}} 
+            <HistoryCard
+                key={match.id}
+                match={match}
+                onDelete={handleDelete}
+                isExpanded={expandedId === match.id}
+                isSelected={selectedMatch?.id === match.id}
+                onToggle={handleToggle}
+                onAnalyze={handleAnalyze}
             />
         </div>
-    );
+    ), [handleDelete, expandedId, selectedMatch?.id, handleToggle, handleAnalyze]);
 
     return (
         <div className="flex flex-col h-full min-h-[50vh] relative">
             <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={handleFileChange} />
             <Suspense fallback={null}><TeamStatsModal isOpen={showStats} onClose={() => setShowStats(false)} /></Suspense>
-            <NotificationToast visible={showUndoToast} type="info" mainText={t('teamManager.playerRemoved')} subText={t('common.undo')} onClose={() => setShowUndoToast(false)} systemIcon="delete" onUndo={() => { if(deletedMatch){addMatch(deletedMatch); setDeletedMatch(null); setShowUndoToast(false);} }} />
+            <NotificationToast visible={showUndoToast} type="info" mainText={t('teamManager.playerRemoved')} subText={t('common.undo')} onClose={() => setShowUndoToast(false)} systemIcon="delete" onUndo={() => { if (deletedMatch) { addMatch(deletedMatch); setDeletedMatch(null); setShowUndoToast(false); } }} />
 
             <div className={`flex flex-col landscape:flex-row h-full overflow-visible ${selectedMatch ? 'landscape:gap-0' : ''}`}>
                 <div className={`flex flex-col h-full w-full landscape:w-[320px] lg:landscape:w-[380px] landscape:border-r border-black/5 dark:border-white/5 ${showMobileDetail ? 'hidden landscape:flex' : 'flex'}`}>
-                    
-                    <div className="sticky top-0 z-50 pt-safe-top pb-1 px-1 mb-1 pointer-events-none">
-                        <motion.div 
+
+                    <div className="sticky top-0 z-50 pt-safe-top px-1 pointer-events-none">
+                        <motion.div
                             initial={{ y: 0 }} animate={{ y: showHeader ? 0 : -100, opacity: showHeader ? 1 : 0 }}
                             className="bg-slate-50/70 dark:bg-[#020617]/70 backdrop-blur-xl border-b border-black/5 dark:border-white/5 pb-2 pt-2 px-2 pointer-events-auto flex flex-col gap-2 rounded-b-2xl"
                         >
-                            {/* TAB SELECTOR */}
-                            <div className="flex bg-slate-200 dark:bg-black/20 p-1 rounded-xl">
-                                <button 
-                                    onClick={() => setActiveTab('local')}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${activeTab === 'local' ? 'bg-white dark:bg-slate-800 text-indigo-500 shadow-sm' : 'text-slate-400'}`}
-                                >
-                                    <Clock size={14} /> Local
-                                </button>
-                                <button 
-                                    onClick={() => setActiveTab('global')}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${activeTab === 'global' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400'}`}
-                                >
-                                    <Globe size={14} /> Global
-                                </button>
-                            </div>
+                            {/* TAB SELECTOR - DISABLED (Local only) */}
 
-                            <AnimatePresence mode="wait">
-                                {activeTab === 'local' ? (
-                                    <motion.div key="local-controls" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-2">
-                                        <div className="flex gap-2 items-center">
-                                            <div className="relative flex-1 group">
-                                                <div className="absolute inset-0 bg-slate-100 dark:bg-white/5 rounded-xl group-focus-within:ring-2 group-focus-within:ring-indigo-500/30"></div>
-                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                                                <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('historyList.searchPlaceholder')} className="relative w-full bg-transparent border-none rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-slate-800 dark:text-white focus:outline-none" />
-                                            </div>
-                                            {onClose && <button onClick={onClose} className="w-10 h-9 flex items-center justify-center bg-slate-100 dark:bg-black/20 rounded-xl text-slate-500 shrink-0"><X size={18} /></button>}
-                                        </div>
-                                        <div className="flex gap-2 items-center">
-                                            <div className="grid grid-cols-2 gap-2 flex-1"><CustomSelect value={filterType} onChange={(val) => setFilterType(val as any)} options={filterOptions} icon={<Filter size={12} />} /><CustomSelect value={sortOrder} onChange={(val) => setSortOrder(val as any)} options={sortOptions} icon={<SortDesc size={12} />} /></div>
-                                            <div className="flex gap-1 shrink-0"><button onClick={() => setShowStats(true)} className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 text-indigo-600 shadow-sm"><PieChart size={16} /></button><ExportMenu onExportJSON={handleExportJSON} onExportCSV={handleExportCSV} /><button onClick={handleImportClick} className="p-2.5 rounded-xl bg-white dark:bg-white/5 border border-black/5 text-slate-500 shadow-sm"><Download size={16} /></button></div>
-                                        </div>
-                                    </motion.div>
-                                ) : (
-                                    <motion.div key="global-controls" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center justify-between px-1">
-                                        <div className="flex items-center gap-2">
-                                            <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-500"><Radio size={16} className="animate-pulse" /></div>
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] font-black uppercase text-slate-800 dark:text-white">Live Community</span>
-                                                <span className="text-[8px] font-bold uppercase text-slate-400">Public Matches & Rankings</span>
-                                            </div>
-                                        </div>
-                                        {onClose && <button onClick={onClose} className="p-2.5 bg-slate-100 dark:bg-black/20 rounded-xl text-slate-500"><X size={18} /></button>}
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                            {/* LOCAL CONTROLS ONLY */}
+                            <motion.div key="local-controls" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-2">
+                                <div className="flex gap-2 items-center">
+                                    <div className="relative flex-1 group">
+                                        <div className="absolute inset-0 bg-slate-100 dark:bg-white/5 rounded-xl group-focus-within:ring-2 group-focus-within:ring-indigo-500/30"></div>
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                                        <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('historyList.searchPlaceholder')} className="relative w-full bg-transparent border-none rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-slate-800 dark:text-white focus:outline-none" />
+                                    </div>
+                                    {onClose && <button onClick={onClose} className="w-10 h-9 flex items-center justify-center bg-slate-100 dark:bg-black/20 rounded-xl text-slate-500 shrink-0"><X size={18} /></button>}
+                                </div>
+                                <div className="flex gap-2 items-center">
+                                    <div className="grid grid-cols-2 gap-2 flex-1"><CustomSelect value={filterType} onChange={(val) => setFilterType(val as any)} options={filterOptions} icon={<Filter size={12} />} /><CustomSelect value={sortOrder} onChange={(val) => setSortOrder(val as any)} options={sortOptions} icon={<SortDesc size={12} />} /></div>
+                                    <div className="flex gap-1 shrink-0"><button onClick={() => setShowStats(true)} className="p-2.5 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 text-indigo-600 shadow-sm"><PieChart size={16} /></button><ExportMenu onExportJSON={handleExportJSON} onExportCSV={handleExportCSV} /><button onClick={handleImportClick} className="p-2.5 rounded-xl bg-white dark:bg-white/5 border border-black/5 text-slate-500 shadow-sm"><Download size={16} /></button></div>
+                                </div>
+                            </motion.div>
                         </motion.div>
                     </div>
 
-                    <div className="flex-1 min-w-0 bg-transparent px-1 pb-safe-bottom pt-2 h-full">
-                        {activeTab === 'local' ? (
-                            filteredMatches.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-64 text-slate-400 opacity-60"><div className="p-4 bg-slate-100 dark:bg-white/5 rounded-full mb-3 border border-slate-200"><FolderOpen size={32} strokeWidth={1} /></div><h3 className="text-xs font-black uppercase tracking-widest">{t('historyList.empty')}</h3></div>
-                            ) : (
-                                <Virtuoso
-                                    ref={virtuosoRef}
-                                    style={{ height: '100%' }}
-                                    data={filteredMatches}
-                                    itemContent={rowRenderer}
-                                    onScroll={(e) => handleScroll((e.target as HTMLElement).scrollTop)}
-                                    components={{
-                                        Footer: () => <div className="h-24" /> // Spacing for fab/bottom nav
-                                    }}
-                                />
-                            )
+                    <div className="flex-1 min-w-0 bg-transparent px-1 pb-safe-bottom pt-1 h-full">
+                        {/* LOCAL HISTORY ONLY */}
+                        {filteredMatches.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-64 text-slate-400 opacity-60"><div className="p-4 bg-slate-100 dark:bg-white/5 rounded-full mb-3 border border-slate-200"><FolderOpen size={32} strokeWidth={1} /></div><h3 className="text-xs font-black uppercase tracking-widest">{t('historyList.empty')}</h3></div>
                         ) : (
-                            <div className="overflow-y-auto custom-scrollbar h-full">
-                                <GlobalLeaderboard onJoinMatch={onJoinPublicMatch} />
-                            </div>
+                            <Virtuoso
+                                ref={virtuosoRef}
+                                style={{ height: '100%' }}
+                                data={filteredMatches}
+                                itemContent={rowRenderer}
+                                onScroll={(e) => handleScroll((e.target as HTMLElement).scrollTop)}
+                                components={{
+                                    Footer: () => <div className="h-24" /> // Spacing for fab/bottom nav
+                                }}
+                            />
                         )}
                     </div>
                 </div>

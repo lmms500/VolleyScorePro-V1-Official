@@ -9,7 +9,7 @@ const config: CapacitorConfig = {
   server: {
     androidScheme: 'https'
   },
-  backgroundColor: "#020617", 
+  backgroundColor: "#020617",
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
@@ -19,14 +19,18 @@ const config: CapacitorConfig = {
       showSpinner: false,
     },
     StatusBar: {
-      style: "DARK", 
+      style: "DARK",
       backgroundColor: "#00000000",
       overlaysWebView: true,
     },
     Keyboard: {
       resize: "body" as KeyboardResize,
       style: "DARK" as KeyboardStyle
-    }
+    },
+    FirebaseAuthentication: {
+      skipNativeAuth: false,
+      providers: ["google.com"],
+    },
   }
 };
 

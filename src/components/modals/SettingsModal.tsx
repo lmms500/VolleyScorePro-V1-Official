@@ -81,8 +81,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = memo(({
     <Modal isOpen={isOpen} onClose={onClose} title="" showCloseButton={false} variant="fullscreen" zIndex={zIndex}>
       <div ref={scrollRef} onScroll={onScroll} className="flex flex-col h-full render-crisp relative overflow-y-auto custom-scrollbar">
         
-        {/* SMART NAVIGATION BAR (Collapsible) */}
-        <div className="sticky top-0 z-50 pt-safe-top pb-2 px-1 mb-1 pointer-events-none">
+        {/* SMART NAVIGATION BAR (Collapsible) - Otimizado */}
+        <div className="sticky top-0 z-50 pt-safe-top px-1 pointer-events-none">
             <motion.div 
                 initial={{ y: 0 }}
                 animate={{ y: showHeader ? 0 : -100, opacity: showHeader ? 1 : 0 }}
@@ -113,8 +113,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = memo(({
             </motion.div>
         </div>
 
-        {/* CONTENT */}
-        <div className="flex-1 px-1 pb-32 pt-2">
+        {/* CONTENT - Gap mínimo do header */}
+        <div className="flex-1 px-1 pb-32 pt-1">
             <AnimatePresence mode="wait">
                 {activeTab === 'match' && (
                     <motion.div key="match" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} transition={{ duration: 0.2 }}>

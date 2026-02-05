@@ -15,14 +15,14 @@ export type FeatureFlag =
 
 const FLAGS: Record<FeatureFlag, boolean> = {
   // Core Features
-  PLAYER_ANALYSIS_ENABLED: true,
-  AI_INSIGHTS_ENABLED: true,
+  PLAYER_ANALYSIS_ENABLED: false, // DISABLED - AI features hidden
+  AI_INSIGHTS_ENABLED: false,     // DISABLED - AI features hidden
   VOICE_COMMANDS_ENABLED: true,
-  
+
   // Connectivity Features
-  LIVE_BROADCAST_ENABLED: true,
+  LIVE_BROADCAST_ENABLED: true,   // ENABLED - Live sync active
   SOCIAL_SHARING_ENABLED: true,
-  
+
   // Monetization
   ADMOB_ENABLED: true,
 };

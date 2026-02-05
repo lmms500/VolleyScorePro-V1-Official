@@ -1,11 +1,19 @@
 
 import { useEffect } from 'react';
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
+
+// Interface para o plugin SystemUi registrado no MainActivity.java
+interface SystemUiPlugin {
+    setImmersiveMode(options: { enabled: boolean }): Promise<void>;
+}
+
+// Registrar plugin nativo local
+const SystemUi = registerPlugin<SystemUiPlugin>('SystemUi');
 
 export const useNativeIntegration = (
     isMatchActive: boolean,
@@ -14,19 +22,23 @@ export const useNativeIntegration = (
     modalsOpen: boolean
 ) => {
     const isNative = Capacitor.isNativePlatform();
+    const isAndroid = Capacitor.getPlatform() === 'android';
 
+    // Inicialização única no mount
     useEffect(() => {
         if (isNative) {
             const initNative = async () => {
                 try {
-                    // StatusBar: Estilo escuro e transparente para efeito Edge-to-Edge
+                    // StatusBar: Estilo escuro para ícones claros em fundo escuro
                     await StatusBar.setStyle({ style: Style.Dark });
-                    if (Capacitor.getPlatform() === 'android') {
+
+                    if (isAndroid) {
+                        // Android: Configurar barras transparentes edge-to-edge
                         await StatusBar.setOverlaysWebView({ overlay: true });
                         await StatusBar.setBackgroundColor({ color: '#00000000' });
                     }
-                    
-                    // Teclado: Não redimensionar a UI para evitar quebras no layout do placar
+
+                    // iOS: Teclado não redimensiona a UI
                     if (Capacitor.getPlatform() === 'ios') {
                         await Keyboard.setResizeMode({ mode: KeyboardResize.None });
                     }
@@ -41,7 +53,34 @@ export const useNativeIntegration = (
             };
             initNative();
         }
-    }, [isNative]);
+    }, [isNative, isAndroid]);
+
+    // Controle de Modo Imersivo (Fullscreen) - Android
+    useEffect(() => {
+        if (!isNative || !isAndroid) return;
+
+        const setImmersive = async () => {
+            try {
+                if (isFullscreen) {
+                    // FULLSCREEN: Esconder barras do sistema (modo imersivo)
+                    await SystemUi.setImmersiveMode({ enabled: true });
+                    console.log('[NativeIntegration] Modo imersivo ATIVADO');
+                } else {
+                    // NORMAL: Mostrar barras transparentes
+                    await SystemUi.setImmersiveMode({ enabled: false });
+                    // Reconfigurar barras transparentes após sair do modo imersivo
+                    await StatusBar.setOverlaysWebView({ overlay: true });
+                    await StatusBar.setBackgroundColor({ color: '#00000000' });
+                    await StatusBar.setStyle({ style: Style.Dark });
+                    console.log('[NativeIntegration] Modo imersivo DESATIVADO, barras transparentes');
+                }
+            } catch (e) {
+                console.warn("[NativeIntegration] Erro ao alternar modo imersivo:", e);
+            }
+        };
+
+        setImmersive();
+    }, [isFullscreen, isNative, isAndroid]);
 
     // Bloqueio de Orientação Dinâmico (Híbrido: Nativo + PWA)
     useEffect(() => {

@@ -1,27 +1,27 @@
 
-import React, { memo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { Player, TeamColor } from '../../types';
 import { resolveTheme } from '../../utils/colors';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { motion } from 'framer-motion';
 
 interface VolleyballCourtProps {
-  players: Player[];
-  color: TeamColor;
-  isServing: boolean;
-  side: 'left' | 'right';
-  teamId: string;
-  variant?: 'full' | 'minimal';
-  onPlayerClick?: (player: Player) => void;
-  mvpId?: string | null;
-  mode?: 'indoor' | 'beach'; 
-  isDragActive?: boolean;
+    players: Player[];
+    color: TeamColor;
+    isServing: boolean;
+    side: 'left' | 'right';
+    teamId: string;
+    variant?: 'full' | 'minimal';
+    onPlayerClick?: (player: Player) => void;
+    mvpId?: string | null;
+    mode?: 'indoor' | 'beach';
+    isDragActive?: boolean;
 }
 
 // Visual Mapping
 // Index 0 is always the Server (Zone 1).
-const ZONE_MAP_INDOOR = [1, 6, 5, 4, 3, 2]; 
-const ZONE_MAP_BEACH = [1, 4, 3, 2]; 
+const ZONE_MAP_INDOOR = [1, 6, 5, 4, 3, 2];
+const ZONE_MAP_BEACH = [1, 4, 3, 2];
 
 // --- 1. THE DROP ZONE (Glass Slot) ---
 const ZoneMarker = memo(({ index, visualZone, teamId }: { index: number, visualZone: string | number, teamId: string, isActive: boolean }) => {
@@ -31,7 +31,7 @@ const ZoneMarker = memo(({ index, visualZone, teamId }: { index: number, visualZ
     });
 
     return (
-        <div 
+        <div
             ref={setNodeRef}
             className={`
                 absolute inset-0 flex items-center justify-center rounded-2xl transition-all duration-300
@@ -44,7 +44,7 @@ const ZoneMarker = memo(({ index, visualZone, teamId }: { index: number, visualZ
 });
 
 // --- 2. THE PLAYER TOKEN (NeoGlass Jewel) ---
-const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onClick, isMVP, isGlobalDragging }: { player: Player, index: number, teamId: string, theme: any, isServer: boolean, onClick?: () => void, isMVP: boolean, isGlobalDragging: boolean }) => {
+const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActivate, isMVP, isGlobalDragging }: { player: Player, index: number, teamId: string, theme: any, isServer: boolean, onActivate?: (player: Player) => void, isMVP: boolean, isGlobalDragging: boolean }) => {
     // Draggable Logic Only (Collision handled by ZoneMarker underneath)
     const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
         id: player.id,
@@ -52,15 +52,15 @@ const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onClick,
     });
 
     const handleClick = (e: React.MouseEvent) => {
-        if (onClick && !isDragging) {
+        if (onActivate && !isDragging) {
             e.stopPropagation();
-            onClick();
+            onActivate(player);
         }
     };
-    
+
     return (
         <motion.div
-            layoutId={player.id} 
+            layoutId={player.id}
             layout="position"
             transition={{ type: "spring", stiffness: 300, damping: 28 }}
             ref={setNodeRef}
@@ -77,7 +77,7 @@ const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onClick,
             }}
         >
             {isServer && (
-                <motion.div 
+                <motion.div
                     layoutId={`serve-ring-${teamId}`}
                     className="absolute -inset-1.5 rounded-full border-2 border-dashed border-amber-400/80 animate-[spin_8s_linear_infinite]"
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -110,19 +110,26 @@ const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onClick,
     );
 });
 
-export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({ 
+export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
     players, color, isServing, side, teamId, variant = 'full', onPlayerClick, mvpId, mode = 'indoor', isDragActive = false
 }) => {
     const theme = resolveTheme(color);
+
+    // Stable handler for player activation (avoids inline arrow function in render)
+    const handlePlayerActivate = useCallback((player: Player) => {
+        if (onPlayerClick) {
+            onPlayerClick(player);
+        }
+    }, [onPlayerClick]);
     const isMinimal = variant === 'minimal';
     const isBeach = mode === 'beach';
-    
+
     const slotCount = isBeach ? 4 : 6;
     const slots = new Array(slotCount).fill(null);
     players.slice(0, slotCount).forEach((p, i) => { slots[i] = p; });
 
     let gridOrder: number[] = [];
-    
+
     if (isBeach) {
         if (side === 'left') {
             // Left Team (Faces Right >) | Map visual zones to array indices
@@ -133,19 +140,19 @@ export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
         }
     } else {
         // Indoor 6v6 Layout
-        if (side === 'left') gridOrder = [2, 3, 1, 4, 0, 5]; 
+        if (side === 'left') gridOrder = [2, 3, 1, 4, 0, 5];
         else gridOrder = [5, 0, 4, 1, 3, 2];
     }
 
     const gridClass = isBeach ? 'grid-rows-2' : 'grid-rows-3';
     const lineColor = isBeach ? 'border-blue-900/30' : 'border-white/80';
-    
+
     // Standard Orange for Indoor, Sand for Beach
     const courtColorClass = isBeach ? 'bg-[#e3cba5]' : 'bg-orange-500';
 
     return (
         <div className={`w-full h-full relative ${isMinimal ? '' : 'p-2 sm:p-4'} flex items-center justify-center`}>
-            
+
             {!isMinimal && (
                 <div className={`absolute inset-0 rounded-[2rem] overflow-hidden shadow-inner border-4 border-white/10 transition-colors duration-300 ${courtColorClass}`}>
                     {isBeach && <div className="absolute inset-0 opacity-20 mix-blend-multiply" style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/sand.png')" }} />}
@@ -176,22 +183,22 @@ export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
                         </div>
 
                         {/* Zone Marker is the target for drops */}
-                        <ZoneMarker 
-                            index={arrayIndex} 
-                            visualZone={""} 
+                        <ZoneMarker
+                            index={arrayIndex}
+                            visualZone={""}
                             teamId={teamId}
-                            isActive={false} 
+                            isActive={false}
                         />
-                        
+
                         {slots[arrayIndex] ? (
-                            <DraggablePlayer 
-                                key={slots[arrayIndex].id} 
+                            <DraggablePlayer
+                                key={slots[arrayIndex].id}
                                 player={slots[arrayIndex]}
                                 index={arrayIndex}
                                 teamId={teamId}
                                 theme={theme}
                                 isServer={isServing && arrayIndex === 0}
-                                onClick={() => onPlayerClick && onPlayerClick(slots[arrayIndex])}
+                                onActivate={handlePlayerActivate}
                                 isMVP={mvpId === slots[arrayIndex].id}
                                 isGlobalDragging={isDragActive}
                             />

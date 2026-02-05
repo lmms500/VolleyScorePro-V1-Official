@@ -10,11 +10,11 @@ export const rosterReducer = (state: GameState, action: GameAction): GameState =
     const courtLimit = getPlayersOnCourt(state.config.mode);
 
     switch (action.type) {
-        case 'ROSTER_ADD_PLAYER': { 
-            const { courtA, courtB, queue } = handleAddPlayer(state.teamARoster, state.teamBRoster, state.queue, action.player, action.targetId, courtLimit); 
-            return { ...state, teamARoster: courtA, teamBRoster: courtB, queue }; 
+        case 'ROSTER_ADD_PLAYER': {
+            const { courtA, courtB, queue } = handleAddPlayer(state.teamARoster, state.teamBRoster, state.queue, action.player, action.targetId, courtLimit);
+            return { ...state, teamARoster: courtA, teamBRoster: courtB, queue };
         }
-        
+
         case 'ROSTER_RESTORE_PLAYER': {
             const { player, targetId, index } = action;
             let newA = { ...state.teamARoster }, newB = { ...state.teamBRoster }, newQ = [...state.queue];
@@ -41,13 +41,13 @@ export const rosterReducer = (state: GameState, action: GameAction): GameState =
         }
 
         case 'ROSTER_REMOVE_PLAYER': { const { courtA, courtB, queue } = handleRemovePlayer(state.teamARoster, state.teamBRoster, state.queue, action.playerId, courtLimit); return { ...state, teamARoster: courtA, teamBRoster: courtB, queue }; }
-        
+
         case 'ROSTER_DELETE_PLAYER': { const { courtA, courtB, queue, record } = handleDeletePlayer(state.teamARoster, state.teamBRoster, state.queue, action.playerId); return { ...state, teamARoster: courtA, teamBRoster: courtB, queue, deletedPlayerHistory: record ? [...state.deletedPlayerHistory, record] : state.deletedPlayerHistory }; }
-        
+
         case 'ROSTER_MOVE_PLAYER': {
             const { playerId, fromId, toId, newIndex } = action;
             let newA = { ...state.teamARoster, players: [...state.teamARoster.players], reserves: [...(state.teamARoster.reserves || [])] };
-            let newB = { ...state.teamBRoster, players: [...state.teamBRoster.players, ], reserves: [...(state.teamBRoster.reserves || [])] };
+            let newB = { ...state.teamBRoster, players: [...state.teamBRoster.players,], reserves: [...(state.teamBRoster.reserves || [])] };
             let newQueue = state.queue.map(t => ({ ...t, players: [...t.players], reserves: [...(t.reserves || [])] }));
             let player: Player | undefined;
             const extract = (team: Team, type: 'players' | 'reserves') => {
@@ -121,13 +121,13 @@ export const rosterReducer = (state: GameState, action: GameAction): GameState =
 
         // OPTIMIZED: Receives pre-calculated state to avoid main-thread blocking during render
         case 'ROSTER_GENERATE': {
-            return { 
-                ...state, 
-                teamARoster: { ...action.courtA, reserves: state.teamARoster.reserves, hasActiveBench: state.teamARoster.hasActiveBench }, 
-                teamBRoster: { ...action.courtB, reserves: state.teamBRoster.reserves, hasActiveBench: state.teamBRoster.hasActiveBench }, 
-                queue: action.queue, 
-                teamAName: action.courtA.name, 
-                teamBName: action.courtB.name 
+            return {
+                ...state,
+                teamARoster: { ...action.courtA, reserves: state.teamARoster.reserves, hasActiveBench: state.teamARoster.hasActiveBench },
+                teamBRoster: { ...action.courtB, reserves: state.teamBRoster.reserves, hasActiveBench: state.teamBRoster.hasActiveBench },
+                queue: action.queue,
+                teamAName: action.courtA.name,
+                teamBName: action.courtB.name
             };
         }
 
@@ -135,11 +135,11 @@ export const rosterReducer = (state: GameState, action: GameAction): GameState =
 
         // OPTIMIZED: Receives pre-calculated state
         case 'ROSTER_BALANCE': {
-            return { 
-                ...state, 
-                teamARoster: { ...action.courtA, reserves: state.teamARoster.reserves, hasActiveBench: state.teamARoster.hasActiveBench, tacticalOffset: 0 }, 
-                teamBRoster: { ...action.courtB, reserves: state.teamBRoster.reserves, hasActiveBench: state.teamBRoster.hasActiveBench, tacticalOffset: 0 }, 
-                queue: action.queue.map(t => ({ ...t, hasActiveBench: state.queue.find(old => old.id === t.id)?.hasActiveBench ?? false })) 
+            return {
+                ...state,
+                teamARoster: { ...action.courtA, reserves: state.teamARoster.reserves, hasActiveBench: state.teamARoster.hasActiveBench, tacticalOffset: 0 },
+                teamBRoster: { ...action.courtB, reserves: state.teamBRoster.reserves, hasActiveBench: state.teamBRoster.hasActiveBench, tacticalOffset: 0 },
+                queue: action.queue.map(t => ({ ...t, hasActiveBench: state.queue.find(old => old.id === t.id)?.hasActiveBench ?? false }))
             };
         }
 
@@ -156,7 +156,7 @@ export const rosterReducer = (state: GameState, action: GameAction): GameState =
         }
 
         case 'ROSTER_SYNC_PROFILES': {
-            const profs = action.profiles; 
+            const profs = action.profiles;
             let changed = false;
             const syncList = (list: Player[]): Player[] => list.map((p): Player => {
                 const m = p.profileId ? profs.get(p.profileId) : Array.from(profs.values()).find(pr => pr.name.trim().toLowerCase() === p.name.trim().toLowerCase());
@@ -171,7 +171,7 @@ export const rosterReducer = (state: GameState, action: GameAction): GameState =
         }
 
         case 'ROSTER_UNLINK_PROFILE': {
-            const unlink = (list: Player[]): Player[] => list.map((p): Player => p.profileId === action.profileId ? { ...p, profileId: undefined, role: 'none' } : p );
+            const unlink = (list: Player[]): Player[] => list.map((p): Player => p.profileId === action.profileId ? { ...p, profileId: undefined, role: 'none' } : p);
             return { ...state, teamARoster: { ...state.teamARoster, players: unlink(state.teamARoster.players), reserves: unlink(state.teamARoster.reserves || []) }, teamBRoster: { ...state.teamBRoster, players: unlink(state.teamBRoster.players), reserves: unlink(state.teamBRoster.reserves || []) }, queue: state.queue.map(t => ({ ...t, players: unlink(t.players), reserves: unlink(t.reserves || []) })) };
         }
 
@@ -182,11 +182,11 @@ export const rosterReducer = (state: GameState, action: GameAction): GameState =
         }
 
         case 'ROSTER_DISBAND_TEAM': return { ...state, queue: state.queue.filter(t => t.id !== action.teamId) };
-        
+
         case 'ROSTER_RESTORE_TEAM': { const nq = [...state.queue], si = Math.min(Math.max(0, action.index), nq.length); nq.splice(si, 0, action.team); return { ...state, queue: nq }; }
-        
+
         case 'ROSTER_RESET_ALL': return { ...state, teamARoster: { ...state.teamARoster, players: [], reserves: [], tacticalOffset: 0 }, teamBRoster: { ...state.teamBRoster, players: [], reserves: [], tacticalOffset: 0 }, queue: [] };
-        
+
         case 'ROSTER_ENSURE_TEAM_IDS': {
             let c = false, na = state.teamARoster, nb = state.teamBRoster;
             if (state.teamARoster.id === 'A') { na = { ...state.teamARoster, id: uuidv4() }; c = true; }
@@ -199,7 +199,7 @@ export const rosterReducer = (state: GameState, action: GameAction): GameState =
             let newA = state.teamARoster;
             let newB = state.teamBRoster;
             let swapped = false;
-            
+
             const swapInList = (list: Player[]) => {
                 const copy = [...list];
                 if (indexA >= 0 && indexA < copy.length && indexB >= 0 && indexB < copy.length) {
@@ -207,27 +207,70 @@ export const rosterReducer = (state: GameState, action: GameAction): GameState =
                 }
                 return copy;
             };
-            
-            if (teamId === 'A' || teamId === state.teamARoster.id) { 
+
+            if (teamId === 'A' || teamId === state.teamARoster.id) {
                 const newPlayers = swapInList(state.teamARoster.players);
-                if(swapped) newA = { ...state.teamARoster, players: newPlayers, tacticalOffset: 0 }; 
-            } 
-            else if (teamId === 'B' || teamId === state.teamBRoster.id) { 
-                const newPlayers = swapInList(state.teamBRoster.players);
-                if(swapped) newB = { ...state.teamBRoster, players: newPlayers, tacticalOffset: 0 }; 
+                if (swapped) newA = { ...state.teamARoster, players: newPlayers, tacticalOffset: 0 };
             }
-            
+            else if (teamId === 'B' || teamId === state.teamBRoster.id) {
+                const newPlayers = swapInList(state.teamBRoster.players);
+                if (swapped) newB = { ...state.teamBRoster, players: newPlayers, tacticalOffset: 0 };
+            }
+
             if (!swapped) return state;
             return { ...state, teamARoster: newA, teamBRoster: newB };
         }
 
         case 'ROTATE_TEAMS': {
             if (!state.matchWinner) return state;
-            if (state.queue.length === 0) return { ...state, scoreA: 0, scoreB: 0, setsA: 0, setsB: 0, currentSet: 1, history: [], actionLog: [], matchLog: [], isMatchOver: false, matchWinner: null, servingTeam: null, timeoutsA: 0, timeoutsB: 0, inSuddenDeath: false, matchDurationSeconds: 0, isTimerRunning: false, rotationReport: null, teamARoster: { ...state.teamARoster, tacticalOffset: 0 }, teamBRoster: { ...state.teamBRoster, tacticalOffset: 0 } };
-            const rosterSnapshot = { teamARoster: { ...state.teamARoster, players: [...state.teamARoster.players], reserves: [...(state.teamARoster.reserves||[])] }, teamBRoster: { ...state.teamBRoster, players: [...state.teamBRoster.players], reserves: [...(state.teamBRoster.reserves||[])] }, queue: state.queue.map(t => ({ ...t, players: [...t.players], reserves: [...(t.reserves||[])] })), rotationReport: state.rotationReport };
+            // [FIX] Generate new gameId for session identity
+            const newGameId = action.gameId || Date.now().toString();
+            const baseReset = {
+                gameId: newGameId,
+                gameCreatedAt: Date.now(),
+                scoreA: 0,
+                scoreB: 0,
+                setsA: 0,
+                setsB: 0,
+                currentSet: 1,
+                history: [],
+                actionLog: [] as ActionLog[],
+                matchLog: [] as ActionLog[],
+                lastSnapshot: undefined, // [CRÍTICO] Limpa snapshot para evitar Bug de Undo
+                isMatchOver: false,
+                matchWinner: null,
+                servingTeam: null,
+                timeoutsA: 0,
+                timeoutsB: 0,
+                inSuddenDeath: false,
+                matchDurationSeconds: 0,
+                isTimerRunning: false,
+                rotationReport: null
+            };
+
+            if (state.queue.length === 0) {
+                return {
+                    ...state,
+                    ...baseReset,
+                    teamARoster: { ...state.teamARoster, tacticalOffset: 0 },
+                    teamBRoster: { ...state.teamBRoster, tacticalOffset: 0 }
+                };
+            }
+
+            const rosterSnapshot = { teamARoster: { ...state.teamARoster, players: [...state.teamARoster.players], reserves: [...(state.teamARoster.reserves || [])] }, teamBRoster: { ...state.teamBRoster, players: [...state.teamBRoster.players], reserves: [...(state.teamBRoster.reserves || [])] }, queue: state.queue.map(t => ({ ...t, players: [...t.players], reserves: [...(t.reserves || [])] })), rotationReport: state.rotationReport };
             const res = handleRotate(state.teamARoster, state.teamBRoster, state.queue, state.matchWinner, state.rotationMode, courtLimit);
             const rotationAction: ActionLog = { type: 'ROTATION', snapshot: rosterSnapshot, timestamp: Date.now() };
-            return { ...state, scoreA: 0, scoreB: 0, setsA: 0, setsB: 0, currentSet: 1, history: [], actionLog: [rotationAction], matchLog: [rotationAction], isMatchOver: false, matchWinner: null, servingTeam: null, timeoutsA: 0, timeoutsB: 0, inSuddenDeath: false, matchDurationSeconds: 0, isTimerRunning: false, rotationReport: null, teamARoster: { ...res.courtA, tacticalOffset: 0 }, teamBRoster: { ...res.courtB, tacticalOffset: 0 }, queue: res.queue, teamAName: res.courtA.name, teamBName: res.courtB.name };
+            return {
+                ...state,
+                ...baseReset,
+                actionLog: [rotationAction],
+                matchLog: [rotationAction],
+                teamARoster: { ...res.courtA, tacticalOffset: 0 },
+                teamBRoster: { ...res.courtB, tacticalOffset: 0 },
+                queue: res.queue,
+                teamAName: res.courtA.name,
+                teamBName: res.courtB.name
+            };
         }
 
         case 'MANUAL_ROTATION': {

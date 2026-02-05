@@ -14,6 +14,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "812069353468-8iijdb8mqgr9gkrjbdn4jc37tjnpj3qm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.volleyscore.pro2",
+            "certificate_hash": "221a4ba28af5a54292cf8d0d16218d18bdc464d6"
+          }
+        },
+        {
+          "client_id": "812069353468-p6r6c9h7s64csdtugqtueac5tsedlqf9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.volleyscore.pro2",
+            "certificate_hash": "fb878843d71473bf6a61246ac7d76cf96f969eed"
+          }
+        },
+        {
           "client_id": "812069353468-icg9j6kpgmvgpbstibv2cdvq6kmpbr9g.apps.googleusercontent.com",
           "client_type": 3
         }

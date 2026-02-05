@@ -32,17 +32,18 @@ interface ScoreCardNormalProps {
   isDeuce?: boolean;
   inSuddenDeath?: boolean;
   setsNeededToWin: number;
-  colorTheme?: TeamColor; 
+  colorTheme?: TeamColor;
   isLocked?: boolean;
   onInteractionStart?: () => void;
   onInteractionEnd?: () => void;
   config: GameConfig;
+  swappedSides?: boolean;
 }
 
 export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
-  teamId, team, score, setsWon, isServing, onAdd, onSubtract, onSetServer, timeouts, onTimeout, 
-  isMatchPoint, isSetPoint, isLastScorer, isDeuce, inSuddenDeath, setsNeededToWin, 
-  isLocked = false, onInteractionStart, onInteractionEnd, config, colorTheme
+  teamId, team, score, setsWon, isServing, onAdd, onSubtract, onSetServer, timeouts, onTimeout,
+  isMatchPoint, isSetPoint, isLastScorer, isDeuce, inSuddenDeath, setsNeededToWin,
+  isLocked = false, onInteractionStart, onInteractionEnd, config, colorTheme, swappedSides = false
 }) => {
   const { t } = useTranslation();
   const audio = useGameAudio(config);
@@ -111,7 +112,12 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
 
   const resolvedColor = colorTheme || team.color || 'slate';
   const theme = resolveTheme(resolvedColor);
-  
+
+  // Calculate order for swap animation
+  const order = swappedSides
+    ? (teamId === 'A' ? 2 : 1)
+    : (teamId === 'A' ? 1 : 2);
+
   const timeoutsExhausted = timeouts >= 2;
   const isCritical = isMatchPoint || isSetPoint;
 
@@ -131,18 +137,20 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
   const haloColorClass = isMatchPoint ? 'bg-amber-500 saturate-150' : theme.halo;
 
   return (
-    <GlassSurface 
+    <GlassSurface
         layout
         layoutId={`score-card-normal-${teamId}`}
+        transition={{ type: "spring", stiffness: 280, damping: 28, mass: 1.2 }}
         intensity="transparent"
         className={`
             flex flex-col flex-1 relative h-full select-none
             rounded-3xl min-h-0 py-2
             !bg-transparent !border-none !shadow-none !ring-0
             transition-[opacity,filter] duration-300
-            ${isLocked ? 'opacity-40 grayscale' : ''} 
+            ${isLocked ? 'opacity-40 grayscale' : ''}
             overflow-visible
         `}
+        style={{ order }}
         lowGraphics={config.lowGraphics}
     >
       <ScoutModal isOpen={showScout} onClose={handleScoutClose} team={team} onConfirm={(pid, skill) => onAdd(teamId, pid, skill)} colorTheme={team.color || 'indigo'} />

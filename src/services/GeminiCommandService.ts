@@ -6,25 +6,25 @@ import { Player, TeamId, SkillType, VoiceCommandIntent } from "../types";
 const VOICE_COMMAND_SCHEMA = {
   type: Type.OBJECT,
   properties: {
-    type: { 
-      type: Type.STRING, 
-      description: "Tipo do comando: 'point', 'timeout', 'server', 'undo', 'unknown'" 
+    type: {
+      type: Type.STRING,
+      description: "Tipo do comando: 'point', 'timeout', 'server', 'undo', 'unknown'"
     },
-    team: { 
-      type: Type.STRING, 
-      description: "ID do time: 'A' ou 'B'." 
+    team: {
+      type: Type.STRING,
+      description: "ID do time: 'A' ou 'B'."
     },
-    playerId: { 
-      type: Type.STRING, 
-      description: "UUID do jogador. 'unknown' se não encontrado." 
+    playerId: {
+      type: Type.STRING,
+      description: "UUID do jogador. 'unknown' se não encontrado."
     },
-    skill: { 
-      type: Type.STRING, 
-      description: "Habilidade: 'attack', 'block', 'ace', 'opponent_error', 'generic'" 
+    skill: {
+      type: Type.STRING,
+      description: "Habilidade: 'attack', 'block', 'ace', 'opponent_error', 'generic'"
     },
-    isNegative: { 
-      type: Type.BOOLEAN, 
-      description: "True se for correção/remover ponto." 
+    isNegative: {
+      type: Type.BOOLEAN,
+      description: "True se for correção/remover ponto."
     }
   },
   required: ["type", "isNegative"]
@@ -32,12 +32,12 @@ const VOICE_COMMAND_SCHEMA = {
 
 export class GeminiCommandService {
   private static instance: GeminiCommandService;
-  
-  // Configuration
-  private apiKey: string = process.env.API_KEY || ''; 
-  private proxyUrl: string = process.env.VITE_AI_PROXY_URL || '';
 
-  private constructor() {}
+  // Configuration - Use import.meta.env for Vite compatibility
+  private apiKey: string = import.meta.env.VITE_API_KEY || '';
+  private proxyUrl: string = import.meta.env.VITE_AI_PROXY_URL || '';
+
+  private constructor() { }
 
   public static getInstance(): GeminiCommandService {
     if (!GeminiCommandService.instance) {
@@ -50,7 +50,7 @@ export class GeminiCommandService {
    * Main entry point. Decides between Local API or Cloud Gateway.
    */
   public async parseCommand(
-    transcript: string, 
+    transcript: string,
     context: {
       teamAName: string;
       teamBName: string;
@@ -59,45 +59,45 @@ export class GeminiCommandService {
     }
   ): Promise<VoiceCommandIntent | null> {
     try {
-        // SECURITY GATEWAY PATTERN
-        // 1. Production Path: Use Proxy if available
-        if (this.proxyUrl) {
-            return await this.remoteParse(transcript, context);
-        } 
-        
-        // 2. Development Path: Use Local SDK if Key is available
-        if (this.apiKey) {
-            return await this.localParse(transcript, context);
-        }
+      // SECURITY GATEWAY PATTERN
+      // 1. Production Path: Use Proxy if available
+      if (this.proxyUrl) {
+        return await this.remoteParse(transcript, context);
+      }
 
-        console.warn("[Gemini] AI Service not configured (Missing Proxy URL or API Key)");
-        return null;
+      // 2. Development Path: Use Local SDK if Key is available
+      if (this.apiKey) {
+        return await this.localParse(transcript, context);
+      }
+
+      console.warn("[Gemini] AI Service not configured (Missing Proxy URL or API Key)");
+      return null;
 
     } catch (e) {
-        console.error("[Gemini] Service Error:", e);
-        return null;
+      console.error("[Gemini] Service Error:", e);
+      return null;
     }
   }
 
   private validateParsedCommand(data: any): VoiceCommandIntent | null {
-      if (!data || typeof data !== 'object') return null;
-      // Ensure required fields
-      if (!data.type) return null;
-      
-      const safeData = { ...data };
-      if (typeof safeData.isNegative !== 'boolean') safeData.isNegative = false;
-      if (safeData.type === 'unknown') return { type: 'unknown', confidence: 0, rawText: '' };
-      
-      // Map simplified AI structure to strictly typed intent
-      return {
-          type: safeData.type as any,
-          team: safeData.team as TeamId,
-          player: safeData.playerId ? { id: safeData.playerId, name: 'AI Identified' } : undefined,
-          skill: safeData.skill as SkillType,
-          isNegative: safeData.isNegative,
-          confidence: 0.9, // AI confidence is generally high if it returns struct
-          rawText: '' // Filled by caller if needed
-      };
+    if (!data || typeof data !== 'object') return null;
+    // Ensure required fields
+    if (!data.type) return null;
+
+    const safeData = { ...data };
+    if (typeof safeData.isNegative !== 'boolean') safeData.isNegative = false;
+    if (safeData.type === 'unknown') return { type: 'unknown', confidence: 0, rawText: '' };
+
+    // Map simplified AI structure to strictly typed intent
+    return {
+      type: safeData.type as any,
+      team: safeData.team as TeamId,
+      player: safeData.playerId ? { id: safeData.playerId, name: 'AI Identified' } : undefined,
+      skill: safeData.skill as SkillType,
+      isNegative: safeData.isNegative,
+      confidence: 0.9, // AI confidence is generally high if it returns struct
+      rawText: '' // Filled by caller if needed
+    };
   }
 
   /**
@@ -105,28 +105,28 @@ export class GeminiCommandService {
    * The backend should handle authentication and rate limiting.
    */
   private async remoteParse(transcript: string, context: any): Promise<VoiceCommandIntent | null> {
-      try {
-          const response = await fetch(this.proxyUrl, {
-              method: 'POST',
-              headers: { 
-                  'Content-Type': 'application/json',
-                  // Optional: Add App-Check token here if using Firebase App Check
-              },
-              body: JSON.stringify({ 
-                  action: 'parse_command',
-                  payload: { transcript, context } 
-              })
-          });
+    try {
+      const response = await fetch(this.proxyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Optional: Add App-Check token here if using Firebase App Check
+        },
+        body: JSON.stringify({
+          action: 'parse_command',
+          payload: { transcript, context }
+        })
+      });
 
-          if (!response.ok) throw new Error(`Proxy error: ${response.status}`);
-          
-          const result = await response.json();
-          return this.validateParsedCommand(result);
-      } catch (error) {
-          console.warn("[Gemini] Remote parse failed, attempting fallback if local key exists.");
-          if (this.apiKey) return this.localParse(transcript, context);
-          return null;
-      }
+      if (!response.ok) throw new Error(`Proxy error: ${response.status}`);
+
+      const result = await response.json();
+      return this.validateParsedCommand(result);
+    } catch (error) {
+      console.warn("[Gemini] Remote parse failed, attempting fallback if local key exists.");
+      if (this.apiKey) return this.localParse(transcript, context);
+      return null;
+    }
   }
 
   /**
@@ -138,7 +138,7 @@ export class GeminiCommandService {
 
     try {
       // Updated to gemini-3-flash-preview for optimal latency/cost on basic text tasks
-      const model = "gemini-3-flash-preview"; 
+      const model = "gemini-3-flash-preview";
       const prompt = this.buildPrompt(transcript, context);
 
       const response = await ai.models.generateContent({
@@ -152,8 +152,8 @@ export class GeminiCommandService {
       });
 
       if (response.text) {
-          const result = JSON.parse(response.text);
-          return this.validateParsedCommand(result);
+        const result = JSON.parse(response.text);
+        return this.validateParsedCommand(result);
       }
       return null;
     } catch (e) {
@@ -164,10 +164,10 @@ export class GeminiCommandService {
   }
 
   private buildPrompt(transcript: string, context: any): string {
-      const rosterA = context.playersA.map((p: any) => `${p.name} (#${p.number})`).join(", ");
-      const rosterB = context.playersB.map((p: any) => `${p.name} (#${p.number})`).join(", ");
+    const rosterA = context.playersA.map((p: any) => `${p.name} (#${p.number})`).join(", ");
+    const rosterB = context.playersB.map((p: any) => `${p.name} (#${p.number})`).join(", ");
 
-      return `
+    return `
         Interpret volleyball voice commands.
         Context:
         Team A: "${context.teamAName}" [${rosterA}]

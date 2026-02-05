@@ -3,16 +3,60 @@
 @tailwind components;
 @tailwind utilities;
 
+/* SAFE AREA MAPPING - Edge-to-Edge Support */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+
+  /* MODAL SPACING SYSTEM (otimizado) */
+  --modal-header-top: 4px;
+  --modal-header-padding: 12px;
+  --modal-header-to-content: 8px;
+  --modal-content-padding: 16px;
+  --modal-section-gap: 16px;
+  --modal-item-gap: 8px;
+
+  /* Tailwind Color Variables for dynamic glow effects */
+  --tw-color-red-500: rgb(239 68 68);
+  --tw-color-red-600: rgb(220 38 38);
+  --tw-color-rose-500: rgb(244 63 94);
+  --tw-color-pink-500: rgb(236 72 153);
+  --tw-color-fuchsia-500: rgb(217 70 239);
+  --tw-color-purple-600: rgb(147 51 234);
+  --tw-color-violet-500: rgb(139 92 246);
+  --tw-color-indigo-500: rgb(99 102 241);
+  --tw-color-blue-600: rgb(37 99 235);
+  --tw-color-sky-500: rgb(14 165 233);
+  --tw-color-cyan-500: rgb(6 182 212);
+  --tw-color-teal-500: rgb(20 184 166);
+  --tw-color-emerald-500: rgb(16 185 129);
+  --tw-color-green-600: rgb(22 163 74);
+  --tw-color-lime-500: rgb(132 204 22);
+  --tw-color-yellow-400: rgb(250 204 21);
+  --tw-color-amber-500: rgb(245 158 11);
+  --tw-color-orange-500: rgb(249 115 22);
+
+  /* Dynamic color variables (default to indigo) */
+  --dynamic-color: #6366f1;
+  --dynamic-color-rgb: 99, 102, 241;
+  --dynamic-color-opacity-20: rgba(99, 102, 241, 0.2);
+  --dynamic-color-opacity-40: rgba(99, 102, 241, 0.4);
+  --dynamic-color-opacity-15: rgba(99, 102, 241, 0.15);
+}
+
 /* PRODUCTION MOBILE LOCKDOWN v2.0 */
 html, body {
   height: 100%;
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden; 
+  overflow: hidden;
+  position: fixed; /* Evita bounce no iOS */
   overscroll-behavior: none;
-  background-color: #020617; 
-  -webkit-text-size-adjust: 100%; 
+  background-color: #020617; /* Slate 950 base */
+  -webkit-text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeSpeed; /* Prioriza velocidade em telas 120Hz */
@@ -34,6 +78,10 @@ html:-moz-full-screen {
   height: 100%;
   width: 100%;
   overflow: hidden;
+
+  /* Isolar layout recalculations */
+  contain: layout size;
+
   display: flex;
   flex-direction: column;
 }
@@ -74,40 +122,6 @@ html:-moz-full-screen {
   shape-rendering: geometricPrecision; 
 }
 
-/* SAFE AREA HEIGHT FIXES */
-:root {
-  --sat: env(safe-area-inset-top);
-  --sar: env(safe-area-inset-right);
-  --sab: env(safe-area-inset-bottom);
-  --sal: env(safe-area-inset-left);
-  
-  /* Tailwind Color Variables for dynamic glow effects */
-  --tw-color-red-500: rgb(239 68 68);
-  --tw-color-red-600: rgb(220 38 38);
-  --tw-color-rose-500: rgb(244 63 94);
-  --tw-color-pink-500: rgb(236 72 153);
-  --tw-color-fuchsia-500: rgb(217 70 239);
-  --tw-color-purple-600: rgb(147 51 234);
-  --tw-color-violet-500: rgb(139 92 246);
-  --tw-color-indigo-500: rgb(99 102 241);
-  --tw-color-blue-600: rgb(37 99 235);
-  --tw-color-sky-500: rgb(14 165 233);
-  --tw-color-cyan-500: rgb(6 182 212);
-  --tw-color-teal-500: rgb(20 184 166);
-  --tw-color-emerald-500: rgb(16 185 129);
-  --tw-color-green-600: rgb(22 163 74);
-  --tw-color-lime-500: rgb(132 204 22);
-  --tw-color-yellow-400: rgb(250 204 21);
-  --tw-color-amber-500: rgb(245 158 11);
-  --tw-color-orange-500: rgb(249 115 22);
-  
-  /* Dynamic color variables (default to indigo) */
-  --dynamic-color: #6366f1;
-  --dynamic-color-rgb: 99, 102, 241;
-  --dynamic-color-opacity-20: rgba(99, 102, 241, 0.2);
-  --dynamic-color-opacity-40: rgba(99, 102, 241, 0.4);
-  --dynamic-color-opacity-15: rgba(99, 102, 241, 0.15);
-}
 
 /* Dynamic color utility classes using CSS variables */
 .text-dynamic {
@@ -150,4 +164,137 @@ html:-moz-full-screen {
   z-index: 1;
   opacity: 0.015;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   SAFE AREA UTILITY CLASSES
+   Para uso com barras transparentes (estilo YouTube Music)
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* Safe Area Padding */
+.pt-safe-top { padding-top: var(--sat); }
+.pb-safe-bottom { padding-bottom: var(--sab); }
+.pl-safe-left { padding-left: var(--sal); }
+.pr-safe-right { padding-right: var(--sar); }
+.px-safe { padding-left: var(--sal); padding-right: var(--sar); }
+.py-safe { padding-top: var(--sat); padding-bottom: var(--sab); }
+.p-safe { padding: var(--sat) var(--sar) var(--sab) var(--sal); }
+
+/* Safe Area + Extra Padding */
+.pt-safe-plus-1 { padding-top: calc(var(--sat) + 4px); }
+.pt-safe-plus-2 { padding-top: calc(var(--sat) + 8px); }
+.pt-safe-plus-3 { padding-top: calc(var(--sat) + 12px); }
+.pb-safe-plus-4 { padding-bottom: calc(var(--sab) + 16px); }
+
+/* Safe Area Margin */
+.mt-safe-top { margin-top: var(--sat); }
+.mb-safe-bottom { margin-bottom: var(--sab); }
+
+/* Safe Area Top/Inset */
+.top-safe-top { top: var(--sat); }
+.bottom-safe-bottom { bottom: var(--sab); }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   MODAL OPTIMIZED SPACING CLASSES
+   Headers próximos do topo, gaps reduzidos
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* Modal Header - Otimizado para proximidade do notch */
+.modal-header-optimized {
+  padding-top: calc(var(--sat) + var(--modal-header-top));
+  padding-left: var(--modal-content-padding);
+  padding-right: var(--modal-content-padding);
+  padding-bottom: var(--modal-header-padding);
+}
+
+/* Modal Content - Gap mínimo do header */
+.modal-content-optimized {
+  padding-top: var(--modal-header-to-content);
+  padding-left: var(--modal-content-padding);
+  padding-right: var(--modal-content-padding);
+  padding-bottom: calc(var(--sab) + var(--modal-content-padding));
+}
+
+/* Modal Fullscreen Container */
+.modal-fullscreen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #020617;
+  z-index: 50;
+}
+
+/* Modal Section Spacing */
+.modal-section {
+  margin-bottom: var(--modal-section-gap);
+}
+
+.modal-section-title {
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+}
+
+/* Modal Item List */
+.modal-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--modal-item-gap);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   EDGE-TO-EDGE SUPPORT
+   App se estende atrás das barras do sistema
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* Container que se estende até bordas mas respeita safe areas no conteúdo */
+.edge-to-edge-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #020617;
+}
+
+/* Conteúdo dentro do container com safe areas */
+.safe-content {
+  padding-top: var(--sat);
+  padding-bottom: var(--sab);
+  padding-left: var(--sal);
+  padding-right: var(--sar);
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* Modo Fullscreen - Sem safe areas */
+.fullscreen-mode .safe-content {
+  padding: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   LANDSCAPE SPECIFIC OPTIMIZATIONS
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+@media (orientation: landscape) {
+  /* Modals em landscape precisam de menos padding vertical */
+  .modal-header-optimized {
+    padding-top: calc(var(--sat) + 2px);
+    padding-bottom: 8px;
+  }
+
+  .modal-content-optimized {
+    padding-top: 4px;
+  }
+
+  /* Variáveis de spacing reduzidas em landscape */
+  :root {
+    --modal-header-top: 2px;
+    --modal-header-padding: 8px;
+    --modal-header-to-content: 4px;
+  }
 }

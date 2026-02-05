@@ -5,10 +5,12 @@ import { useTimeoutSync } from './useTimeoutSync';
 import { useRemoteTimeoutSync } from './useRemoteTimeoutSync';
 import { GameState, TeamId } from '../types';
 
+type SyncRole = 'host' | 'spectator' | 'local' | null;
+
 interface SyncManagerDeps {
     combinedState: GameState;
     setState: (action: { type: string; payload?: unknown; role?: string; sessionId?: string; duration?: number }) => void;
-    syncRole: 'host' | 'spectator' | null;
+    syncRole: SyncRole;
     sessionId: string | null;
     user: { uid: string } | null;
     t: (key: string, params?: Record<string, unknown>) => string;

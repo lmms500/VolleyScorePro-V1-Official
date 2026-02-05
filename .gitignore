@@ -38,3 +38,7 @@ crash-log.txt
 .firebase/
 build-output.txt
 
+
+# Keystore credentials (never commit)
+android/keystore.properties
+android/release-key.jks
