@@ -56,18 +56,21 @@ export const useNativeIntegration = (
     }, [isNative, isAndroid]);
 
     // Controle de Modo Imersivo (Fullscreen) - Android
+    // Nota: O re-hide automático após swipe é feito no MainActivity.java via onWindowFocusChanged + onResume
     useEffect(() => {
         if (!isNative || !isAndroid) return;
 
         const setImmersive = async () => {
             try {
                 if (isFullscreen) {
-                    // FULLSCREEN: Esconder barras do sistema (modo imersivo)
+                    // FULLSCREEN: Ativar modo imersivo primeiro, depois esconder status bar
                     await SystemUi.setImmersiveMode({ enabled: true });
-                    console.log('[NativeIntegration] Modo imersivo ATIVADO');
+                    await StatusBar.hide();
+                    console.log('[NativeIntegration] Modo imersivo ATIVADO - auto-hide habilitado');
                 } else {
-                    // NORMAL: Mostrar barras transparentes
+                    // NORMAL: Desativar modo imersivo e mostrar barras transparentes
                     await SystemUi.setImmersiveMode({ enabled: false });
+                    await StatusBar.show();
                     // Reconfigurar barras transparentes após sair do modo imersivo
                     await StatusBar.setOverlaysWebView({ overlay: true });
                     await StatusBar.setBackgroundColor({ color: '#00000000' });
@@ -114,7 +117,7 @@ export const useNativeIntegration = (
                 console.debug("[NativeIntegration] ScreenOrientation lock falhou:", e);
             }
         };
-        
+
         // Delay para garantir que fullscreen foi ativado primeiro (PWA)
         const timer = setTimeout(lockOrientation, 100);
         return () => clearTimeout(timer);
@@ -149,12 +152,12 @@ export const useNativeIntegration = (
         if (!isNative && typeof window !== 'undefined') {
             // Detectar se foi lançado como PWA instalado
             const isPWAInstalled = window.matchMedia('(display-mode: fullscreen)').matches ||
-                                   window.matchMedia('(display-mode: standalone)').matches;
-            
+                window.matchMedia('(display-mode: standalone)').matches;
+
             // Se PWA instalado ou URL param fullscreen=true, ativar fullscreen
             const urlParams = new URLSearchParams(window.location.search);
             const shouldAutoFullscreen = isPWAInstalled || urlParams.get('fullscreen') === 'true';
-            
+
             if (shouldAutoFullscreen && !document.fullscreenElement) {
                 // Aguardar gesto do usuário (primeiro clique/toque)
                 const activateFullscreen = async () => {
@@ -165,12 +168,12 @@ export const useNativeIntegration = (
                         console.debug('[PWA] Fullscreen requer gesto do usuário');
                     }
                 };
-                
+
                 // Tentar imediatamente (se permitido) ou no primeiro toque
                 activateFullscreen();
                 document.addEventListener('click', activateFullscreen, { once: true });
                 document.addEventListener('touchstart', activateFullscreen, { once: true });
-                
+
                 return () => {
                     document.removeEventListener('click', activateFullscreen);
                     document.removeEventListener('touchstart', activateFullscreen);
