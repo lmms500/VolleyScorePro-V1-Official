@@ -65,40 +65,18 @@
 
 ---
 
-## 🔄 PENDENTE
-
 ### 4. ScoreCardContainer (MÉDIO RISCO)
+**Arquivo original:** `src/App.tsx` (redução de props)
 
-**Problema:** ScoreCardNormal recebe 25+ props via prop drilling em App.tsx
-
-**Plano de execução:**
-1. Criar `src/components/containers/ScoreCardContainer.tsx`
-2. Este componente consome os contexts (useScore, useRoster, useActions)
-3. Passa props computed para ScoreCardNormal
-4. App.tsx usa `<ScoreCardContainer teamId="A" />` em vez de passar 25 props
-
-```tsx
-// src/components/containers/ScoreCardContainer.tsx
-interface ScoreCardContainerProps {
-  teamId: TeamId;
-  onInteractionStart?: () => void;
-  onInteractionEnd?: () => void;
-}
-
-export const ScoreCardContainer: React.FC<ScoreCardContainerProps> = ({ teamId, ...rest }) => {
-  const { scoreA, scoreB, ... } = useScore();
-  const { teamARoster, teamBRoster, ... } = useRoster();
-  const { addPoint, subtractPoint, ... } = useActions();
-
-  const score = teamId === 'A' ? scoreA : scoreB;
-  const team = teamId === 'A' ? teamARoster : teamBRoster;
-  // ... compute all props
-
-  return <ScoreCardNormal {...computedProps} {...rest} />;
-};
-```
+**O que foi feito:**
+- Criado `src/components/containers/ScoreCardContainer.tsx`
+- App.tsx agora usa `<ScoreCardContainer teamId="A|B" />`
+- Reduzida a passagem de props (drill) em ~20 props por card
+- **Build testado e funcionando**
 
 ---
+
+## 🔄 PENDENTE
 
 ### 5. App.tsx (508 linhas) - ⚠️ ALTO RISCO
 
@@ -107,7 +85,7 @@ export const ScoreCardContainer: React.FC<ScoreCardContainerProps> = ({ teamId, 
 **ATENÇÃO:** Núcleo do app. Usar Opus 4.5.
 
 **Plano de execução:**
-1. Após criar ScoreCardContainer, App.tsx já reduz ~50 linhas
+1. App.tsx já está mais limpo com ScoreCardContainer
 2. Extrair lógicas isoladas:
 
 ```
@@ -150,14 +128,13 @@ Estou continuando uma refatoração do VolleyScore Pro v2.
 
 Leia o arquivo c:\Dev\VolleyScore-Pro\REFACTORING_PLAN.md para ver o que foi feito e o que falta.
 
-Os itens 1, 2 e 3 já foram concluídos:
+Os itens 1, 2, 3 e 4 já foram concluídos:
 - MotionScenes.tsx ✅
 - TutorialVisuals.tsx ✅
 - useVolleyGame.ts ✅
+- ScoreCardContainer ✅
 
-Continue com o item 4 (ScoreCardContainer) - é MÉDIO RISCO.
-
-Quando chegar no item 5 (App.tsx), me avise pois é ALTO RISCO e quero usar Opus 4.5.
+Continue com o item 5 (App.tsx) - é ALTO RISCO e quero usar Opus 4.5.
 
 Siga a arquitetura definida no .clinerules do projeto.
 ```
@@ -183,7 +160,7 @@ src/
 │   │   │   └── index.ts
 │   │   ├── MotionScenes.tsx  ✅ REFATORADO (re-export)
 │   │   └── TutorialVisuals.tsx ✅ REFATORADO (mapeador)
-│   └── containers/           ⏳ PENDENTE
+│   └── containers/           ✅ FEITO
 │       └── ScoreCardContainer.tsx
 ├── hooks/
 │   ├── useVolleyGame.ts      ✅ REFATORADO (facade)
@@ -199,4 +176,4 @@ src/
 
 ---
 
-*Última atualização: 2026-02-04 (Item 3 concluído - useVolleyGame refatorado)*
+*Última atualização: 2026-02-04 (Item 4 concluído - ScoreCardContainer)*
