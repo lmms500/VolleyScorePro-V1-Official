@@ -8,6 +8,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useActions, useScore, useRoster } from '../contexts/GameContext';
 import { useNativeIntegration } from '../hooks/useNativeIntegration';
+import { useImmersiveMode } from '../hooks/useImmersiveMode';
 import { useVoiceControl } from '../hooks/useVoiceControl';
 import { useKeepAwake } from '../hooks/useKeepAwake';
 import { usePerformanceMonitor } from '../hooks/usePerformanceMonitor';
@@ -70,6 +71,15 @@ export const GameScreen: React.FC = () => {
         ...scoreState,
         ...rosterState
     } as unknown as GameState), [scoreState, rosterState]);
+
+    // Compute last scorer for fullscreen mode halo effects
+    const lastScorerTeam = useMemo(() => {
+        const logs = matchLog || [];
+        const lastPoint = [...logs].reverse().find(log => log.type === 'POINT');
+        return lastPoint ? (lastPoint as { team: TeamId }).team : null;
+    }, [matchLog]);
+    const isLastScorerA = lastScorerTeam === 'A';
+    const isLastScorerB = lastScorerTeam === 'B';
 
     const { t, language } = useTranslation();
     const timer = useTimerControls();
@@ -167,6 +177,11 @@ export const GameScreen: React.FC = () => {
     const anyModalOpen = activeModal !== 'none' || !!activeTimeoutTeam;
     useNativeIntegration(isMatchActive, isFullscreen, closeModal, anyModalOpen);
 
+    // [LOTE 8.2] Immersive Mode Control
+    // Active if in Fullscreen Game Mode OR in Tactical Court Mode
+    const shouldBeImmersive = isFullscreen || activeModal === 'court';
+    useImmersiveMode(shouldBeImmersive);
+
     // Timer sync effects
     useEffect(() => {
         if (isTimerRunning && !timer.isRunning) timer.start();
@@ -215,16 +230,7 @@ export const GameScreen: React.FC = () => {
         const metadata = (playerId && playerId !== 'unknown') ? { playerId, skill: skill || 'generic' } : undefined;
         audio.playTap();
         addPoint(teamId, metadata);
-        const team = teamId === 'A' ? teamARoster : teamBRoster;
-        const color = team.color || (teamId === 'A' ? 'indigo' : 'rose');
-        let mainText = team.name;
-        if (skill === 'opponent_error') mainText = t('scout.skills.opponent_error');
-        else if (playerId && playerId !== 'unknown') {
-            const player = team.players.find(p => p.id === playerId) || team.reserves?.find(p => p.id === playerId);
-            if (player) mainText = player.name;
-        }
-        showNotification({ type: 'success', mainText, subText: t('notifications.forTeam', { teamName: team.name }), skill, color });
-    }, [addPoint, audio, teamARoster, teamBRoster, t, isSpectator, showNotification]);
+    }, [addPoint, audio, isSpectator]);
 
     // Stable handlers for ScoreCardFullscreen to avoid re-renders
     const handleAddA = useCallback((_tid: TeamId, pid?: string, sk?: SkillType) => {
@@ -303,7 +309,7 @@ export const GameScreen: React.FC = () => {
     return (
         <div className={`relative w-full h-[100dvh] bg-slate-50 dark:bg-[#020617] overflow-hidden select-none touch-none flex flex-col ${isFullscreen ? '' : 'pt-safe-top pb-safe-bottom pl-safe-left pr-safe-right'}`}>
             <BackgroundGlow isSwapped={swappedSides} isFullscreen={isFullscreen} colorA={teamARoster.color} colorB={teamBRoster.color} lowPowerMode={config.lowGraphics} />
-            <SuddenDeathOverlay active={inSuddenDeath} />
+            <SuddenDeathOverlay active={inSuddenDeath && !isMatchOver} lowGraphics={config.lowGraphics} />
 
             {/* Offline indicator */}
             <AnimatePresence>
@@ -382,8 +388,8 @@ export const GameScreen: React.FC = () => {
                     <div className={`flex-1 flex flex-col landscape:flex-row gap-2 sm:gap-4 min-h-0 my-2 sm:my-4 justify-between`}>
                         {isFullscreen ? (
                             <>
-                                <ScoreCardFullscreen teamId="A" team={teamARoster} score={scoreA} onAdd={handleAddA} onSubtract={handleSubA} isMatchPoint={isMatchPointA} isSetPoint={isSetPointA} isDeuce={isDeuce} inSuddenDeath={inSuddenDeath} colorTheme={teamARoster.color} isLocked={isSpectator || interactingTeam === 'B'} onInteractionStart={() => setInteractingTeam('A')} onInteractionEnd={() => setInteractingTeam(null)} reverseLayout={swappedSides} scoreRefCallback={setScoreElA} isServing={servingTeam === 'A'} config={config} />
-                                <ScoreCardFullscreen teamId="B" team={teamBRoster} score={scoreB} onAdd={handleAddB} onSubtract={handleSubB} isMatchPoint={isMatchPointB} isSetPoint={isSetPointB} isDeuce={isDeuce} inSuddenDeath={inSuddenDeath} colorTheme={teamBRoster.color} isLocked={isSpectator || interactingTeam === 'A'} onInteractionStart={() => setInteractingTeam('B')} onInteractionEnd={() => setInteractingTeam(null)} reverseLayout={swappedSides} scoreRefCallback={setScoreElB} isServing={servingTeam === 'B'} config={config} />
+                                <ScoreCardFullscreen teamId="A" team={teamARoster} score={scoreA} onAdd={handleAddA} onSubtract={handleSubA} isMatchPoint={isMatchPointA} isSetPoint={isSetPointA} colorTheme={teamARoster.color} isLocked={isSpectator || interactingTeam === 'B'} onInteractionStart={() => setInteractingTeam('A')} onInteractionEnd={() => setInteractingTeam(null)} reverseLayout={swappedSides} scoreRefCallback={setScoreElA} isServing={servingTeam === 'A'} isLastScorer={isLastScorerA} config={config} />
+                                <ScoreCardFullscreen teamId="B" team={teamBRoster} score={scoreB} onAdd={handleAddB} onSubtract={handleSubB} isMatchPoint={isMatchPointB} isSetPoint={isSetPointB} colorTheme={teamBRoster.color} isLocked={isSpectator || interactingTeam === 'A'} onInteractionStart={() => setInteractingTeam('B')} onInteractionEnd={() => setInteractingTeam(null)} reverseLayout={swappedSides} scoreRefCallback={setScoreElB} isServing={servingTeam === 'B'} isLastScorer={isLastScorerB} config={config} />
                             </>
                         ) : (normalCards)}
                     </div>
