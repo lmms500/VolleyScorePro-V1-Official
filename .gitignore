@@ -42,3 +42,11 @@ build-output.txt
 # Keystore credentials (never commit)
 android/keystore.properties
 android/release-key.jks
+
+# Ignore problematic files
+nul
+
+# Testing artifacts
+playwright-report/
+test-results/
+test_output.txt

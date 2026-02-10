@@ -1,17 +1,17 @@
 
 import { GameState, GameAction, Team, Player, ActionLog } from '../types';
-import { getPlayersOnCourt } from '../constants';
+import { getCourtLayoutFromConfig } from '../config/gameModes';
 import { handleAddPlayer, handleRemovePlayer, handleDeletePlayer, handleRotate } from '../utils/rosterLogic';
 import { sanitizeInput } from '../utils/security';
 import { rotateClockwise, rotateCounterClockwise } from '../utils/gameLogic';
 import { v4 as uuidv4 } from 'uuid';
 
 export const rosterReducer = (state: GameState, action: GameAction): GameState => {
-    const courtLimit = getPlayersOnCourt(state.config.mode);
+    const courtLimit = getCourtLayoutFromConfig(state.config).playersOnCourt;
 
     switch (action.type) {
         case 'ROSTER_ADD_PLAYER': {
-            const { courtA, courtB, queue } = handleAddPlayer(state.teamARoster, state.teamBRoster, state.queue, action.player, action.targetId, courtLimit);
+            const { courtA, courtB, queue } = handleAddPlayer(state.teamARoster, state.teamBRoster, state.queue, action.player, action.targetId, state.config);
             return { ...state, teamARoster: courtA, teamBRoster: courtB, queue };
         }
 
@@ -35,7 +35,7 @@ export const rosterReducer = (state: GameState, action: GameAction): GameState =
                     if (targetId.includes('_Reserves')) team.reserves = insert(team.reserves || []);
                     else team.players = insert(team.players);
                     newQ[qIdx] = team;
-                } else if (targetId === 'Queue') { const res = handleAddPlayer(newA, newB, newQ, player, 'Queue', courtLimit); return { ...state, ...res }; }
+                } else if (targetId === 'Queue') { const res = handleAddPlayer(newA, newB, newQ, player, 'Queue', state.config); return { ...state, ...res }; }
             }
             return { ...state, teamARoster: newA, teamBRoster: newB, queue: newQ };
         }

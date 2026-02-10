@@ -3,6 +3,8 @@ import { X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useSafeAreaInsets } from '../../hooks/useSafeAreaInsets';
 
+import { normalize } from '../../utils/responsive';
+
 export interface ModalHeaderProps {
     title: string;
     subtitle?: string;
@@ -25,7 +27,7 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
     const { top } = useSafeAreaInsets();
 
     // Altura base do conteúdo (excluindo notch)
-    const CONTENT_HEIGHT = 56;
+    const CONTENT_HEIGHT = normalize(56);
 
     return (
         <motion.header
@@ -34,11 +36,12 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
             transition={{ duration: 0.2 }}
             className={`
                 sticky top-0 z-50 w-full
-                bg-slate-900/95 dark:bg-slate-950/95
-                backdrop-blur-xl
+                bg-slate-50/80 dark:bg-[#020617]/80
+                backdrop-blur-3xl
+                shadow-sm
                 transition-all duration-300
+                ${showDivider ? 'border-b border-white/20 dark:border-white/10' : ''}
                 ${scrolled ? 'shadow-lg shadow-black/20' : ''}
-                ${showDivider ? 'border-b border-white/5' : ''}
             `}
             // O Header cresce para acomodar o notch
             style={{
@@ -68,7 +71,7 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
                 <div className="flex-1 flex justify-center mx-2 overflow-hidden">
                     {centerContent ? centerContent : (
                         <div className="flex flex-col items-center text-center truncate">
-                            <h2 className="text-base font-bold text-white tracking-tight truncate w-full">
+                            <h2 className="text-base font-semibold text-white tracking-wide truncate w-full">
                                 {title}
                             </h2>
                             {subtitle && (

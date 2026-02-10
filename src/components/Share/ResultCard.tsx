@@ -59,7 +59,7 @@ export const ResultCard: React.FC<ResultCardProps> = memo(({
   return (
     <div 
       id="social-share-card"
-      className="relative w-[1080px] h-[1350px] bg-[#020617] text-white overflow-hidden font-inter flex flex-col"
+      className="relative w-[1080px] h-[1350px] bg-gradient-to-br from-slate-900 via-[#0f172a] to-black text-white overflow-hidden font-inter flex flex-col"
       style={{ 
         position: 'fixed', 
         top: 0, 

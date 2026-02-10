@@ -143,7 +143,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
     // Determine halo mode based on game state
     const haloMode: HaloMode = useMemo(() => {
         if (isCritical) return 'critical';
-        if (isLastScorer) return 'scoring';
+        if (isLastScorer) return 'lastScorer';
         if (isServing) return 'serving';
         return 'idle';
     }, [isCritical, isLastScorer, isServing]);
@@ -257,15 +257,20 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                     </AnimatePresence>
 
                     <div className="relative w-full h-full flex items-center justify-center pointer-events-none overflow-visible">
-                        {/* Visual Halo: Unified component for all halo effects */}
-                        <HaloBackground
-                            mode={haloMode}
-                            colorTheme={resolvedColor}
-                            lowGraphics={config.lowGraphics}
-                        />
+                        {/* 1. Halo Layer: Absolute Centered Overlay */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <HaloBackground
+                                mode={haloMode}
+                                colorTheme={resolvedColor}
+                                score={score}
+                                lowGraphics={config.lowGraphics}
+                                className=""
+                                size="min(30vw, 20vh)"
+                            />
+                        </div>
 
-                        {/* Score Number: Mais espaço para evitar cortes */}
-                        <div className="relative z-10 flex items-center justify-center leading-none p-6 w-full overflow-visible">
+                        {/* 2. Number Layer: Relative Content (z-10 para ficar na frente) */}
+                        <div className="relative z-10 flex items-center justify-center leading-none overflow-visible">
                             <ScoreTicker
                                 key={`ticker-${resizeKey}`}
                                 value={score}

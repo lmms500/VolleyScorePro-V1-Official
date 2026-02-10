@@ -14,6 +14,8 @@ import { AddPlayerForm } from './AddPlayerForm';
 import { BenchArea } from './BenchArea';
 import { PlayerListItem } from './PlayerListItem';
 import { SubstitutionModal } from '../modals/SubstitutionModal';
+import { getCourtLayoutFromConfig } from '../../config/gameModes';
+import { useRoster } from '../../contexts/GameContext';
 
 const SCROLL_EVENT = 'team-manager-scroll';
 const dispatchScrollEvent = () => { if (typeof globalThis !== 'undefined' && globalThis.window) globalThis.dispatchEvent(new Event(SCROLL_EVENT)); };
@@ -57,6 +59,11 @@ export const TeamColumn = memo(({
     queueIndex, queueSize, onDisband, onReorder
 }: TeamColumnProps) => {
     const { t } = useTranslation();
+
+    // Get dynamic layout configuration
+    const { config: gameConfig } = useRoster();
+    const layout = getCourtLayoutFromConfig(gameConfig);
+
     const [showSortMenu, setShowSortMenu] = useState(false);
     const [viewMode, setViewMode] = useState<'main' | 'reserves'>('main');
     const [isSubModalOpen, setIsSubModalOpen] = useState(false);
@@ -92,8 +99,8 @@ export const TeamColumn = memo(({
         return sorted;
     }, [rawPlayers, sortConfig]);
 
-    const mainRosterFull = team.players.length >= 6;
-    const reservesFull = (team.reserves || []).length >= 6;
+    const mainRosterFull = team.players.length >= layout.playersOnCourt;
+    const reservesFull = (team.reserves || []).length >= layout.benchLimit;
     const isNotFull = viewMode === 'main' ? !(mainRosterFull && reservesFull) : !reservesFull;
 
     const handleUpdateName = useCallback((n: string) => onUpdateTeamName(id, n), [onUpdateTeamName, id]);
@@ -124,7 +131,7 @@ export const TeamColumn = memo(({
     if (isDragOver) {
         if (isQueue) {
             const currentCount = rawPlayers.length;
-            const limit = 6;
+            const limit = layout.playersOnCourt;
 
             if (currentCount >= limit) {
                 if (viewMode === 'main' && team.hasActiveBench && (team.reserves || []).length < 6) {
@@ -164,7 +171,7 @@ export const TeamColumn = memo(({
                         onColorUpdate={handleUpdateColor}
                     />
                     <div className="flex-1 min-w-0"><EditableTitle name={team.name} onSave={handleUpdateName} className={`text-lg landscape:text-base font-black uppercase tracking-tight ${colorConfig.text} ${colorConfig.textDark} drop-shadow-sm w-full`} /></div>
-                    <div className="flex gap-1.5 flex-wrap"><div className={`px-2 py-0.5 rounded-md text-[9px] font-bold border flex items-center gap-1 shadow-sm text-white ${colorConfig.bg} ${colorConfig.border}`}><Users size={10} strokeWidth={2.5} /> {displayedPlayers.length}</div><div className={`px-2 py-0.5 rounded-md text-[9px] font-bold border flex items-center gap-1 shadow-sm ${colorConfig.bg.replace('/20', '/40')} ${colorConfig.border} dark:text-white dark:border-white/20 text-slate-700`} title="Avg Team Skill"><Activity size={10} strokeWidth={2.5} /> {teamStrength}</div></div>
+                    <div className="flex gap-1.5 flex-wrap"><div className={`px-2 py-0.5 rounded-md text-[9px] font-bold border flex items-center gap-1 shadow-sm text-white ${colorConfig.bg} ${colorConfig.border}`}><Users size={10} strokeWidth={2.5} /> {displayedPlayers.length}/{viewMode === 'main' ? layout.playersOnCourt : layout.benchLimit}</div><div className={`px-2 py-0.5 rounded-md text-[9px] font-bold border flex items-center gap-1 shadow-sm ${colorConfig.bg.replace('/20', '/40')} ${colorConfig.border} dark:text-white dark:border-white/20 text-slate-700`} title="Avg Team Skill"><Activity size={10} strokeWidth={2.5} /> {teamStrength}</div></div>
                 </div>
 
                 <div className="flex items-center justify-between border-t border-slate-200 dark:border-white/5 pt-2 mt-1 mb-2 w-full">

@@ -20,15 +20,15 @@ interface FloatingControlBarProps {
   onToggleListening: () => void;
 }
 
-export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({ 
+export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({
   onUndo, canUndo, onSwap, onReset, onMenu, onCourt, voiceEnabled, isListening, onToggleListening
 }) => {
   const { t } = useTranslation();
   const [isMinimized, setIsMinimized] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
-  
+
   const { scale, registerElement } = useLayoutManager();
-  
+
   const handleMinimize = useCallback(() => setIsMinimized(prev => !prev), []);
   const handleUndo = useCallback(() => { onUndo(); setIsHovering(false); }, [onUndo]);
   const handleSwap = useCallback(() => { onSwap(); setIsHovering(false); }, [onSwap]);
@@ -48,13 +48,13 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({
     return () => clearTimeout(timer);
   }, [isMinimized, isHovering]);
 
-  const glassContainer = "bg-white/80 dark:bg-black/80 backdrop-blur-xl border border-white/20 dark:border-white/10 shadow-2xl shadow-black/20 ring-1 ring-black/5 dark:ring-white/5";
+  const glassContainer = "bg-white/90 dark:bg-slate-900/80 backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-2xl shadow-black/20 dark:shadow-black/40 ring-1 ring-black/5 dark:ring-white/10";
   const buttonBase = "rounded-full transition-all duration-300 active:scale-90 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-transparent hover:bg-black/5 dark:hover:bg-white/10";
   const pClass = 'p-3';
   const iconSize = 20;
 
   return (
-    <div 
+    <div
       ref={ref}
       style={{ transform: `translateX(-50%) scale(${scale})` }}
       className="fixed bottom-[calc(env(safe-area-inset-bottom)+1.5rem)] left-1/2 z-50 origin-bottom flex flex-col items-center"
@@ -71,8 +71,8 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({
             transition={springSnappy}
             className={`flex items-center gap-2 p-1.5 rounded-2xl ${glassContainer}`}
           >
-            <button 
-              onClick={onUndo} 
+            <button
+              onClick={onUndo}
               disabled={!canUndo}
               className={`${buttonBase} ${pClass} disabled:opacity-30 disabled:cursor-not-allowed`}
               title={t('controls.undo')}
@@ -85,19 +85,19 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({
             </button>
 
             {voiceEnabled && (
-                <button 
-                    onClick={onToggleListening} 
-                    className={`${buttonBase} ${pClass} ${isListening ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30 animate-pulse hover:text-white hover:bg-rose-600' : ''}`} 
-                    title="Voice Control"
-                >
-                    {isListening ? <Mic size={iconSize} strokeWidth={1.5} /> : <MicOff size={iconSize} strokeWidth={1.5} />}
-                </button>
+              <button
+                onClick={onToggleListening}
+                className={`${buttonBase} ${pClass} ${isListening ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30 animate-pulse hover:text-white hover:bg-rose-600' : ''}`}
+                title="Voice Control"
+              >
+                {isListening ? <Mic size={iconSize} strokeWidth={1.5} /> : <MicOff size={iconSize} strokeWidth={1.5} />}
+              </button>
             )}
 
             <div className="w-px h-5 bg-black/10 dark:bg-white/10 mx-0.5"></div>
 
             <button onClick={onCourt} className={`${buttonBase} ${pClass} text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20`} title={t('court.title') || 'Court'}>
-                <Grid size={iconSize} strokeWidth={1.5} />
+              <Grid size={iconSize} strokeWidth={1.5} />
             </button>
 
             <button onClick={onReset} className={`${buttonBase} ${pClass} text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10`} title={t('controls.reset')}>
@@ -105,12 +105,12 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({
             </button>
 
             <button onClick={onMenu} className={`${buttonBase} ${pClass} bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400`} title={t('game.menu')}>
-                <Menu size={iconSize} strokeWidth={1.5} />
+              <Menu size={iconSize} strokeWidth={1.5} />
             </button>
 
             <div className="w-px h-5 bg-black/10 dark:bg-white/10 mx-0.5"></div>
 
-            <button 
+            <button
               onClick={() => setIsMinimized(true)}
               className={`${buttonBase} p-2 w-10 h-10`}
               title="Minimize"

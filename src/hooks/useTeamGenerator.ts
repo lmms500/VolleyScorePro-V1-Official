@@ -1,6 +1,6 @@
 import { useCallback, MutableRefObject, Dispatch } from 'react';
 import { GameState, GameAction } from '../types';
-import { getPlayersOnCourt } from '../constants';
+import { getPlayersOnCourtFromConfig } from '../config/gameModes';
 import { createPlayer } from '../utils/rosterLogic';
 import { distributeStandard, balanceTeamsSnake } from '../utils/balanceUtils';
 
@@ -24,7 +24,7 @@ export const useTeamGenerator = ({
    */
   const generateTeams = useCallback((rawInputs: string[]) => {
     const s = stateRef.current;
-    const courtLimit = getPlayersOnCourt(s.config.mode);
+    const courtLimit = getPlayersOnCourtFromConfig(s.config);
 
     const players = rawInputs.map((raw, index) => {
       const tokens = raw.trim().split(/\s+/);
@@ -81,7 +81,7 @@ export const useTeamGenerator = ({
    */
   const balanceTeams = useCallback(() => {
     const s = stateRef.current;
-    const courtLimit = getPlayersOnCourt(s.config.mode);
+    const courtLimit = getPlayersOnCourtFromConfig(s.config);
     const allPlayers = [
       ...s.teamARoster.players,
       ...s.teamBRoster.players,

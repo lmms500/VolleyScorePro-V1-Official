@@ -22,24 +22,24 @@ export const ProfileCard = memo(({ profile, onDelete, onAddToGame, status, onEdi
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => { 
-        const handleClickOutside = (event: MouseEvent) => { 
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) { 
-                setShowMenu(false); 
-            } 
-        }; 
-        if (showMenu) document.addEventListener('mousedown', handleClickOutside); 
-        return () => document.removeEventListener('mousedown', handleClickOutside); 
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setShowMenu(false);
+            }
+        };
+        if (showMenu) document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [showMenu]);
 
     const statusLabel = status ? (status.includes('Queue') ? t('teamManager.queue') : (status.includes('A') ? t('teamManager.location.courtA') : t('teamManager.location.courtB'))) : null;
     const statusColor = status ? (status.includes('A') ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300' : (status.includes('B') ? 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300' : 'bg-slate-100 text-slate-600')) : '';
 
     return (
-        <div className={`relative flex flex-col p-3 rounded-2xl border transition-all ${status ? 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 opacity-70' : 'bg-white dark:bg-white/10 border-black/5 dark:border-white/10 shadow-sm hover:shadow-md hover:border-indigo-500/30'}`}>
+        <div className={`relative flex flex-col p-3 rounded-2xl transition-all duration-300 border ${status ? 'bg-slate-50/50 dark:bg-white/5 opacity-70 border-dashed border-white/20 dark:border-white/5' : 'bg-gradient-to-b from-slate-50 to-slate-100 dark:from-white/5 dark:to-white/[0.02] border-white/40 dark:border-white/10 shadow-lg shadow-black/5 dark:shadow-black/20 ring-1 ring-black/5 dark:ring-white/5 backdrop-blur-md hover:shadow-xl hover:border-indigo-500/30 after:absolute after:inset-x-0 after:top-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/50 after:to-transparent after:rounded-t-2xl'} group`}>
             <div className="flex items-center gap-3">
                 <div className="relative">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/10 flex items-center justify-center text-lg shadow-inner border border-black/5 dark:border-white/5">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg bg-slate-100 dark:bg-black/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ring-1 ring-inset ring-black/5 dark:ring-white/5 border border-white/50 dark:border-white/5">
                         {profile.avatar || '👤'}
                     </div>
                     {status && (<div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-800" />)}
@@ -60,7 +60,7 @@ export const ProfileCard = memo(({ profile, onDelete, onAddToGame, status, onEdi
                     </button>
                     <AnimatePresence>
                         {showMenu && (
-                            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="absolute right-0 top-full mt-1 z-50 min-w-[160px] bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-black/5 dark:border-white/10 overflow-hidden p-1">
+                            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="absolute right-0 top-full mt-1 z-50 min-w-[160px] bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 dark:border-white/10 ring-1 ring-black/5 overflow-hidden p-1">
                                 <button onClick={() => { onView(); setShowMenu(false); }} className="w-full text-left px-3 py-2 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 rounded-lg flex items-center gap-2">
                                     <User size={14} /> {t('common.view')}
                                 </button>

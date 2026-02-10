@@ -5,6 +5,7 @@ import { Team, TeamId, SkillType, Player, ActionLog, GameConfig } from '../../ty
 import { VolleyballCourt } from '../Court/VolleyballCourt';
 import { X } from 'lucide-react';
 import { useHaptics } from '../../hooks/useHaptics';
+import { getCourtLayoutFromConfig } from '../../config/gameModes';
 import { DndContext, DragEndEvent, DragOverlay, useSensor, useSensors, MouseSensor, TouchSensor, closestCenter, DragStartEvent } from '@dnd-kit/core';
 import { createPortal } from 'react-dom';
 import { resolveTheme } from '../../utils/colors';
@@ -176,7 +177,7 @@ export const CourtModal: React.FC<CourtModalProps> = ({
                         isDeuce={isDeuce} inSuddenDeath={inSuddenDeath}
                     />
 
-                    <button onClick={onClose} className="absolute top-safe-top right-4 z-[60] p-2 mt-2 rounded-full bg-white/50 dark:bg-white/10 hover:bg-white/80 dark:hover:bg-white/20 text-slate-500 dark:text-white transition-all backdrop-blur-md border border-slate-200 dark:border-white/5 active:scale-95 pointer-events-auto shadow-sm"><X size={18} /></button>
+                    <button onClick={onClose} className="absolute top-safe-top right-4 z-[60] p-2 mt-2 rounded-full bg-gradient-to-br from-white to-slate-100 dark:from-slate-800 dark:to-slate-900 hover:from-white hover:to-white dark:hover:from-slate-700 dark:hover:to-slate-800 text-slate-500 dark:text-white transition-all backdrop-blur-md border border-white/20 shadow-lg active:scale-95 pointer-events-auto"><X size={18} /></button>
 
                     <LayoutGroup id="court-modal-layout">
                         <div className="flex-1 flex items-center justify-center relative w-full min-h-0 py-2 overflow-visible">
@@ -195,10 +196,10 @@ export const CourtModal: React.FC<CourtModalProps> = ({
                                 </div>
                                 <div className="absolute top-0 bottom-0 left-1/2 w-1 -ml-0.5 z-30 shadow-[0_0_15px_rgba(0,0,0,0.1)] pointer-events-none bg-white/60 dark:bg-white/20 backdrop-blur-sm border-l border-white/50" />
                                 <div className="flex-1 h-full relative z-10">
-                                    <VolleyballCourt players={teamA.players} color={teamA.color} isServing={servingTeam === 'A'} side="left" teamId="A" variant="minimal" onPlayerClick={(p) => handlePlayerClick(p, 'A')} mvpId={currentMVPId} mode={config?.mode} isDragActive={isDragging} />
+                                    <VolleyballCourt players={teamA.players} color={teamA.color} isServing={servingTeam === 'A'} side="left" teamId="A" variant="minimal" onPlayerClick={(p) => handlePlayerClick(p, 'A')} mvpId={currentMVPId} layoutConfig={getCourtLayoutFromConfig(config || { mode: 'indoor' } as any)} isDragActive={isDragging} />
                                 </div>
                                 <div className="flex-1 h-full relative z-10">
-                                    <VolleyballCourt players={teamB.players} color={teamB.color} isServing={servingTeam === 'B'} side="right" teamId="B" variant="minimal" onPlayerClick={(p) => handlePlayerClick(p, 'B')} mvpId={currentMVPId} mode={config?.mode} isDragActive={isDragging} />
+                                    <VolleyballCourt players={teamB.players} color={teamB.color} isServing={servingTeam === 'B'} side="right" teamId="B" variant="minimal" onPlayerClick={(p) => handlePlayerClick(p, 'B')} mvpId={currentMVPId} layoutConfig={getCourtLayoutFromConfig(config || { mode: 'indoor' } as any)} isDragActive={isDragging} />
                                 </div>
                             </div>
                         </div>

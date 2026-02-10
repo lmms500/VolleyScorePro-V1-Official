@@ -10,6 +10,7 @@
  */
 
 import React from 'react';
+import { ResponsiveProvider } from './contexts/ResponsiveContext';
 import { GameProvider } from './contexts/GameContext';
 import { LayoutProvider } from './contexts/LayoutContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -24,19 +25,21 @@ function App() {
     return (
         <LayoutProvider>
             <ThemeProvider>
-                <ErrorBoundary>
-                    <AuthProvider>
-                        <TimerProvider>
-                            <GameProvider>
-                                <ModalProvider>
-                                    <NotificationProvider>
-                                        <GameScreen />
-                                    </NotificationProvider>
-                                </ModalProvider>
-                            </GameProvider>
-                        </TimerProvider>
-                    </AuthProvider>
-                </ErrorBoundary>
+                <ResponsiveProvider>
+                    <ErrorBoundary>
+                        <AuthProvider>
+                            <TimerProvider>
+                                <GameProvider>
+                                    <ModalProvider>
+                                        <NotificationProvider>
+                                            <GameScreen />
+                                        </NotificationProvider>
+                                    </ModalProvider>
+                                </GameProvider>
+                            </TimerProvider>
+                        </AuthProvider>
+                    </ErrorBoundary>
+                </ResponsiveProvider>
             </ThemeProvider>
         </LayoutProvider>
     );

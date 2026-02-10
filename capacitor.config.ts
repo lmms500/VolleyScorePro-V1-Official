@@ -18,11 +18,12 @@ const config: CapacitorConfig = {
       androidScaleType: "CENTER_CROP",
       showSpinner: false,
     },
-    StatusBar: {
-      style: "DARK",
-      backgroundColor: "#00000000",
-      overlaysWebView: true,
-    },
+    // [LOTE 8.2] StatusBar config removed - Our custom SystemUi plugin handles immersive mode
+    // StatusBar: {
+    //   style: "DARK",
+    //   backgroundColor: "#00000000",
+    //   overlaysWebView: true,
+    // },
     Keyboard: {
       resize: "body" as KeyboardResize,
       style: "DARK" as KeyboardStyle

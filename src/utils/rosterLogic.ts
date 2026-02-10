@@ -1,16 +1,28 @@
 
-import { Team, Player, RotationReport, DeletedPlayerRecord, RotationMode } from '../types';
-import { getPlayersOnCourt, PLAYERS_PER_TEAM } from '../constants';
-import { balanceTeamsSnake, distributeStandard, getStandardRotationResult, getBalancedRotationResult } from './balanceUtils';
+import { Team, Player, RotationReport, DeletedPlayerRecord, RotationMode, GameConfig } from '../types';
+import { getCourtLayoutFromConfig } from '../config/gameModes';
+import { getStandardRotationResult, getBalancedRotationResult } from './balanceUtils';
+
+// --- HELPERS ---
+export const isTeamFull = (team: Team, config: GameConfig): boolean => {
+    const limit = getCourtLayoutFromConfig(config).playersOnCourt;
+    return team.players.length >= limit;
+};
+
+export const isBenchFull = (team: Team, config: GameConfig): boolean => {
+    const limit = getCourtLayoutFromConfig(config).benchLimit;
+    return (team.reserves || []).length >= limit;
+};
 import { v4 as uuidv4 } from 'uuid';
 import { sanitizeInput } from './security';
 
-const BENCH_LIMIT = 6;
+// REMOVED: const BENCH_LIMIT = 6;
+// Now using dynamic benchLimit from config
 
 // --- TYPES ---
 export interface ValidationResult {
     valid: boolean;
-    messageKey?: string; 
+    messageKey?: string;
     messageParams?: Record<string, string>;
     message?: string;
     conflictId?: string;
@@ -26,8 +38,8 @@ export const findAllPlayers = (courtA: Team, courtB: Team, queue: Team[]) => {
 };
 
 export const validateUniqueNumber = (
-    roster: Player[], 
-    candidateNumber: string | undefined, 
+    roster: Player[],
+    candidateNumber: string | undefined,
     excludePlayerId?: string
 ): ValidationResult => {
     if (!candidateNumber || candidateNumber.trim() === '') {
@@ -93,13 +105,12 @@ const generateNextTeamName = (courtA: Team, courtB: Team, queue: Team[]): string
 
 // --- PURE LOGIC HANDLERS ---
 
-// Updated to accept courtLimit
+// Updated to accept config for dynamic limits
 export const handleAddPlayer = (
-    courtA: Team, courtB: Team, queue: Team[], 
+    courtA: Team, courtB: Team, queue: Team[],
     newPlayer: Player, targetId: string,
-    courtLimit: number
+    config: GameConfig
 ): { courtA: Team, courtB: Team, queue: Team[] } => {
-    
     const allPlayersInGame = findAllPlayers(courtA, courtB, queue);
 
     if (newPlayer.number) {
@@ -109,18 +120,18 @@ export const handleAddPlayer = (
             return { courtA, courtB, queue };
         }
     }
-    
+
     const addToTeamSmart = (team: Team): Team => {
         const playerWithOrder = { ...newPlayer, displayOrder: (team.players.length + (team.reserves?.length || 0)) };
 
-        if (team.players.length < courtLimit) {
+        if (!isTeamFull(team, config)) {
             return { ...team, players: [...team.players, playerWithOrder] };
         }
-        if ((team.reserves || []).length < BENCH_LIMIT) {
-            return { 
-                ...team, 
+        if (!isBenchFull(team, config)) {
+            return {
+                ...team,
                 reserves: [...(team.reserves || []), playerWithOrder],
-                hasActiveBench: true 
+                hasActiveBench: true
             };
         }
         return team;
@@ -128,7 +139,7 @@ export const handleAddPlayer = (
 
     const addToReservesDirect = (team: Team): Team => {
         const playerWithOrder = { ...newPlayer, displayOrder: (team.players.length + (team.reserves?.length || 0)) };
-        if ((team.reserves || []).length < BENCH_LIMIT) {
+        if (!isBenchFull(team, config)) {
             return { ...team, reserves: [...(team.reserves || []), playerWithOrder], hasActiveBench: true };
         }
         return team;
@@ -163,7 +174,7 @@ export const handleAddPlayer = (
 
     if (targetId === 'Queue') {
         const newQueue = [...queue];
-        if (newQueue.length > 0 && newQueue[newQueue.length - 1].players.length < courtLimit) {
+        if (newQueue.length > 0 && !isTeamFull(newQueue[newQueue.length - 1], config)) {
             const last = newQueue[newQueue.length - 1];
             const playerWithOrder = { ...newPlayer, displayOrder: last.players.length };
             newQueue[newQueue.length - 1] = { ...last, players: [...last.players, playerWithOrder] };
@@ -182,7 +193,7 @@ export const handleAddPlayer = (
 export const handleRemovePlayer = (
     courtA: Team, courtB: Team, queue: Team[], playerId: string, courtLimit: number
 ): { courtA: Team, courtB: Team, queue: Team[] } => {
-    
+
     let deletedPlayer: Player | undefined;
     let targetTeam: Team | undefined;
     let originType: 'A' | 'B' | 'Queue' | null = null;
@@ -196,7 +207,7 @@ export const handleRemovePlayer = (
 
     let newA = { ...courtA, players: [...courtA.players], reserves: [...(courtA.reserves || [])] };
     let newB = { ...courtB, players: [...courtB.players], reserves: [...(courtB.reserves || [])] };
-    let newQueue = queue.map(t => ({...t, players: [...t.players], reserves: [...(t.reserves || [])]}));
+    let newQueue = queue.map(t => ({ ...t, players: [...t.players], reserves: [...(t.reserves || [])] }));
 
     newA.players = removeFromList(newA.players);
     if (!deletedPlayer) {
@@ -216,20 +227,20 @@ export const handleRemovePlayer = (
 
     if (!deletedPlayer) {
         newQueue = newQueue.map(t => {
-            if (deletedPlayer) return t; 
+            if (deletedPlayer) return t;
             const pRes = removeFromList(t.players);
             if (deletedPlayer) { targetTeam = t; originType = 'Queue'; return { ...t, players: pRes }; }
-            
+
             const rRes = removeFromList(t.reserves || []);
             if (deletedPlayer) { isFromReserves = true; targetTeam = t; originType = 'Queue'; return { ...t, reserves: rRes }; }
-            
+
             return t;
         });
     }
 
     if (!deletedPlayer || !targetTeam || !originType) return { courtA, courtB, queue };
 
-    deletedPlayer.displayOrder = 999; 
+    deletedPlayer.displayOrder = 999;
 
     if (isFromReserves) {
         const endQueue = [...newQueue];
@@ -251,28 +262,28 @@ export const handleRemovePlayer = (
 
     if (originType === 'A' || originType === 'B' || originType === 'Queue') {
         if (originType === 'A' || originType === 'B' || (originType === 'Queue' && targetTeam.hasActiveBench)) {
-             deletedPlayer.displayOrder = targetTeam.players.length + (targetTeam.reserves?.length || 0);
-             
-             const updatedTeam = { 
-                 ...targetTeam, 
-                 // targetTeam.players already has player removed at start of function logic,
-                 // but we need to ensure we're updating the correct object references if it was queue
-                 players: targetTeam.players,
-                 reserves: [...(targetTeam.reserves||[]), deletedPlayer],
-                 hasActiveBench: true
-             };
+            deletedPlayer.displayOrder = targetTeam.players.length + (targetTeam.reserves?.length || 0);
 
-             if (originType === 'A') return { courtA: updatedTeam, courtB: newB, queue: newQueue };
-             if (originType === 'B') return { courtA: newA, courtB: updatedTeam, queue: newQueue };
-             
-             // For Queue
-             const qIndex = queue.findIndex(t => t.id === targetTeam!.id);
-             newQueue[qIndex] = updatedTeam;
-             return { courtA: newA, courtB: newB, queue: newQueue };
+            const updatedTeam = {
+                ...targetTeam,
+                // targetTeam.players already has player removed at start of function logic,
+                // but we need to ensure we're updating the correct object references if it was queue
+                players: targetTeam.players,
+                reserves: [...(targetTeam.reserves || []), deletedPlayer],
+                hasActiveBench: true
+            };
+
+            if (originType === 'A') return { courtA: updatedTeam, courtB: newB, queue: newQueue };
+            if (originType === 'B') return { courtA: newA, courtB: updatedTeam, queue: newQueue };
+
+            // For Queue
+            const qIndex = queue.findIndex(t => t.id === targetTeam!.id);
+            newQueue[qIndex] = updatedTeam;
+            return { courtA: newA, courtB: newB, queue: newQueue };
         } else {
             // Queue team without bench -> Knockout to end of queue
             const endQueue = [...newQueue];
-             if (endQueue.length > 0) {
+            if (endQueue.length > 0) {
                 const last = endQueue[endQueue.length - 1];
                 if (last.players.length < courtLimit) {
                     deletedPlayer.displayOrder = last.players.length + (last.reserves?.length || 0);
@@ -308,13 +319,13 @@ export const handleDeletePlayer = (
         return list;
     };
 
-    const newA = { ...courtA, players: checkAndRemove(courtA.players, 'A'), reserves: checkAndRemove(courtA.reserves||[], 'A_Reserves') };
-    const newB = { ...courtB, players: checkAndRemove(courtB.players, 'B'), reserves: checkAndRemove(courtB.reserves||[], 'B_Reserves') };
-    
+    const newA = { ...courtA, players: checkAndRemove(courtA.players, 'A'), reserves: checkAndRemove(courtA.reserves || [], 'A_Reserves') };
+    const newB = { ...courtB, players: checkAndRemove(courtB.players, 'B'), reserves: checkAndRemove(courtB.reserves || [], 'B_Reserves') };
+
     const newQueue = queue.map(t => ({
         ...t,
         players: checkAndRemove(t.players, t.id),
-        reserves: checkAndRemove(t.reserves||[], `${t.id}_Reserves`)
+        reserves: checkAndRemove(t.reserves || [], `${t.id}_Reserves`)
     }));
 
     if (deletedPlayer) {
@@ -325,9 +336,9 @@ export const handleDeletePlayer = (
 
 // Updated to accept courtLimit and pass it down
 export const handleRotate = (
-    courtA: Team, courtB: Team, queue: Team[], winnerId: 'A'|'B', mode: RotationMode, courtLimit: number
+    courtA: Team, courtB: Team, queue: Team[], winnerId: 'A' | 'B', mode: RotationMode, courtLimit: number
 ): { courtA: Team, courtB: Team, queue: Team[], report: RotationReport | null } => {
-    
+
     if (queue.length === 0 && courtA.players.length >= courtLimit && courtB.players.length >= courtLimit) {
         return { courtA, courtB, queue, report: null };
     }

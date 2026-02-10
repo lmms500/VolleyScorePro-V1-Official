@@ -152,7 +152,7 @@ export const ScoutModal: React.FC<ScoutModalProps> = ({
             />
 
             {/* CONTENT VIEWPORT */}
-            <div className="flex-1 w-full h-full relative overflow-hidden bg-slate-50 dark:bg-slate-900">
+            <div className="flex-1 w-full relative overflow-hidden bg-slate-50 dark:bg-slate-900 h-[60dvh] max-h-[60dvh] pb-safe-bottom landscape:h-auto landscape:max-h-[88dvh] landscape:w-[92%] landscape:max-w-5xl landscape:self-center landscape:rounded-3xl landscape:shadow-2xl landscape:pb-4">
                 <AnimatePresence initial={false} custom={direction} mode="wait">
 
                     {/* STEP 1: SELECT PLAYER (Grid View) */}
@@ -167,22 +167,22 @@ export const ScoutModal: React.FC<ScoutModalProps> = ({
                             className="absolute inset-0 flex flex-col p-4 pb-safe-bottom"
                         >
                             {/* UNIFIED GRID: Players + Actions */}
-                            <div className="grid grid-cols-4 gap-2 h-full content-center landscape:grid-cols-4 landscape:gap-3">
+                            <div className="grid grid-cols-4 gap-2 h-full content-center landscape:grid-cols-8 landscape:gap-3 overflow-y-auto overscroll-contain">
 
                                 {/* Special Actions (First 2 Slots) */}
-                                <button onClick={handleOpponentError} className="flex flex-col items-center justify-center p-2 rounded-2xl bg-amber-500/10 active:bg-amber-500/20 border-2 border-amber-500/20 hover:border-amber-500/40 text-amber-600 dark:text-amber-500 transition-all active:scale-95 aspect-square">
+                                <button onClick={handleOpponentError} className="flex flex-col items-center justify-center p-2 rounded-2xl bg-amber-500/10 active:bg-amber-500/20 border-2 border-amber-500/20 hover:border-amber-500/40 text-amber-600 dark:text-amber-500 transition-all active:scale-95 aspect-square landscape:aspect-[4/3] landscape:min-h-[64px]">
                                     <AlertTriangle size={24} strokeWidth={2.5} className="mb-1" />
                                     <span className="text-[9px] font-black uppercase tracking-tight leading-none text-center">{t('scout.skills.opponent_error')}</span>
                                 </button>
 
-                                <button onClick={() => goToStep2('unknown')} className="flex flex-col items-center justify-center p-2 rounded-2xl bg-slate-100 dark:bg-white/5 active:bg-slate-200 dark:active:bg-white/10 border-2 border-dashed border-slate-300 dark:border-white/10 text-slate-500 dark:text-slate-400 transition-all active:scale-95 aspect-square">
+                                <button onClick={() => goToStep2('unknown')} className="flex flex-col items-center justify-center p-2 rounded-2xl bg-slate-100 dark:bg-white/5 active:bg-slate-200 dark:active:bg-white/10 border-2 border-dashed border-slate-300 dark:border-white/10 text-slate-500 dark:text-slate-400 transition-all active:scale-95 aspect-square landscape:aspect-[4/3] landscape:min-h-[64px]">
                                     <HelpCircle size={24} strokeWidth={2.5} className="mb-1" />
                                     <span className="text-[9px] font-black uppercase tracking-tight leading-none text-center">{t('scout.unknownPlayer')}</span>
                                 </button>
 
                                 {/* Player Slots (Remaining) */}
                                 {sortedPlayers.map(p => (
-                                    <button key={p.id} onClick={() => goToStep2(p.id)} className="relative flex flex-col items-center justify-center p-2 rounded-2xl bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/5 active:scale-95 transition-all duration-150 shadow-sm hover:border-indigo-500/30 hover:shadow-md aspect-square overflow-hidden group">
+                                    <button key={p.id} onClick={() => goToStep2(p.id)} className="relative flex flex-col items-center justify-center p-2 rounded-2xl bg-gradient-to-b from-white/10 to-transparent dark:from-white/5 dark:to-transparent border border-white/10 dark:border-white/5 active:scale-95 transition-all duration-200 shadow-sm hover:shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:border-indigo-500/50 aspect-square landscape:aspect-[4/3] landscape:min-h-[64px] overflow-hidden group">
                                         <div className={`flex items-center justify-center text-3xl font-black ${theme.text} ${theme.textDark} drop-shadow-sm mb-1`}>{p.number || "#"}</div>
                                         <div className="w-full text-center px-1"><span className="block text-[10px] font-bold text-slate-600 dark:text-slate-300 truncate leading-tight group-hover:text-indigo-500 dark:group-hover:text-indigo-400 transition-colors">{p.name}</span></div>
                                     </button>
@@ -190,7 +190,7 @@ export const ScoutModal: React.FC<ScoutModalProps> = ({
 
                                 {/* Fillers for alignment if < 6 players */}
                                 {[...Array(Math.max(0, 6 - sortedPlayers.length))].map((_, i) => (
-                                    <div key={`filler-${i}`} className="rounded-2xl border border-dashed border-slate-200/50 dark:border-white/5 bg-transparent aspect-square opacity-50" />
+                                    <div key={`filler-${i}`} className="rounded-2xl border border-dashed border-slate-200/50 dark:border-white/5 bg-transparent aspect-square landscape:aspect-[4/3] landscape:min-h-[64px] opacity-50" />
                                 ))}
                             </div>
                         </motion.div>
@@ -223,13 +223,33 @@ export const ScoutModal: React.FC<ScoutModalProps> = ({
                             </div>
 
                             {/* Right: Actions */}
-                            <div className="flex-1 grid grid-cols-1 gap-3 h-full content-center landscape:grid-cols-3 landscape:h-auto">
+                            <div className="flex-1 grid grid-cols-1 gap-3 h-full content-center landscape:grid-cols-3 landscape:h-auto overflow-y-auto overscroll-contain">
                                 {skills.map(s => (
-                                    <button key={s.id} onClick={() => handleSkillSelect(s.id)} className={`relative flex items-center justify-start gap-4 px-6 py-5 rounded-3xl transition-all duration-200 active:scale-95 ${s.bgClass} border border-transparent hover:border-current shadow-sm hover:shadow-md landscape:flex-col landscape:justify-center landscape:items-center landscape:text-center landscape:gap-2 landscape:py-6 landscape:aspect-[4/3]`}>
-                                        <div className={`p-2 rounded-full bg-white/20 dark:bg-black/10`}>
-                                            <s.icon size={28} className={s.colorClass} strokeWidth={2.5} />
+                                    <button key={s.id} onClick={() => handleSkillSelect(s.id)}
+                                        className={`
+                                            relative flex items-center justify-start gap-4 px-5 py-4 rounded-3xl 
+                                            transition-all duration-200 active:scale-95 
+                                            bg-white/5 dark:bg-white/[0.02] border border-white/10 hover:border-white/20
+                                            landscape:flex-col landscape:justify-center landscape:items-center landscape:text-center landscape:gap-3 landscape:py-6 landscape:aspect-[4/3]
+                                            group overflow-hidden
+                                        `}
+                                    >
+                                        {/* Circular Icon Container */}
+                                        <div className={`
+                                            relative w-14 h-14 rounded-full flex items-center justify-center 
+                                            ${s.bgClass} shadow-inner ring-1 ring-inset ring-black/5 dark:ring-white/5
+                                            group-hover:scale-110 transition-transform duration-300
+                                        `}>
+                                            <s.icon size={26} className={s.colorClass} strokeWidth={2.5} />
                                         </div>
-                                        <span className={`text-base font-black uppercase tracking-wider ${s.colorClass}`}>{s.label}</span>
+
+                                        {/* Label */}
+                                        <span className={`text-sm font-black uppercase tracking-widest ${s.colorClass} opacity-80 group-hover:opacity-100`}>
+                                            {s.label}
+                                        </span>
+
+                                        {/* Hover Glow Effect */}
+                                        <div className={`absolute inset-0 bg-gradient-to-r ${s.bgClass.replace('bg-', 'from-')} to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-500`} />
                                     </button>
                                 ))}
                             </div>

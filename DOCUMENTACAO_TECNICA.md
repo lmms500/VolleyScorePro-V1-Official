@@ -401,6 +401,22 @@ erDiagram
 6. [UI] React re-renderiza com novo estado
 ```
 
+### 4.3.1. Sistema de Feedback Visual (Halo)
+
+**Componente**: `HaloBackground.tsx`
+
+O "Halo" é um feedback visual crucial que indica estados do jogo através de cores e animações atrás do placar.
+
+**Estados Suportados**:
+1.  **Serving (Saque)**: Brilho constante/suave na cor do time que saca.
+2.  **Scoring (Ponto)**: Flash momentâneo ou brilho sólido indicando o último pontuador.
+3.  **Critical (Set/Match Point)**: Pulsação intensa ("Heartbeat") em cores de alerta (Amber/Gold).
+
+**Arquitetura de Cores**:
+- Utiliza `utils/colors.ts` -> `theme.halo` para consistência.
+- Cores críticas (Match Point) sobrescrevem a cor do time com Amber/Gold.
+
+
 ### 4.4. Rotação Inteligente de Times (Modo Balanced)
 
 **Propósito**: Em jogos recreativos com muitos jogadores, o app rotaciona automaticamente times equilibrados.
@@ -1210,4 +1226,107 @@ export const FEATURE_FLAGS = {
 
 **Autor**: Documentação gerada por Antigravity AI para o projeto VolleyScore Pro v2
 
-**Última Atualização**: 2026-02-04
+**Última Atualização**: 2026-02-06
+
+---
+
+## 7. Estratégia de Renderização e Performance Visual
+
+### 7.1. Arquitetura de Isolação de Camadas (Layer Isolation)
+
+Para garantir 60 FPS estáveis mesmo com efeitos complexos (Glow, Blur, Transparências), adotamos uma estratégia de **Layer Isolation** rigorosa:
+
+1.  **Composite Layers**: Elementos animados transform-only devem ser promovidos a camadas de composição via `will-change: transform` ou `translateZ(0)`.
+2.  **CSS Containment**: Uso de `contain: layout size style` em containers complexos para limitar o escopo de recálculos de layout.
+3.  **Isolation**: Uso de `isolation: isolate` em contextos de empilhamento (Stacking Contexts) para evitar que operações de blend (mix-blend-mode) forcem rasterização excessiva de ancestrais.
+
+### 7.2. Otimização Condicional (Tiers de Hardware)
+
+O sistema adapta a fidelidade visual baseado nas capacidades do dispositivo (detectado via `usePerformanceMonitor` ou flag `lowGraphics`):
+
+| Feature | High-Tier (PC/Flagships) | Low-Tier (Budget Android) |
+| :--- | :--- | :--- |
+| **Blur** | `backdrop-filter: blur(20px)` | Desativado (Transparência Sólida) |
+| **Glow/Halo** | Animado, Blended, Pulsante | Estático ou CSS Shadow Simples |
+| **Transições** | Spring Physics (Framer Motion) | CSS Transitions Simples (Linear/Ease) |
+| **Partículas** | Habilitadas | Desabilitadas |
+
+### 7.3. Componentes Alvo de Refatoração
+
+Os seguintes componentes foram identificados como críticos para a performance visual e estão passando por otimização:
+
+1.  **`ScoreTicker.tsx`**:
+    *   **Problema**: Flicker em atualizações rápidas e falta de sensação de movimento.
+    *   **Solução**: Motion Blur sintético direcional e isolamento de paint.
+
+2.  **`ScoreCardFullscreen.tsx`**:
+    *   **Problema**: Re-renderização excessiva do "Halo" de fundo junto com o número.
+    *   **Solução**: Extração para `HaloBackground` memoizado com props primitivas.
+
+3.  **`CriticalPointAnimation.tsx` (Sudden Death)**:
+    *   **Problema**: Overlay fullscreen pesado com filtros complexos (saturate/contrast) causando queda de frames.
+    *   **Solução**: Renderização condicional de efeitos baseada na flag `lowGraphics`.
+
+
+## 8. Sistema de Feedback e Notificações
+
+### 8.1. Filosofia "Quiet & Informative"
+Inspirado no *Apple Human Interface Guidelines*, o sistema de feedback do VolleyScore Pro prioriza a relevância e minimiza o ruído.
+
+**Princípio Core**: "Informação Confirmada não precisa de Notificação Visual se o Feedback do Estado for Imediato."
+
+#### Matriz de Feedback
+
+| Ação | Feedback Visual (Toast) | Feedback Auditivo | Feedback Haptico | Motivo |
+| :--- | :--- | :--- | :--- | :--- |
+| **Marcar Ponto** | ❌ **NÃO** | ✅ "Tap" Sound | ✅ Light Impact | O placar muda instantaneamente. Toast é redundante. |
+| **Desfazer (Undo)** | ✅ **SIM** (Discreto) | ✅ "Whoosh" Sound | ✅ Medium Impact | Ação destrutiva reversa; confirmação visual tranquiliza. |
+| **Troca de Lado** | ✅ **SIM** (Central) | ✅ "Slide" Sound | ✅ Heavy Impact | Mudança drástica de contexto visual. |
+| **Timeout** | ❌ **NÃO** | ✅ "Whistle" | ✅ Heavy Impact | O timer aparece na tela (feedback de estado óbvio). |
+| **Comando de Voz** | ✅ **SIM** (Thinking/Success) | ✅ "Chime" | ✅ Light Impact | Usuário não tocou na tela; precisa saber se a IA ouviu. |
+| **Erro/Alertas** | ✅ **SIM** (Erro) | ✅ "Error" Sound | ✅ Double Vibration | Falhas precisam de atenção imediata. |
+
+### 8.2. Especificações Visuais (Glassmorphism & Motion)
+
+#### Toast Singleton
+- **Comportamento**: Apenas UM toast visível por vez. Se um novo chegar, o anterior é substituído via animação (Morphing).
+- **Posicionamento**:
+  - **Portrait**: `top: env(safe-area-inset-top) + 16px` (Dynamic Island friendly).
+  - **Fullscreen**: `top: 24px` (ou abaixo da barra de controle se visível).
+- **Estética**:
+  - `backdrop-blur-xl` (24px)
+  - `bg-slate-900/90` (Dark Mode profundo)
+  - `border-white/10` (Highlight sutil)
+  - `shadow-2xl` (Elevação alta)
+
+#### Motion Physics (Springs)
+Usar constantes do `framer-motion` para consistência:
+
+```typescript
+export const TOAST_SPRING = {
+  type: "spring",
+  stiffness: 400,
+  damping: 30,
+  mass: 1
+};
+```
+
+
+
+### 6.11. Engine Responsivo e Escala
+
+**Componentes**: `src/utils/responsive.ts` (`hp`, `wp`, `normalize`)
+
+**Limitação Conhecida**:
+As funções `hp` (height percentage) e `wp` (width percentage) são cálculos imperativos baseados no `window.innerHeight` **no momento da execução**.
+- Em componentes funcionais, se a janela for redimensionada (ex: rotação de tela ou sair de fullscreen), o valor antigo persiste até o próximo re-render.
+- Componentes memoizados (`memo`) como `ScoreCardNormal` não re-renderizam automaticamente apenas porque a janela mudou de tamanho.
+
+**Solução Padrão**:
+Para forçar atualização de layout em resize, deve-se usar um hook ou contexto que notifique mudanças de dimensão:
+1. **Hook `useResponsiveStyles`** (Proposto): Hook que força re-render ao detectar resize.
+2. **Context Key**: Usar uma `key` derivada do resize no componente pai ou no próprio componente para resetar o estado.
+
+**Convenção de Escala**:
+- **Normal Mode**: Elementos devem ser otimizados para legibilidade sem dominar a tela. Fator de escala recomendado: ~18% da altura (`hp(18)`).
+- **Fullscreen Mode**: Usa CSS `clamp` ou `vmax` para responsividade fluida sem depender de re-renders JS.

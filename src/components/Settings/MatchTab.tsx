@@ -5,7 +5,9 @@ import { GameConfig } from '../../types';
 import { SectionTitle, SettingItem, PresetButton } from './SettingsUI';
 import { parseJSONFile, exportActiveMatch } from '../../services/io';
 import { useTranslation } from '../../contexts/LanguageContext';
-import { useActions, useScore, useRoster } from '../../contexts/GameContext'; 
+import { useActions, useScore, useRoster } from '../../contexts/GameContext';
+import { GAME_MODE_PRESETS } from '../../config/gameModes';
+import type { GameModePreset } from '../../types';
 
 interface MatchTabProps {
     localConfig: GameConfig;
@@ -18,22 +20,27 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
     const { t } = useTranslation();
     const gameImportRef = useRef<HTMLInputElement>(null);
     const { loadStateFromFile } = useActions();
-    
+
     // We need the full state for export
     const scoreState = useScore();
     const rosterState = useRoster();
 
-    const handleExportGame = async () => { 
-        try { 
+    // Local state for selected preset
+    const [selectedPreset, setSelectedPreset] = React.useState<GameModePreset>(
+        localConfig.modeConfig?.preset || 'indoor-6v6'
+    );
+
+    const handleExportGame = async () => {
+        try {
             const fullState = { ...scoreState, ...rosterState } as any;
-            await exportActiveMatch(fullState); 
-        } catch (e) { 
-            console.error(e); 
-        } 
+            await exportActiveMatch(fullState);
+        } catch (e) {
+            console.error(e);
+        }
     };
-    
+
     const handleImportGameClick = () => { if (gameImportRef.current) { gameImportRef.current.value = ''; gameImportRef.current.click(); } };
-    
+
     const handleGameImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -41,7 +48,7 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
             const json = await parseJSONFile(file);
             if (json.type === 'VS_ACTIVE_MATCH' && json.data) {
                 loadStateFromFile(json.data);
-                onClose(); 
+                onClose();
             } else {
                 alert(t('historyList.importError'));
             }
@@ -50,13 +57,87 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
         }
     };
 
-    const setPresetFIVB = () => setLocalConfig(prev => ({ ...prev, mode: 'indoor', maxSets: 5, pointsPerSet: 25, hasTieBreak: true, tieBreakPoints: 15, deuceType: 'standard', autoSwapSides: false }));
-    const setPresetBeach = () => setLocalConfig(prev => ({ ...prev, mode: 'beach', maxSets: 3, pointsPerSet: 21, hasTieBreak: true, tieBreakPoints: 15, deuceType: 'standard', autoSwapSides: true }));
-    const setPresetSegunda = () => setLocalConfig(prev => ({ ...prev, mode: 'indoor', maxSets: 1, pointsPerSet: 15, hasTieBreak: false, tieBreakPoints: 15, deuceType: 'sudden_death_3pt', autoSwapSides: false }));
+    // Handler for changing mode preset
+    const handlePresetChange = (preset: GameModePreset) => {
+        const config = GAME_MODE_PRESETS[preset];
+        const newLimit = config.courtLayout.playersOnCourt;
+
+        // Use helper to get current limit safely
+        // Note: Assuming getCourtLayoutFromConfig is available or we use localConfig directly if compatible
+        const currentLimit = localConfig.modeConfig?.courtLayout.playersOnCourt || (localConfig.mode === 'beach' ? 4 : 6);
+
+        const playersOnCourtCount = (rosterState.teamARoster.players.length) + (rosterState.teamBRoster.players.length);
+        const willDownsize = newLimit < currentLimit;
+        const excessPlayers = Math.max(0, playersOnCourtCount - (newLimit * 2));
+
+        // Warning if match is in progress OR if downsizing will occur
+        if (scoreState.currentSet > 0 || willDownsize) {
+            let msg = t('settings.confirmModeChange') || 'Changing the game mode will reset the match.';
+
+            if (willDownsize && excessPlayers > 0) {
+                msg += `\n\n⚠️ ${excessPlayers} players will be moved to the queue due to smaller court size.`;
+            } else if (willDownsize) {
+                 msg += `\n\n⚠️ Teams will be resized to ${newLimit} players.`;
+            }
+            msg += '\n\nContinue?';
+
+            const confirmChange = window.confirm(msg);
+            if (!confirmChange) return;
+        }
+
+        setSelectedPreset(preset);
+        setLocalConfig(prev => ({
+            ...prev,
+            mode: config.type,
+            modeConfig: config
+        }));
+    };
+
+    const setPresetFIVB = () => setLocalConfig(prev => ({ ...prev, mode: 'indoor', modeConfig: GAME_MODE_PRESETS['indoor-6v6'], maxSets: 5, pointsPerSet: 25, hasTieBreak: true, tieBreakPoints: 15, deuceType: 'standard', autoSwapSides: false }));
+    const setPresetBeach = () => setLocalConfig(prev => ({ ...prev, mode: 'beach', modeConfig: GAME_MODE_PRESETS['beach-4v4'], maxSets: 3, pointsPerSet: 21, hasTieBreak: true, tieBreakPoints: 15, deuceType: 'standard', autoSwapSides: true }));
+    const setPresetSegunda = () => setLocalConfig(prev => ({ ...prev, mode: 'indoor', modeConfig: GAME_MODE_PRESETS['indoor-6v6'], maxSets: 1, pointsPerSet: 15, hasTieBreak: false, tieBreakPoints: 15, deuceType: 'sudden_death_3pt', autoSwapSides: false }));
 
     const isFIVB = localConfig.mode === 'indoor' && localConfig.maxSets === 5 && localConfig.pointsPerSet === 25 && localConfig.hasTieBreak && localConfig.tieBreakPoints === 15 && localConfig.deuceType === 'standard';
     const isBeach = localConfig.mode === 'beach' && localConfig.maxSets === 3 && localConfig.pointsPerSet === 21 && localConfig.hasTieBreak && localConfig.tieBreakPoints === 15 && localConfig.deuceType === 'standard';
     const isSegunda = localConfig.mode === 'indoor' && localConfig.maxSets === 1 && localConfig.pointsPerSet === 15 && !localConfig.hasTieBreak && localConfig.deuceType === 'sudden_death_3pt';
+
+    // Internal Component: Player Count Selector
+    const PlayerCountSelector: React.FC = () => {
+        const mode = localConfig.mode;
+
+        // Filter presets by mode type
+        const availablePresets: Array<{ preset: GameModePreset; label: string; count: number }> =
+            mode === 'indoor'
+                ? [
+                    { preset: 'quads-5v5', label: '5v5', count: 5 },
+                    { preset: 'indoor-6v6', label: '6v6', count: 6 }
+                ]
+                : [
+                    { preset: 'beach-2v2', label: '2v2', count: 2 },
+                    { preset: 'triples-3v3', label: '3v3', count: 3 },
+                    { preset: 'beach-4v4', label: '4v4', count: 4 }
+                ];
+
+        return (
+            <div className="flex gap-1.5">
+                {availablePresets.map(({ preset, label, count }) => (
+                    <button
+                        key={preset}
+                        onClick={() => handlePresetChange(preset)}
+                        className={`
+                            w-14 h-9 rounded-xl text-xs font-bold transition-all border flex items-center justify-center
+                            ${selectedPreset === preset
+                                ? 'bg-indigo-500 text-white border-indigo-600 shadow-md scale-105'
+                                : 'bg-slate-50 dark:bg-white/5 border-transparent text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10'
+                            }
+                        `}
+                    >
+                        {label}
+                    </button>
+                ))}
+            </div>
+        );
+    };
 
     return (
         <div className="space-y-3 landscape:grid landscape:grid-cols-2 landscape:gap-4 landscape:space-y-0">
@@ -73,9 +154,9 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
                 <div>
                     <SectionTitle icon={Trophy}>{t('settings.sections.presets')}</SectionTitle>
                     <div className="flex gap-3 px-1">
-                        <PresetButton active={isFIVB} onClick={setPresetFIVB} icon={Trophy} label={t('presets.fivb.label')} sub={t('presets.fivb.sub')} colorClass="indigo-500" borderClass="border-indigo-500" bgActive="bg-indigo-500/10" textActive="text-indigo-600 dark:text-indigo-300"/>
-                        <PresetButton active={isBeach} onClick={setPresetBeach} icon={Umbrella} label={t('presets.beach.label')} sub={t('presets.beach.sub')} colorClass="orange-500" borderClass="border-orange-500" bgActive="bg-orange-500/10" textActive="text-orange-600 dark:text-orange-300"/>
-                        <PresetButton active={isSegunda} onClick={setPresetSegunda} icon={Zap} label={t('presets.custom.label')} sub={t('presets.custom.sub')} colorClass="emerald-500" borderClass="border-emerald-500" bgActive="bg-emerald-500/10" textActive="text-emerald-600 dark:text-emerald-300"/>
+                        <PresetButton active={isFIVB} onClick={setPresetFIVB} icon={Trophy} label={t('presets.fivb.label')} sub={t('presets.fivb.sub')} colorClass="indigo-500" borderClass="border-indigo-500" bgActive="bg-indigo-500/10" textActive="text-indigo-600 dark:text-indigo-300" />
+                        <PresetButton active={isBeach} onClick={setPresetBeach} icon={Umbrella} label={t('presets.beach.label')} sub={t('presets.beach.sub')} colorClass="orange-500" borderClass="border-orange-500" bgActive="bg-orange-500/10" textActive="text-orange-600 dark:text-orange-300" />
+                        <PresetButton active={isSegunda} onClick={setPresetSegunda} icon={Zap} label={t('presets.custom.label')} sub={t('presets.custom.sub')} colorClass="emerald-500" borderClass="border-emerald-500" bgActive="bg-emerald-500/10" textActive="text-emerald-600 dark:text-emerald-300" />
                     </div>
                 </div>
             </div>
@@ -84,26 +165,41 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
                 <div>
                     <SectionTitle icon={Target}>{t('settings.sections.coreRules')}</SectionTitle>
                     <div className="space-y-2">
-                        <SettingItem label={t('settings.rules.gameMode')} icon={Trophy} color={{bg:'bg-indigo-500/10', text:'text-indigo-500'}}>
-                            <div className="flex bg-slate-100 dark:bg-black/20 rounded-xl p-1 border border-black/5 dark:border-white/5">
-                                <button onClick={() => setLocalConfig(prev => ({ ...prev, mode: 'indoor' }))} className={`flex flex-col items-center justify-center px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${localConfig.mode === 'indoor' ? 'bg-white dark:bg-white/10 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
+                        {/* Court Type Selector (Indoor/Beach) */}
+                        <SettingItem label={t('settings.rules.gameMode')} icon={Trophy} color={{ bg: 'bg-indigo-500/10', text: 'text-indigo-500' }}>
+                            <div className="flex bg-slate-200/50 dark:bg-black/20 rounded-xl p-1 border border-black/5 dark:border-white/5 shadow-inner">
+                                <button onClick={() => {
+                                    const newMode = 'indoor';
+                                    const defaultPreset = 'indoor-6v6';
+                                    setLocalConfig(prev => ({ ...prev, mode: newMode, modeConfig: GAME_MODE_PRESETS[defaultPreset] }));
+                                    setSelectedPreset(defaultPreset);
+                                }} className={`flex flex-col items-center justify-center px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${localConfig.mode === 'indoor' ? 'bg-white dark:bg-white/10 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
                                     <span>{t('settings.rules.modes.indoor')}</span>
-                                    <span className="text-[8px] opacity-70 flex items-center gap-1"><Users size={8} /> 6v6</span>
                                 </button>
-                                <button onClick={() => setLocalConfig(prev => ({ ...prev, mode: 'beach' }))} className={`flex flex-col items-center justify-center px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${localConfig.mode === 'beach' ? 'bg-white dark:bg-white/10 shadow-sm text-orange-500' : 'text-slate-400'}`}>
+                                <button onClick={() => {
+                                    const newMode = 'beach';
+                                    const defaultPreset = 'beach-4v4';
+                                    setLocalConfig(prev => ({ ...prev, mode: newMode, modeConfig: GAME_MODE_PRESETS[defaultPreset] }));
+                                    setSelectedPreset(defaultPreset);
+                                }} className={`flex flex-col items-center justify-center px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${localConfig.mode === 'beach' ? 'bg-white dark:bg-white/10 shadow-sm text-orange-500' : 'text-slate-400'}`}>
                                     <span>{t('settings.rules.modes.beach')}</span>
-                                    <span className="text-[8px] opacity-70 flex items-center gap-1"><Users size={8} /> 4v4</span>
                                 </button>
                             </div>
                         </SettingItem>
-                        <SettingItem label={t('settings.rules.setsToPlay')} icon={Layers} color={{bg:'bg-slate-500/10', text:'text-slate-500'}}>
+
+                        {/* Player Count Selector */}
+                        <SettingItem label={t('settings.rules.playerCount') || 'Players per Team'} icon={Users} color={{ bg: 'bg-emerald-500/10', text: 'text-emerald-500' }}>
+                            <PlayerCountSelector />
+                        </SettingItem>
+
+                        <SettingItem label={t('settings.rules.setsToPlay')} icon={Layers} color={{ bg: 'bg-slate-500/10', text: 'text-slate-500' }}>
                             <div className="flex gap-1.5">
                                 {[1, 3, 5].map(val => (
                                     <button key={val} onClick={() => setLocalConfig(prev => ({ ...prev, maxSets: val as any }))} className={`w-9 h-9 rounded-xl text-xs font-bold transition-all border flex items-center justify-center ${localConfig.maxSets === val ? 'bg-indigo-500 text-white border-indigo-600 shadow-md scale-105' : 'bg-slate-50 dark:bg-white/5 border-transparent text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10'}`}>{val}</button>
                                 ))}
                             </div>
                         </SettingItem>
-                        <SettingItem label={t('settings.rules.pointsPerSet')} icon={Target} color={{bg:'bg-rose-500/10', text:'text-rose-500'}}>
+                        <SettingItem label={t('settings.rules.pointsPerSet')} icon={Target} color={{ bg: 'bg-rose-500/10', text: 'text-rose-500' }}>
                             <div className="flex gap-1.5">
                                 {[15, 21, 25].map(val => (
                                     <button key={val} onClick={() => setLocalConfig(prev => ({ ...prev, pointsPerSet: val as any }))} className={`w-9 h-9 rounded-xl text-xs font-bold transition-all border flex items-center justify-center ${localConfig.pointsPerSet === val ? 'bg-rose-500 text-white border-rose-600 shadow-md scale-105' : 'bg-slate-50 dark:bg-white/5 border-transparent text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10'}`}>{val}</button>
@@ -115,7 +211,7 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
                 <div>
                     <SectionTitle icon={Scale}>{t('settings.sections.tieBreakDeuce')}</SectionTitle>
                     <div className="space-y-2">
-                        <SettingItem label={t('settings.rules.tieBreak')} icon={Scale} color={{bg:'bg-amber-500/10', text:'text-amber-500'}}>
+                        <SettingItem label={t('settings.rules.tieBreak')} icon={Scale} color={{ bg: 'bg-amber-500/10', text: 'text-amber-500' }}>
                             {localConfig.hasTieBreak && (
                                 <div className="flex bg-slate-100 dark:bg-black/20 rounded-xl p-1 mr-2 border border-black/5 dark:border-white/5">
                                     {[15, 25].map(val => (
@@ -129,7 +225,7 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
                             <button onClick={() => setLocalConfig(prev => ({ ...prev, deuceType: 'standard' }))} className={`py-3 px-3 rounded-2xl border text-[10px] font-bold text-center transition-all truncate flex flex-col items-center justify-center gap-1 ${localConfig.deuceType === 'standard' ? 'bg-indigo-500/10 border-indigo-500/50 text-indigo-600 dark:text-indigo-300 ring-1 ring-indigo-500/20' : 'bg-white/40 dark:bg-white/5 border-transparent text-slate-400 hover:bg-white/60'}`}><span className="opacity-50 text-[9px] uppercase tracking-wider">{t('status.deuce_advantage')}</span>{t('settings.rules.deuceStandard')}</button>
                             <button onClick={() => setLocalConfig(prev => ({ ...prev, deuceType: 'sudden_death_3pt' }))} className={`py-3 px-3 rounded-2xl border text-[10px] font-bold text-center transition-all truncate flex flex-col items-center justify-center gap-1 ${localConfig.deuceType === 'sudden_death_3pt' ? 'bg-rose-500/10 border-rose-500/50 text-rose-600 dark:text-rose-300 ring-1 ring-rose-500/20' : 'bg-white/40 dark:bg-white/5 border-transparent text-slate-400 hover:bg-white/60'}`}><span className="opacity-50 text-[9px] uppercase tracking-wider">{t('status.sudden_death')}</span>{t('settings.rules.deuceSuddenDeath')}</button>
                         </div>
-                        <SettingItem label={t('settings.rules.autoSwapSides')} icon={ArrowLeftRight} color={{bg:'bg-orange-500/10', text:'text-orange-500'}} className={localConfig.mode === 'beach' ? 'ring-1 ring-orange-500/20' : ''}>
+                        <SettingItem label={t('settings.rules.autoSwapSides')} icon={ArrowLeftRight} color={{ bg: 'bg-orange-500/10', text: 'text-orange-500' }} className={localConfig.mode === 'beach' ? 'ring-1 ring-orange-500/20' : ''}>
                             <button onClick={() => setLocalConfig(prev => ({ ...prev, autoSwapSides: !prev.autoSwapSides }))} className={`text-2xl transition-colors ${localConfig.autoSwapSides ? 'text-indigo-500' : 'text-slate-300'}`}>{localConfig.autoSwapSides ? <ToggleRight size={28} fill="currentColor" fillOpacity={0.2} /> : <ToggleLeft size={28} />}</button>
                         </SettingItem>
                     </div>

@@ -1,9 +1,10 @@
 
 import React, { memo, useCallback } from 'react';
-import { Player, TeamColor } from '../../types';
+import { Player, TeamColor, CourtLayoutConfig } from '../../types';
 import { resolveTheme } from '../../utils/colors';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { motion } from 'framer-motion';
+import { isEmptySlot } from '../../config/gameModes';
 
 interface VolleyballCourtProps {
     players: Player[];
@@ -14,14 +15,9 @@ interface VolleyballCourtProps {
     variant?: 'full' | 'minimal';
     onPlayerClick?: (player: Player) => void;
     mvpId?: string | null;
-    mode?: 'indoor' | 'beach';
+    layoutConfig: CourtLayoutConfig;
     isDragActive?: boolean;
 }
-
-// Visual Mapping
-// Index 0 is always the Server (Zone 1).
-const ZONE_MAP_INDOOR = [1, 6, 5, 4, 3, 2];
-const ZONE_MAP_BEACH = [1, 4, 3, 2];
 
 // --- 1. THE DROP ZONE (Glass Slot) ---
 const ZoneMarker = memo(({ index, visualZone, teamId }: { index: number, visualZone: string | number, teamId: string, isActive: boolean }) => {
@@ -111,7 +107,7 @@ const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActiva
 });
 
 export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
-    players, color, isServing, side, teamId, variant = 'full', onPlayerClick, mvpId, mode = 'indoor', isDragActive = false
+    players, color, isServing, side, teamId, variant = 'full', onPlayerClick, mvpId, layoutConfig, isDragActive = false
 }) => {
     const theme = resolveTheme(color);
 
@@ -122,41 +118,38 @@ export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
         }
     }, [onPlayerClick]);
     const isMinimal = variant === 'minimal';
-    const isBeach = mode === 'beach';
 
-    const slotCount = isBeach ? 4 : 6;
+    // Determines if we should show beach style (≤ 4 players) or indoor style (> 4 players)
+    const isBeachStyle = layoutConfig.playersOnCourt <= 4;
+
+    const slotCount = layoutConfig.playersOnCourt;
     const slots = new Array(slotCount).fill(null);
     players.slice(0, slotCount).forEach((p, i) => { slots[i] = p; });
 
-    let gridOrder: number[] = [];
+    // Grid order comes directly from layoutConfig
+    const gridOrder = side === 'left'
+        ? layoutConfig.gridOrderLeft
+        : layoutConfig.gridOrderRight;
 
-    if (isBeach) {
-        if (side === 'left') {
-            // Left Team (Faces Right >) | Map visual zones to array indices
-            gridOrder = [1, 2, 0, 3];
-        } else {
-            // Right Team (Faces Left <)
-            gridOrder = [3, 0, 2, 1];
-        }
-    } else {
-        // Indoor 6v6 Layout
-        if (side === 'left') gridOrder = [2, 3, 1, 4, 0, 5];
-        else gridOrder = [5, 0, 4, 1, 3, 2];
-    }
+    // Dynamic grid rows - using explicit classes for Tailwind
+    const gridRowsClass = layoutConfig.gridRows === 1 ? 'grid-rows-1'
+                        : layoutConfig.gridRows === 2 ? 'grid-rows-2'
+                        : 'grid-rows-3';
 
-    const gridClass = isBeach ? 'grid-rows-2' : 'grid-rows-3';
-    const lineColor = isBeach ? 'border-blue-900/30' : 'border-white/80';
+    const gridColsClass = layoutConfig.gridCols === 3 ? 'grid-cols-3' : 'grid-cols-2';
+
+    const lineColor = isBeachStyle ? 'border-blue-900/30' : 'border-white/80';
 
     // Standard Orange for Indoor, Sand for Beach
-    const courtColorClass = isBeach ? 'bg-[#e3cba5]' : 'bg-orange-500';
+    const courtColorClass = isBeachStyle ? 'bg-[#e3cba5]' : 'bg-orange-500';
 
     return (
         <div className={`w-full h-full relative ${isMinimal ? '' : 'p-2 sm:p-4'} flex items-center justify-center`}>
 
             {!isMinimal && (
                 <div className={`absolute inset-0 rounded-[2rem] overflow-hidden shadow-inner border-4 border-white/10 transition-colors duration-300 ${courtColorClass}`}>
-                    {isBeach && <div className="absolute inset-0 opacity-20 mix-blend-multiply" style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/sand.png')" }} />}
-                    {!isBeach && <div className="absolute inset-0 opacity-10 mix-blend-multiply" style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/wood-pattern.png')" }} />}
+                    {isBeachStyle && <div className="absolute inset-0 opacity-20 mix-blend-multiply" style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/sand.png')" }} />}
+                    {!isBeachStyle && <div className="absolute inset-0 opacity-10 mix-blend-multiply" style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/wood-pattern.png')" }} />}
                 </div>
             )}
 
@@ -166,47 +159,56 @@ export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
                 ${!isMinimal ? 'rounded-xl shadow-lg' : ''}
                 ${side === 'left' ? 'border-r-0 rounded-l-[1.2rem]' : 'border-l-0 rounded-r-[1.2rem]'}
             `}>
-                {!isBeach && (
+                {!isBeachStyle && (
                     <div className={`absolute top-0 bottom-0 w-1 bg-white/60 ${side === 'left' ? 'right-[33%]' : 'left-[33%]'}`} />
                 )}
             </div>
 
             {/* Players Grid */}
             <div className={`
-                relative z-10 w-full h-full grid grid-cols-2 gap-2 ${gridClass}
+                relative z-10 w-full h-full grid gap-2 ${gridRowsClass} ${gridColsClass}
                 ${side === 'left' ? 'pr-8 pl-4' : 'pl-8 pr-4'}
             `}>
-                {gridOrder.map((arrayIndex) => (
-                    <div key={arrayIndex} className="relative flex items-center justify-center group">
-                        <div className={`absolute text-[60px] sm:text-[80px] font-black ${isBeach ? 'text-black/5' : 'text-white/10'} select-none pointer-events-none`}>
-                            {isBeach ? ZONE_MAP_BEACH[arrayIndex] : ZONE_MAP_INDOOR[arrayIndex]}
-                        </div>
+                {gridOrder.map((arrayIndex, gridPosition) => {
+                    // Check for empty slot (-1)
+                    if (isEmptySlot(arrayIndex)) {
+                        return (
+                            <div key={`empty-${gridPosition}`} className="relative" />
+                        );
+                    }
 
-                        {/* Zone Marker is the target for drops */}
-                        <ZoneMarker
-                            index={arrayIndex}
-                            visualZone={""}
-                            teamId={teamId}
-                            isActive={false}
-                        />
+                    return (
+                        <div key={arrayIndex} className="relative flex items-center justify-center group">
+                            <div className={`absolute text-[60px] sm:text-[80px] font-black ${isBeachStyle ? 'text-black/5' : 'text-white/10'} select-none pointer-events-none`}>
+                                {layoutConfig.zoneMap[arrayIndex]}
+                            </div>
 
-                        {slots[arrayIndex] ? (
-                            <DraggablePlayer
-                                key={slots[arrayIndex].id}
-                                player={slots[arrayIndex]}
+                            {/* Zone Marker is the target for drops */}
+                            <ZoneMarker
                                 index={arrayIndex}
+                                visualZone={""}
                                 teamId={teamId}
-                                theme={theme}
-                                isServer={isServing && arrayIndex === 0}
-                                onActivate={handlePlayerActivate}
-                                isMVP={mvpId === slots[arrayIndex].id}
-                                isGlobalDragging={isDragActive}
+                                isActive={false}
                             />
-                        ) : (
-                            <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/20 opacity-30 pointer-events-none" />
-                        )}
-                    </div>
-                ))}
+
+                            {slots[arrayIndex] ? (
+                                <DraggablePlayer
+                                    key={slots[arrayIndex].id}
+                                    player={slots[arrayIndex]}
+                                    index={arrayIndex}
+                                    teamId={teamId}
+                                    theme={theme}
+                                    isServer={isServing && arrayIndex === 0}
+                                    onActivate={handlePlayerActivate}
+                                    isMVP={mvpId === slots[arrayIndex].id}
+                                    isGlobalDragging={isDragActive}
+                                />
+                            ) : (
+                                <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/20 opacity-30 pointer-events-none" />
+                            )}
+                        </div>
+                    );
+                })}
             </div>
 
         </div>

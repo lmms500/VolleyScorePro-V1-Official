@@ -264,7 +264,7 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
             />
 
             {/* CONTAINER WITH RESPONSIVE LAYOUT */}
-            <div className="flex flex-col flex-1 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white overflow-hidden">
+            <div className="flex flex-col flex-1 bg-gradient-to-b from-slate-50/50 to-slate-100/50 dark:from-slate-950/50 dark:to-slate-900/50 backdrop-blur-md text-slate-900 dark:text-white overflow-hidden">
 
                 {/* --- RESPONSIVE CONTENT AREA --- */}
 

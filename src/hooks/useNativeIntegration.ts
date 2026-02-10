@@ -1,19 +1,12 @@
 
 import { useEffect } from 'react';
-import { Capacitor, registerPlugin } from '@capacitor/core';
+import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { SplashScreen } from '@capacitor/splash-screen';
-import { StatusBar, Style } from '@capacitor/status-bar';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
 
-// Interface para o plugin SystemUi registrado no MainActivity.java
-interface SystemUiPlugin {
-    setImmersiveMode(options: { enabled: boolean }): Promise<void>;
-}
-
-// Registrar plugin nativo local
-const SystemUi = registerPlugin<SystemUiPlugin>('SystemUi');
+// [LOTE 8.2] StatusBar and SystemUi imports removed - immersive mode now handled by useImmersiveMode hook
 
 export const useNativeIntegration = (
     isMatchActive: boolean,
@@ -25,19 +18,11 @@ export const useNativeIntegration = (
     const isAndroid = Capacitor.getPlatform() === 'android';
 
     // Inicialização única no mount
+    // [LOTE 8.2] StatusBar initialization removed - conflicts with SystemUi plugin
     useEffect(() => {
         if (isNative) {
             const initNative = async () => {
                 try {
-                    // StatusBar: Estilo escuro para ícones claros em fundo escuro
-                    await StatusBar.setStyle({ style: Style.Dark });
-
-                    if (isAndroid) {
-                        // Android: Configurar barras transparentes edge-to-edge
-                        await StatusBar.setOverlaysWebView({ overlay: true });
-                        await StatusBar.setBackgroundColor({ color: '#00000000' });
-                    }
-
                     // iOS: Teclado não redimensiona a UI
                     if (Capacitor.getPlatform() === 'ios') {
                         await Keyboard.setResizeMode({ mode: KeyboardResize.None });
@@ -53,37 +38,9 @@ export const useNativeIntegration = (
             };
             initNative();
         }
-    }, [isNative, isAndroid]);
+    }, [isNative]);
 
-    // Controle de Modo Imersivo (Fullscreen) - Android
-    // Nota: O re-hide automático após swipe é feito no MainActivity.java via onWindowFocusChanged + onResume
-    useEffect(() => {
-        if (!isNative || !isAndroid) return;
-
-        const setImmersive = async () => {
-            try {
-                if (isFullscreen) {
-                    // FULLSCREEN: Ativar modo imersivo primeiro, depois esconder status bar
-                    await SystemUi.setImmersiveMode({ enabled: true });
-                    await StatusBar.hide();
-                    console.log('[NativeIntegration] Modo imersivo ATIVADO - auto-hide habilitado');
-                } else {
-                    // NORMAL: Desativar modo imersivo e mostrar barras transparentes
-                    await SystemUi.setImmersiveMode({ enabled: false });
-                    await StatusBar.show();
-                    // Reconfigurar barras transparentes após sair do modo imersivo
-                    await StatusBar.setOverlaysWebView({ overlay: true });
-                    await StatusBar.setBackgroundColor({ color: '#00000000' });
-                    await StatusBar.setStyle({ style: Style.Dark });
-                    console.log('[NativeIntegration] Modo imersivo DESATIVADO, barras transparentes');
-                }
-            } catch (e) {
-                console.warn("[NativeIntegration] Erro ao alternar modo imersivo:", e);
-            }
-        };
-
-        setImmersive();
-    }, [isFullscreen, isNative, isAndroid]);
+    // [LOTE 8.2] Controle de Modo Imersivo movido para useImmersiveMode hook
 
     // Bloqueio de Orientação Dinâmico (Híbrido: Nativo + PWA)
     useEffect(() => {

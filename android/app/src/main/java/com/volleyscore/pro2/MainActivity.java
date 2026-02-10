@@ -13,31 +13,38 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
-import com.getcapacitor.Plugin;
-import com.getcapacitor.PluginCall;
-import com.getcapacitor.PluginMethod;
-import com.getcapacitor.annotation.CapacitorPlugin;
 
 public class MainActivity extends BridgeActivity {
-    // Estado global do modo imersivo (acessível pelo plugin e onWindowFocusChanged)
+    // Global state for immersive mode (accessed by plugin and onWindowFocusChanged)
     private static boolean sImmersiveModeEnabled = false;
     private Handler handler = new Handler(Looper.getMainLooper());
     private Runnable hideRunnable = null;
 
+    /**
+     * Static setter for immersive mode state.
+     * Called by SystemUiPlugin to update the global state.
+     */
+    public static void setImmersiveModeEnabled(boolean enabled) {
+        sImmersiveModeEnabled = enabled;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // CRITICAL: Register plugin BEFORE super.onCreate() for Capacitor 4+
+        registerPlugin(SystemUiPlugin.class);
+        
         super.onCreate(savedInstanceState);
 
         Window window = getWindow();
 
-        // 1. Edge-to-Edge: App desenha atrás das barras do sistema
+        // 1. Edge-to-Edge: App draws behind system bars
         WindowCompat.setDecorFitsSystemWindows(window, false);
 
-        // 2. Barras TRANSPARENTES (modo normal - estilo YouTube Music)
+        // 2. TRANSPARENT bars (normal mode - YouTube Music style)
         window.setStatusBarColor(Color.TRANSPARENT);
         window.setNavigationBarColor(Color.TRANSPARENT);
 
-        // 3. Permitir desenhar atrás das barras
+        // 3. Allow drawing behind bars
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.setDecorFitsSystemWindows(false);
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -46,14 +53,14 @@ public class MainActivity extends BridgeActivity {
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
         }
 
-        // 4. Ícones das barras: CLAROS (para fundo escuro)
+        // 4. Bar icons: LIGHT (for dark background)
         WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, window.getDecorView());
         if (controller != null) {
             controller.setAppearanceLightStatusBars(false);
             controller.setAppearanceLightNavigationBars(false);
         }
 
-        // Permissões Android 6.0+
+        // Permissions Android 6.0+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             String[] permissions = {
                 "android.permission.READ_EXTERNAL_STORAGE",
@@ -69,24 +76,21 @@ public class MainActivity extends BridgeActivity {
                 }
             }
         }
-
-        // 5. Registrar Plugin Nativo Local
-        registerPlugin(SystemUiPlugin.class);
     }
 
     /**
-     * CRÍTICO: Este método é chamado quando a janela ganha/perde foco.
-     * Quando o usuário desliza para revelar as barras, a janela perde foco momentaneamente.
-     * Quando as barras são escondidas novamente, a janela ganha foco.
-     * Usamos isso para re-esconder as barras automaticamente.
+     * CRITICAL: This method is called when the window gains/loses focus.
+     * When the user swipes to reveal bars, the window temporarily loses focus.
+     * When bars are hidden again, the window gains focus.
+     * We use this to automatically re-hide the bars.
      */
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
 
         if (sImmersiveModeEnabled && hasFocus) {
-            // Quando ganha foco E está em modo imersivo, re-esconder as barras
-            // Delay maior para garantir que o sistema estabilizou
+            // When gaining focus AND in immersive mode, re-hide bars
+            // Larger delay to ensure system has stabilized
             if (hideRunnable != null) {
                 handler.removeCallbacks(hideRunnable);
             }
@@ -98,14 +102,14 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onResume() {
         super.onResume();
-        // Re-aplicar modo imersivo quando a activity é resumed
+        // Re-apply immersive mode when activity is resumed
         if (sImmersiveModeEnabled) {
             handler.postDelayed(() -> hideSystemBars(), 100);
         }
     }
 
     /**
-     * Esconde as barras do sistema de forma imersiva
+     * Hides system bars in immersive mode
      */
     private void hideSystemBars() {
         Window window = getWindow();
@@ -113,71 +117,16 @@ public class MainActivity extends BridgeActivity {
         WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
 
         if (controller != null) {
-            // Esconder status bar e navigation bar
-            controller.hide(WindowInsetsCompat.Type.statusBars());
-            controller.hide(WindowInsetsCompat.Type.navigationBars());
+            // First, set behavior BEFORE hiding
+            // BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE: swipe shows bars temporarily,
+            // then they auto-hide
+            controller.setSystemBarsBehavior(
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            );
 
-            // BEHAVIOR_DEFAULT permite swipe para mostrar temporariamente
-            // e esconde automaticamente após alguns segundos (Android 11+)
-            // BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE também funciona mas é mais antigo
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_DEFAULT);
-            } else {
-                controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-            }
-
-            // Fallback adicional usando flags antigas para Android < 11
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-                decorView.setSystemUiVisibility(
-                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                );
-            }
-        }
-    }
-
-    /**
-     * Local Plugin para controle de Modo Imersivo
-     * Exposto para JS como "SystemUi"
-     */
-    @CapacitorPlugin(name = "SystemUi")
-    public static class SystemUiPlugin extends Plugin {
-        @PluginMethod
-        public void setImmersiveMode(PluginCall call) {
-            boolean enabled = call.getBoolean("enabled", true);
-            sImmersiveModeEnabled = enabled;
-
-            getActivity().runOnUiThread(() -> {
-                Window window = getActivity().getWindow();
-                WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, window.getDecorView());
-
-                if (controller == null) {
-                    call.reject("WindowInsetsController não disponível");
-                    return;
-                }
-
-                if (enabled) {
-                    // FULLSCREEN: Esconder Status Bar e Navigation Bar
-                    controller.hide(WindowInsetsCompat.Type.systemBars());
-                    controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-                } else {
-                    // MODO NORMAL: Mostrar barras transparentes
-                    controller.show(WindowInsetsCompat.Type.systemBars());
-
-                    // Reconfigurar barras como transparentes
-                    window.setStatusBarColor(Color.TRANSPARENT);
-                    window.setNavigationBarColor(Color.TRANSPARENT);
-
-                    // Ícones claros para fundo escuro
-                    controller.setAppearanceLightStatusBars(false);
-                    controller.setAppearanceLightNavigationBars(false);
-                }
-                call.resolve();
-            });
+            // Hide ALL system bars (status + navigation) at once
+            controller.hide(WindowInsetsCompat.Type.systemBars());
         }
     }
 }
+

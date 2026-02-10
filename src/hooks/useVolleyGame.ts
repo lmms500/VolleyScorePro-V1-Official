@@ -179,7 +179,7 @@ export const useVolleyGame = () => {
     startNewGame,
 
     // Computed values
-    canUndo: state.actionLog.length > 0,
+    canUndo: state.actionLog.length > 0 || !!state.lastSnapshot,
     hasDeletedPlayers: state.deletedPlayerHistory.length > 0,
     deletedCount: state.deletedPlayerHistory.length,
     rotationMode: state.rotationMode,

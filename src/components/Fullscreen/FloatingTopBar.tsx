@@ -95,7 +95,7 @@ const TimeoutButton = memo<{
            w-10 h-full flex-shrink-0 gap-1 min-h-[44px]
         `}
       >
-        <div className={`p-1 rounded-full bg-slate-200 dark:bg-black/40 backdrop-blur-sm ${hudText}`}>
+        <div className={`p-1 rounded-full bg-gradient-to-b from-slate-100 to-slate-200 dark:from-white/10 dark:to-white/5 border border-white/30 dark:border-white/10 shadow-inner ${hudText}`}>
           <Timer size={12} className="text-slate-600 dark:text-white" strokeWidth={3} />
         </div>
         <TimeoutDots count={timeouts} colorTheme={theme} />

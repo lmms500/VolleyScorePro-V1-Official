@@ -56,23 +56,28 @@ const ScoreNumberDisplay = memo(({
 }) => {
 
     return (
-        <div className="relative grid place-items-center w-full pointer-events-none overflow-visible isolate" style={{ lineHeight: 1 }}>
+        <div className="relative flex items-center justify-center w-full pointer-events-none overflow-visible isolate" style={{ lineHeight: 1 }}>
 
-            {/* 1. True Halo Layer (Isolated & Memoized) */}
-            <HaloBackground
-                mode={haloMode}
-                colorTheme={colorTheme}
-                lowGraphics={lowGraphics}
-            />
+            {/* 1. Halo Layer: Absolute Centered Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center z-0">
+                <HaloBackground
+                    mode={haloMode}
+                    colorTheme={colorTheme}
+                    score={score}
+                    lowGraphics={lowGraphics}
+                    className=""
+                    size="min(45vw, 45vh)"
+                />
+            </div>
 
-            {/* 2. Number Layer (Z-10) */}
+            {/* 2. Number Layer: Relative Content (z-10 para ficar na frente) */}
             <motion.div
                 ref={numberRef}
-                className="col-start-1 row-start-1 relative z-10 flex flex-col items-center justify-center will-change-transform overflow-visible"
+                className="relative z-10 flex flex-col items-center justify-center will-change-transform overflow-visible"
                 variants={pulseHeartbeat}
                 animate={isCritical ? "pulse" : "idle"}
             >
-                <div ref={scoreRefCallback} className="overflow-visible p-20">
+                <div ref={scoreRefCallback} className="overflow-visible">
                     <div ref={colliderRef} className="overflow-visible">
                         <ScoreTicker
                             value={score}
@@ -171,7 +176,7 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
     // Determine halo mode based on game state (memoized for performance)
     const haloMode: HaloMode = useMemo(() => {
         if (isCritical) return 'critical';
-        if (isLastScorer) return 'scoring';
+        if (isLastScorer) return 'lastScorer';
         if (isServing) return 'serving';
         return 'idle';
     }, [isCritical, isLastScorer, isServing]);

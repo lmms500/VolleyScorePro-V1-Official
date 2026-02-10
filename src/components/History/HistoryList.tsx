@@ -10,7 +10,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../ui/Button';
 import { MatchDetail } from './MatchDetail';
-import { resolveTheme, getHexFromColor } from '../../utils/colors';
+import { resolveTheme } from '../../utils/colors';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { NotificationToast } from '../ui/NotificationToast';
 // import { GlobalLeaderboard } from '../Social/GlobalLeaderboard'; // DISABLED - Global tab hidden
@@ -109,14 +109,16 @@ const HistoryCard: React.FC<{
     const isWinnerB = match.winner === 'B';
     const themeA = resolveTheme(match.teamARoster?.color || 'indigo');
     const themeB = resolveTheme(match.teamBRoster?.color || 'rose');
-    const hexA = getHexFromColor(match.teamARoster?.color || 'indigo');
-    const hexB = getHexFromColor(match.teamBRoster?.color || 'rose');
 
     return (
         <div className="pb-3 px-1 landscape:pb-2 landscape:px-0">
-            <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`group relative rounded-2xl landscape:rounded-xl shadow-sm hover:shadow-md transition-colors border ${isSelected ? 'bg-indigo-50/80 dark:bg-indigo-500/10 border-indigo-500/30' : 'bg-white dark:bg-white/[0.03] border-transparent hover:bg-white/80 dark:hover:bg-white/[0.05]'}`}>
-                {(isWinnerA && !isSelected) && <div className="absolute inset-0 opacity-[0.02] pointer-events-none rounded-2xl transition-colors duration-500" style={{ background: `linear-gradient(135deg, ${hexA}, transparent)` }} />}
-                {(isWinnerB && !isSelected) && <div className="absolute inset-0 opacity-[0.02] pointer-events-none rounded-2xl transition-colors duration-500" style={{ background: `linear-gradient(135deg, ${hexB}, transparent)` }} />}
+            <motion.div layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`group relative rounded-2xl landscape:rounded-xl transition-all duration-300 overflow-hidden border ${isSelected ? 'bg-indigo-500/10 border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.15)]' : 'bg-gradient-to-br from-white/10 to-white/5 border-white/20 dark:border-white/5 hover:bg-white/15 shadow-lg shadow-black/5'}`}>
+                {isWinnerA && !isSelected && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-indigo-500 via-indigo-400/50 to-transparent opacity-80" />
+                )}
+                {isWinnerB && !isSelected && (
+                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-rose-500 via-rose-400/50 to-transparent opacity-80" />
+                )}
                 <div className="relative z-10 p-4 landscape:p-3 cursor-pointer flex flex-col gap-3" onClick={() => onToggle(match.id)}>
                     <div className="flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-slate-400">
                         <div className="flex items-center gap-2"><span>{date}</span><span className="w-0.5 h-0.5 rounded-full bg-slate-300"></span><span>{time}</span></div>

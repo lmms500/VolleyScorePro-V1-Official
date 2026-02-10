@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { TeamColor, SkillType } from '../types';
+import { useHaptics } from '../hooks/useHaptics';
 
 interface NotificationState {
   visible: boolean;
@@ -29,13 +30,31 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     mainText: '',
   });
 
+  const { notification: hapticNotification, impact } = useHaptics();
+
   const showNotification = useCallback((params: Omit<NotificationState, 'visible' | 'timestamp'>) => {
+    // Logic:
+    // 1. If currently showing an Error, only another Error can replace it immediately (unless it's been a while? No, stick to simple priority).
+    // Actually, user action usually dictates priority. If I click something that fails, I want to see the error.
+    // If I undo, I want to see the undo.
+    // The "Singleton" pattern primarily prevents stacking.
+    // We will allow replacement always, as most recent user action is most relevant.
+
+    // Haptics Integration
+    if (params.type === 'error') {
+      hapticNotification('error');
+    } else if (params.type === 'success') {
+      hapticNotification('success');
+    } else if (params.type === 'info') {
+      impact('light');
+    }
+
     setState({
       ...params,
       visible: true,
       timestamp: Date.now(),
     });
-  }, []);
+  }, [hapticNotification, impact]);
 
   const hideNotification = useCallback(() => {
     setState(prev => ({ ...prev, visible: false }));

@@ -1,8 +1,10 @@
 
 import { GameConfig, GameMode } from './types';
+import { GAME_MODE_PRESETS } from './config/gameModes';
 
 export const DEFAULT_CONFIG: GameConfig = {
   mode: 'indoor',
+  modeConfig: GAME_MODE_PRESETS['indoor-6v6'], // Default layout config
   maxSets: 5, // Official FIVB: Best of 5
   pointsPerSet: 25, // Sets 1-4 are 25 points
   hasTieBreak: true,
@@ -40,14 +42,34 @@ export const INDOOR_BENCH_LIMIT = 6;
 export const BEACH_BENCH_LIMIT = 3;
 
 // Helper to get court limit based on mode
-export const getPlayersOnCourt = (mode: GameMode) => mode === 'beach' ? BEACH_COURT_LIMIT : INDOOR_COURT_LIMIT;
+// UPDATED: Now supports dynamic player counts via optional second parameter
+export const getPlayersOnCourt = (mode: GameMode, playersOnCourt?: number): number => {
+  if (playersOnCourt !== undefined) {
+    return playersOnCourt;
+  }
+  return mode === 'beach' ? BEACH_COURT_LIMIT : INDOOR_COURT_LIMIT;
+};
 
 // Helper to get bench limit based on mode
-export const getBenchLimit = (mode: GameMode) => mode === 'beach' ? BEACH_BENCH_LIMIT : INDOOR_BENCH_LIMIT;
+// UPDATED: Now supports dynamic bench limits via optional second parameter
+export const getBenchLimit = (mode: GameMode, benchLimit?: number): number => {
+  if (benchLimit !== undefined) {
+    return benchLimit;
+  }
+  return mode === 'beach' ? BEACH_BENCH_LIMIT : INDOOR_BENCH_LIMIT;
+};
 
-// Legacy constant for backwards compatibility where mode isn't available (defaulting to max)
+/**
+ * @deprecated Use getGameModeConfig() from src/config/gameModes.ts instead
+ * Legacy constant for backwards compatibility where mode isn't available
+ */
 export const PLAYER_LIMIT_ON_COURT = 6;
-export const PLAYERS_PER_TEAM = 6; // Max roster size logic (can be overridden by dynamic logic)
+
+/**
+ * @deprecated Use getGameModeConfig() from src/config/gameModes.ts instead
+ * Max roster size logic (can be overridden by dynamic logic)
+ */
+export const PLAYERS_PER_TEAM = 6;
 
 // ========================================
 // FEATURE FLAGS - PlayStore Release v1.0

@@ -20,14 +20,14 @@ interface PlayerContextMenuProps {
     setActivateBenchConfirm: (data: { teamId: string; playerId: string; fromId: string }) => void;
 }
 
-export const PlayerContextMenu = ({ 
-    activePlayerMenu, 
-    courtA, courtB, queue, 
-    onToggleFixed, onRemove, toggleTeamBench, 
+export const PlayerContextMenu = ({
+    activePlayerMenu,
+    courtA, courtB, queue,
+    onToggleFixed, onRemove, toggleTeamBench,
     onMove, handleTogglePlayerMenu, t,
     setActivateBenchConfirm
 }: PlayerContextMenuProps) => {
-    
+
     if (!activePlayerMenu) return null;
 
     // Find the player's current context
@@ -77,16 +77,16 @@ export const PlayerContextMenu = ({
         action();
         handleTogglePlayerMenu(activePlayerMenu.playerId, null); // Close menu
     };
-    
+
     const handleMoveToBench = () => {
         if (!targetTeam) return;
         if (targetTeam.hasActiveBench) {
             onMove(targetPlayer!.id, targetTeam!.id, `${targetTeam!.id}_Reserves`);
         } else {
-            setActivateBenchConfirm({ 
-                teamId: targetTeam.id, 
-                playerId: targetPlayer!.id, 
-                fromId: targetTeam.id 
+            setActivateBenchConfirm({
+                teamId: targetTeam.id,
+                playerId: targetPlayer!.id,
+                fromId: targetTeam.id
             });
         }
     };
@@ -94,59 +94,73 @@ export const PlayerContextMenu = ({
     const isCourtFull = targetTeam.players.length >= PLAYER_LIMIT_ON_COURT;
 
     return createPortal(
-        <motion.div 
-            initial={{ opacity: 0, scale: 0.9, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 10 }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            style={style}
-            className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-black/10 dark:border-white/10 p-1 min-w-[160px] flex flex-col gap-1 origin-top-left"
-        >
-            {/* Contextual Action: Move to Bench/Court */}
-            {locationType === 'Main' && (
-                <button 
-                    onClick={() => handleAction(handleMoveToBench)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-left"
-                >
-                    <Armchair size={14} className="text-indigo-500" />
-                    {t('teamManager.menu.sendBench')}
-                </button>
-            )}
-            {locationType === 'Reserves' && (
-                <button 
-                    onClick={() => handleAction(() => {
-                        onMove(targetPlayer!.id, `${targetTeam!.id}_Reserves`, targetTeam!.id);
-                    })}
-                    disabled={isCourtFull}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-left disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                    <ArrowUp size={14} className="text-emerald-500" />
-                    {t('teamManager.menu.returnCourt')}
-                </button>
-            )}
-
-            <div className="h-px bg-black/5 dark:bg-white/5 my-0.5" />
-
-            {/* Lock/Unlock */}
-            <button 
-                onClick={() => handleAction(() => onToggleFixed(targetPlayer!.id))}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-left"
+        <>
+            {/* Invisible Backdrop for Outside Click */}
+            <div
+                className="fixed inset-0 z-[9998] bg-transparent"
+                onPointerDown={(e) => {
+                    // Using onPointerDown for faster reaction on touch devices
+                    handleTogglePlayerMenu(activePlayerMenu.playerId, null);
+                }}
+                onContextMenu={(e) => {
+                    e.preventDefault();
+                    handleTogglePlayerMenu(activePlayerMenu.playerId, null);
+                }}
+            />
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                style={style}
+                className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 dark:border-white/10 ring-1 ring-black/5 dark:ring-white/5 p-1 min-w-[160px] flex flex-col gap-1 origin-top-left"
             >
-                {targetPlayer.isFixed ? <Unlock size={14} className="text-slate-400" /> : <Lock size={14} className="text-amber-500" />}
-                {targetPlayer.isFixed ? t('teamManager.menu.unlock') : t('teamManager.menu.lock')}
-            </button>
+                {/* Contextual Action: Move to Bench/Court */}
+                {locationType === 'Main' && (
+                    <button
+                        onClick={() => handleAction(handleMoveToBench)}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-left"
+                    >
+                        <Armchair size={14} className="text-indigo-500" />
+                        {t('teamManager.menu.sendBench')}
+                    </button>
+                )}
+                {locationType === 'Reserves' && (
+                    <button
+                        onClick={() => handleAction(() => {
+                            onMove(targetPlayer!.id, `${targetTeam!.id}_Reserves`, targetTeam!.id);
+                        })}
+                        disabled={isCourtFull}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-left disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                        <ArrowUp size={14} className="text-emerald-500" />
+                        {t('teamManager.menu.returnCourt')}
+                    </button>
+                )}
 
-            <div className="h-px bg-black/5 dark:bg-white/5 my-0.5" />
+                <div className="h-px bg-black/5 dark:bg-white/5 my-0.5" />
 
-            {/* Delete */}
-            <button 
-                onClick={() => handleAction(() => onRemove(targetPlayer!.id))}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors text-left"
-            >
-                <Trash2 size={14} />
-                {t('teamManager.menu.delete')}
-            </button>
-        </motion.div>,
+                {/* Lock/Unlock */}
+                <button
+                    onClick={() => handleAction(() => onToggleFixed(targetPlayer!.id))}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-left"
+                >
+                    {targetPlayer.isFixed ? <Unlock size={14} className="text-slate-400" /> : <Lock size={14} className="text-amber-500" />}
+                    {targetPlayer.isFixed ? t('teamManager.menu.unlock') : t('teamManager.menu.lock')}
+                </button>
+
+                <div className="h-px bg-black/5 dark:bg-white/5 my-0.5" />
+
+                {/* Delete */}
+                <button
+                    onClick={() => handleAction(() => onRemove(targetPlayer!.id))}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-colors text-left"
+                >
+                    <Trash2 size={14} />
+                    {t('teamManager.menu.delete')}
+                </button>
+            </motion.div>
+        </>,
         document.body
     );
 };

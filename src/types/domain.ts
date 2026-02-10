@@ -13,6 +13,46 @@ export type PlayerId = string;
 export type PlayerRole = 'setter' | 'hitter' | 'middle' | 'libero' | 'none';
 export type TeamColor = string;
 
+// --- DYNAMIC GAME MODE TYPES ---
+
+export type GameModePreset =
+  | 'indoor-6v6'
+  | 'beach-4v4'
+  | 'beach-2v2'
+  | 'triples-3v3'
+  | 'quads-5v5';
+
+export interface CourtLayoutConfig {
+  playersOnCourt: 2 | 3 | 4 | 5 | 6;
+  benchLimit: number;
+  gridRows: 1 | 2 | 3;
+  gridCols: 2 | 3;
+  /**
+   * Zone numbers for visual display.
+   * Index 0 = Server (Zone 1 always).
+   * Length must match playersOnCourt.
+   */
+  zoneMap: number[];
+  /**
+   * Grid order for left-side team.
+   * Maps grid visual positions to player array indices.
+   * Use -1 for empty slots (odd player counts like 3, 5).
+   */
+  gridOrderLeft: number[];
+  /**
+   * Grid order for right-side team (mirrored).
+   * Use -1 for empty slots.
+   */
+  gridOrderRight: number[];
+}
+
+export interface GameModeConfig {
+  preset: GameModePreset;
+  label: string;
+  type: GameMode; // 'indoor' | 'beach' for backwards compatibility
+  courtLayout: CourtLayoutConfig;
+}
+
 export interface ProfileStats {
   matchesPlayed: number;
   matchesWon: number;
@@ -39,6 +79,11 @@ export interface PlayerProfile {
 
 export interface GameConfig {
   mode: GameMode;
+  /**
+   * New: Full mode configuration object.
+   * If undefined, derive from `mode` for backwards compatibility.
+   */
+  modeConfig?: GameModeConfig;
   maxSets: 1 | 3 | 5;
   pointsPerSet: 15 | 21 | 25;
   hasTieBreak: boolean;

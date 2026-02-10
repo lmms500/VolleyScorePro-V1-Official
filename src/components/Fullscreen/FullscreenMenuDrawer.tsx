@@ -130,7 +130,7 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = memo(({
             className={`
               fixed top-0 right-0 h-full z-[70]
               w-full sm:w-[26rem] landscape:w-[42rem] max-w-[100vw]
-              bg-slate-50/95 dark:bg-[#020617]/95
+              bg-slate-50/80 dark:bg-[#020617]/80
               backdrop-blur-3xl 
               border-l border-white/20 dark:border-white/10 
               shadow-2xl shadow-black/50

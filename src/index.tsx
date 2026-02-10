@@ -7,6 +7,10 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { Capacitor } from '@capacitor/core';
 
+// [LOTE 8.2] StatusBar configuration REMOVED
+// The custom SystemUi plugin in MainActivity.java handles edge-to-edge and immersive mode.
+// Using Capacitor's StatusBar plugin here conflicts with our native implementation.
+
 // Suppress Chrome extension message channel errors (Service Worker noise)
 globalThis.addEventListener('unhandledrejection', (event) => {
   if (event.reason?.message?.includes('message channel closed')) {
@@ -22,7 +26,7 @@ console.log('Root element:', document.getElementById('root'));
 // Strip console logs in production/native environments to prevent sensitive data leakage.
 // This is critical for avoiding PII leaks via logcat/xcode logs.
 if (process.env.NODE_ENV === 'production' || (Capacitor.isNativePlatform() && !(import.meta as any).env.DEV)) {
-  const noop = () => {};
+  const noop = () => { };
   console.log = noop;
   console.info = noop;
   console.debug = noop;
