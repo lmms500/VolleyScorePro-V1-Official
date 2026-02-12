@@ -7,6 +7,7 @@ import { useLayoutManager } from '../../contexts/LayoutContext';
 import { useElementSize } from '../../hooks/useElementSize';
 import { motion, AnimatePresence } from 'framer-motion';
 import { springSnappy } from '../../utils/animations';
+import { IconButton } from '../ui/IconButton';
 
 interface FloatingControlBarProps {
   onUndo: () => void;
@@ -29,6 +30,12 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({
 
   const { scale, registerElement } = useLayoutManager();
 
+  const handleInteraction = useCallback(() => {
+    setIsMinimized(false);
+    // Force a re-render of the effect by briefly setting isHovering to true then back
+    // This is a bit hacky, better approach below
+  }, []);
+
   const handleMinimize = useCallback(() => setIsMinimized(prev => !prev), []);
   const handleUndo = useCallback(() => { onUndo(); setIsHovering(false); }, [onUndo]);
   const handleSwap = useCallback(() => { onSwap(); setIsHovering(false); }, [onSwap]);
@@ -38,6 +45,16 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({
   const handleToggleListening = useCallback(() => { onToggleListening(); setIsHovering(false); }, [onToggleListening]);
   const { ref, width, height } = useElementSize<HTMLDivElement>();
 
+  // Reset timer on any click
+  const handleUserActivity = useCallback(() => {
+    setIsMinimized(false);
+    // We need to clear and restart the timer. The effect depends on isMinimized/isHovering.
+    // We can introduce a 'lastActivity' state to trigger effect re-run
+    setLastActivity(Date.now());
+  }, []);
+
+  const [lastActivity, setLastActivity] = useState(Date.now());
+
   useEffect(() => {
     registerElement('controls', width, height);
   }, [width, height, registerElement]);
@@ -46,11 +63,11 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({
     if (isMinimized || isHovering) return;
     const timer = setTimeout(() => setIsMinimized(true), 4000);
     return () => clearTimeout(timer);
-  }, [isMinimized, isHovering]);
+  }, [isMinimized, isHovering, lastActivity]);
 
   const glassContainer = "bg-white/90 dark:bg-slate-900/80 backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-2xl shadow-black/20 dark:shadow-black/40 ring-1 ring-black/5 dark:ring-white/10";
-  const buttonBase = "rounded-full transition-all duration-300 active:scale-90 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-transparent hover:bg-black/5 dark:hover:bg-white/10";
-  const pClass = 'p-3';
+  // const buttonBase = "rounded-full transition-all duration-300 active:scale-90 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-transparent hover:bg-black/5 dark:hover:bg-white/10";
+  // const pClass = 'p-3';
   const iconSize = 20;
 
   return (
@@ -71,52 +88,77 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({
             transition={springSnappy}
             className={`flex items-center gap-2 p-1.5 rounded-2xl ${glassContainer}`}
           >
-            <button
-              onClick={onUndo}
+            <IconButton
+              icon={<Undo2 size={iconSize} strokeWidth={1.5} />}
+              onClick={() => { handleUndo(); handleUserActivity(); }}
               disabled={!canUndo}
-              className={`${buttonBase} ${pClass} disabled:opacity-30 disabled:cursor-not-allowed`}
+              variant="ghost"
+              size="lg"
+              aria-label={t('controls.undo')}
               title={t('controls.undo')}
-            >
-              <Undo2 size={iconSize} strokeWidth={1.5} />
-            </button>
+            />
 
-            <button onClick={onSwap} className={`${buttonBase} ${pClass}`} title={t('controls.swap')}>
-              <ArrowLeftRight size={iconSize} strokeWidth={1.5} />
-            </button>
+            <IconButton
+              icon={<ArrowLeftRight size={iconSize} strokeWidth={1.5} />}
+              onClick={() => { handleSwap(); handleUserActivity(); }}
+              variant="ghost"
+              size="lg"
+              aria-label={t('controls.swap')}
+              title={t('controls.swap')}
+            />
 
             {voiceEnabled && (
-              <button
-                onClick={onToggleListening}
-                className={`${buttonBase} ${pClass} ${isListening ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30 animate-pulse hover:text-white hover:bg-rose-600' : ''}`}
+              <IconButton
+                icon={isListening ? <Mic size={iconSize} strokeWidth={1.5} /> : <MicOff size={iconSize} strokeWidth={1.5} />}
+                onClick={() => { handleToggleListening(); handleUserActivity(); }}
+                variant={isListening ? "filled" : "ghost"}
+                size="lg"
+                isActive={isListening}
+                activeClassName="bg-rose-500 dark:bg-rose-600 text-white shadow-lg shadow-rose-500/30 animate-pulse hover:bg-rose-600"
+                aria-label="Voice Control"
                 title="Voice Control"
-              >
-                {isListening ? <Mic size={iconSize} strokeWidth={1.5} /> : <MicOff size={iconSize} strokeWidth={1.5} />}
-              </button>
+              />
             )}
 
             <div className="w-px h-5 bg-black/10 dark:bg-white/10 mx-0.5"></div>
 
-            <button onClick={onCourt} className={`${buttonBase} ${pClass} text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20`} title={t('court.title') || 'Court'}>
-              <Grid size={iconSize} strokeWidth={1.5} />
-            </button>
+            <IconButton
+              icon={<Grid size={iconSize} strokeWidth={1.5} />}
+              onClick={() => { handleCourt(); handleUserActivity(); }}
+              variant="success"
+              size="lg"
+              aria-label={t('court.title') || 'Court'}
+              title={t('court.title') || 'Court'}
+            />
 
-            <button onClick={onReset} className={`${buttonBase} ${pClass} text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10`} title={t('controls.reset')}>
-              <RotateCcw size={iconSize} strokeWidth={1.5} />
-            </button>
+            <IconButton
+              icon={<RotateCcw size={iconSize} strokeWidth={1.5} />}
+              onClick={() => { handleReset(); handleUserActivity(); }}
+              variant="danger"
+              size="lg"
+              aria-label={t('controls.reset')}
+              title={t('controls.reset')}
+            />
 
-            <button onClick={onMenu} className={`${buttonBase} ${pClass} bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400`} title={t('game.menu')}>
-              <Menu size={iconSize} strokeWidth={1.5} />
-            </button>
+            <IconButton
+              icon={<Menu size={iconSize} strokeWidth={1.5} />}
+              onClick={() => { handleMenu(); handleUserActivity(); }}
+              variant="filled"
+              size="lg"
+              aria-label={t('game.menu')}
+              title={t('game.menu')}
+            />
 
             <div className="w-px h-5 bg-black/10 dark:bg-white/10 mx-0.5"></div>
 
-            <button
-              onClick={() => setIsMinimized(true)}
-              className={`${buttonBase} p-2 w-10 h-10`}
+            <IconButton
+              icon={<ChevronDown size={18} />}
+              onClick={() => { setIsMinimized(true); }}
+              variant="ghost"
+              size="md"
+              aria-label="Minimize"
               title="Minimize"
-            >
-              <ChevronDown size={18} />
-            </button>
+            />
 
           </motion.div>
         ) : (

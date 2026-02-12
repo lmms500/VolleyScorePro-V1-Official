@@ -1,14 +1,12 @@
-import React, { useState, memo, useMemo, useRef, useCallback } from 'react';
+import React, { memo, useMemo, useRef } from 'react';
 import { TeamId, Team, SkillType, GameConfig, TeamColor } from '../types';
-import { useScoreGestures } from '../hooks/useScoreGestures';
 import { ScoreTicker } from './ui/ScoreTicker';
 import { motion, AnimatePresence } from 'framer-motion';
 import { pulseHeartbeat } from '../utils/animations';
-import { useGameAudio } from '../hooks/useGameAudio';
-import { useHaptics } from '../hooks/useHaptics';
 import { ScoutModal } from './modals/ScoutModal';
 import { useCollider } from '../hooks/useCollider';
 import { HaloBackground, HaloMode } from './ui/HaloBackground';
+import { useScoreCardLogic } from '../hooks/useScoreCardLogic';
 
 interface ScoreCardFullscreenProps {
     teamId: TeamId;
@@ -103,83 +101,27 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
     isLocked = false, onInteractionStart, onInteractionEnd, reverseLayout,
     scoreRefCallback, isServing, isLastScorer = false, config, colorTheme
 }) => {
-    const [isPressed, setIsPressed] = useState(false);
-    const [showScout, setShowScout] = useState(false);
-    const [isInteractionLocked, setIsInteractionLocked] = useState(false);
-    const [ripple, setRipple] = useState<{ x: number, y: number, id: number } | null>(null);
-
-    const containerRef = useRef<HTMLDivElement>(null);
     const numberRef = useRef<HTMLDivElement>(null);
-
     const colliderRef = useCollider(`sc-fs-${teamId}`);
 
-    const audio = useGameAudio(config);
-    const haptics = useHaptics(true);
-
-    const handleStart = useCallback((e: React.PointerEvent) => {
-        setIsPressed(true);
-        onInteractionStart?.();
-
-        if (containerRef.current && !config.lowGraphics) {
-            const rect = containerRef.current.getBoundingClientRect();
-            setRipple({
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top,
-                id: Date.now()
-            });
-        }
-    }, [onInteractionStart, config.lowGraphics]);
-
-    const handleEnd = useCallback(() => {
-        setIsPressed(false);
-        onInteractionEnd?.();
-    }, [onInteractionEnd]);
-
-    const handleScoutClose = useCallback(() => {
-        setShowScout(false);
-        setIsInteractionLocked(true);
-        const t = setTimeout(() => setIsInteractionLocked(false), 300);
-        return () => clearTimeout(t);
-    }, []);
-
-    const handleAddWrapper = useCallback(() => {
-        if (isInteractionLocked) return;
-        audio.playTap();
-        if (config.enablePlayerStats) {
-            haptics.impact('light');
-            setShowScout(true);
-        } else {
-            onAdd(teamId);
-        }
-    }, [config.enablePlayerStats, onAdd, teamId, audio, haptics, isInteractionLocked]);
-
-    const handleScoutConfirm = useCallback((pid: string, skill: SkillType) => {
-        onAdd(teamId, pid, skill);
-    }, [onAdd, teamId]);
-
-    const handleSubtractWrapper = useCallback(() => {
-        onSubtract();
-    }, [onSubtract]);
-
-    const gestureHandlers = useScoreGestures({
-        onAdd: handleAddWrapper,
-        onSubtract: handleSubtractWrapper,
-        isLocked: isLocked || isInteractionLocked,
-        onInteractionStart: handleStart,
-        onInteractionEnd: handleEnd
+    const {
+        showScout,
+        isPressed,
+        ripple,
+        haloMode,
+        isCritical,
+        resolvedColor,
+        containerRef,
+        handleScoutClose,
+        handleScoutConfirm,
+        gestureHandlers,
+    } = useScoreCardLogic({
+        teamId, team, onAdd, onSubtract, config, isLocked,
+        isMatchPoint, isSetPoint,
+        isServing: isServing ?? false,
+        isLastScorer: isLastScorer ?? false,
+        onInteractionStart, onInteractionEnd, colorTheme,
     });
-
-    const resolvedColor = colorTheme || team.color || 'slate';
-
-    const isCritical = isMatchPoint || isSetPoint;
-
-    // Determine halo mode based on game state (memoized for performance)
-    const haloMode: HaloMode = useMemo(() => {
-        if (isCritical) return 'critical';
-        if (isLastScorer) return 'lastScorer';
-        if (isServing) return 'serving';
-        return 'idle';
-    }, [isCritical, isLastScorer, isServing]);
 
     const textEffectClass = useMemo(() => {
         if (config.lowGraphics) return '';

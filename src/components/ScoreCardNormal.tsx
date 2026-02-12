@@ -1,11 +1,8 @@
 
-import React, { memo, useState, useCallback, useMemo } from 'react';
+import React, { memo } from 'react';
 import { Team, TeamId, SkillType, GameConfig, TeamColor } from '../types';
 import { Volleyball, Zap, Timer, Skull, TrendingUp, Trophy } from 'lucide-react';
-import { useScoreGestures } from '../hooks/useScoreGestures';
 import { useTranslation } from '../contexts/LanguageContext';
-import { useGameAudio } from '../hooks/useGameAudio';
-import { useHaptics } from '../hooks/useHaptics';
 import { ScoreTicker } from './ui/ScoreTicker';
 import { GlassSurface } from './ui/GlassSurface';
 import { GestureHint } from './ui/GestureHint';
@@ -16,7 +13,8 @@ import { resolveTheme } from '../utils/colors';
 import { TeamLogo } from './ui/TeamLogo';
 import { normalize, hp } from '../utils/responsive';
 import { useResponsive } from '../contexts/ResponsiveContext';
-import { HaloBackground, HaloMode } from './ui/HaloBackground';
+import { HaloBackground } from './ui/HaloBackground';
+import { useScoreCardLogic } from '../hooks/useScoreCardLogic';
 
 interface ScoreCardNormalProps {
     teamId: TeamId;
@@ -49,76 +47,26 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
     isLocked = false, onInteractionStart, onInteractionEnd, config, colorTheme, swappedSides = false
 }) => {
     const { t } = useTranslation();
-    const audio = useGameAudio(config);
-    const haptics = useHaptics(true);
-
-    const [showScout, setShowScout] = useState(false);
-    const [isInteractionLocked, setIsInteractionLocked] = useState(false);
-    const [isTouching, setIsTouching] = useState(false);
-    const [ripple, setRipple] = useState<{ x: number, y: number, id: number } | null>(null);
-
-    const containerRef = React.useRef<HTMLDivElement>(null);
-
-    const handleScoutClose = useCallback(() => {
-        setShowScout(false);
-        setIsInteractionLocked(true);
-        setTimeout(() => setIsInteractionLocked(false), 300);
-    }, []);
-
-    // 1. Consumir Contexto para Reatividade
-    // Mesmo que não usemos a key diretamente na renderização, 
-    // consumi-la força o React a executar este componente novamente no resize.
     const { resizeKey } = useResponsive();
 
-    const handleAddWrapper = useCallback(() => {
-        if (isInteractionLocked) return;
-        audio.playTap();
-        if (config.enablePlayerStats) {
-            haptics.impact('light');
-            setShowScout(true);
-        } else {
-            onAdd(teamId);
-        }
-    }, [config.enablePlayerStats, onAdd, teamId, audio, haptics, isInteractionLocked]);
-
-    const handleSubtractWrapper = useCallback(() => {
-        onSubtract();
-    }, [onSubtract]);
-
-    const handleTouchStart = useCallback((e: React.PointerEvent) => {
-        if (isLocked) return;
-        setIsTouching(true);
-        onInteractionStart?.();
-
-        if (containerRef.current) {
-            const rect = containerRef.current.getBoundingClientRect();
-            setRipple({
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top,
-                id: Date.now()
-            });
-        }
-    }, [onInteractionStart, isLocked]);
-
-    const handleTouchEnd = useCallback(() => {
-        setIsTouching(false);
-        onInteractionEnd?.();
-    }, [onInteractionEnd]);
-
-    const handleTouchCancel = useCallback(() => {
-        setIsTouching(false);
-        onInteractionEnd?.();
-    }, [onInteractionEnd]);
-
-    const gestureHandlers = useScoreGestures({
-        onAdd: handleAddWrapper,
-        onSubtract: handleSubtractWrapper,
-        isLocked: isLocked || isInteractionLocked,
-        onInteractionStart: handleTouchStart,
-        onInteractionEnd: handleTouchEnd
+    const {
+        showScout,
+        isPressed: isTouching,
+        ripple,
+        haloMode,
+        isCritical,
+        resolvedColor,
+        containerRef,
+        handleScoutClose,
+        gestureHandlers,
+        handlePointerCancel: handleTouchCancel,
+        haptics,
+    } = useScoreCardLogic({
+        teamId, team, onAdd, onSubtract, config, isLocked,
+        isMatchPoint, isSetPoint, isServing, isLastScorer,
+        onInteractionStart, onInteractionEnd, colorTheme,
     });
 
-    const resolvedColor = colorTheme || team.color || 'slate';
     const theme = resolveTheme(resolvedColor);
 
     // Calculate order for swap animation
@@ -127,7 +75,6 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
         : (teamId === 'A' ? 1 : 2);
 
     const timeoutsExhausted = timeouts >= 2;
-    const isCritical = isMatchPoint || isSetPoint;
 
     let badgeConfig = null;
     if (inSuddenDeath) {
@@ -139,14 +86,6 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
     } else if (isDeuce) {
         badgeConfig = { icon: TrendingUp, text: t('status.deuce_advantage'), className: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-300 border-indigo-500/20' };
     }
-
-    // Determine halo mode based on game state
-    const haloMode: HaloMode = useMemo(() => {
-        if (isCritical) return 'critical';
-        if (isLastScorer) return 'lastScorer';
-        if (isServing) return 'serving';
-        return 'idle';
-    }, [isCritical, isLastScorer, isServing]);
 
     return (
         <GlassSurface

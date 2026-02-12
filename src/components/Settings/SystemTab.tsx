@@ -33,14 +33,14 @@ export const SystemTab: React.FC<SystemTabProps> = ({ localConfig, setLocalConfi
     const { mergeMatches } = useHistoryStore();
     const { profiles } = useRoster();
     const { mergeProfiles } = useActions();
-    
+
     // Service Worker & Platform
-    const { 
+    const {
         needRefresh, updateServiceWorker, checkForUpdates: checkSW, isChecking: isSWChecking,
         isInstallable, promptInstall, isStandalone
     } = useServiceWorker();
     const { isNative } = usePlatform();
-    
+
     // Tutorials
     const { resetTutorials } = useTutorial(false);
 
@@ -60,16 +60,16 @@ export const SystemTab: React.FC<SystemTabProps> = ({ localConfig, setLocalConfi
 
     // -- LOGIC HANDLERS --
 
-    const handleRemoveAds = () => { 
-        if (localConfig.adsRemoved || isRemovingAds) return; 
-        setIsRemovingAds(true); 
-        setTimeout(() => { 
-            setIsRemovingAds(false); 
-            setLocalConfig(prev => ({ ...prev, adsRemoved: true })); 
-            haptics.notification('success'); 
-        }, 1500); 
+    const handleRemoveAds = () => {
+        if (localConfig.adsRemoved || isRemovingAds) return;
+        setIsRemovingAds(true);
+        setTimeout(() => {
+            setIsRemovingAds(false);
+            setLocalConfig(prev => ({ ...prev, adsRemoved: true }));
+            haptics.notification('success');
+        }, 1500);
     };
-  
+
     const handleDevLogin = () => {
         if (devPassword === 'devmode') {
             setLocalConfig(prev => ({ ...prev, developerMode: true, adsRemoved: true }));
@@ -92,14 +92,14 @@ export const SystemTab: React.FC<SystemTabProps> = ({ localConfig, setLocalConfi
             // 1. Pull Data
             const remoteMatches = await SyncService.pullMatches(user.uid);
             const remoteProfiles = await SyncService.pullProfiles(user.uid);
-            
+
             // 2. Merge locally
             mergeMatches(remoteMatches);
             mergeProfiles(remoteProfiles);
-  
+
             // 3. Push Local Data (Sync Up)
             await SyncService.pushProfiles(user.uid, Array.from(profiles.values()));
-            
+
             setSyncStatus('success');
             haptics.notification('success');
             setTimeout(() => setSyncStatus('idle'), 2000);
@@ -125,14 +125,14 @@ export const SystemTab: React.FC<SystemTabProps> = ({ localConfig, setLocalConfi
             setStatusMsg(t('settings.backup.error'));
         }
     };
-  
+
     const handleRestoreClick = () => {
         if (fileInputRef.current) {
-            fileInputRef.current.value = ''; 
+            fileInputRef.current.value = '';
             fileInputRef.current.click();
         }
     };
-  
+
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -154,13 +154,13 @@ export const SystemTab: React.FC<SystemTabProps> = ({ localConfig, setLocalConfi
             setRestoreStatus('error');
             setStatusMsg(t('settings.backup.error'));
         }
-        e.target.value = ''; 
+        e.target.value = '';
     };
 
     const handleResetTutorials = () => { resetTutorials(); haptics.notification('success'); };
 
     const handleSmartCheck = async () => {
-        if (isNative) return; 
+        if (isNative) return;
         setRemoteCheckStatus('checking');
         checkSW();
         try {
@@ -191,20 +191,20 @@ export const SystemTab: React.FC<SystemTabProps> = ({ localConfig, setLocalConfi
     return (
         <div className="space-y-3 landscape:grid landscape:grid-cols-2 landscape:gap-4 landscape:space-y-0">
             <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={handleFileChange} />
-            
+
             {/* Column 1: Premium & Account */}
             <div className="space-y-3">
                 <div>
-                    <SectionTitle icon={Crown}>Premium & Access</SectionTitle>
+                    <SectionTitle icon={Crown}>{t('settings.premium.title')}</SectionTitle>
                     <div className="space-y-2">
-                        <SettingItem label="Remove Ads" sub="Support development" icon={Zap} color={{bg:'bg-amber-500/10', text:'text-amber-500'}}>
+                        <SettingItem label={t('settings.premium.removeAds')} sub={t('settings.premium.supportDev')} icon={Zap} color={{ bg: 'bg-amber-500/10', text: 'text-amber-500' }}>
                             {localConfig.adsRemoved ? (
-                                <span className="px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 border border-amber-500/30"><Check size={10} strokeWidth={3} /> Active</span>
+                                <span className="px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 border border-amber-500/30"><Check size={10} strokeWidth={3} /> {t('settings.premium.active')}</span>
                             ) : (
                                 <button onClick={handleRemoveAds} disabled={isRemovingAds} className="px-3 py-1.5 rounded-xl bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider shadow-md shadow-amber-500/20 hover:bg-amber-400 active:scale-95 transition-all flex items-center gap-1.5">{isRemovingAds ? <Loader2 size={12} className="animate-spin" /> : <Crown size={12} fill="currentColor" />} $4.99</button>
                             )}
                         </SettingItem>
-                        <SettingItem label="Developer Mode" icon={Terminal} color={{bg:'bg-slate-500/10', text:'text-slate-500'}}>
+                        <SettingItem label={t('settings.premium.devMode')} icon={Terminal} color={{ bg: 'bg-slate-500/10', text: 'text-slate-500' }}>
                             <button onClick={() => setShowDevInput(!showDevInput)} className={`p-2 rounded-xl transition-all ${localConfig.developerMode ? 'bg-emerald-500 text-white shadow-emerald-500/30' : 'bg-slate-100 dark:bg-white/10 text-slate-400 hover:text-slate-600'}`}>
                                 {localConfig.developerMode ? <Check size={16} /> : <Terminal size={16} />}
                             </button>
@@ -215,16 +215,16 @@ export const SystemTab: React.FC<SystemTabProps> = ({ localConfig, setLocalConfi
                                     <div className="flex gap-2 pt-1 pb-1">
                                         <div className="relative flex-1">
                                             <Lock size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                            <input type="password" placeholder="Access Code" value={devPassword} onChange={(e) => setDevPassword(e.target.value)} className="w-full pl-8 pr-3 py-2 bg-slate-100 dark:bg-black/20 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500/20 border border-transparent focus:border-indigo-500 transition-all" />
+                                            <input type="password" placeholder={t('settings.premium.accessCode')} value={devPassword} onChange={(e) => setDevPassword(e.target.value)} className="w-full pl-8 pr-3 py-2 bg-slate-100 dark:bg-black/20 rounded-xl text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500/20 border border-transparent focus:border-indigo-500 transition-all" />
                                         </div>
-                                        <button onClick={handleDevLogin} className="px-3 py-2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-bold shadow-sm active:scale-95">Enter</button>
+                                        <button onClick={handleDevLogin} className="px-3 py-2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-bold shadow-sm active:scale-95">{t('settings.premium.enter')}</button>
                                     </div>
                                 </motion.div>
                             )}
                         </AnimatePresence>
                     </div>
                 </div>
-                
+
                 {/* ACCOUNT & SYNC SECTION */}
                 <div>
                     <SectionTitle icon={User}>{t('settings.sections.sync')}</SectionTitle>
@@ -240,16 +240,16 @@ export const SystemTab: React.FC<SystemTabProps> = ({ localConfig, setLocalConfi
                                 </div>
                                 <button onClick={logout} className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl flex-shrink-0 transition-colors"><LogOut size={18} /></button>
                             </div>
-                            
+
                             {/* CLOUD SYNC BUTTON */}
-                            <button 
-                                onClick={handleCloudSync} 
+                            <button
+                                onClick={handleCloudSync}
                                 disabled={syncStatus === 'syncing'}
                                 className={`w-full flex items-center justify-center gap-2 py-3 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all border
                                 ${syncStatus === 'syncing' ? 'bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500 border-indigo-200' : (syncStatus === 'success' ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-white dark:bg-white/5 text-indigo-600 dark:text-indigo-400 border-black/5 dark:border-white/10 hover:bg-indigo-50 dark:hover:bg-white/10')}`}
                             >
                                 {syncStatus === 'syncing' ? <Loader2 size={14} className="animate-spin" /> : (syncStatus === 'success' ? <Check size={14} strokeWidth={3} /> : <Cloud size={14} />)}
-                                {syncStatus === 'syncing' ? 'Syncing...' : (syncStatus === 'success' ? 'Synced!' : 'Sync Now')}
+                                {syncStatus === 'syncing' ? t('settings.sync.status.syncing') : (syncStatus === 'success' ? t('settings.sync.status.synced') : t('settings.sync.status.syncNow'))}
                             </button>
                         </div>
                     ) : (
@@ -295,7 +295,7 @@ export const SystemTab: React.FC<SystemTabProps> = ({ localConfig, setLocalConfi
                     <input type={showKey ? "text" : "password"} value={localConfig.userApiKey || ''} onChange={(e) => setLocalConfig(prev => ({ ...prev, userApiKey: e.target.value }))} placeholder={t('settings.ai.placeholder')} className="w-full bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:border-violet-500 transition-colors" />
                     <p className="text-[9px] text-slate-400 mt-2">{t('settings.ai.help')} <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-violet-500 underline hover:text-violet-400">{t('settings.ai.getKey')}</a></p>
                 </div>
-                
+
                 <div>
                     <SectionTitle icon={Smartphone}>{t('settings.sections.install')}</SectionTitle>
                     {!isNative && isInstallable && !isStandalone && (

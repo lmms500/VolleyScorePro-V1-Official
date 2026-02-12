@@ -92,31 +92,31 @@ const LAYOUT_2V2: CourtLayoutConfig = {
 export const GAME_MODE_PRESETS: Record<GameModePreset, GameModeConfig> = {
   'indoor-6v6': {
     preset: 'indoor-6v6',
-    label: 'Indoor 6v6',
+    label: 'gameModes.presets.indoor6v6',
     type: 'indoor',
     courtLayout: LAYOUT_6V6,
   },
   'quads-5v5': {
     preset: 'quads-5v5',
-    label: 'Quads 5v5',
+    label: 'gameModes.presets.quads5v5',
     type: 'indoor',
     courtLayout: LAYOUT_5V5,
   },
   'beach-4v4': {
     preset: 'beach-4v4',
-    label: 'Beach 4v4',
+    label: 'gameModes.presets.beach4v4',
     type: 'beach',
     courtLayout: LAYOUT_4V4,
   },
   'triples-3v3': {
     preset: 'triples-3v3',
-    label: 'Triples 3v3',
+    label: 'gameModes.presets.triples3v3',
     type: 'beach',
     courtLayout: LAYOUT_3V3,
   },
   'beach-2v2': {
     preset: 'beach-2v2',
-    label: 'Beach Doubles 2v2',
+    label: 'gameModes.presets.beach2v2',
     type: 'beach',
     courtLayout: LAYOUT_2V2,
   },

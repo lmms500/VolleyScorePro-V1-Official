@@ -12,9 +12,9 @@ import { Button } from '../ui/Button';
 import { MatchDetail } from './MatchDetail';
 import { resolveTheme } from '../../utils/colors';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
-import { NotificationToast } from '../ui/NotificationToast';
 // import { GlobalLeaderboard } from '../Social/GlobalLeaderboard'; // DISABLED - Global tab hidden
 import { useActions } from '../../contexts/GameContext'; // UPDATED: useActions only
+import { useNotification } from '../../contexts/NotificationContext';
 import { SyncEngine } from '../../services/SyncEngine';
 
 // Lazy load the new stats modal
@@ -136,7 +136,7 @@ const HistoryCard: React.FC<{
                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="relative z-10 border-t border-black/5 dark:border-white/5 bg-slate-50/50 dark:bg-black/10">
                             <div className="p-4 flex flex-col items-center space-y-4">
                                 <div className="w-full overflow-x-auto pb-1 no-scrollbar flex justify-center"><div className="flex gap-2">{match.sets.map((set, idx) => { const isSetWinnerA = set.winner === 'A'; const setTheme = isSetWinnerA ? themeA : themeB; return (<div key={idx} className="flex flex-col items-center flex-shrink-0"><span className="text-[8px] font-bold text-slate-300 uppercase mb-1">{t('history.setLabel', { setNumber: set.setNumber })}</span><div className={`min-w-[3rem] text-center px-1.5 py-1.5 rounded-lg text-[10px] font-black border backdrop-blur-sm shadow-sm tabular-nums ${setTheme.bg} ${setTheme.text} ${setTheme.textDark} ${setTheme.border}`}>{set.scoreA}-{set.scoreB}</div></div>); })}</div></div>
-                                <div className="flex items-center gap-2 w-full"><button onClick={(e) => { e.stopPropagation(); onDelete(match.id); }} className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/20 active:scale-95 flex-1" title={t('historyList.delete')}><Trash2 size={14} className="mx-auto" /></button></div>
+                                <div className="flex items-center gap-2 w-full"><button onClick={(e) => { e.stopPropagation(); onAnalyze(match); }} className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500 hover:text-white transition-all border border-indigo-500/20 active:scale-95 flex-1" title={t('historyList.analyze')}><BarChart2 size={14} className="mx-auto" /></button><button onClick={(e) => { e.stopPropagation(); onDelete(match.id); }} className="p-2.5 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition-all border border-rose-500/20 active:scale-95 flex-1" title={t('historyList.delete')}><Trash2 size={14} className="mx-auto" /></button></div>
                             </div>
                         </motion.div>
                     )}
@@ -150,6 +150,7 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
     const { matches, deleteMatch, addMatch, importJSON, exportJSON } = useHistoryStore();
     const { t } = useTranslation();
     const { setState } = useActions(); // UPDATED: useActions
+    const { showNotification } = useNotification();
 
     // TAB NAVIGATION - DISABLED (Local only)
     // const [activeTab, setActiveTab] = useState<'local' | 'global'>('local');
@@ -163,17 +164,16 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
     const [showStats, setShowStats] = useState(false);
     const [importMsg, setImportMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const [deletedMatch, setDeletedMatch] = useState<Match | null>(null);
-    const [showUndoToast, setShowUndoToast] = useState(false);
     const [showHeader, setShowHeader] = useState(true);
     const virtuosoRef = useRef<VirtuosoHandle>(null);
     const lastScrollY = useRef(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const filterOptions = [
-        { value: 'all', label: t('historyList.filter.all') || 'All Matches' },
-        { value: 'A', label: t('historyList.filter.winA') || 'Team A Wins' },
-        { value: 'B', label: t('historyList.filter.winB') || 'Team B Wins' },
-        { value: 'scouted', label: t('historyList.filter.scouted') || 'Scouted Only' }
+        { value: 'all', label: t('historyList.filters.all') || 'All Matches' },
+        { value: 'A', label: t('historyList.filters.winnerA') || 'Team A Wins' },
+        { value: 'B', label: t('historyList.filters.winnerB') || 'Team B Wins' },
+        { value: 'scouted', label: t('historyList.filters.scouted') || 'Scouted Only' }
     ];
 
     const sortOptions = [
@@ -196,13 +196,24 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
         if (match) {
             setDeletedMatch(match);
             deleteMatch(id);
-            setShowUndoToast(true);
+            showNotification({
+                type: 'info',
+                mainText: t('teamManager.playerRemoved'),
+                subText: t('common.undo'),
+                systemIcon: 'delete',
+                onUndo: () => {
+                    if (deletedMatch) {
+                        addMatch(deletedMatch);
+                        setDeletedMatch(null);
+                    }
+                }
+            });
             if (selectedMatch?.id === id) {
                 setSelectedMatch(null);
                 setShowMobileDetail(false);
             }
         }
-    }, [matches, deleteMatch, selectedMatch]);
+    }, [matches, deleteMatch, selectedMatch, showNotification, t, deletedMatch, addMatch]);
 
     // Stable handler for toggling card expansion
     const handleToggle = useCallback((id: string) => {
@@ -280,15 +291,17 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
         <div className="flex flex-col h-full min-h-[50vh] relative">
             <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={handleFileChange} />
             <Suspense fallback={null}><TeamStatsModal isOpen={showStats} onClose={() => setShowStats(false)} /></Suspense>
-            <NotificationToast visible={showUndoToast} type="info" mainText={t('teamManager.playerRemoved')} subText={t('common.undo')} onClose={() => setShowUndoToast(false)} systemIcon="delete" onUndo={() => { if (deletedMatch) { addMatch(deletedMatch); setDeletedMatch(null); setShowUndoToast(false); } }} />
 
             <div className={`flex flex-col landscape:flex-row h-full overflow-visible ${selectedMatch ? 'landscape:gap-0' : ''}`}>
                 <div className={`flex flex-col h-full w-full landscape:w-[320px] lg:landscape:w-[380px] landscape:border-r border-black/5 dark:border-white/5 ${showMobileDetail ? 'hidden landscape:flex' : 'flex'}`}>
 
-                    <div className="sticky top-0 z-50 pt-safe-top px-1 pointer-events-none">
+                    {/* FIXED HEADER WRAPPER - Absolute positioning to avoid layout shift */}
+                    <div className="absolute top-0 left-0 right-0 z-50 pt-safe-top px-1 pointer-events-none">
                         <motion.div
-                            initial={{ y: 0 }} animate={{ y: showHeader ? 0 : -100, opacity: showHeader ? 1 : 0 }}
-                            className="bg-slate-50/70 dark:bg-[#020617]/70 backdrop-blur-xl border-b border-black/5 dark:border-white/5 pb-2 pt-2 px-2 pointer-events-auto flex flex-col gap-2 rounded-b-2xl"
+                            initial={{ y: 0 }}
+                            animate={{ y: showHeader ? 0 : -120, opacity: showHeader ? 1 : 0 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            className="bg-slate-50/80 dark:bg-[#020617]/80 backdrop-blur-xl border-b border-black/5 dark:border-white/5 pb-2 pt-2 px-2 pointer-events-auto flex flex-col gap-2 rounded-b-2xl shadow-sm"
                         >
                             {/* TAB SELECTOR - DISABLED (Local only) */}
 
@@ -322,6 +335,8 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
                                 itemContent={rowRenderer}
                                 onScroll={(e) => handleScroll((e.target as HTMLElement).scrollTop)}
                                 components={{
+                                    // SPACING HEADER: Ensures first item is not hidden behind the fixed header
+                                    Header: () => <div className="h-28" />,
                                     Footer: () => <div className="h-24" /> // Spacing for fab/bottom nav
                                 }}
                             />
@@ -330,7 +345,7 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
                 </div>
 
                 {showMobileDetail && selectedMatch && createPortal(<div className="fixed inset-0 z-[70] flex flex-col bg-slate-50/70 dark:bg-[#0f172a]/70 backdrop-blur-xl animate-in slide-in-from-bottom-5 duration-200 overflow-hidden landscape:hidden"><MatchDetail match={selectedMatch} onBack={() => setShowMobileDetail(false)} /></div>, document.body)}
-                <div className={`hidden landscape:flex landscape:flex-1 landscape:h-full landscape:overflow-hidden landscape:relative landscape:z-40 landscape:bg-transparent`}>{selectedMatch ? (<MatchDetail match={selectedMatch} onBack={() => setShowMobileDetail(false)} />) : (<div className="hidden landscape:flex flex-1 items-center justify-center text-slate-300"><div className="flex flex-col items-center gap-4"><BarChart2 size={64} strokeWidth={1} className="opacity-20" /><p className="text-sm font-bold uppercase tracking-widest opacity-40">{t('history.welcomeDesc')}</p></div></div>)}</div>
+                <div className={`hidden landscape:flex landscape:flex-1 landscape:h-full landscape:overflow-hidden landscape:relative landscape:z-40 landscape:bg-transparent`}>{selectedMatch ? (<MatchDetail match={selectedMatch} onBack={() => setShowMobileDetail(false)} />) : (<div className="hidden landscape:flex flex-1 items-center justify-center text-slate-300"><div className="flex flex-col items-center gap-4"><BarChart2 size={64} strokeWidth={1} className="opacity-20" /><p className="text-sm font-bold uppercase tracking-widest opacity-40">{t('tutorial.history.welcomeDesc')}</p></div></div>)}</div>
             </div>
         </div>
     );

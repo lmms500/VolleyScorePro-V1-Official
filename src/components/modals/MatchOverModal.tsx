@@ -106,9 +106,14 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
 
     useEffect(() => {
         if (isOpen) {
+            console.log('[MatchOver] OPENED. isOpen:', isOpen, 'isSpectator:', isSpectator);
+            console.log('[MatchOver] Props Check:', { onRotate: !!onRotate, onReset: !!onReset });
             setCanInteract(false);
             setView('summary');
-            const timer = setTimeout(() => setCanInteract(true), 1000);
+            const timer = setTimeout(() => {
+                console.log('[MatchOver] Timer fired. Setting canInteract = TRUE');
+                setCanInteract(true);
+            }, 1000);
             return () => clearTimeout(timer);
         }
     }, [isOpen]);
@@ -149,6 +154,30 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
         }, 500);
     };
 
+    const handleRotateWrapper = () => {
+        console.log('[MatchOver] Next Game Clicked.');
+        console.log('  State -> canInteract:', canInteract, 'isSpectator:', isSpectator);
+        if (!canInteract) console.warn('[MatchOver] Blocked: Interaction not allowed yet');
+        if (isSpectator) console.warn('[MatchOver] Blocked: Spectator mode');
+
+        if (canInteract && !isSpectator) {
+            console.log('[MatchOver] Executing onRotate()');
+            onRotate();
+        }
+    };
+
+    const handleResetWrapper = () => {
+        console.log('[MatchOver] Reset Clicked.');
+        console.log('  State -> canInteract:', canInteract, 'isSpectator:', isSpectator);
+        if (!canInteract) console.warn('[MatchOver] Blocked: Interaction not allowed yet');
+        if (isSpectator) console.warn('[MatchOver] Blocked: Spectator mode');
+
+        if (canInteract && !isSpectator) {
+            console.log('[MatchOver] Executing onReset()');
+            onReset();
+        }
+    };
+
     return (
         <>
             {renderShareCard && createPortal(
@@ -180,13 +209,7 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
 
                 <div className="relative z-10 flex flex-col h-full w-full pt-safe-top pb-safe-bottom">
 
-                    {/* Header with Close */}
-                    <div className="flex justify-between items-center px-6 py-2 mt-2">
-                        <div /> {/* Spacer */}
-                        <button onClick={onRotate} className="p-2 rounded-full bg-white/5 text-slate-400 hover:text-white transition-colors">
-                            <X size={24} />
-                        </button>
-                    </div>
+
 
                     <AnimatePresence mode="wait">
                         {view === 'summary' ? (
@@ -225,60 +248,70 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                     {/* 2. NEXT ROTATION SECTION */}
                                     <motion.div variants={itemVariants}>
                                         {/* Divider Title */}
-                                        <div className="flex items-center gap-4 mb-4">
+                                        <div className="flex items-center gap-4 mb-2">
                                             <div className="flex-1 h-px bg-white/10" />
-                                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">
-                                                {t('matchOver.rotationReport.nextRotation') || 'PRÓXIMA ROTAÇÃO'}
+                                            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/30">
+                                                {t('matchOver.rotationReport.nextRotation')}
                                             </span>
                                             <div className="flex-1 h-px bg-white/10" />
                                         </div>
 
                                         {transferAnalysis ? (
-                                            <div className="flex items-center gap-2">
-                                                {/* LEAVING CARD */}
-                                                <div className="flex-1 bg-rose-500/10 border border-rose-500/20 rounded-2xl p-4 flex flex-col items-center text-center relative overflow-hidden group">
-                                                    <div className="absolute inset-0 bg-gradient-to-b from-rose-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                    <div className="mb-2 p-2 rounded-full bg-rose-500/20 text-rose-300">
-                                                        <LogOut size={16} />
+                                            <div className="flex items-center gap-1.5 px-1">
+                                                {/* LEAVING CARD (Ultra Compact) */}
+                                                <div className="flex-1 bg-white/5 border border-white/10 rounded-lg p-2 flex flex-col items-center text-center relative overflow-hidden group">
+                                                    <div className="absolute inset-0 bg-gradient-to-b from-rose-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    <div className="mb-0.5 p-1 rounded-full bg-rose-500/20 text-rose-300">
+                                                        <LogOut size={12} />
                                                     </div>
-                                                    <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider mb-1">
-                                                        {t('matchOver.rotationReport.leaving') || 'SAINDO'}
+                                                    <span className="text-[8px] font-bold text-rose-400 uppercase tracking-wider mb-0.5 leading-none">
+                                                        {(() => {
+                                                            const val = t('matchOver.rotationReport.leavingCard');
+                                                            return val.includes('matchOver.') ? 'SAI' : val;
+                                                        })()}
                                                     </span>
-                                                    <span className="text-sm font-black text-white leading-tight truncate w-full">
+                                                    <span className="text-[10px] font-black text-white leading-tight truncate w-full max-w-[90px]">
                                                         {report?.outgoingTeam.name}
                                                     </span>
-                                                    <span className="text-[10px] text-white/40 font-medium mt-1">
-                                                        {transferAnalysis.leaving.length} {t('common.players') || 'jogadores'}
+                                                    <span className="text-[8px] text-white/40 font-medium mt-0.5 leading-none">
+                                                        {transferAnalysis.leaving.length} {t('common.players')}
                                                     </span>
                                                 </div>
 
                                                 {/* CONNECTOR */}
-                                                <div className="shrink-0 flex items-center justify-center">
-                                                    <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40">
-                                                        <MoveRight size={14} />
+                                                <div className="shrink-0 flex items-center justify-center -mx-1 z-10">
+                                                    <div className="w-5 h-5 rounded-full bg-[#0b0c15] border border-white/10 flex items-center justify-center text-white/30 shadow-lg">
+                                                        <MoveRight size={10} />
                                                     </div>
                                                 </div>
 
-                                                {/* ENTERING CARD */}
-                                                <div className="flex-1 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex flex-col items-center text-center relative overflow-hidden group">
-                                                    <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                    <div className="mb-2 p-2 rounded-full bg-emerald-500/20 text-emerald-300">
-                                                        <LogIn size={16} />
+                                                {/* ENTERING CARD (Ultra Compact) */}
+                                                <div className="flex-1 bg-white/5 border border-white/10 rounded-lg p-2 flex flex-col items-center text-center relative overflow-hidden group">
+                                                    <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    <div className="mb-0.5 p-1 rounded-full bg-emerald-500/20 text-emerald-300">
+                                                        <LogIn size={12} />
                                                     </div>
-                                                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider mb-1">
-                                                        {t('matchOver.rotationReport.incoming') || 'ENTRANDO'}
+                                                    <span className="text-[8px] font-bold text-emerald-400 uppercase tracking-wider mb-0.5 leading-none">
+                                                        {(() => {
+                                                            const val = t('matchOver.rotationReport.incomingCard');
+                                                            return val.includes('matchOver.') ? 'ENTRA' : val;
+                                                        })()}
                                                     </span>
-                                                    <span className="text-sm font-black text-white leading-tight truncate w-full">
+                                                    <span className="text-[10px] font-black text-white leading-tight truncate w-full max-w-[90px]">
                                                         {report?.incomingTeam.name}
                                                     </span>
-                                                    <span className="text-[10px] text-white/40 font-medium mt-1">
-                                                        {transferAnalysis.incoming.length} {t('common.players') || 'jogadores'}
+                                                    <span className="text-[8px] text-white/40 font-medium mt-0.5 leading-none">
+                                                        {transferAnalysis.incoming.length} {t('common.players')}
                                                     </span>
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="text-center py-6 border border-dashed border-white/10 rounded-2xl">
-                                                <span className="text-xs text-white/30 italic">Sem dados de rotação</span>
+                                            <div className="flex flex-col items-center justify-center py-8 border border-dashed border-white/10 rounded-2xl bg-white/5 mx-2">
+                                                <RotateCcw size={24} className="text-white/20 mb-2" />
+                                                <span className="text-xs font-bold text-white/40 uppercase tracking-wider">{t('matchOver.rotationReport.noData')}</span>
+                                                <p className="text-[9px] text-white/30 text-center px-4 mt-1">
+                                                    {t('teamManager.queueHint') || 'Add teams to queue to see rotation reports'}
+                                                </p>
                                             </div>
                                         )}
                                     </motion.div>
@@ -289,7 +322,7 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                             <div className="flex items-center gap-2">
                                                 <Users size={12} className="text-emerald-500" />
                                                 <span className="text-[10px] font-bold uppercase tracking-wider text-white/50">
-                                                    {t('matchOver.rotationReport.enteringCourt') || 'ENTRANDO EM QUADRA'}
+                                                    {t('matchOver.rotationReport.enteringCourt')}
                                                 </span>
                                             </div>
                                             <div className="flex flex-wrap gap-2">
@@ -297,13 +330,13 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                                     const isBorrowed = report?.stolenPlayers.some(sp => sp.id === p.id);
                                                     return (
                                                         <div key={p.id} className={`flex items-center border rounded-lg pl-1.5 pr-3 py-1.5 backdrop-blur-sm ${isBorrowed
-                                                                ? 'bg-amber-500/10 border-amber-500/20 text-amber-200'
-                                                                : 'bg-white/5 border-white/10 text-slate-200'
+                                                            ? 'bg-amber-500/10 border-amber-500/20 text-amber-200'
+                                                            : 'bg-white/5 border-white/10 text-slate-200'
                                                             }`}>
                                                             {p.number && (
                                                                 <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded mr-2 min-w-[20px] text-center ${isBorrowed
-                                                                        ? 'bg-amber-500/20 text-amber-100'
-                                                                        : 'bg-white/10 text-white/70'
+                                                                    ? 'bg-amber-500/20 text-amber-100'
+                                                                    : 'bg-white/10 text-white/70'
                                                                     }`}>
                                                                     {p.number}
                                                                 </span>
@@ -322,7 +355,7 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                             <div className="flex items-center gap-2">
                                                 <Users size={12} className="text-amber-500" />
                                                 <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500/70">
-                                                    {t('matchOver.rotationReport.borrowedPlayers') || 'JOGADORES EMPRESTADOS'}
+                                                    {t('matchOver.rotationReport.borrowedPlayers')}
                                                 </span>
                                             </div>
                                             <div className="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3">
@@ -339,7 +372,7 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                                     ))}
                                                 </div>
                                                 <p className="text-[9px] text-amber-500/50 italic leading-relaxed">
-                                                    {t('matchOver.rotationReport.borrowedDisclaimer') || 'Estes jogadores permaneceram em quadra para completar a formação.'}
+                                                    {t('matchOver.rotationReport.borrowedDisclaimer')}
                                                 </p>
                                             </div>
                                         </motion.div>
@@ -347,11 +380,11 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                 </div>
 
                                 {/* 4. FOOTER ACTIONS (3 LEVELS) */}
-                                <motion.div variants={itemVariants} className="p-6 pt-4 bg-gradient-to-t from-[#020617] via-[#020617] to-transparent space-y-4 z-20">
+                                <motion.div variants={itemVariants} className="p-6 pt-4 bg-gradient-to-t from-[#020617] via-[#020617] to-transparent space-y-4 relative z-50 pointer-events-auto">
 
                                     {/* Level 1: Primary Action */}
                                     <Button
-                                        onClick={onRotate}
+                                        onClick={handleRotateWrapper}
                                         disabled={!canInteract || isSpectator}
                                         className="w-full h-16 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-lg uppercase tracking-widest shadow-xl shadow-indigo-500/20 border-0 flex items-center justify-center gap-3 relative overflow-hidden group"
                                     >
@@ -359,45 +392,42 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                         <MoveRight size={20} className="stroke-[3]" />
                                     </Button>
 
-                                    {/* Level 2: Secondary Actions */}
+                                    {/* Level 2: Secondary Actions (Grid 2x2 for better touch targets) */}
                                     <div className="grid grid-cols-2 gap-3">
                                         <Button
                                             onClick={() => handleShareAction('share')}
                                             disabled={isSharing || !!generatingAction || !canInteract}
-                                            className="h-14 rounded-2xl bg-white/5 hover:bg-white/10 active:bg-white/15 text-white font-bold uppercase tracking-wider text-xs border border-white/10 backdrop-blur-md flex items-center justify-center gap-2"
+                                            className="h-12 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 text-white/80 hover:text-white font-bold uppercase tracking-wider text-[10px] border border-white/10 backdrop-blur-md flex items-center justify-center gap-2 transition-all"
                                         >
-                                            {(isSharing || generatingAction === 'share') ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
+                                            {(isSharing || generatingAction === 'share') ? <Loader2 size={16} className="animate-spin" /> : <Share2 size={16} />}
                                             {t('matchOver.share')}
                                         </Button>
 
                                         <Button
                                             onClick={() => handleShareAction('download')}
                                             disabled={isSharing || !!generatingAction || !canInteract}
-                                            className="h-14 rounded-2xl bg-white/5 hover:bg-white/10 active:bg-white/15 text-white font-bold uppercase tracking-wider text-xs border border-white/10 backdrop-blur-md flex items-center justify-center gap-2"
+                                            className="h-12 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 text-white/80 hover:text-white font-bold uppercase tracking-wider text-[10px] border border-white/10 backdrop-blur-md flex items-center justify-center gap-2 transition-all"
                                         >
-                                            {generatingAction === 'download' ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
-                                            {t('matchOver.download') || 'SALVAR'}
+                                            {generatingAction === 'download' ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                                            {t('matchOver.download')}
                                         </Button>
-                                    </div>
 
-                                    {/* Level 3: Tertiary Actions */}
-                                    <div className="grid grid-cols-2 gap-3 pt-1">
                                         <Button
                                             onClick={onUndo}
                                             variant="ghost"
                                             disabled={!canInteract || isSpectator}
-                                            className="h-12 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-colors"
+                                            className="h-12 rounded-xl text-slate-500 hover:text-indigo-300 hover:bg-indigo-500/10 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-colors border border-transparent hover:border-indigo-500/20"
                                         >
-                                            <Undo size={14} /> {t('controls.undo')}
+                                            <Undo size={16} /> {t('controls.undo')}
                                         </Button>
 
                                         <Button
-                                            onClick={onReset}
+                                            onClick={handleResetWrapper}
                                             variant="ghost"
                                             disabled={!canInteract || isSpectator}
-                                            className="h-12 rounded-xl text-slate-500 hover:text-red-400 hover:bg-rose-500/10 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-colors"
+                                            className="h-12 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-colors border border-transparent hover:border-rose-500/20"
                                         >
-                                            <RotateCcw size={14} /> {t('controls.reset')}
+                                            <RotateCcw size={16} /> {t('controls.reset')}
                                         </Button>
                                     </div>
 
@@ -425,9 +455,9 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                 </div>
                             </motion.div>
                         )}
-                    </AnimatePresence>
-                </div>
-            </Modal>
+                    </AnimatePresence >
+                </div >
+            </Modal >
         </>
     );
 };

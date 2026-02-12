@@ -8,7 +8,7 @@ import { overlayVariants, springSnappy } from '../../utils/animations';
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
+  title?: string;
   children: React.ReactNode;
   maxWidth?: string;
   showCloseButton?: boolean;
@@ -90,11 +90,11 @@ export const Modal: React.FC<ModalProps> = ({
   const isImmersive = variant === 'immersive';
   const isFullscreen = variant === 'fullscreen';
 
-  const bgClasses = `bg-gradient-to-b from-slate-900/90 to-slate-950/95 backdrop-blur-3xl`;
+  const bgClasses = `bg-gradient-to-b from-white/95 to-slate-50/95 dark:from-slate-900/90 dark:to-slate-950/95 backdrop-blur-3xl`;
 
   const gradientOverlay = (
     <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden rounded-inherit">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,_rgba(226,232,240,0.3)_0%,_rgba(241,245,249,0.1)_90%)] dark:bg-[radial-gradient(circle_at_50%_40%,_rgba(30,41,59,0.2)_0%,_rgba(2,6,23,0.3)_90%)] opacity-100" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,_rgba(226,232,240,0.6)_0%,_rgba(241,245,249,0.4)_90%)] dark:bg-[radial-gradient(circle_at_50%_40%,_rgba(30,41,59,0.2)_0%,_rgba(2,6,23,0.3)_90%)] opacity-100" />
     </div>
   );
 
@@ -110,11 +110,11 @@ export const Modal: React.FC<ModalProps> = ({
   } else if (isFullscreen) {
     containerClasses = `fixed inset-0 ${zIndex} flex flex-col isolate`;
     contentLayoutClasses = `relative w-full h-full flex flex-col pb-safe-bottom render-crisp ${bgClasses}`;
-    borderClasses = "border-t border-white/20 dark:border-white/10";
+    borderClasses = "border-t border-black/5 dark:border-white/10";
   } else {
     containerClasses = `fixed inset-0 ${zIndex} flex items-center justify-center p-4 landscape:p-2 isolate`;
     contentLayoutClasses = `relative w-full ${maxWidth} flex flex-col max-h-[85vh] landscape:max-h-[95vh] overflow-hidden render-crisp ${bgClasses}`;
-    borderClasses = "border border-white/40 dark:border-white/10 ring-1 ring-inset ring-black/5 dark:ring-white/10";
+    borderClasses = "border border-white/60 dark:border-white/10 ring-1 ring-black/5 dark:ring-white/10";
     roundedClasses = "rounded-[2.5rem] landscape:rounded-2xl";
     shadowClasses = "shadow-2xl shadow-black/40";
   }
@@ -163,12 +163,12 @@ export const Modal: React.FC<ModalProps> = ({
                     onClick={onClose}
                     className={`
                         p-2.5 rounded-full 
-                        bg-gradient-to-br from-white/15 to-white/5
+                        bg-black/5 dark:bg-white/5
                         text-slate-500 dark:text-slate-400
-                        hover:from-white/20 hover:to-white/10
+                        hover:bg-black/10 dark:hover:bg-white/10
                         active:scale-95 transition-all
-                        border border-white/10 
-                        ring-1 ring-inset ring-white/5
+                        border border-black/5 dark:border-white/10 
+                        ring-1 ring-inset ring-black/5 dark:ring-white/5
                         ${isFullscreen ? 'mt-2' : ''}
                     `}
                   >

@@ -9,9 +9,10 @@ interface CourtFooterProps {
     teamB: Team;
     onRotate: (teamId: string, direction: 'clockwise' | 'counter') => void;
     onSubstituteRequest: (teamId: string) => void;
-    onOpenManager: () => void;
-    onOpenHistory: () => void;
-    onOpenSettings: () => void;
+    hideNavButtons?: boolean;
+    onOpenManager?: () => void;
+    onOpenHistory?: () => void;
+    onOpenSettings?: () => void;
 }
 
 const RotationControls = memo(({ 
@@ -38,7 +39,7 @@ const RotationControls = memo(({
 ));
 
 export const CourtFooter: React.FC<CourtFooterProps> = memo(({
-    teamA, teamB, onRotate, onSubstituteRequest, onOpenManager, onOpenHistory, onOpenSettings
+    teamA, teamB, onRotate, onSubstituteRequest, hideNavButtons, onOpenManager, onOpenHistory, onOpenSettings
 }) => {
     const themeA = resolveTheme(teamA.color);
     const themeB = resolveTheme(teamB.color);
@@ -54,11 +55,13 @@ export const CourtFooter: React.FC<CourtFooterProps> = memo(({
                 onSubstitute={() => onSubstituteRequest('A')} 
             />
             
-            <div className="absolute left-1/2 -translate-x-1/2 bottom-0 flex gap-2 p-1 bg-white/80 dark:bg-black/40 backdrop-blur-md rounded-2xl border border-black/5 dark:border-white/10 shadow-lg mb-0.5">
-                <button onClick={onOpenManager} className="w-10 h-10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 transition-all active:scale-90"><Users size={18} /></button>
-                <button onClick={onOpenHistory} className="w-10 h-10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 transition-all active:scale-90"><History size={18} /></button>
-                <button onClick={onOpenSettings} className="w-10 h-10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 transition-all active:scale-90"><Settings size={18} /></button>
-            </div>
+            {!hideNavButtons && (
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-0 flex gap-2 p-1 bg-white/80 dark:bg-black/40 backdrop-blur-md rounded-2xl border border-black/5 dark:border-white/10 shadow-lg mb-0.5">
+                    <button onClick={onOpenManager} className="w-10 h-10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 transition-all active:scale-90"><Users size={18} /></button>
+                    <button onClick={onOpenHistory} className="w-10 h-10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 transition-all active:scale-90"><History size={18} /></button>
+                    <button onClick={onOpenSettings} className="w-10 h-10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-slate-900 transition-all active:scale-90"><Settings size={18} /></button>
+                </div>
+            )}
             
             <RotationControls 
                 teamName={teamB.name} 

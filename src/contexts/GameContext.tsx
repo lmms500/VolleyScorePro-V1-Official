@@ -80,6 +80,7 @@ interface ScoreContextState {
     isDeuce: boolean;
     isTieBreak: boolean;
     setsNeededToWin: number;
+    lastScorerTeam: TeamId | null;
 }
 
 // --- 3. ROSTER CONTEXT (Warm Path - Updates on config/roster change) ---
@@ -96,7 +97,10 @@ interface RosterContextState {
     rotationMode: any;
     syncRole: SyncRole;
     sessionId?: string;
-    
+    gameId?: string;
+    gameCreatedAt?: number;
+    connectedSpectators?: number;
+
     // Meta
     isLoaded: boolean;
     canUndo: boolean;
@@ -116,35 +120,45 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const actions = game.actions;
 
   // 2. Score Memo - Updates on points/timer
-  const scoreState = useMemo((): ScoreContextState => ({
-      scoreA: game.state.scoreA,
-      scoreB: game.state.scoreB,
-      setsA: game.state.setsA,
-      setsB: game.state.setsB,
-      currentSet: game.state.currentSet,
-      servingTeam: game.state.servingTeam,
-      isMatchOver: game.state.isMatchOver,
-      matchWinner: game.state.matchWinner,
-      timeoutsA: game.state.timeoutsA,
-      timeoutsB: game.state.timeoutsB,
-      inSuddenDeath: game.state.inSuddenDeath,
-      pendingSideSwitch: game.state.pendingSideSwitch,
-      matchDurationSeconds: game.state.matchDurationSeconds,
-      isTimerRunning: game.state.isTimerRunning,
-      swappedSides: game.state.swappedSides,
-      history: game.state.history,
-      matchLog: game.state.matchLog,
-      actionLog: game.state.actionLog,
-      // Computed
-      isMatchActive: game.isMatchActive,
-      isMatchPointA: game.isMatchPointA,
-      isMatchPointB: game.isMatchPointB,
-      isSetPointA: game.isSetPointA,
-      isSetPointB: game.isSetPointB,
-      isDeuce: game.isDeuce,
-      isTieBreak: game.isTieBreak,
-      setsNeededToWin: game.setsNeededToWin
-  }), [
+  const scoreState = useMemo((): ScoreContextState => {
+      // Computed: lastScorerTeam
+      const lastScorerTeam = (() => {
+          const logs = game.state.matchLog || [];
+          const lastPoint = [...logs].reverse().find(log => log.type === 'POINT');
+          return lastPoint ? (lastPoint as { team: TeamId }).team : null;
+      })();
+
+      return {
+          scoreA: game.state.scoreA,
+          scoreB: game.state.scoreB,
+          setsA: game.state.setsA,
+          setsB: game.state.setsB,
+          currentSet: game.state.currentSet,
+          servingTeam: game.state.servingTeam,
+          isMatchOver: game.state.isMatchOver,
+          matchWinner: game.state.matchWinner,
+          timeoutsA: game.state.timeoutsA,
+          timeoutsB: game.state.timeoutsB,
+          inSuddenDeath: game.state.inSuddenDeath,
+          pendingSideSwitch: game.state.pendingSideSwitch,
+          matchDurationSeconds: game.state.matchDurationSeconds,
+          isTimerRunning: game.state.isTimerRunning,
+          swappedSides: game.state.swappedSides,
+          history: game.state.history,
+          matchLog: game.state.matchLog,
+          actionLog: game.state.actionLog,
+          // Computed
+          isMatchActive: game.isMatchActive,
+          isMatchPointA: game.isMatchPointA,
+          isMatchPointB: game.isMatchPointB,
+          isSetPointA: game.isSetPointA,
+          isSetPointB: game.isSetPointB,
+          isDeuce: game.isDeuce,
+          isTieBreak: game.isTieBreak,
+          setsNeededToWin: game.setsNeededToWin,
+          lastScorerTeam
+      };
+  }, [
       game.state.scoreA, game.state.scoreB, game.state.setsA, game.state.setsB,
       game.state.currentSet, game.state.servingTeam, game.state.isMatchOver,
       game.state.matchWinner, game.state.timeoutsA, game.state.timeoutsB,
@@ -169,6 +183,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       rotationMode: game.state.rotationMode,
       syncRole: game.state.syncRole,
       sessionId: game.state.sessionId,
+      gameId: game.state.gameId,
+      gameCreatedAt: game.state.gameCreatedAt,
+      connectedSpectators: game.state.connectedSpectators,
       isLoaded: game.isLoaded,
       canUndo: game.canUndo,
       hasDeletedPlayers: game.hasDeletedPlayers,
@@ -178,6 +195,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       game.state.teamAName, game.state.teamBName, game.state.config,
       game.profiles, game.state.rotationReport, game.state.deletedPlayerHistory,
       game.state.rotationMode, game.state.syncRole, game.state.sessionId,
+      game.state.gameId, game.state.gameCreatedAt, game.state.connectedSpectators,
       game.isLoaded, game.canUndo, game.hasDeletedPlayers, game.deletedCount
   ]);
 

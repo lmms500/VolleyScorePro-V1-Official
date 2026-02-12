@@ -12,6 +12,11 @@ import { getCourtLayoutFromConfig } from '../config/gameModes';
 // TYPES
 // ============================================
 
+export interface ValidationMessage {
+  key: string;
+  params?: Record<string, string | number>;
+}
+
 export interface TeamValidationResult {
   isValid: boolean;
   canStartMatch: boolean;
@@ -19,15 +24,15 @@ export interface TeamValidationResult {
   requiredPlayers: number;
   benchCount: number;
   benchLimit: number;
-  warnings: string[];
-  errors: string[];
+  warnings: ValidationMessage[];
+  errors: ValidationMessage[];
 }
 
 export interface MatchValidationResult {
   canStart: boolean;
   teamAValidation: TeamValidationResult;
   teamBValidation: TeamValidationResult;
-  reason?: string;
+  reason?: ValidationMessage;
 }
 
 // ============================================
@@ -64,10 +69,14 @@ export function validateTeamForMatch(
 
   // Check minimum players
   if (playerCount < playersOnCourt) {
-    result.errors.push(
-      `Faltam ${playersOnCourt - playerCount} jogadores. ` +
-      `Necessário: ${playersOnCourt}, Atual: ${playerCount}`
-    );
+    result.errors.push({
+      key: 'validation.missingPlayers',
+      params: {
+        missing: playersOnCourt - playerCount,
+        required: playersOnCourt,
+        current: playerCount
+      }
+    });
     result.isValid = false;
   }
 
@@ -78,22 +87,25 @@ export function validateTeamForMatch(
 
   // Warn if over bench limit
   if (benchCount > benchLimit) {
-    result.warnings.push(
-      `Banco excede limite de ${benchLimit}. Atual: ${benchCount}`
-    );
+    result.warnings.push({
+      key: 'validation.benchOverLimit',
+      params: { limit: benchLimit, current: benchCount }
+    });
   }
 
   // Warn if no substitutes available
   if (playerCount === playersOnCourt && benchCount === 0) {
-    result.warnings.push('Sem substitutos disponíveis no banco');
+    result.warnings.push({
+      key: 'validation.noSubstitutes'
+    });
   }
 
   // Warn if team has too many players on court (shouldn't happen)
   if (playerCount > playersOnCourt) {
-    result.warnings.push(
-      `Time com ${playerCount} jogadores em quadra, ` +
-      `máximo permitido: ${playersOnCourt}`
-    );
+    result.warnings.push({
+      key: 'validation.tooManyOnCourt',
+      params: { current: playerCount, max: playersOnCourt }
+    });
   }
 
   return result;
@@ -123,10 +135,11 @@ export function validateMatchStart(
 
   if (!teamAValidation.canStartMatch) {
     result.canStart = false;
-    result.reason = `${teamA.name}: ${teamAValidation.errors.join(', ')}`;
+    // Helper to get first error
+    result.reason = teamAValidation.errors[0];
   } else if (!teamBValidation.canStartMatch) {
     result.canStart = false;
-    result.reason = `${teamB.name}: ${teamBValidation.errors.join(', ')}`;
+    result.reason = teamBValidation.errors[0];
   }
 
   return result;

@@ -12,7 +12,7 @@ import { ProfileDetailsModal } from './ProfileDetailsModal';
 import { ConfirmationModal } from './ConfirmationModal';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useTutorial } from '../../hooks/useTutorial';
-import { getPlayersOnCourt, getBenchLimit } from '../../constants';
+import { getCourtLayoutFromConfig } from '../../config/gameModes';
 import { useActions, useRoster } from '../../contexts/GameContext';
 import { useRosterStore } from '../../stores/rosterStore';
 import { useNotification } from '../../contexts/NotificationContext';
@@ -82,8 +82,9 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = memo((props) =>
     const setBenchConfirmState = useRosterStore(s => s.setBenchConfirmState);
     const setDragOverContainerId = useRosterStore(s => s.setDragOverContainerId);
 
-    const courtLimit = getPlayersOnCourt(config.mode);
-    const benchLimit = getBenchLimit(config.mode);
+    const layout = getCourtLayoutFromConfig(config);
+    const courtLimit = layout.playersOnCourt;
+    const benchLimit = layout.benchLimit;
 
     if (!props.isOpen) return null;
 

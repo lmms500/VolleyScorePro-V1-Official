@@ -41,8 +41,14 @@ export const BEACH_COURT_LIMIT = 4;
 export const INDOOR_BENCH_LIMIT = 6;
 export const BEACH_BENCH_LIMIT = 3;
 
-// Helper to get court limit based on mode
-// UPDATED: Now supports dynamic player counts via optional second parameter
+/**
+ * @deprecated Use getPlayersOnCourtFromConfig(config) from src/config/gameModes.ts instead.
+ * This legacy function only considers binary mode ('beach' | 'indoor') and ignores modeConfig.
+ *
+ * MIGRATION GUIDE:
+ * Before: getPlayersOnCourt(config.mode)
+ * After:  getPlayersOnCourtFromConfig(config)
+ */
 export const getPlayersOnCourt = (mode: GameMode, playersOnCourt?: number): number => {
   if (playersOnCourt !== undefined) {
     return playersOnCourt;
@@ -50,8 +56,14 @@ export const getPlayersOnCourt = (mode: GameMode, playersOnCourt?: number): numb
   return mode === 'beach' ? BEACH_COURT_LIMIT : INDOOR_COURT_LIMIT;
 };
 
-// Helper to get bench limit based on mode
-// UPDATED: Now supports dynamic bench limits via optional second parameter
+/**
+ * @deprecated Use getBenchLimitFromConfig(config) from src/config/gameModes.ts instead.
+ * This legacy function only considers binary mode ('beach' | 'indoor') and ignores modeConfig.
+ *
+ * MIGRATION GUIDE:
+ * Before: getBenchLimit(config.mode)
+ * After:  getBenchLimitFromConfig(config)
+ */
 export const getBenchLimit = (mode: GameMode, benchLimit?: number): number => {
   if (benchLimit !== undefined) {
     return benchLimit;

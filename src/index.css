@@ -56,8 +56,7 @@ body {
   position: fixed;
   /* Evita bounce no iOS */
   overscroll-behavior: none;
-  background-color: #020617;
-  /* Slate 950 base */
+  /* Fixed background removed for theme support */
   -webkit-text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -67,6 +66,16 @@ body {
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
+}
+
+html.light {
+  background-color: #f1f5f9 !important;
+  /* slate-100 */
+}
+
+html.dark {
+  background-color: #020617 !important;
+  /* slate-950 */
 }
 
 /* Fullscreen: 100vh real sem barras */
@@ -271,7 +280,7 @@ html:-moz-full-screen {
   inset: 0;
   display: flex;
   flex-direction: column;
-  background: #020617;
+  /* background: #020617; REMOVED for theme support */
   z-index: 50;
 }
 

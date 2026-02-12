@@ -62,6 +62,18 @@ export const colors = {
     lg: '0 10px 15px rgba(0, 0, 0, 0.5)',
     glow: '0 0 20px rgba(99, 102, 241, 0.3)', // Indigo glow
   },
+
+  // === SURFACE COLORS (Novos) ===
+  surface: {
+    beachCourt: '#e3cba5',  // Beach volleyball court sand color
+  },
+
+  // === SKILL LEVEL COLORS (Novos) ===
+  skill: {
+    beginner: '#f43f5e',     // rose-500
+    intermediate: '#f59e0b', // amber-500
+    advanced: '#10b981',     // emerald-500
+  },
 } as const;
 
 export type ColorTheme = keyof typeof colors;

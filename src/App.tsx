@@ -19,6 +19,7 @@ import { TimerProvider } from './contexts/TimerContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ModalProvider } from './contexts/ModalContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { TimeoutProvider } from './contexts/TimeoutContext';
 import { GameScreen } from './screens';
 
 function App() {
@@ -32,7 +33,9 @@ function App() {
                                 <GameProvider>
                                     <ModalProvider>
                                         <NotificationProvider>
-                                            <GameScreen />
+                                            <TimeoutProvider>
+                                                <GameScreen />
+                                            </TimeoutProvider>
                                         </NotificationProvider>
                                     </ModalProvider>
                                 </GameProvider>

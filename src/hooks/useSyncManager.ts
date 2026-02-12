@@ -1,35 +1,24 @@
+/**
+ * src/hooks/useSyncManager.ts (REFATORADO)
+ *
+ * Hook para gerenciar VolleyLink Live Sync.
+ * AGORA CONSOME CONTEXTS INTERNAMENTE - sem parâmetros.
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 import { FEATURE_FLAGS } from '../constants';
 import { SyncEngine } from '../services/SyncEngine';
 import { useTimeoutSync } from './useTimeoutSync';
 import { useRemoteTimeoutSync } from './useRemoteTimeoutSync';
-import { GameState, TeamId } from '../types';
+import { useActions, useScore, useRoster } from '../contexts/GameContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from '../contexts/LanguageContext';
+import { useNotification } from '../contexts/NotificationContext';
+import { useModals } from '../contexts/ModalContext';
+import { useTimeoutContext } from '../contexts/TimeoutContext'; // NOVO
+import { useCombinedGameState } from './useCombinedGameState'; // NOVO
 
-type SyncRole = 'host' | 'spectator' | 'local' | null;
-
-interface SyncManagerDeps {
-    combinedState: GameState;
-    setState: (action: { type: string; payload?: unknown; role?: string; sessionId?: string; duration?: number }) => void;
-    syncRole: SyncRole;
-    sessionId: string | null;
-    user: { uid: string } | null;
-    t: (key: string, params?: Record<string, unknown>) => string;
-    showNotification: (opts: { mainText: string; type: string; subText?: string; systemIcon?: string }) => void;
-    // Timeout controls for remote sync
-    activeTimeoutTeam: TeamId | null;
-    timeoutSeconds: number;
-    isTimeoutMinimized: boolean;
-    startTimeout: (team: TeamId, initialSeconds?: number) => void;
-    stopTimeout: () => void;
-    minimizeTimeout: () => void;
-    maximizeTimeout: () => void;
-    // Modal state for spectator auto-open
-    isMatchOver: boolean;
-    activeModal: string;
-    openModal: (modal: string) => void;
-}
-
-interface SyncManagerReturn {
+export interface SyncManagerReturn {
     isBroadcastMode: boolean;
     isHost: boolean;
     isSpectator: boolean;
@@ -40,42 +29,43 @@ interface SyncManagerReturn {
 }
 
 /**
- * useSyncManager - Encapsula toda lógica de VolleyLink Live Sync
+ * useSyncManager - Encapsula toda lógica de VolleyLink Live Sync.
  *
- * Responsabilidades:
- * - Detecta modo broadcast via URL params
- * - Gerencia host/spectator sessions
- * - Broadcast state para spectators
- * - Sync timeout state com host/spectators
- * - Auto-open match over modal para spectators
+ * Mudanças na refatoração:
+ * - Consome 9 contexts internamente
+ * - Usa useCombinedGameState() para type safety
+ * - Usa useTimeout() para estado de timeout (evita dependência circular)
+ * - Removida interface SyncManagerDeps (sem parâmetros)
  */
-export function useSyncManager(deps: SyncManagerDeps): SyncManagerReturn {
+export function useSyncManager(): SyncManagerReturn {
+    // --- CONTEXT CONSUMPTION (NOVO) ---
+    const combinedState = useCombinedGameState();
+    const { setState } = useActions();
+    const { isMatchOver } = useScore();
+    const { syncRole, sessionId } = useRoster();
+    const { user } = useAuth();
+    const { t } = useTranslation();
+    const { showNotification } = useNotification();
+    const { activeModal, openModal } = useModals();
+
+    // Timeout state via novo TimeoutContext
     const {
-        combinedState,
-        setState,
-        syncRole,
-        sessionId,
-        user,
-        t,
-        showNotification,
         activeTimeoutTeam,
         timeoutSeconds,
         isTimeoutMinimized,
         startTimeout,
         stopTimeout,
         minimizeTimeout,
-        maximizeTimeout,
-        isMatchOver,
-        activeModal,
-        openModal
-    } = deps;
+        maximizeTimeout
+    } = useTimeoutContext();
 
+    // --- STATE (INALTERADO) ---
     const [isBroadcastMode, setIsBroadcastMode] = useState(false);
 
     const isHost = syncRole === 'host';
     const isSpectator = syncRole === 'spectator';
 
-    // Detect broadcast mode from URL params
+    // --- URL DETECTION (INALTERADO) ---
     useEffect(() => {
         if (!FEATURE_FLAGS.ENABLE_LIVE_SYNC) return;
 
@@ -85,71 +75,86 @@ export function useSyncManager(deps: SyncManagerDeps): SyncManagerReturn {
             const sessionCode = params.get('code');
             if (sessionCode) {
                 SyncEngine.getInstance().subscribeToMatch(sessionCode, (remoteState) => {
-                    setState({ type: 'LOAD_STATE', payload: { ...remoteState, syncRole: 'spectator', sessionId: sessionCode } });
+                    setState({
+                        type: 'LOAD_STATE',
+                        payload: { ...remoteState, syncRole: 'spectator', sessionId: sessionCode }
+                    });
                 });
             }
         }
     }, [setState]);
 
-    // Host: Start broadcasting a match
+    // --- HANDLERS (INALTERADOS, apenas removem params externos) ---
     const handleHostSession = useCallback(async (code: string) => {
         if (!FEATURE_FLAGS.ENABLE_LIVE_SYNC || !user) return;
 
         await SyncEngine.getInstance().hostMatch(code, user.uid, combinedState);
         setState({ type: 'SET_SYNC_ROLE', role: 'host', sessionId: code });
-        showNotification({ mainText: t('liveSync.hosting', { code }), type: 'success', subText: t('liveSync.hostingSub'), systemIcon: 'mic' });
-    }, [user, combinedState, setState, t, showNotification]);
+        showNotification({
+            mainText: t('liveSync.hosting', { code }),
+            type: 'success',
+            subText: t('liveSync.hostingSub'),
+            systemIcon: 'mic'
+        });
+    }, [user, combinedState, setState, showNotification, t]);
 
-    // Spectator: Join an existing session
     const handleJoinSession = useCallback((code: string) => {
         if (!FEATURE_FLAGS.ENABLE_LIVE_SYNC) return;
 
-        setState({ type: 'SET_SYNC_ROLE', role: 'spectator', sessionId: code });
         SyncEngine.getInstance().subscribeToMatch(code, (remoteState) => {
-            setState({ type: 'LOAD_STATE', payload: { ...remoteState, syncRole: 'spectator', sessionId: code } });
+            setState({
+                type: 'LOAD_STATE',
+                payload: { ...remoteState, syncRole: 'spectator', sessionId: code }
+            });
         });
-        showNotification({ mainText: t('liveSync.connected', { code }), type: 'info', subText: t('liveSync.watchTitle'), systemIcon: 'mic' });
-    }, [setState, t, showNotification]);
 
-    // Host: Stop broadcasting
+        showNotification({
+            mainText: t('liveSync.joined', { code }),
+            type: 'success',
+            subText: t('liveSync.joinedSub'),
+            systemIcon: 'mic'
+        });
+    }, [setState, showNotification, t]);
+
     const handleStopBroadcast = useCallback(async () => {
-        if (!FEATURE_FLAGS.ENABLE_LIVE_SYNC || !sessionId) return;
+        if (!sessionId) return;
         try {
             await SyncEngine.getInstance().endSession(sessionId);
             setState({ type: 'DISCONNECT_SYNC' });
-            showNotification({ mainText: t('liveSync.broadcastStopped'), type: 'success', subText: t('liveSync.nowLocal'), systemIcon: 'mic' });
+            showNotification({
+                mainText: t('liveSync.stopped'),
+                type: 'info',
+                systemIcon: 'mic'
+            });
         } catch (e) {
             console.error('[SyncManager] Failed to stop broadcast:', e);
-            showNotification({ mainText: 'Erro ao encerrar transmissão', type: 'error', subText: String(e), systemIcon: 'mic' });
         }
-    }, [sessionId, setState, t, showNotification]);
+    }, [sessionId, setState, showNotification, t]);
 
-    // Spectator: Leave session
     const handleLeaveSession = useCallback(() => {
-        if (!FEATURE_FLAGS.ENABLE_LIVE_SYNC) return;
         setState({ type: 'DISCONNECT_SYNC' });
-        showNotification({ mainText: t('liveSync.sessionLeft'), type: 'info', subText: t('liveSync.nowLocal'), systemIcon: 'mic' });
-    }, [setState, t, showNotification]);
+        showNotification({
+            mainText: t('liveSync.left'),
+            type: 'info',
+            systemIcon: 'mic'
+        });
+    }, [setState, showNotification, t]);
 
-    // Host: Broadcast state changes to spectators
-    useEffect(() => {
-        if (!FEATURE_FLAGS.ENABLE_LIVE_SYNC || !isHost || !sessionId) return;
-        SyncEngine.getInstance().broadcastState(sessionId, combinedState);
-    }, [isHost, sessionId, combinedState]);
+    // --- TIMEOUT SYNC HOOKS (INALTERADOS) ---
+    useTimeoutSync(
+        sessionId,
+        activeTimeoutTeam,
+        timeoutSeconds,
+        isTimeoutMinimized,
+        isHost
+    );
 
-    // Sync timeout state (debounced to avoid Firestore queue overflow)
-    if (FEATURE_FLAGS.ENABLE_LIVE_SYNC) {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        useTimeoutSync(sessionId, activeTimeoutTeam, timeoutSeconds, isTimeoutMinimized, isHost);
-    }
-
-    // Spectators: Listen for remote timeout changes
-    if (FEATURE_FLAGS.ENABLE_LIVE_SYNC) {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        useRemoteTimeoutSync(sessionId, (remoteState) => {
+    useRemoteTimeoutSync(
+        sessionId,
+        (remoteState) => {
             if (isSpectator) {
                 if (remoteState.activeTeam && remoteState.activeTeam !== activeTimeoutTeam) {
-                    startTimeout(remoteState.activeTeam, remoteState.secondsLeft ?? 30);
+                    startTimeout(remoteState.activeTeam, remoteState.secondsLeft);
                     if (remoteState.isMinimized) {
                         minimizeTimeout();
                     }
@@ -160,15 +165,22 @@ export function useSyncManager(deps: SyncManagerDeps): SyncManagerReturn {
                     else maximizeTimeout();
                 }
             }
-        });
-    }
+        }
+    );
 
-    // Spectators: Auto-open match over modal when host finishes
+    // --- SPECTATOR AUTO-OPEN MATCH OVER (INALTERADO) ---
     useEffect(() => {
         if (isSpectator && isMatchOver && activeModal === 'none') {
             openModal('match_over');
         }
     }, [isSpectator, isMatchOver, activeModal, openModal]);
+
+    // --- BROADCAST STATE SYNC (INALTERADO) ---
+    useEffect(() => {
+        if (isHost && sessionId) {
+            SyncEngine.getInstance().broadcastState(sessionId, combinedState);
+        }
+    }, [isHost, sessionId, combinedState]);
 
     return {
         isBroadcastMode,

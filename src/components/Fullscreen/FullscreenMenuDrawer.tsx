@@ -14,24 +14,24 @@ interface FullscreenMenuDrawerProps {
   onExitFullscreen: () => void;
 }
 
-const MenuButton = memo(({ 
-  icon: Icon, 
-  label, 
-  subLabel, 
-  onClick, 
+const MenuButton = memo(({
+  icon: Icon,
+  label,
+  subLabel,
+  onClick,
   themeColor,
   delay = 0,
   className = ""
-}: { 
-  icon: any, 
-  label: string, 
-  subLabel: string, 
+}: {
+  icon: any,
+  label: string,
+  subLabel: string,
   onClick: () => void,
   themeColor: 'indigo' | 'cyan' | 'amber',
   delay?: number,
   className?: string
 }) => {
-  
+
   const colors = {
     indigo: {
       bg: 'bg-indigo-500/10',
@@ -55,12 +55,19 @@ const MenuButton = memo(({
 
   const theme = colors[themeColor];
 
+  // Mobile-first handler (conforme .clinerules)
+  const handleClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
+    console.log('🖱️ MenuButton clicked:', label);
+    onClick();
+  }, [onClick, label]);
+
   return (
-    <motion.button 
+    <motion.button
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: delay * 0.05, type: "spring", stiffness: 300, damping: 25 }}
-      onClick={onClick} 
+      onClick={handleClick}
+      style={{ touchAction: 'manipulation' }}
       className={`
         group w-full flex items-center gap-3 sm:gap-4 p-3 sm:p-5 rounded-[1.25rem] sm:rounded-[1.5rem] relative overflow-hidden
         bg-white/60 dark:bg-white/[0.03]
@@ -103,36 +110,89 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = memo(({
   const { t } = useTranslation();
   const { theme, setTheme } = useTheme();
   
-  const handleSettings = useCallback(() => { onOpenSettings(); onClose(); }, [onOpenSettings, onClose]);
-  const handleRoster = useCallback(() => { onOpenRoster(); onClose(); }, [onOpenRoster, onClose]);
-  const handleHistory = useCallback(() => { onOpenHistory(); onClose(); }, [onOpenHistory, onClose]);
-  const handleExit = useCallback(() => { onExitFullscreen(); onClose(); }, [onExitFullscreen, onClose]);
+  const handleSettings = useCallback(() => {
+    console.log('🔧 Settings clicked');
+    // Fechar drawer ANTES de abrir o novo modal
+    onClose();
+    // Pequeno delay para garantir que o drawer fecha antes de abrir o settings
+    setTimeout(() => {
+      console.log('🔧 Abrindo Settings após fechar drawer');
+      onOpenSettings();
+    }, 100);
+  }, [onOpenSettings, onClose]);
+
+  const handleRoster = useCallback(() => {
+    console.log('👥 Roster clicked');
+    // Fechar drawer ANTES de abrir o novo modal
+    onClose();
+    // Pequeno delay para garantir que o drawer fecha antes de abrir o roster
+    setTimeout(() => {
+      console.log('👥 Abrindo Roster após fechar drawer');
+      onOpenRoster();
+    }, 100);
+  }, [onOpenRoster, onClose]);
+
+  const handleHistory = useCallback(() => {
+    console.log('📜 History clicked');
+    // Fechar drawer ANTES de abrir o novo modal
+    onClose();
+    // Pequeno delay para garantir que o drawer fecha antes de abrir o history
+    setTimeout(() => {
+      console.log('📜 Abrindo History após fechar drawer');
+      onOpenHistory();
+    }, 100);
+  }, [onOpenHistory, onClose]);
+
+  const handleExit = useCallback(() => {
+    console.log('🚪 Exit clicked');
+    onExitFullscreen();
+    onClose();
+  }, [onExitFullscreen, onClose]);
+
   const handleThemeToggle = useCallback(() => setTheme(theme === 'light' ? 'dark' : 'light'), [theme, setTheme]);
+
+  // Mobile-first handlers (conforme .clinerules)
+  const handleLightTheme = useCallback(() => {
+    setTheme('light');
+  }, [setTheme]);
+
+  const handleDarkTheme = useCallback(() => {
+    setTheme('dark');
+  }, [setTheme]);
+
+  const handleExitClick = useCallback(() => {
+    handleExit();
+  }, [handleExit]);
+
+  const handleCloseClick = useCallback(() => {
+    onClose();
+  }, [onClose]);
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xl z-[60]" 
-            onClick={onClose}
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xl z-[65]"
+            onClick={handleCloseClick}
+            style={{ touchAction: 'manipulation' }}
           />
 
-          <motion.div 
+          <motion.div
             initial={{ x: "100%" }}
             animate={{ x: "0%" }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30, mass: 1 }}
             className={`
-              fixed top-0 right-0 h-full z-[70]
+              fixed top-0 right-0 h-full z-[100]
               w-full sm:w-[26rem] landscape:w-[42rem] max-w-[100vw]
               bg-slate-50/80 dark:bg-[#020617]/80
-              backdrop-blur-3xl 
-              border-l border-white/20 dark:border-white/10 
+              backdrop-blur-3xl
+              border-l border-white/20 dark:border-white/10
               shadow-2xl shadow-black/50
               flex flex-col
               overflow-hidden
@@ -150,8 +210,9 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = memo(({
                 <div className="w-1.5 h-4 sm:h-5 bg-indigo-500 rounded-full shadow-[0_0_10px_currentColor]" />
                 {t('game.menu')}
               </h2>
-              <button 
-                onClick={onClose} 
+              <button
+                onClick={handleCloseClick}
+                style={{ touchAction: 'manipulation' }}
                 className="p-2 sm:p-3 rounded-full bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 text-slate-400 hover:text-slate-800 dark:hover:text-white transition-all active:scale-95 border border-transparent hover:border-slate-200 dark:hover:border-white/10"
               >
                 <X className="w-5 h-5 sm:w-[22px] sm:h-[22px]" strokeWidth={2.5} />
@@ -203,14 +264,16 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = memo(({
                     <div className="flex flex-col gap-2 sm:gap-3 w-full landscape:flex-1">
                         <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1 hidden sm:block landscape:hidden">Appearance</span>
                         <div className="flex bg-white/50 dark:bg-white/5 p-1 rounded-[1.2rem] sm:rounded-3xl border border-black/5 dark:border-white/5 h-12 sm:h-auto">
-                            <button 
-                                onClick={() => setTheme('light')}
+                            <button
+                                onClick={handleLightTheme}
+                                style={{ touchAction: 'manipulation' }}
                                 className={`flex-1 flex items-center justify-center gap-2 py-2 sm:py-3 rounded-2xl text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all ${theme === 'light' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}`}
                             >
                                 <Sun size={14} className="sm:w-4 sm:h-4" strokeWidth={2.5} /> <span className="hidden sm:inline">Light</span>
                             </button>
-                            <button 
-                                onClick={() => setTheme('dark')}
+                            <button
+                                onClick={handleDarkTheme}
+                                style={{ touchAction: 'manipulation' }}
                                 className={`flex-1 flex items-center justify-center gap-2 py-2 sm:py-3 rounded-2xl text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all ${theme === 'dark' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}`}
                             >
                                 <Moon size={14} className="sm:w-4 sm:h-4" strokeWidth={2.5} /> <span className="hidden sm:inline">Dark</span>
@@ -219,12 +282,13 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = memo(({
                     </div>
 
                     {/* Exit Button */}
-                    <button 
-                        onClick={handleExit} 
+                    <button
+                        onClick={handleExitClick}
+                        style={{ touchAction: 'manipulation' }}
                         className="
-                        w-full landscape:flex-1 flex items-center justify-center gap-3 p-4 sm:p-5 landscape:p-3 rounded-[1.25rem] sm:rounded-[1.5rem] 
+                        w-full landscape:flex-1 flex items-center justify-center gap-3 p-4 sm:p-5 landscape:p-3 rounded-[1.25rem] sm:rounded-[1.5rem]
                         bg-rose-500/10 hover:bg-rose-500/20
-                        text-rose-600 dark:text-rose-400 
+                        text-rose-600 dark:text-rose-400
                         border border-rose-500/20
                         transition-all font-bold uppercase tracking-widest text-[10px] sm:text-xs shadow-sm active:scale-[0.98]
                         h-14 sm:h-[64px] landscape:h-auto

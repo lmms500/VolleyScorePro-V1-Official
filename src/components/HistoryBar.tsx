@@ -10,9 +10,9 @@ import { useTimerValue } from '../contexts/TimerContext';
 import { useHaptics } from '../hooks/useHaptics';
 import { useGameAudio } from '../hooks/useGameAudio';
 import { Confetti } from './ui/Confetti';
-import { NotificationToast } from './ui/NotificationToast';
 import { DEFAULT_CONFIG } from '../constants';
 import { useTranslation } from '../contexts/LanguageContext';
+import { useNotification } from '../contexts/NotificationContext';
 import { useCollider } from '../hooks/useCollider';
 import { useRoster } from '../contexts/GameContext';
 
@@ -135,12 +135,12 @@ const ScoreTickerSimple = memo(({ value, color }: { value: number, color: TeamCo
 export const HistoryBar: React.FC<HistoryBarProps> = memo(({ history, setsA, setsB, colorA, colorB }) => {
   const [tapCount, setTapCount] = useState(0);
   const [isPartyTime, setIsPartyTime] = useState(false);
-  const [showEggToast, setShowEggToast] = useState(false);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const haptics = useHaptics();
   const audio = useGameAudio(DEFAULT_CONFIG);
   const { t } = useTranslation();
+  const { showNotification } = useNotification();
   const { config } = useRoster(); // Access global config to check lowGraphics
 
   const logoRef = useCollider('hist-logo');
@@ -163,7 +163,12 @@ export const HistoryBar: React.FC<HistoryBarProps> = memo(({ history, setsA, set
 
   const triggerEasterEgg = () => {
     setIsPartyTime(true);
-    setShowEggToast(true);
+    showNotification({
+      type: 'success',
+      mainText: t('easterEgg.title'),
+      subText: t('easterEgg.subtitle'),
+      systemIcon: 'party'
+    });
     haptics.notification('success');
     audio.playUnlock();
     setTimeout(() => setIsPartyTime(false), 5000);
@@ -182,15 +187,6 @@ export const HistoryBar: React.FC<HistoryBarProps> = memo(({ history, setsA, set
         </div>,
         document.body
       )}
-
-      <NotificationToast
-        visible={showEggToast}
-        type="success"
-        mainText={t('easterEgg.title')}
-        subText={t('easterEgg.subtitle')}
-        onClose={() => setShowEggToast(false)}
-        systemIcon="party"
-      />
 
       <motion.div
         initial={{ y: -20, opacity: 0 }}

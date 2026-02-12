@@ -23,33 +23,34 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     const loadSavedLanguage = async () => {
-        const { value } = await Preferences.get({ key: 'volleyscore-lang' });
-        
-        if (value && ['en', 'pt', 'es'].includes(value)) {
-            setLanguageState(value as Language);
-        } else {
-            const browserLang = navigator.language.split('-')[0];
-            if (['pt', 'es'].includes(browserLang)) {
-                setLanguageState(browserLang as Language);
-            }
+      const { value } = await Preferences.get({ key: 'volleyscore-lang' });
+
+      if (value && ['en', 'pt', 'es'].includes(value)) {
+        setLanguageState(value as Language);
+      } else {
+        const browserLang = navigator.language.split('-')[0];
+        if (['pt', 'es'].includes(browserLang)) {
+          setLanguageState(browserLang as Language);
         }
+      }
     };
     loadSavedLanguage();
   }, []);
 
   useEffect(() => {
     const fetchTranslations = async () => {
-        try {
-            const [en, pt, es] = await Promise.all([
-                fetch('/locales/en.json').then(res => res.json()),
-                fetch('/locales/pt.json').then(res => res.json()),
-                fetch('/locales/es.json').then(res => res.json())
-            ]);
-            setTranslations({ en, pt, es });
-        } catch (error) {
-            console.error("Failed to load translations:", error);
-            setTranslations({ en: {}, pt: {}, es: {} }); 
-        }
+      try {
+        const timestamp = new Date().getTime();
+        const [en, pt, es] = await Promise.all([
+          fetch(`/locales/en.json?v=${timestamp}`).then(res => res.json()),
+          fetch(`/locales/pt.json?v=${timestamp}`).then(res => res.json()),
+          fetch(`/locales/es.json?v=${timestamp}`).then(res => res.json())
+        ]);
+        setTranslations({ en, pt, es });
+      } catch (error) {
+        console.error("Failed to load translations:", error);
+        setTranslations({ en: {}, pt: {}, es: {} });
+      }
     };
     fetchTranslations();
   }, []);
@@ -63,14 +64,14 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     if (!translations) {
       return key; // Return key as fallback while loading
     }
-    
+
     let translation = getNested(translations[language], key);
 
     // Fallback to English if translation is not found
     if (translation === undefined) {
       translation = getNested(translations.en, key);
     }
-    
+
     // Fallback to the key itself if still not found
     if (translation === undefined) {
       return key;

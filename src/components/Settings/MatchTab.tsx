@@ -8,6 +8,7 @@ import { useTranslation } from '../../contexts/LanguageContext';
 import { useActions, useScore, useRoster } from '../../contexts/GameContext';
 import { GAME_MODE_PRESETS } from '../../config/gameModes';
 import type { GameModePreset } from '../../types';
+import { useCombinedGameState } from '../../hooks/useCombinedGameState';
 
 interface MatchTabProps {
     localConfig: GameConfig;
@@ -22,6 +23,9 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
     const { loadStateFromFile } = useActions();
 
     // We need the full state for export
+    const fullState = useCombinedGameState();
+
+    // Also need separate access for validation logic
     const scoreState = useScore();
     const rosterState = useRoster();
 
@@ -32,7 +36,6 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
 
     const handleExportGame = async () => {
         try {
-            const fullState = { ...scoreState, ...rosterState } as any;
             await exportActiveMatch(fullState);
         } catch (e) {
             console.error(e);
@@ -72,14 +75,14 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
 
         // Warning if match is in progress OR if downsizing will occur
         if (scoreState.currentSet > 0 || willDownsize) {
-            let msg = t('settings.confirmModeChange') || 'Changing the game mode will reset the match.';
+            let msg = t('settings.warningMessage');
 
             if (willDownsize && excessPlayers > 0) {
-                msg += `\n\n⚠️ ${excessPlayers} players will be moved to the queue due to smaller court size.`;
+                msg += `\n\n⚠️ ${t('settings.warnings.downsizing', { count: excessPlayers })}`;
             } else if (willDownsize) {
-                 msg += `\n\n⚠️ Teams will be resized to ${newLimit} players.`;
+                msg += `\n\n⚠️ ${t('settings.warnings.resizing', { count: newLimit })}`;
             }
-            msg += '\n\nContinue?';
+            msg += `\n\n${t('common.continue')}`;
 
             const confirmChange = window.confirm(msg);
             if (!confirmChange) return;
@@ -109,13 +112,13 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
         const availablePresets: Array<{ preset: GameModePreset; label: string; count: number }> =
             mode === 'indoor'
                 ? [
-                    { preset: 'quads-5v5', label: '5v5', count: 5 },
-                    { preset: 'indoor-6v6', label: '6v6', count: 6 }
+                    { preset: 'quads-5v5', label: t('gameModes.labels.5v5'), count: 5 },
+                    { preset: 'indoor-6v6', label: t('gameModes.labels.6v6'), count: 6 }
                 ]
                 : [
-                    { preset: 'beach-2v2', label: '2v2', count: 2 },
-                    { preset: 'triples-3v3', label: '3v3', count: 3 },
-                    { preset: 'beach-4v4', label: '4v4', count: 4 }
+                    { preset: 'beach-2v2', label: t('gameModes.labels.2v2'), count: 2 },
+                    { preset: 'triples-3v3', label: t('gameModes.labels.3v3'), count: 3 },
+                    { preset: 'beach-4v4', label: t('gameModes.labels.4v4'), count: 4 }
                 ];
 
         return (
@@ -188,7 +191,7 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
                         </SettingItem>
 
                         {/* Player Count Selector */}
-                        <SettingItem label={t('settings.rules.playerCount') || 'Players per Team'} icon={Users} color={{ bg: 'bg-emerald-500/10', text: 'text-emerald-500' }}>
+                        <SettingItem label={t('settings.rules.playerCount')} icon={Users} color={{ bg: 'bg-emerald-500/10', text: 'text-emerald-500' }}>
                             <PlayerCountSelector />
                         </SettingItem>
 

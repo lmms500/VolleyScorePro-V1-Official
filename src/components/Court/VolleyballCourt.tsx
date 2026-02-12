@@ -1,4 +1,3 @@
-
 import React, { memo, useCallback } from 'react';
 import { Player, TeamColor, CourtLayoutConfig } from '../../types';
 import { resolveTheme } from '../../utils/colors';
@@ -17,6 +16,8 @@ interface VolleyballCourtProps {
     mvpId?: string | null;
     layoutConfig: CourtLayoutConfig;
     isDragActive?: boolean;
+    /** Rotation angle for player name labels (e.g., -90 for inline portrait mode) */
+    nameRotation?: number;
 }
 
 // --- 1. THE DROP ZONE (Glass Slot) ---
@@ -30,17 +31,17 @@ const ZoneMarker = memo(({ index, visualZone, teamId }: { index: number, visualZ
         <div
             ref={setNodeRef}
             className={`
-                absolute inset-0 flex items-center justify-center rounded-2xl transition-all duration-300
-                ${isOver ? 'bg-white/30 ring-4 ring-white/60 scale-105 shadow-[0_0_25px_rgba(255,255,255,0.5)] z-10 backdrop-blur-sm' : 'opacity-0'}
+                absolute inset-0 flex items-center justify-center rounded-3xl transition-all duration-300
+                ${isOver ? 'bg-white/20 ring-4 ring-white/40 scale-105 shadow-[0_0_30px_rgba(255,255,255,0.3)] z-10 backdrop-blur-sm' : 'opacity-0'}
             `}
         >
-            <span className="text-[80px] font-black text-white/10 select-none">{visualZone}</span>
+            <span className="text-[60px] font-black text-white/5 select-none">{visualZone}</span>
         </div>
     );
 });
 
-// --- 2. THE PLAYER TOKEN (NeoGlass Jewel) ---
-const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActivate, isMVP, isGlobalDragging }: { player: Player, index: number, teamId: string, theme: any, isServer: boolean, onActivate?: (player: Player) => void, isMVP: boolean, isGlobalDragging: boolean }) => {
+// --- 2. THE PLAYER TOKEN (Ultraglass Jewel) ---
+const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActivate, isMVP, isGlobalDragging, nameRotation }: { player: Player, index: number, teamId: string, theme: any, isServer: boolean, onActivate?: (player: Player) => void, isMVP: boolean, isGlobalDragging: boolean, nameRotation?: number }) => {
     // Draggable Logic Only (Collision handled by ZoneMarker underneath)
     const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
         id: player.id,
@@ -58,13 +59,13 @@ const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActiva
         <motion.div
             layoutId={player.id}
             layout="position"
-            transition={{ type: "spring", stiffness: 300, damping: 28 }}
+            transition={{ type: "spring", stiffness: 220, damping: 24, mass: 0.9 }}
             ref={setNodeRef}
             {...listeners}
             {...attributes}
             onClick={handleClick}
             className={`
-                relative w-10 h-10 sm:w-12 sm:h-12 flex flex-col items-center justify-center touch-none cursor-grab active:cursor-grabbing z-20
+                relative w-12 h-12 sm:w-14 sm:h-14 flex flex-col items-center justify-center touch-none cursor-grab active:cursor-grabbing z-20 group
                 ${isDragging ? 'opacity-0' : 'opacity-100'}
                 ${isGlobalDragging ? 'pointer-events-none' : 'pointer-events-auto'}
             `}
@@ -72,33 +73,48 @@ const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActiva
                 touchAction: 'none'
             }}
         >
+            {/* Server Indicator Ring */}
             {isServer && (
                 <motion.div
                     layoutId={`serve-ring-${teamId}`}
-                    className="absolute -inset-1.5 rounded-full border-2 border-dashed border-amber-400/80 animate-[spin_8s_linear_infinite]"
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    className="absolute -inset-2 rounded-full border-[3px] border-dashed border-amber-400/90 animate-[spin_8s_linear_infinite]"
+                    transition={{ type: "spring", stiffness: 220, damping: 24, mass: 0.9 }}
                 />
             )}
 
+            {/* MVP Glow */}
             {isMVP && (
-                <div className="absolute inset-0 rounded-full shadow-[0_0_20px_rgba(251,191,36,0.8)] ring-2 ring-amber-400/80 animate-pulse z-0" />
+                <div className="absolute inset-0 rounded-full shadow-[0_0_30px_rgba(251,191,36,0.6)] ring-2 ring-amber-400/80 animate-pulse z-0" />
             )}
 
+            {/* Main Token Body */}
             <div className={`
-                w-full h-full rounded-full shadow-2xl flex items-center justify-center relative overflow-hidden z-10
-                bg-gradient-to-br ${theme.gradient.replace('/15', '/90').replace('to-transparent', 'to-black/40')}
-                border border-white/30
-                ring-1 ring-black/20
-                ${isMVP ? 'border-amber-400/50' : ''}
+                w-full h-full rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.3)] flex items-center justify-center relative overflow-hidden z-10 transition-transform duration-200 group-hover:scale-110
+                bg-gradient-to-br ${theme.gradient.replace('/15', '').replace('to-transparent', 'to-gray-900/40')}
+                border border-white/40
+                ring-1 ring-black/10 dark:ring-white/10
+                ${isMVP ? 'border-amber-400/50 shadow-amber-500/20' : ''}
             `}>
-                <div className="absolute inset-x-0 top-0 h-[45%] bg-gradient-to-b from-white/40 to-transparent pointer-events-none rounded-t-full" />
-                <span className={`text-base sm:text-lg font-black ${isMVP ? 'text-amber-100' : 'text-white'} drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] z-10 font-mono tracking-tighter`}>
+                {/* Glossy Reflection */}
+                <div className="absolute inset-x-0 top-0 h-[45%] bg-gradient-to-b from-white/60 to-transparent pointer-events-none rounded-t-full" />
+
+                <span
+                    className={`text-lg sm:text-xl font-black ${isMVP ? 'text-amber-50' : 'text-white'} drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)] z-10 font-mono tracking-tighter`}
+                    style={nameRotation ? { transform: `rotate(${nameRotation}deg)`, display: 'inline-block' } : undefined}
+                >
                     {player.number || '#'}
                 </span>
             </div>
 
-            <div className={`absolute -bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md px-2 py-0.5 rounded-full border shadow-xl max-w-[200%] ${isMVP ? 'border-amber-500/50' : 'border-white/10'}`}>
-                <span className={`text-[8px] font-bold uppercase tracking-wider block truncate text-center max-w-[70px] ${isMVP ? 'text-amber-400' : 'text-slate-200'}`}>
+            {/* Name Label */}
+            <div
+                className={`absolute -bottom-5 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-md px-2.5 py-0.5 rounded-md border shadow-lg max-w-[200%] transition-opacity duration-200
+                 ${isMVP ? 'border-amber-500/50' : 'border-white/10'}
+                 ${isGlobalDragging ? 'opacity-0' : 'opacity-100'}
+                `}
+                style={{ transform: nameRotation ? `translateX(-50%) rotate(${nameRotation}deg)` : 'translateX(-50%)' }}
+            >
+                <span className={`text-[9px] font-bold uppercase tracking-wider block truncate text-center max-w-[80px] leading-tight ${isMVP ? 'text-amber-400' : 'text-slate-200'}`}>
                     {player.name}
                 </span>
             </div>
@@ -107,83 +123,66 @@ const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActiva
 });
 
 export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
-    players, color, isServing, side, teamId, variant = 'full', onPlayerClick, mvpId, layoutConfig, isDragActive = false
+    players, color, isServing, side, teamId, variant = 'full', onPlayerClick, mvpId, layoutConfig, isDragActive = false, nameRotation
 }) => {
     const theme = resolveTheme(color);
 
-    // Stable handler for player activation (avoids inline arrow function in render)
+    // Stable handler for player activation
     const handlePlayerActivate = useCallback((player: Player) => {
         if (onPlayerClick) {
             onPlayerClick(player);
         }
     }, [onPlayerClick]);
     const isMinimal = variant === 'minimal';
-
-    // Determines if we should show beach style (≤ 4 players) or indoor style (> 4 players)
     const isBeachStyle = layoutConfig.playersOnCourt <= 4;
-
     const slotCount = layoutConfig.playersOnCourt;
     const slots = new Array(slotCount).fill(null);
     players.slice(0, slotCount).forEach((p, i) => { slots[i] = p; });
 
-    // Grid order comes directly from layoutConfig
-    const gridOrder = side === 'left'
-        ? layoutConfig.gridOrderLeft
-        : layoutConfig.gridOrderRight;
+    const gridOrder = side === 'left' ? layoutConfig.gridOrderLeft : layoutConfig.gridOrderRight;
 
-    // Dynamic grid rows - using explicit classes for Tailwind
-    const gridRowsClass = layoutConfig.gridRows === 1 ? 'grid-rows-1'
-                        : layoutConfig.gridRows === 2 ? 'grid-rows-2'
-                        : 'grid-rows-3';
-
+    // Grid Setup
+    const gridRowsClass = layoutConfig.gridRows === 1 ? 'grid-rows-1' : layoutConfig.gridRows === 2 ? 'grid-rows-2' : 'grid-rows-3';
     const gridColsClass = layoutConfig.gridCols === 3 ? 'grid-cols-3' : 'grid-cols-2';
 
-    const lineColor = isBeachStyle ? 'border-blue-900/30' : 'border-white/80';
-
-    // Standard Orange for Indoor, Sand for Beach
-    const courtColorClass = isBeachStyle ? 'bg-[#e3cba5]' : 'bg-orange-500';
+    // Visual Styles
+    const lineColor = isBeachStyle ? 'border-blue-900/20' : 'border-white/50';
 
     return (
-        <div className={`w-full h-full relative ${isMinimal ? '' : 'p-2 sm:p-4'} flex items-center justify-center`}>
+        <div className={`w-full h-full relative ${isMinimal ? '' : 'p-4'} flex items-center justify-center`}>
+            {/* Court Floor removed here as it is now handled by the parent container for better layering */}
 
-            {!isMinimal && (
-                <div className={`absolute inset-0 rounded-[2rem] overflow-hidden shadow-inner border-4 border-white/10 transition-colors duration-300 ${courtColorClass}`}>
-                    {isBeachStyle && <div className="absolute inset-0 opacity-20 mix-blend-multiply" style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/sand.png')" }} />}
-                    {!isBeachStyle && <div className="absolute inset-0 opacity-10 mix-blend-multiply" style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/wood-pattern.png')" }} />}
-                </div>
-            )}
-
-            {/* Court Lines */}
+            {/* Court Lines (Simplified & Cleaner) */}
             <div className={`
-                absolute ${isMinimal ? 'inset-0' : 'inset-4'} border-[6px] ${lineColor}
-                ${!isMinimal ? 'rounded-xl shadow-lg' : ''}
-                ${side === 'left' ? 'border-r-0 rounded-l-[1.2rem]' : 'border-l-0 rounded-r-[1.2rem]'}
+                absolute ${isMinimal ? 'inset-0' : 'inset-4'} border-[4px] ${lineColor}
+                ${side === 'left' ? 'border-r-0' : 'border-l-0'}
+                opacity-80
             `}>
                 {!isBeachStyle && (
-                    <div className={`absolute top-0 bottom-0 w-1 bg-white/60 ${side === 'left' ? 'right-[33%]' : 'left-[33%]'}`} />
+                    <div className={`absolute top-0 bottom-0 w-[2px] bg-white/30 ${side === 'left' ? 'right-[33%]' : 'left-[33%]'}`} />
                 )}
             </div>
 
             {/* Players Grid */}
             <div className={`
-                relative z-10 w-full h-full grid gap-2 ${gridRowsClass} ${gridColsClass}
-                ${side === 'left' ? 'pr-8 pl-4' : 'pl-8 pr-4'}
+                relative z-10 w-full h-full grid gap-2 sm:gap-4 ${gridRowsClass} ${gridColsClass}
+                ${side === 'left' ? 'pr-8 pl-4 lg:pr-12 lg:pl-6' : 'pl-8 pr-4 lg:pl-12 lg:pr-6'}
             `}>
                 {gridOrder.map((arrayIndex, gridPosition) => {
-                    // Check for empty slot (-1)
-                    if (isEmptySlot(arrayIndex)) {
-                        return (
-                            <div key={`empty-${gridPosition}`} className="relative" />
-                        );
-                    }
+                    if (isEmptySlot(arrayIndex)) return <div key={`empty-${gridPosition}`} className="relative" />;
 
                     return (
-                        <div key={arrayIndex} className="relative flex items-center justify-center group">
-                            <div className={`absolute text-[60px] sm:text-[80px] font-black ${isBeachStyle ? 'text-black/5' : 'text-white/10'} select-none pointer-events-none`}>
+                        <div key={slots[arrayIndex]?.id || `empty-${arrayIndex}`} className="relative flex items-center justify-center">
+
+                            {/* Watermark Zone Number */}
+                            <div
+                                className={`absolute text-[100px] leading-none font-black text-white/[0.03] select-none pointer-events-none z-0 transform scale-110`}
+                                style={nameRotation ? { transform: `scale(1.1) rotate(${nameRotation}deg)` } : undefined}
+                            >
                                 {layoutConfig.zoneMap[arrayIndex]}
                             </div>
 
-                            {/* Zone Marker is the target for drops */}
+                            {/* Drop Zone */}
                             <ZoneMarker
                                 index={arrayIndex}
                                 visualZone={""}
@@ -191,6 +190,7 @@ export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
                                 isActive={false}
                             />
 
+                            {/* Player Token */}
                             {slots[arrayIndex] ? (
                                 <DraggablePlayer
                                     key={slots[arrayIndex].id}
@@ -202,9 +202,10 @@ export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
                                     onActivate={handlePlayerActivate}
                                     isMVP={mvpId === slots[arrayIndex].id}
                                     isGlobalDragging={isDragActive}
+                                    nameRotation={nameRotation}
                                 />
                             ) : (
-                                <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/20 opacity-30 pointer-events-none" />
+                                <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/10 opacity-50 pointer-events-none" />
                             )}
                         </div>
                     );

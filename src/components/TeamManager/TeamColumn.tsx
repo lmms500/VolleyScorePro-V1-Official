@@ -157,7 +157,7 @@ export const TeamColumn = memo(({
             {isQueue && queueIndex !== undefined && (
                 <div className={`absolute -top-4 right-6 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest z-10 flex items-center gap-1.5 shadow-md border border-white/50 dark:border-white/20 ${queueIndex === 0 ? 'bg-amber-500 text-amber-950' : 'bg-slate-200 text-slate-600 dark:bg-white/10 dark:text-slate-300'}`}>
                     {queueIndex === 0 ? <ArrowUpCircle size={14} strokeWidth={3} /> : <ListOrdered size={12} strokeWidth={3} />}
-                    {queueIndex === 0 ? "NEXT UP" : `${queueIndex + 1}º`}
+                    {queueIndex === 0 ? t('teamManager.queuePosition.nextUp') : `${queueIndex + 1}º`}
                 </div>
             )}
 
@@ -171,7 +171,7 @@ export const TeamColumn = memo(({
                         onColorUpdate={handleUpdateColor}
                     />
                     <div className="flex-1 min-w-0"><EditableTitle name={team.name} onSave={handleUpdateName} className={`text-lg landscape:text-base font-black uppercase tracking-tight ${colorConfig.text} ${colorConfig.textDark} drop-shadow-sm w-full`} /></div>
-                    <div className="flex gap-1.5 flex-wrap"><div className={`px-2 py-0.5 rounded-md text-[9px] font-bold border flex items-center gap-1 shadow-sm text-white ${colorConfig.bg} ${colorConfig.border}`}><Users size={10} strokeWidth={2.5} /> {displayedPlayers.length}/{viewMode === 'main' ? layout.playersOnCourt : layout.benchLimit}</div><div className={`px-2 py-0.5 rounded-md text-[9px] font-bold border flex items-center gap-1 shadow-sm ${colorConfig.bg.replace('/20', '/40')} ${colorConfig.border} dark:text-white dark:border-white/20 text-slate-700`} title="Avg Team Skill"><Activity size={10} strokeWidth={2.5} /> {teamStrength}</div></div>
+                    <div className="flex gap-1.5 flex-wrap"><div className={`px-2 py-0.5 rounded-md text-[9px] font-bold border flex items-center gap-1 shadow-sm text-white ${colorConfig.bg} ${colorConfig.border}`}><Users size={10} strokeWidth={2.5} /> {displayedPlayers.length}/{viewMode === 'main' ? layout.playersOnCourt : layout.benchLimit}</div><div className={`px-2 py-0.5 rounded-md text-[9px] font-bold border flex items-center gap-1 shadow-sm ${colorConfig.bg.replace('/20', '/40')} ${colorConfig.border} dark:text-white dark:border-white/20 text-slate-700`} title={t('teamManager.sort.skill')}><Activity size={10} strokeWidth={2.5} /> {teamStrength}</div></div>
                 </div>
 
                 <div className="flex items-center justify-between border-t border-slate-200 dark:border-white/5 pt-2 mt-1 mb-2 w-full">
@@ -202,17 +202,17 @@ export const TeamColumn = memo(({
                                         <button onClick={() => applySort('original')} className="flex items-center gap-2 px-2 py-2 text-[10px] font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg text-left w-full"><RefreshCcw size={12} /> {t('teamManager.sort.reset')}</button>
                                         <div className="border-t border-slate-200 dark:border-white/10 my-1 pt-1">
                                             <button onClick={() => {
-                                                if (window.confirm(t('teamManager.resetConfirm') || 'Reset this team? This will clear the name and remove all players.')) {
+                                                if (window.confirm(t('teamManager.resetConfirm'))) {
                                                     onUpdateTeamName(id, id === 'A' ? 'Team A' : id === 'B' ? 'Team B' : `Team ${id.slice(0, 4)}`);
                                                     onUpdateTeamColor(id, 'slate');
                                                     onUpdateTeamLogo(id, '');
                                                     // Note: Players removal would require a batch action in GameContext
                                                     // For now, reset name/color/logo. Full player reset can be added via new action.
                                                     setShowSortMenu(false);
-                                                    onShowToast(t('teamManager.teamReset') || 'Team Reset', 'info');
+                                                    onShowToast(t('teamManager.teamReset'), 'info');
                                                 }
                                             }} className="flex items-center gap-2 px-2 py-2 text-[10px] font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg text-left w-full">
-                                                <RefreshCcw size={12} /> {t('teamManager.resetTeam') || 'Reset Team'}
+                                                <RefreshCcw size={12} /> {t('teamManager.resetTeam')}
                                             </button>
                                         </div>
                                     </motion.div>

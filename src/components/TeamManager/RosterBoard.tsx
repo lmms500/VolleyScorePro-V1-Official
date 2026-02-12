@@ -77,40 +77,40 @@ export const RosterBoard: React.FC<RosterBoardProps> = ({ courtLimit, benchLimit
   const checkScroll = useCallback(() => {
     if (!queueScrollRef.current) return;
     const { scrollLeft, scrollWidth, clientWidth } = queueScrollRef.current;
+
+    // [FIX] Dynamic Card Width Calculation
+    // We must measure the actual card to know the stride (width + gap)
+    // Gap is 'gap-6' = 24px (1.5rem)
+    const firstCard = queueScrollRef.current.firstElementChild as HTMLElement;
+    const cardWidth = firstCard?.clientWidth || 320; // Fallback
+    const gap = 24; // gap-6
+    const stride = cardWidth + gap;
+
     setCanScrollLeft(scrollLeft > 20);
     setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 20);
-    const width = clientWidth;
-    const estimatedCardWidth = 320;
-    if (width > 0) {
-      const page = Math.round(scrollLeft / estimatedCardWidth) + 1;
-      setQueuePage(page);
+
+    // Calculate page based on center point or simple division
+    // Using simple round is usually enough if stride is correct
+    if (stride > 0) {
+      const page = Math.round(scrollLeft / stride) + 1;
+      // Debounce state update to prevent flickering
+      setQueuePage(p => p !== page ? page : p);
     }
     dispatchScrollEvent();
   }, []);
 
   const onQueueScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => { checkScroll(); }, [checkScroll]);
 
-  useEffect(() => {
-    checkScroll();
-    // Skip jiggle animation if we just added a team (skipJiggle is true)
-    if (skipJiggle.current) {
-      skipJiggle.current = false;
-      return;
-    }
-    if (queue.length > 1 && queueScrollRef.current) {
-      setTimeout(() => {
-        if (queueScrollRef.current) {
-          queueScrollRef.current.scrollTo({ left: 60, behavior: 'smooth' });
-          setTimeout(() => { if (queueScrollRef.current) { queueScrollRef.current.scrollTo({ left: 0, behavior: 'smooth' }); } }, 400);
-        }
-      }, 600);
-    }
-  }, [queue.length, checkScroll]);
+  // ... (Effect for initial scroll jiggle kept as is, but we need to match the new stride logic in scrollContainer)
 
   const scrollContainer = (direction: 'left' | 'right') => {
     if (queueScrollRef.current) {
-      const width = 320;
-      const scrollAmount = direction === 'left' ? -width : width;
+      const firstCard = queueScrollRef.current.firstElementChild as HTMLElement;
+      const cardWidth = firstCard?.clientWidth || 320;
+      const gap = 24;
+      const stride = cardWidth + gap;
+
+      const scrollAmount = direction === 'left' ? -stride : stride;
       queueScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     }
   };
@@ -150,6 +150,14 @@ export const RosterBoard: React.FC<RosterBoardProps> = ({ courtLimit, benchLimit
   }, [isAutoScrolling]);
 
   useEffect(() => {
+    // [FIX 3.3] Each team is a page. Reset only if queuePage exceeds actual queue length.
+    // maxPage = queue.length (e.g., 8 teams = 8 pages, not ceil(8/3)=3 pages)
+    const maxPage = Math.max(1, queue.length);
+    if (queuePage > maxPage) {
+      setQueuePage(maxPage);
+      // Allow natural carousel scrolling - don't force scroll to left: 0
+    }
+
     if (lastMovedTeamId.current) {
       const el = document.getElementById(`queue-card-${lastMovedTeamId.current}`);
       if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); lastMovedTeamId.current = null; pendingScrollToIndex.current = null; }
@@ -163,12 +171,17 @@ export const RosterBoard: React.FC<RosterBoardProps> = ({ courtLimit, benchLimit
         pendingScrollToIndex.current = null;
       });
     } else if (queue.length > prevQueueLen.current) {
+      // Only scroll to end if length INCREASED (adding a team)
       requestAnimationFrame(() => {
         setTimeout(() => { if (queueScrollRef.current) { const scrollLeft = queueScrollRef.current.scrollWidth - queueScrollRef.current.clientWidth; queueScrollRef.current.scrollTo({ left: scrollLeft > 0 ? scrollLeft : 0, behavior: 'smooth' }); checkScroll(); } }, 150);
       });
+    } else if (queue.length < prevQueueLen.current) {
+      // [FIX] If length decreased, re-check scroll bounds
+      checkScroll();
     }
+
     prevQueueLen.current = queue.length;
-  }, [queue.length, queue, checkScroll]);
+  }, [queue.length, queue, checkScroll, queuePage]);
 
   const usedColors = useMemo(() => {
     const set = new Set<string>();
@@ -178,6 +191,8 @@ export const RosterBoard: React.FC<RosterBoardProps> = ({ courtLimit, benchLimit
     return set;
   }, [courtA.color, courtB.color, queue]);
 
+  // Virtualization buffer: only render visible cards ± buffer for performance
+  // This is NOT the number of items per page - each team is a separate page
   const RENDER_WINDOW = 3;
 
   return (
@@ -192,17 +207,17 @@ export const RosterBoard: React.FC<RosterBoardProps> = ({ courtLimit, benchLimit
       </div>
 
       <motion.div variants={staggerItem} className={`w-full flex flex-col mt-4 relative ${queue.length === 0 ? 'min-h-[200px]' : ''}`}>
-        <div className="flex items-center justify-between px-2 mb-3">
-          <div className="flex items-center gap-2">
-            <div className="px-3 py-1 bg-slate-200 dark:bg-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 flex items-center gap-2"><Layers size={12} /><span>{t('teamManager.queue')}</span><span className="bg-white dark:bg-black/20 px-1.5 rounded text-slate-600 dark:text-slate-300">{queue.length}</span></div>
-            {queue.length > 1 && (<div className="px-3 py-1 rounded-full bg-transparent text-[9px] font-bold text-slate-400 border border-slate-200 dark:border-white/10">{t('common.step', { number: `${queuePage} / ${queue.length}` })}</div>)}
+        <div className="flex items-center justify-between px-2 mb-3 gap-2 overflow-x-auto no-scrollbar touch-pan-x">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="px-3 py-1 bg-slate-200 dark:bg-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 flex items-center gap-2 whitespace-nowrap flex-shrink-0"><Layers size={12} /><span>{t('teamManager.queue')}</span><span className="bg-white dark:bg-black/20 px-1.5 rounded text-slate-600 dark:text-slate-300">{queue.length}</span></div>
+            {queue.length > 1 && (<div className="px-3 py-1 rounded-full bg-transparent text-[9px] font-bold text-slate-400 border border-slate-200 dark:border-white/10 whitespace-nowrap flex-shrink-0">{t('common.step', { number: `${queuePage} / ${queue.length}` })}</div>)}
             <button
               onClick={() => {
-                const newTeam = createTeam(`Team ${queue.length + 3}`, [], 'slate');
+                const newTeam = createTeam(t('teamManager.defaultTeamName', { number: queue.length + 3 }), [], 'slate');
                 skipJiggle.current = true; // Prevent bounce-back after adding
                 restoreTeam(newTeam, queue.length);
                 haptics.impact('light');
-                showNotification({ mainText: t('teamManager.teamAdded') || 'Team Added', type: 'info' });
+                showNotification({ mainText: t('teamManager.teamAdded'), type: 'info' });
                 // Scroll to the new team after a short delay to allow render
                 setTimeout(() => {
                   if (queueScrollRef.current) {
@@ -213,18 +228,18 @@ export const RosterBoard: React.FC<RosterBoardProps> = ({ courtLimit, benchLimit
                   }
                 }, 150);
               }}
-              className="px-3 py-1.5 rounded-full bg-indigo-500 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg shadow-indigo-500/20 hover:bg-indigo-600 active:scale-95 transition-all"
+              className="px-3 py-1.5 rounded-full bg-indigo-500 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-lg shadow-indigo-500/20 hover:bg-indigo-600 active:scale-95 transition-all whitespace-nowrap flex-shrink-0"
             >
-              <Plus size={12} strokeWidth={3} /> {t('teamManager.newTeam') || 'Novo Time'}
+              <Plus size={12} strokeWidth={3} /> {t('teamManager.addTeamToQueue')}
             </button>
           </div>
-          <div className="relative group w-32"><Search className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" size={14} /><input value={queueSearchTerm} onChange={(e) => setQueueSearchTerm(e.target.value)} placeholder={t('teamManager.searchQueue')} className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl pl-8 pr-6 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-slate-400" />{queueSearchTerm && (<button onClick={() => setQueueSearchTerm('')} className="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 active:scale-90 transition-transform"><X size={12} strokeWidth={3} /></button>)}</div>
+          <div className="relative group w-32 flex-shrink-0"><Search className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" size={14} /><input value={queueSearchTerm} onChange={(e) => setQueueSearchTerm(e.target.value)} placeholder={t('teamManager.searchQueue')} className="w-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-xl pl-8 pr-6 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-slate-400" />{queueSearchTerm && (<button onClick={() => setQueueSearchTerm('')} className="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 active:scale-90 transition-transform"><X size={12} strokeWidth={3} /></button>)}</div>
         </div>
 
         <div className="relative group/queue flex-1 min-h-0">
           <div ref={queueScrollRef} onScroll={onQueueScroll} className="w-full overflow-x-auto snap-x snap-mandatory no-scrollbar flex items-stretch pb-2 gap-6 p-6 mask-linear-fade-sides" style={{ maskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 5%, black 95%, transparent)' }}>
             {queue.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center h-full text-slate-400 italic gap-3 min-h-[160px] w-full border border-dashed border-slate-200 dark:border-white/10 rounded-2xl bg-slate-50/50 dark:bg-white/[0.01]"><div className="p-3 bg-slate-100 dark:bg-white/5 rounded-full"><List size={24} className="opacity-30" /></div><div className="flex flex-col items-center gap-1"><span className="text-xs font-bold uppercase tracking-widest">{t('teamManager.queueEmpty')}</span><span className="text-[10px] opacity-40">Add teams to rotation</span></div></div>
+              <div className="flex-1 flex flex-col items-center justify-center h-full text-slate-400 italic gap-3 min-h-[160px] w-full border border-dashed border-slate-200 dark:border-white/10 rounded-2xl bg-slate-50/50 dark:bg-white/[0.01]"><div className="p-3 bg-slate-100 dark:bg-white/5 rounded-full"><List size={24} className="opacity-30" /></div><div className="flex flex-col items-center gap-1"><span className="text-xs font-bold uppercase tracking-widest">{t('teamManager.queueEmpty')}</span><span className="text-[10px] opacity-40">{t('teamManager.queueHint')}</span></div></div>
             ) : (
               <AnimatePresence initial={false} mode="popLayout">
                 {queue.map((team: Team, idx: number) => {

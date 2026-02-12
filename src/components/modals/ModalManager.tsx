@@ -1,21 +1,21 @@
 
 import React, { lazy, Suspense, useCallback, useEffect, useRef, useState, memo } from 'react';
 import { useModals } from '../../contexts/ModalContext';
-import { useActions, useScore, useRoster } from '../../contexts/GameContext'; // UPDATED: Split imports
+import { useActions, useScore, useRoster } from '../../contexts/GameContext';
 import { useTranslation } from '../../contexts/LanguageContext';
+import { useNotification } from '../../contexts/NotificationContext';
 import { GlobalLoader } from '../ui/GlobalLoader';
 import { Heart } from 'lucide-react';
-import { TeamId, SkillType, GameState } from '../../types';
+import { TeamId, SkillType } from '../../types';
 import { useTutorial } from '../../hooks/useTutorial';
 import { useServiceWorker } from '../../hooks/useServiceWorker';
 import { usePWAInstallPrompt } from '../../hooks/usePWAInstallPrompt';
 import { useSpectatorCount } from '../../hooks/useSpectatorCount';
-import { useHistoryStore, Match } from '../../stores/historyStore';
-import { calculateMatchDeltas } from '../../utils/statsEngine';
+import { useMatchSaver } from '../../hooks/useMatchSaver';
+import { useSyncManager } from '../../hooks/useSyncManager';
 import { useAuth } from '../../contexts/AuthContext';
-import { SyncService } from '../../services/SyncService';
-import { v4 as uuidv4 } from 'uuid';
-import { generateTimelineNodes } from '../../utils/timelineGenerator';
+import { useCombinedGameState } from '../../hooks/useCombinedGameState';
+
 
 const SettingsModal = lazy(() => import('./SettingsModal').then(m => ({ default: m.SettingsModal })));
 const TeamManagerModal = lazy(() => import('./TeamManagerModal').then(m => ({ default: m.TeamManagerModal })));
@@ -31,12 +31,6 @@ const InstallReminder = lazy(() => import('../ui/InstallReminder').then(m => ({ 
 interface ModalManagerProps {
   handleNextGame: () => void;
   handleResetGame: () => void;
-  handleHostSession: (code: string) => void;
-  handleJoinSession: (code: string) => void;
-  handleStopBroadcast?: () => void;
-  handleLeaveSession?: () => void;
-  handleSubstitution: (teamId: string, pIn: string, pOut: string) => void;
-  handleShowToast: any;
   showAdConfirm: boolean;
   confirmWatchAd: () => void;
   cancelWatchAd: () => void;
@@ -44,16 +38,16 @@ interface ModalManagerProps {
 }
 
 export const ModalManager: React.FC<ModalManagerProps> = memo(({
-  handleNextGame, handleResetGame, handleHostSession, handleJoinSession,
-  handleStopBroadcast, handleLeaveSession,
-  handleSubstitution, handleShowToast,
+  handleNextGame, handleResetGame,
   showAdConfirm, confirmWatchAd, cancelWatchAd, isAdLoading
 }) => {
   const { activeModal, closeModal, openModal } = useModals();
   const { t } = useTranslation();
 
   // --- REFACTORED: Use split contexts ---
-  const { applySettings, manualRotate, swapPositions, addPoint, subtractPoint, useTimeout, batchUpdateStats, undo } = useActions();
+  const { applySettings, manualRotate, swapPositions, addPoint, subtractPoint, useTimeout, substitutePlayers, undo } = useActions();
+  const { showNotification } = useNotification();
+  const { handleHostSession, handleJoinSession, handleStopBroadcast, handleLeaveSession } = useSyncManager();
   const scoreState = useScore();
   const rosterState = useRoster();
 
@@ -66,72 +60,13 @@ export const ModalManager: React.FC<ModalManagerProps> = memo(({
   const pwa = usePWAInstallPrompt();
   const tutorial = useTutorial((pwa.isStandalone), config.developerMode);
   const serviceWorker = useServiceWorker();
-  const historyStore = useHistoryStore();
   const { user } = useAuth();
 
-  // Match Saving Logic
-  const savedMatchIdRef = useRef<string | null>(null);
-  const [activeSavedMatchId, setActiveSavedMatchId] = useState<string | null>(null);
+  // Match Saving Logic (delegated to hook)
+  const { savedMatchId, undoMatchSave, resetSaveState } = useMatchSaver();
 
   // Real-time spectator count from Firestore
   const spectatorCount = useSpectatorCount(sessionId);
-
-  useEffect(() => {
-    if (isMatchOver && matchWinner && !savedMatchIdRef.current) {
-      if (history.length === 0 && scoreA === 0 && scoreB === 0) return;
-
-      const newMatchId = uuidv4();
-      savedMatchIdRef.current = newMatchId;
-      setActiveSavedMatchId(newMatchId);
-
-      const baseMatchData: Match = {
-        id: newMatchId,
-        date: new Date().toISOString(),
-        timestamp: Date.now(),
-        durationSeconds: matchDurationSeconds,
-        teamAName: teamAName,
-        teamBName: teamBName,
-        teamARoster: teamARoster,
-        teamBRoster: teamBRoster,
-        setsA: setsA,
-        setsB: setsB,
-        winner: matchWinner,
-        sets: history,
-        actionLog: matchLog,
-        config: config
-      };
-
-      // PERFORMANCE OPTIMIZATION: Generate timeline nodes ONCE before saving.
-      // This prevents the expensive calculation from running on every render of the History View.
-      const timeline = generateTimelineNodes(baseMatchData, t);
-      const finalMatchData = { ...baseMatchData, timeline };
-
-      historyStore.addMatch(finalMatchData);
-      if (user) {
-        // Fire and forget - don't block UI
-        SyncService.pushMatch(user.uid, finalMatchData).then(syncSuccess => {
-          if (!syncSuccess) {
-            console.warn('[ModalManager] Match saved locally but cloud sync failed. Will retry next app launch.');
-          }
-        }).catch(err => {
-          console.error('[ModalManager] Unexpected sync error:', err);
-        });
-      }
-
-      const playerTeamMap = new Map<string, TeamId>();
-      const mapPlayer = (p: any, tid: TeamId) => { if (p.profileId) playerTeamMap.set(p.profileId, tid); };
-      teamARoster.players.forEach(p => mapPlayer(p, 'A'));
-      teamBRoster.players.forEach(p => mapPlayer(p, 'B'));
-
-      const deltas = calculateMatchDeltas(matchLog, matchWinner, playerTeamMap);
-      batchUpdateStats(deltas);
-
-      handleShowToast({ type: 'success', mainText: t('notifications.matchSaved'), subText: user ? "Saved & Synced" : t('notifications.profileSynced'), systemIcon: 'save' });
-    } else if (!isMatchOver && savedMatchIdRef.current) {
-      savedMatchIdRef.current = null;
-      setActiveSavedMatchId(null);
-    }
-  }, [isMatchOver, matchWinner]);
 
   // Wrapper Actions
   const handleAddPointWrapper = useCallback((teamId: TeamId, playerId?: string, skill?: SkillType) => {
@@ -140,19 +75,19 @@ export const ModalManager: React.FC<ModalManagerProps> = memo(({
   }, [addPoint]);
 
   const onNextGameWrapper = () => {
-    setActiveSavedMatchId(null);
+    resetSaveState();
     handleNextGame();
   };
 
   const onResetWrapper = () => {
-    setActiveSavedMatchId(null);
+    resetSaveState();
     handleResetGame();
   };
 
   const overlayZIndex = activeModal === 'court' ? "z-[110]" : "z-[60]";
 
   // Construct full GameState for MatchOverModal visualization (it expects the big object)
-  const fullGameStateForModal = { ...scoreState, ...rosterState } as unknown as GameState;
+  const fullGameStateForModal = useCombinedGameState();
 
   return (
     <Suspense fallback={<GlobalLoader />}>
@@ -182,7 +117,7 @@ export const ModalManager: React.FC<ModalManagerProps> = memo(({
         <CourtModal
           isOpen={true} onClose={closeModal} teamA={teamARoster} teamB={teamBRoster}
           scoreA={scoreA} scoreB={scoreB} servingTeam={servingTeam} onManualRotate={manualRotate}
-          onAddPoint={handleAddPointWrapper} onSubtractPoint={subtractPoint} onMovePlayer={swapPositions} onSubstitute={handleSubstitution}
+          onAddPoint={handleAddPointWrapper} onSubtractPoint={subtractPoint} onMovePlayer={swapPositions} onSubstitute={substitutePlayers}
           onTimeoutA={() => useTimeout('A')} onTimeoutB={() => useTimeout('B')}
           timeoutsA={timeoutsA} timeoutsB={timeoutsB}
           currentSet={currentSet} setsA={setsA} setsB={setsB}
@@ -230,15 +165,8 @@ export const ModalManager: React.FC<ModalManagerProps> = memo(({
           state={fullGameStateForModal}
           onRotate={onNextGameWrapper}
           onReset={onResetWrapper}
-          onUndo={() => {
-            undo();
-            if (activeSavedMatchId) {
-              historyStore.deleteMatch(activeSavedMatchId);
-              setActiveSavedMatchId(null);
-              savedMatchIdRef.current = null;
-            }
-          }}
-          savedMatchId={activeSavedMatchId}
+          onUndo={undoMatchSave}
+          savedMatchId={savedMatchId}
           isSpectator={syncRole === 'spectator'}
         />
       )}

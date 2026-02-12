@@ -257,14 +257,13 @@ export const rosterReducer = (state: GameState, action: GameAction): GameState =
                 };
             }
 
-            const rosterSnapshot = { teamARoster: { ...state.teamARoster, players: [...state.teamARoster.players], reserves: [...(state.teamARoster.reserves || [])] }, teamBRoster: { ...state.teamBRoster, players: [...state.teamBRoster.players], reserves: [...(state.teamBRoster.reserves || [])] }, queue: state.queue.map(t => ({ ...t, players: [...t.players], reserves: [...(t.reserves || [])] })), rotationReport: state.rotationReport };
             const res = handleRotate(state.teamARoster, state.teamBRoster, state.queue, state.matchWinner, state.rotationMode, courtLimit);
-            const rotationAction: ActionLog = { type: 'ROTATION', snapshot: rosterSnapshot, timestamp: Date.now() };
+
             return {
                 ...state,
                 ...baseReset,
-                actionLog: [rotationAction],
-                matchLog: [rotationAction],
+                actionLog: [], // Empty log ensures "Hard Boundary" for Undo
+                matchLog: [],
                 teamARoster: { ...res.courtA, tacticalOffset: 0 },
                 teamBRoster: { ...res.courtB, tacticalOffset: 0 },
                 queue: res.queue,

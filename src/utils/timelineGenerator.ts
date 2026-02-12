@@ -6,8 +6,10 @@ export const generateTimelineNodes = (match: Match, t: (key: string) => string):
     if (!match.actionLog || match.actionLog.length === 0) return [];
 
     // 1. STRICT SORTING: The absolute source of truth is Time.
-    const sortedLogs = [...match.actionLog].sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
-    
+    const sortedLogs = (match.actionLog || [])
+        .filter(l => (l.timestamp || 0) > 1000000) // Sanity check: ignore logs with missing/invalid timestamps
+        .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
     // Determine accurate Start Time
     const firstLogTs = sortedLogs.length > 0 ? (sortedLogs[0].timestamp || 0) : 0;
     const estimatedStart = match.timestamp - (match.durationSeconds * 1000);
@@ -19,8 +21,9 @@ export const generateTimelineNodes = (match: Match, t: (key: string) => string):
     let scoreA = 0;
     let scoreB = 0;
     let currentSet = 1;
-    let wasInSuddenDeath = false;
-    
+    const firstPointLog = sortedLogs.find(l => l.type === 'POINT');
+    let wasInSuddenDeath = (firstPointLog && firstPointLog.prevInSuddenDeath) || false;
+
     // Staggering State
     let lastTeam: TeamId | null = null;
     let streakCount = 0;
@@ -54,24 +57,27 @@ export const generateTimelineNodes = (match: Match, t: (key: string) => string):
     });
 
     sortedLogs.forEach((log, idx) => {
-        
+
         // Detect Sudden Death Transition
         if (log.type === 'POINT' && log.prevInSuddenDeath === true && !wasInSuddenDeath) {
-             nodes.push({
-                id: `sd-start-${idx}`,
-                type: 'SUDDEN_DEATH',
-                timestamp: (log.timestamp || 0) - 1, 
-                timeLabel: getTimeLabel((log.timestamp || 0)),
-                team: null,
-                scoreSnapshot: `${scoreA}-${scoreB}`, 
-                description: t('status.sudden_death'),
-                isTop: false,
-                staggerLevel: 0
-            });
+            // Only add Sudden Death node if we are not at the very start of the match/set
+            if (scoreA + scoreB > 0) {
+                nodes.push({
+                    id: `sd-start-${idx}`,
+                    type: 'SUDDEN_DEATH',
+                    timestamp: (log.timestamp || 0) - 1,
+                    timeLabel: getTimeLabel((log.timestamp || 0)),
+                    team: null,
+                    scoreSnapshot: `${scoreA}-${scoreB}`,
+                    description: t('status.sudden_death'),
+                    isTop: false,
+                    staggerLevel: 0
+                });
+            }
             wasInSuddenDeath = true;
             scoreA = 0;
             scoreB = 0;
-        } 
+        }
         else if (log.type === 'POINT' && log.prevInSuddenDeath === false) {
             wasInSuddenDeath = false;
         }
@@ -85,8 +91,8 @@ export const generateTimelineNodes = (match: Match, t: (key: string) => string):
                 streakCount = 0;
             }
             lastTeam = log.team;
-            
-            const staggerLevel = streakCount % 2; 
+
+            const staggerLevel = streakCount % 2;
 
             let desc = t('common.add');
             if (log.skill === 'attack') desc = t('scout.skills.attack');
@@ -122,15 +128,15 @@ export const generateTimelineNodes = (match: Match, t: (key: string) => string):
                     isTop: false,
                     staggerLevel: 0
                 });
-                
+
                 scoreA = 0;
                 scoreB = 0;
                 currentSet++;
                 lastTeam = null;
                 streakCount = 0;
-                wasInSuddenDeath = false; 
+                wasInSuddenDeath = false;
             }
-        } 
+        }
         else if (log.type === 'TIMEOUT') {
             nodes.push({
                 id: `to-${idx}`,
@@ -140,8 +146,8 @@ export const generateTimelineNodes = (match: Match, t: (key: string) => string):
                 team: log.team,
                 scoreSnapshot: `${scoreA}-${scoreB}`,
                 description: t('game.timeout'),
-                isTop: log.team === 'A', 
-                staggerLevel: 2 
+                isTop: log.team === 'A',
+                staggerLevel: 2
             });
         }
     });
