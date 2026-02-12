@@ -336,7 +336,7 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
                                 onScroll={(e) => handleScroll((e.target as HTMLElement).scrollTop)}
                                 components={{
                                     // SPACING HEADER: Ensures first item is not hidden behind the fixed header
-                                    Header: () => <div className="h-28" />,
+                                    Header: () => <div className="h-32" />,
                                     Footer: () => <div className="h-24" /> // Spacing for fab/bottom nav
                                 }}
                             />

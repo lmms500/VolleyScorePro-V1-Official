@@ -1,13 +1,14 @@
 
 import { Player, Team, RotationReport, TeamColor } from '../types';
+import { COLOR_KEYS } from './colors';
 import { v4 as uuidv4 } from 'uuid';
 
 // --- HELPER FUNCTIONS ---
 
 export const calculateTeamStrength = (players: Player[]): string => {
-  if (players.length === 0) return "0.0";
-  const sum = players.reduce((acc, p) => acc + p.skillLevel, 0);
-  return (sum / players.length).toFixed(1);
+    if (players.length === 0) return "0.0";
+    const sum = players.reduce((acc, p) => acc + p.skillLevel, 0);
+    return (sum / players.length).toFixed(1);
 };
 
 const getNumericStrength = (players: Player[]): number => {
@@ -22,11 +23,11 @@ const getTotalSkill = (players: Player[]): number => {
 // Simple internal logger
 class RotationLogger {
     logs: string[] = [];
-    
+
     log(msg: string) {
         this.logs.push(`[INFO] ${msg}`);
     }
-    
+
     warn(msg: string) {
         this.logs.push(`[WARN] ${msg}`);
     }
@@ -41,118 +42,134 @@ class RotationLogger {
  * Used when generating teams from scratch or doing a full re-balance.
  */
 export const balanceTeamsSnake = (
-  allPlayers: Player[], 
-  currentCourtA: Team, 
-  currentCourtB: Team,
-  currentQueue: Team[],
-  courtLimit: number
+    allPlayers: Player[],
+    currentCourtA: Team,
+    currentCourtB: Team,
+    currentQueue: Team[],
+    courtLimit: number
 ): { courtA: Team, courtB: Team, queue: Team[], logs?: string[] } => {
-  
-  const logger = new RotationLogger();
-  logger.log(`Starting Balance (Snake). Total Players: ${allPlayers.length}. Court Limit: ${courtLimit}`);
 
-  const currentStructure = [currentCourtA, currentCourtB, ...currentQueue];
-  const anchors = currentStructure.map((team, idx) => {
-      const fixed = team.players.filter(p => p.isFixed);
-      if (fixed.length > 0) logger.log(`Team ${idx} (${team.name}) has ${fixed.length} fixed players.`);
-      return fixed;
-  });
+    const logger = new RotationLogger();
+    logger.log(`Starting Balance (Snake). Total Players: ${allPlayers.length}. Court Limit: ${courtLimit}`);
 
-  const fixedIds = new Set(anchors.flat().map(p => p.id));
-  const pool = allPlayers
-    .filter(p => !fixedIds.has(p.id))
-    .sort((a, b) => b.skillLevel - a.skillLevel);
-  
-  logger.log(`Pool size (non-fixed): ${pool.length}`);
+    const currentStructure = [currentCourtA, currentCourtB, ...currentQueue];
+    const anchors = currentStructure.map((team, idx) => {
+        const fixed = team.players.filter(p => p.isFixed);
+        if (fixed.length > 0) logger.log(`Team ${idx} (${team.name}) has ${fixed.length} fixed players.`);
+        return fixed;
+    });
 
-  const totalCount = allPlayers.length;
-  const numFullTeams = Math.floor(totalCount / courtLimit); 
-  const totalTeamsNeeded = Math.ceil(totalCount / courtLimit);
-  
-  const requiredBuckets = Math.max(2, totalTeamsNeeded, currentStructure.length);
-  const buckets: Player[][] = Array.from({ length: requiredBuckets }, (_, i) => [...(anchors[i] || [])]);
+    const fixedIds = new Set(anchors.flat().map(p => p.id));
+    const pool = allPlayers
+        .filter(p => !fixedIds.has(p.id))
+        .sort((a, b) => b.skillLevel - a.skillLevel);
 
-  for (const player of pool) {
-      let bestBucketIdx = -1;
-      let minTotalSkill = Infinity;
+    logger.log(`Pool size (non-fixed): ${pool.length}`);
 
-      const targetIndices: number[] = [];
-      let priorityHasSpace = false;
+    const totalCount = allPlayers.length;
+    const numFullTeams = Math.floor(totalCount / courtLimit);
+    const totalTeamsNeeded = Math.ceil(totalCount / courtLimit);
 
-      for(let i = 0; i < numFullTeams; i++) {
-          if (buckets[i] && buckets[i].length < courtLimit) {
-              priorityHasSpace = true;
-              break;
-          }
-      }
+    const requiredBuckets = Math.max(2, totalTeamsNeeded, currentStructure.length);
+    const buckets: Player[][] = Array.from({ length: requiredBuckets }, (_, i) => [...(anchors[i] || [])]);
 
-      if (priorityHasSpace) {
-          for(let i = 0; i < numFullTeams; i++) {
-              if (buckets[i] && buckets[i].length < courtLimit) {
-                  targetIndices.push(i);
-              }
-          }
-      } else {
-          for(let i = numFullTeams; i < buckets.length; i++) {
-               targetIndices.push(i);
-          }
-          if (numFullTeams === 0) {
-               for(let i = 0; i < buckets.length; i++) targetIndices.push(i);
-          }
-      }
+    for (const player of pool) {
+        let bestBucketIdx = -1;
+        let minTotalSkill = Infinity;
 
-      for (const i of targetIndices) {
-          if (!buckets[i]) continue;
-          const currentSkill = getTotalSkill(buckets[i]);
-          if (currentSkill < minTotalSkill) {
-              minTotalSkill = currentSkill;
-              bestBucketIdx = i;
-          }
-      }
+        const targetIndices: number[] = [];
+        let priorityHasSpace = false;
 
-      if (bestBucketIdx !== -1) {
-          buckets[bestBucketIdx].push(player);
-      } else {
-          buckets[buckets.length - 1].push(player);
-      }
-  }
+        for (let i = 0; i < numFullTeams; i++) {
+            if (buckets[i] && buckets[i].length < courtLimit) {
+                priorityHasSpace = true;
+                break;
+            }
+        }
 
-  const newCourtA = { ...currentCourtA, players: buckets[0] || [] };
-  const newCourtB = { ...currentCourtB, players: buckets[1] || [] };
-  
-  const newQueue: Team[] = [];
-  for (let i = 2; i < buckets.length; i++) {
-      if (buckets[i] && buckets[i].length > 0) {
-          const existing = currentQueue[i - 2];
-          newQueue.push({
-              id: existing?.id || uuidv4(),
-              name: existing?.name || `Team ${i + 1}`,
-              color: existing?.color || 'slate',
-              players: buckets[i],
-              reserves: existing?.reserves || []
-          });
-      }
-  }
+        if (priorityHasSpace) {
+            for (let i = 0; i < numFullTeams; i++) {
+                if (buckets[i] && buckets[i].length < courtLimit) {
+                    targetIndices.push(i);
+                }
+            }
+        } else {
+            for (let i = numFullTeams; i < buckets.length; i++) {
+                targetIndices.push(i);
+            }
+            if (numFullTeams === 0) {
+                for (let i = 0; i < buckets.length; i++) targetIndices.push(i);
+            }
+        }
 
-  return { courtA: newCourtA, courtB: newCourtB, queue: newQueue, logs: logger.get() };
+        for (const i of targetIndices) {
+            if (!buckets[i]) continue;
+            const currentSkill = getTotalSkill(buckets[i]);
+            if (currentSkill < minTotalSkill) {
+                minTotalSkill = currentSkill;
+                bestBucketIdx = i;
+            }
+        }
+
+        if (bestBucketIdx !== -1) {
+            buckets[bestBucketIdx].push(player);
+        } else {
+            buckets[buckets.length - 1].push(player);
+        }
+    }
+
+    const newCourtA = { ...currentCourtA, players: buckets[0] || [] };
+    const newCourtB = { ...currentCourtB, players: buckets[1] || [] };
+
+    // [NEW] Automatic Color Assignment Logic (Snake)
+    const usedColors = new Set<string>();
+    usedColors.add(newCourtA.color);
+    usedColors.add(newCourtB.color);
+    currentQueue.forEach(t => usedColors.add(t.color));
+
+    const newQueue: Team[] = [];
+    for (let i = 2; i < buckets.length; i++) {
+        if (buckets[i] && buckets[i].length > 0) {
+            const existing = currentQueue[i - 2];
+
+            let tColor = 'slate';
+            if (existing) {
+                tColor = existing.color;
+            } else {
+                const available = COLOR_KEYS.find(c => !usedColors.has(c));
+                tColor = available || COLOR_KEYS[newQueue.length % COLOR_KEYS.length];
+            }
+            usedColors.add(tColor);
+
+            newQueue.push({
+                id: existing?.id || uuidv4(),
+                name: existing?.name || `Team ${i + 1}`,
+                color: tColor,
+                players: buckets[i],
+                reserves: existing?.reserves || []
+            });
+        }
+    }
+
+    return { courtA: newCourtA, courtB: newCourtB, queue: newQueue, logs: logger.get() };
 };
 
 /**
  * Standard Distribution (Restore Order)
  */
 export const distributeStandard = (
-    allPlayers: Player[], 
-    currentCourtA: Team, 
+    allPlayers: Player[],
+    currentCourtA: Team,
     currentCourtB: Team,
     currentQueue: Team[],
     courtLimit: number
-  ): { courtA: Team, courtB: Team, queue: Team[], logs?: string[] } => {
-    
+): { courtA: Team, courtB: Team, queue: Team[], logs?: string[] } => {
+
     const logger = new RotationLogger();
     logger.log(`Restoring Standard Order. Players: ${allPlayers.length}. Court Limit: ${courtLimit}`);
 
     const currentStructure = [currentCourtA, currentCourtB, ...currentQueue];
-    
+
     const totalPlayers = allPlayers.length;
     // Calculate buckets needed based on new dynamic limit
     const teamsNeeded = Math.ceil(totalPlayers / courtLimit);
@@ -161,12 +178,12 @@ export const distributeStandard = (
     const buckets: Player[][] = Array.from({ length: totalBuckets }, () => []);
 
     const fixedIds = new Set<string>();
-    
+
     allPlayers.forEach(p => {
         if (p.isFixed) {
             fixedIds.add(p.id);
             let placed = false;
-            for(let i=0; i<currentStructure.length; i++) {
+            for (let i = 0; i < currentStructure.length; i++) {
                 if (currentStructure[i].players.some(cp => cp.id === p.id)) {
                     buckets[i].push(p);
                     placed = true;
@@ -175,16 +192,16 @@ export const distributeStandard = (
             }
         }
     });
-    
+
     const pool = allPlayers
         .filter(p => !fixedIds.has(p.id))
         .sort((a, b) => {
             if (a.originalIndex !== b.originalIndex) return a.originalIndex - b.originalIndex;
             return a.id.localeCompare(b.id);
         });
-    
+
     let currentBucketIdx = 0;
-    
+
     for (const player of pool) {
         while (currentBucketIdx < buckets.length && buckets[currentBucketIdx].length >= courtLimit) {
             currentBucketIdx++;
@@ -197,31 +214,55 @@ export const distributeStandard = (
 
     const newCourtA = { ...currentCourtA, players: buckets[0] || [] };
     const newCourtB = { ...currentCourtB, players: buckets[1] || [] };
-    
+
+    // [NEW] Automatic Color Assignment Logic
+    // 1. Track used colors (A and B are prioritized)
+    const usedColors = new Set<string>();
+    usedColors.add(newCourtA.color);
+    usedColors.add(newCourtB.color);
+
+    // 2. Add existing queue colors to avoid changing them if they exist
+    currentQueue.forEach(t => usedColors.add(t.color));
+
     const newQueue: Team[] = [];
     for (let i = 2; i < buckets.length; i++) {
         if (buckets[i] && buckets[i].length > 0) {
             const existingQTeam = currentQueue[i - 2];
             const tId = existingQTeam ? existingQTeam.id : uuidv4();
             const tName = existingQTeam ? existingQTeam.name : `Team ${i + 1}`;
-            const tColor = existingQTeam ? existingQTeam.color : 'slate';
+
+            let tColor = 'slate';
+            if (existingQTeam) {
+                tColor = existingQTeam.color;
+            } else {
+                // Find first unused color from palette
+                const available = COLOR_KEYS.find(c => !usedColors.has(c));
+                if (available) {
+                    tColor = available;
+                } else {
+                    // Fallback: Cycle if we run out (allow duplicates but try to spread)
+                    tColor = COLOR_KEYS[newQueue.length % COLOR_KEYS.length];
+                }
+            }
+            usedColors.add(tColor);
+
             const tReserves = existingQTeam ? existingQTeam.reserves : [];
             const tLogo = existingQTeam ? existingQTeam.logo : undefined;
 
-            newQueue.push({ 
-                id: tId, 
-                name: tName, 
-                players: buckets[i], 
-                color: tColor, 
+            newQueue.push({
+                id: tId,
+                name: tName,
+                players: buckets[i],
+                color: tColor,
                 reserves: tReserves || [],
                 logo: tLogo,
                 hasActiveBench: existingQTeam ? existingQTeam.hasActiveBench : false
             });
         }
     }
-  
+
     return { courtA: newCourtA, courtB: newCourtB, queue: newQueue, logs: logger.get() };
-  };
+};
 
 
 /**
@@ -229,20 +270,20 @@ export const distributeStandard = (
  * STRICTLY respects isFixed.
  */
 const fillRosterFromQueue = (
-    targetTeam: Team, 
-    queue: Team[], 
+    targetTeam: Team,
+    queue: Team[],
     courtLimit: number,
     logger: RotationLogger
 ): { updatedTeam: Team, updatedQueue: Team[], stolenPlayers: Player[] } => {
-    
+
     const needed = courtLimit - targetTeam.players.length;
     if (needed <= 0) return { updatedTeam: targetTeam, updatedQueue: queue, stolenPlayers: [] };
 
     let currentNeeded = needed;
     const stolen: Player[] = [];
-    
+
     // We clone the queue to mutate it
-    const newQueue = queue.map(t => ({...t, players: [...t.players], reserves: [...(t.reserves || [])]}));
+    const newQueue = queue.map(t => ({ ...t, players: [...t.players], reserves: [...(t.reserves || [])] }));
     const newPlayers = [...targetTeam.players];
 
     // Iterate through queue from START to END.
@@ -254,8 +295,8 @@ const fillRosterFromQueue = (
         const candidates = donor.players.filter(p => !p.isFixed);
 
         while (currentNeeded > 0 && candidates.length > 0) {
-            const p = candidates.pop()!; 
-            
+            const p = candidates.pop()!;
+
             // Remove from donor in queue
             const idx = donor.players.findIndex(x => x.id === p.id);
             if (idx !== -1) {
@@ -283,8 +324,8 @@ const fillRosterFromQueue = (
  * Standard Rotation with Dynamic Limit
  */
 export const getStandardRotationResult = (
-    winnerTeam: Team, 
-    loserTeam: Team, 
+    winnerTeam: Team,
+    loserTeam: Team,
     currentQueue: Team[],
     courtLimit: number
 ): RotationReport => {
@@ -292,10 +333,10 @@ export const getStandardRotationResult = (
     logger.log(`Standard Rotation. Limit: ${courtLimit}`);
 
     // 1. Prepare Queue
-    const queue = currentQueue.map(t => ({...t, players: [...t.players], reserves: [...(t.reserves || [])]}));
-    
+    const queue = currentQueue.map(t => ({ ...t, players: [...t.players], reserves: [...(t.reserves || [])] }));
+
     // 2. Move Loser to END of Queue
-    const loserCopy = { ...loserTeam, players: [...loserTeam.players], reserves: [...(loserTeam.reserves||[])] };
+    const loserCopy = { ...loserTeam, players: [...loserTeam.players], reserves: [...(loserTeam.reserves || [])] };
     queue.push(loserCopy);
 
     // 3. Identify Incoming Team
@@ -303,15 +344,15 @@ export const getStandardRotationResult = (
         return { incomingTeam: loserTeam, queueAfterRotation: [], stolenPlayers: [], outgoingTeam: loserTeam, retainedPlayers: [], logs: logger.get() };
     }
 
-    const incomingBase = queue.shift()!; 
-    
+    const incomingBase = queue.shift()!;
+
     // 4. Fill Roster if Incomplete using courtLimit
     const fillResult = fillRosterFromQueue(incomingBase, queue, courtLimit, logger);
 
     return {
         outgoingTeam: loserTeam,
         incomingTeam: fillResult.updatedTeam,
-        retainedPlayers: incomingBase.players.filter(p => p.isFixed), 
+        retainedPlayers: incomingBase.players.filter(p => p.isFixed),
         queueAfterRotation: fillResult.updatedQueue,
         stolenPlayers: fillResult.stolenPlayers,
         logs: logger.get()
@@ -330,12 +371,12 @@ export const getBalancedRotationResult = (
     const logger = new RotationLogger();
     logger.log(`Balanced Rotation. Limit: ${courtLimit}`);
 
-    const queue = currentQueue.map(t => ({...t, players: [...t.players], reserves: [...(t.reserves || [])]}));
-    const loserCopy = { ...loserTeam, players: [...loserTeam.players], reserves: [...(loserTeam.reserves||[])] };
+    const queue = currentQueue.map(t => ({ ...t, players: [...t.players], reserves: [...(t.reserves || [])] }));
+    const loserCopy = { ...loserTeam, players: [...loserTeam.players], reserves: [...(loserTeam.reserves || [])] };
     queue.push(loserCopy);
-    
+
     const incomingBase = queue.shift()!;
-    
+
     const targetSkill = getNumericStrength(winnerTeam.players);
     const needed = courtLimit - incomingBase.players.length;
     const stolenPlayers: Player[] = [];
@@ -344,7 +385,7 @@ export const getBalancedRotationResult = (
 
     if (needed > 0) {
         const candidates: { player: Player, teamIndex: number, diff: number }[] = [];
-        
+
         finalQueue.forEach((t, tIdx) => {
             t.players.forEach(p => {
                 if (!p.isFixed) {
@@ -358,7 +399,7 @@ export const getBalancedRotationResult = (
 
         candidates.sort((a, b) => a.diff - b.diff);
         const toSteal = candidates.slice(0, needed);
-        
+
         toSteal.forEach(c => {
             const donor = finalQueue[c.teamIndex];
             const pIdx = donor.players.findIndex(p => p.id === c.player.id);
@@ -369,7 +410,7 @@ export const getBalancedRotationResult = (
                 logger.log(`Balanced Steal: ${c.player.name} from ${donor.name}`);
             }
         });
-        
+
         finalQueue = finalQueue.filter(t => t.players.length > 0 || (t.reserves && t.reserves.length > 0));
     }
 

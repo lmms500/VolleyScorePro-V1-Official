@@ -44,6 +44,22 @@ export interface CourtLayoutConfig {
    * Use -1 for empty slots.
    */
   gridOrderRight: number[];
+  /**
+   * Optional: Grid rows for vertical (portrait) layout.
+   */
+  gridRowsVertical?: number;
+  /**
+   * Optional: Grid cols for vertical (portrait) layout.
+   */
+  gridColsVertical?: number;
+  /**
+   * Optional: Grid order for top team in portrait mode (Team A).
+   */
+  gridOrderTop?: number[];
+  /**
+   * Optional: Grid order for bottom team in portrait mode (Team B).
+   */
+  gridOrderBottom?: number[];
 }
 
 export interface GameModeConfig {

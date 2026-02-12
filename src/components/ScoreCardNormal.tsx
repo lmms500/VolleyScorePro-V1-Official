@@ -14,6 +14,7 @@ import { TeamLogo } from './ui/TeamLogo';
 import { normalize, hp } from '../utils/responsive';
 import { useResponsive } from '../contexts/ResponsiveContext';
 import { HaloBackground } from './ui/HaloBackground';
+import { HaloPortal } from './ui/HaloPortal';
 import { useScoreCardLogic } from '../hooks/useScoreCardLogic';
 
 interface ScoreCardNormalProps {
@@ -90,7 +91,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
     return (
         <GlassSurface
             layout
-            layoutId={`score-card-normal-${teamId}`}
+            layoutId={`score-card-${teamId}`}
             transition={{ type: "spring", stiffness: 280, damping: 28, mass: 1.2 }}
             intensity="transparent"
             className={`
@@ -196,20 +197,21 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                     </AnimatePresence>
 
                     <div className="relative w-full h-full flex items-center justify-center pointer-events-none overflow-visible">
-                        {/* 1. Halo Layer: Absolute Centered Overlay */}
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <HaloBackground
-                                mode={haloMode}
-                                colorTheme={resolvedColor}
-                                score={score}
-                                lowGraphics={config.lowGraphics}
-                                className=""
-                                size="min(30vw, 20vh)"
-                            />
-                        </div>
+                        {/* 1. Halo Layer: Portal into Body to avoid clipping */}
+                        <HaloPortal
+                            anchorRef={containerRef}
+                            mode={haloMode}
+                            colorTheme={resolvedColor}
+                            score={score}
+                            lowGraphics={config.lowGraphics}
+                            size="min(60vw, 60vh)" // Can be large now!
+                        />
 
                         {/* 2. Number Layer: Relative Content (z-10 para ficar na frente) */}
-                        <div className="relative z-10 flex items-center justify-center leading-none overflow-visible">
+                        <motion.div
+                            className="relative z-10 flex items-center justify-center leading-none overflow-visible"
+                            layoutId={`score-text-${teamId}`}
+                        >
                             <ScoreTicker
                                 key={`ticker-${resizeKey}`}
                                 value={score}
@@ -220,12 +222,12 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                                     ${isCritical ? (isMatchPoint ? 'drop-shadow-[0_0_40px_rgba(251,191,36,0.5)]' : 'drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]') : ''}
                                 `}
                             />
-                        </div>
+                        </motion.div>
                     </div>
                 </div>
 
                 {/* FOOTER: Botão de Timeout 48px Flutuante (Transparente) */}
-                <div className="w-full flex justify-center shrink-0 pt-2 pb-safe-bottom">
+                <div className="w-full flex justify-center shrink-0 pt-2 pb-[calc(env(safe-area-inset-bottom)+12px)]">
                     <button
                         type="button"
                         onClick={(e) => {

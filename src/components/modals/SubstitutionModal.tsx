@@ -260,7 +260,7 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
                 title={t('substitution.title')}
                 subtitle={team.name}
                 onClose={onClose}
-                rightContent={confirmButton}
+                rightAction={confirmButton}
             />
 
             {/* CONTAINER WITH RESPONSIVE LAYOUT */}

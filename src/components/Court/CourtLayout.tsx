@@ -176,49 +176,20 @@ export const CourtLayout: React.FC<CourtLayoutProps> = ({
     const isBeach = config?.mode === 'beach';
     const courtBgClass = isBeach ? "bg-[#e3cba5]" : "bg-orange-500";
     const isInline = variant === 'inline';
-    const isRotated = !!courtRotation;
 
-    // Measure the court area for rotation sizing
-    const { ref: courtAreaRef, width: courtAreaW, height: courtAreaH } = useElementSize();
-
-    // Calculate court dimensions when rotated
-    // Court aspect ratio is ~1.8:1 (landscape). After rotation, it appears portrait.
-    // Visual width after rotation = courtHeight, visual height = courtWidth
-    // So courtHeight <= availW and courtWidth <= availH
-    // Calculate court dimensions when rotated
-    // Returns wrapper (post-rotation visual dims for layout) and inner (pre-rotation with transform)
-    const rotatedCourtStyles = useMemo(() => {
-        if (!isRotated || courtAreaW <= 0 || courtAreaH <= 0) return undefined;
-
-        const COURT_ASPECT = 2.0;
-        const PAD = 0;
-        // courtH = visual width after rotation, courtW = visual height after rotation
-        const maxByWidth = courtAreaW - PAD;
-        const maxByHeight = (courtAreaH - PAD) / COURT_ASPECT;
-        const courtH = Math.min(maxByWidth, maxByHeight);
-        const courtW = courtH * COURT_ASPECT;
-
-        console.log('[CourtLayout DEBUG]', { courtAreaW, courtAreaH, maxByWidth, maxByHeight, courtH, courtW, binding: maxByWidth < maxByHeight ? 'WIDTH' : 'HEIGHT' });
-
-        return {
-            // Outer wrapper: sized to POST-rotation visual dimensions so flex layout allocates correct space
-            wrapper: {
-                width: courtH,
-                height: courtW,
-            } as React.CSSProperties,
-            // Inner: pre-rotation dimensions with rotation applied
-            inner: {
-                width: courtW,
-                height: courtH,
-                transform: `rotate(${courtRotation}deg)`,
-                transformOrigin: 'center center',
-            } as React.CSSProperties,
-        };
-    }, [isRotated, courtAreaW, courtAreaH, courtRotation]);
+    // Check if we are in a vertical/portrait mode (approx 90 or -90 deg, or 270)
+    // We treat anything close to +/- 90 as portrait.
+    const isVertical = courtRotation === 90 || courtRotation === -90 || courtRotation === 270 || courtRotation === -270;
 
     // Standard courtelement (shared between rotated and non-rotated)
     const courtVisualization = (
-        <div className={`relative flex shadow-2xl rounded-3xl ${courtBgClass} dark:bg-slate-900/40 backdrop-blur-md border border-white/40 dark:border-white/10 p-0 overflow-hidden ${isRotated ? 'w-full h-full' : 'w-full max-w-4xl max-h-[58vh] aspect-[1.8/1] mx-2'}`}>
+        <div className={`
+            relative flex shadow-2xl rounded-3xl ${courtBgClass} dark:bg-slate-900/40 backdrop-blur-md border border-white/40 dark:border-white/10 p-0 overflow-hidden 
+            ${isVertical
+                ? 'h-full max-h-full w-auto max-w-full aspect-[1/1.8] flex-col mx-auto'
+                : 'w-full max-w-4xl max-h-[58vh] aspect-[1.8/1] flex-row mx-2'
+            }
+        `}>
             <div className="absolute inset-0 z-0 rounded-3xl overflow-hidden">
                 {isBeach ? (
                     <div className="absolute inset-0 bg-[#e3cba5] mix-blend-normal">
@@ -227,16 +198,53 @@ export const CourtLayout: React.FC<CourtLayoutProps> = ({
                 ) : (
                     <>
                         <div className="absolute inset-0 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 dark:from-orange-500/20 dark:via-orange-600/10 dark:to-slate-900/60 mix-blend-normal dark:mix-blend-overlay" />
-                        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')] mix-blend-multiply" />
+                        <div className="absolute inset-0 opacity-10 bg-[url('/assets/wood-pattern.png')] mix-blend-multiply" />
                     </>
                 )}
             </div>
-            <div className="absolute top-0 bottom-0 left-1/2 w-1 -ml-0.5 z-30 shadow-[0_0_15px_rgba(0,0,0,0.1)] pointer-events-none bg-white/60 dark:bg-white/20 backdrop-blur-sm border-l border-white/50" />
-            <div className="flex-1 h-full relative z-10">
-                <VolleyballCourt players={teamA.players} color={teamA.color} isServing={servingTeam === 'A'} side="left" teamId="A" variant="minimal" onPlayerClick={(p) => handlePlayerClick(p, 'A')} mvpId={currentMVPId} layoutConfig={getCourtLayoutFromConfig(config || { mode: 'indoor' } as any)} isDragActive={isDragging} nameRotation={nameRotation} />
+
+            {/* Net / Center Line */}
+            <div className={`
+                absolute z-30 shadow-[0_0_15px_rgba(0,0,0,0.1)] pointer-events-none bg-white/60 dark:bg-white/20 backdrop-blur-sm 
+                ${isVertical
+                    ? 'left-0 right-0 top-1/2 h-1 -mt-0.5 border-t border-white/50'
+                    : 'top-0 bottom-0 left-1/2 w-1 -ml-0.5 border-l border-white/50'
+                }
+            `} />
+
+            <div className="flex-1 relative z-10 w-full h-full">
+                <VolleyballCourt
+                    players={teamA.players}
+                    color={teamA.color}
+                    isServing={servingTeam === 'A'}
+                    side="left"
+                    teamId="A"
+                    variant="minimal"
+                    onPlayerClick={(p) => handlePlayerClick(p, 'A')}
+                    mvpId={currentMVPId}
+                    layoutConfig={getCourtLayoutFromConfig(config || { mode: 'indoor' } as any)}
+                    isDragActive={isDragging}
+                    nameRotation={isVertical ? 0 : nameRotation}
+                    namePlacement={variant === 'modal' ? 'right' : 'auto'}
+                    orientation={isVertical ? 'portrait' : 'landscape'}
+                />
             </div>
-            <div className="flex-1 h-full relative z-10">
-                <VolleyballCourt players={teamB.players} color={teamB.color} isServing={servingTeam === 'B'} side="right" teamId="B" variant="minimal" onPlayerClick={(p) => handlePlayerClick(p, 'B')} mvpId={currentMVPId} layoutConfig={getCourtLayoutFromConfig(config || { mode: 'indoor' } as any)} isDragActive={isDragging} nameRotation={nameRotation} />
+            <div className="flex-1 relative z-10 w-full h-full">
+                <VolleyballCourt
+                    players={teamB.players}
+                    color={teamB.color}
+                    isServing={servingTeam === 'B'}
+                    side="right"
+                    teamId="B"
+                    variant="minimal"
+                    onPlayerClick={(p) => handlePlayerClick(p, 'B')}
+                    mvpId={currentMVPId}
+                    layoutConfig={getCourtLayoutFromConfig(config || { mode: 'indoor' } as any)}
+                    isDragActive={isDragging}
+                    nameRotation={isVertical ? 0 : nameRotation}
+                    namePlacement={variant === 'modal' ? 'right' : 'auto'}
+                    orientation={isVertical ? 'portrait' : 'landscape'}
+                />
             </div>
         </div>
     );
@@ -260,27 +268,9 @@ export const CourtLayout: React.FC<CourtLayoutProps> = ({
                 />
 
 
-                <div ref={courtAreaRef} className={`flex-1 flex items-center justify-center relative w-full min-h-0 overflow-visible ${isInline ? 'py-0' : 'py-2'}`}>
+                <div className={`flex-1 flex items-center justify-center relative w-full min-h-0 overflow-visible ${isInline ? 'py-0' : 'py-2'}`}>
                     <LayoutGroup id="court-layout">
-                        {isRotated && rotatedCourtStyles ? (
-                            <div key="rotated-wrapper" style={rotatedCourtStyles.wrapper} className="relative">
-                                <motion.div style={{
-                                    width: rotatedCourtStyles.inner.width,
-                                    height: rotatedCourtStyles.inner.height,
-                                    rotate: courtRotation,
-                                    transformOrigin: 'center center',
-                                    position: 'absolute',
-                                    top: '50%',
-                                    left: '50%',
-                                    marginTop: -(rotatedCourtStyles.inner.height as number) / 2,
-                                    marginLeft: -(rotatedCourtStyles.inner.width as number) / 2,
-                                }}>
-                                    {courtVisualization}
-                                </motion.div>
-                            </div>
-                        ) : (
-                            courtVisualization
-                        )}
+                        {courtVisualization}
                     </LayoutGroup>
                 </div>
 

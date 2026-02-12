@@ -84,7 +84,7 @@ const ControlButton = memo(({ onClick, disabled, icon: Icon, active, title, badg
 });
 
 const Divider = memo(() => (
-    <div className="w-px h-6 bg-gradient-to-b from-transparent via-white/20 to-transparent mx-1 flex-shrink-0"></div>
+    <div className="w-px h-6 bg-gradient-to-b from-transparent via-white/20 to-transparent mx-0.5 flex-shrink-0"></div>
 ));
 
 export const Controls: React.FC<ControlsProps> = memo(({
@@ -110,7 +110,7 @@ export const Controls: React.FC<ControlsProps> = memo(({
                 ref={controlsRef}
                 className="
                     pointer-events-auto
-                    flex items-center justify-around
+                    flex items-center justify-center gap-1
                     
                     /* Neo-Glass Background */
                     bg-gradient-to-br from-slate-900/80 via-slate-800/70 to-slate-900/80
@@ -124,16 +124,16 @@ export const Controls: React.FC<ControlsProps> = memo(({
                     
                     /* Floating Look */
                     rounded-2xl
-                    px-3 py-2.5
+                    px-2 py-2
                     
                     /* Layout Responsivo */
-                    max-w-2xl
+                    max-w-fit
                     w-full
                     mx-auto
                 "
             >
                 {/* Grupo 1: Undo e Swap */}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5">
                     <ControlButton onClick={onUndo} disabled={!canUndo} icon={Undo2} title={t('controls.undo')} />
                     <ControlButton onClick={onSwap} icon={ArrowLeftRight} title={t('controls.swap')} />
                 </div>
@@ -141,7 +141,7 @@ export const Controls: React.FC<ControlsProps> = memo(({
                 <Divider />
 
                 {/* Grupo Smart Features: Live Sync e Voice */}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5">
                     <ControlButton
                         onClick={onLiveSync}
                         icon={Radio}
@@ -165,7 +165,7 @@ export const Controls: React.FC<ControlsProps> = memo(({
                 <Divider />
 
                 {/* Grupo 2: Roster e History */}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5">
                     <ControlButton onClick={onRoster} icon={Users} title={t('controls.teams')} />
                     <ControlButton onClick={onHistory} icon={History} title={t('controls.history')} />
                 </div>
@@ -173,7 +173,7 @@ export const Controls: React.FC<ControlsProps> = memo(({
                 <Divider />
 
                 {/* Grupo 3: Settings, Fullscreen e Reset */}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5">
                     <ControlButton onClick={onSettings} icon={Settings} title={t('controls.settings')} />
                     <ControlButton onClick={onToggleFullscreen} icon={Maximize2} title={t('controls.fullscreen')} />
                     <ControlButton onClick={onReset} icon={RotateCcw} title={t('controls.reset')} />

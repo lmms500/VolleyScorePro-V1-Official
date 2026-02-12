@@ -78,7 +78,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = memo(({
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="" showCloseButton={false} variant="fullscreen" zIndex={zIndex}>
+        <Modal isOpen={isOpen} onClose={onClose} title="" showCloseButton={false} variant="immersive" zIndex={zIndex}>
             <div ref={scrollRef} onScroll={onScroll} className="flex flex-col h-full render-crisp relative overflow-y-auto custom-scrollbar">
 
                 {/* SMART NAVIGATION BAR (Collapsible) - Otimizado */}
@@ -87,7 +87,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = memo(({
                         initial={{ y: 0 }}
                         animate={{ y: showHeader ? 0 : -100, opacity: showHeader ? 1 : 0 }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        className="bg-slate-50/70 dark:bg-[#020617]/70 backdrop-blur-xl border-b border-white/20 dark:border-white/10 shadow-sm rounded-b-2xl pb-2 pt-2 px-2 pointer-events-auto"
+                        className="bg-slate-50/95 dark:bg-[#020617]/95 backdrop-blur-xl border-b border-white/20 dark:border-white/10 shadow-md rounded-b-2xl pb-2 pt-2 px-2 pointer-events-auto relative z-50"
                     >
                         <div className="flex gap-2">
                             <div className="flex flex-1 bg-black/5 dark:bg-black/20 backdrop-blur-md rounded-full p-1 gap-1 border border-black/5 dark:border-white/5 shadow-inner">

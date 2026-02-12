@@ -13,6 +13,7 @@
  */
 
 import React, { useState } from 'react';
+import { AnimatePresence, motion, LayoutGroup } from 'framer-motion';
 import { useActions, useScore, useRoster } from '../contexts/GameContext';
 import { useNativeIntegration } from '../hooks/useNativeIntegration';
 import { useImmersiveMode } from '../hooks/useImmersiveMode';
@@ -174,54 +175,65 @@ export const GameScreen: React.FC = () => {
                 : 'pt-safe-top pb-safe-bottom pl-safe-left pr-safe-right'
                 }`}
         >
-            {/* Background Effects */}
-            <BackgroundGlow
-                isSwapped={swappedSides}
-                isFullscreen={isFullscreen}
-                colorA={teamARoster.color}
-                colorB={teamBRoster.color}
-                lowPowerMode={config.lowGraphics}
-            />
-            <SuddenDeathOverlay
-                active={inSuddenDeath && !isMatchOver}
-                lowGraphics={config.lowGraphics}
-            />
-
-            {/* Overlays (offline, timeout, live sync) */}
-            <GameOverlays isOnline={isOnline} isFullscreen={isFullscreen} />
-
-            {/* Layout Switch (único ternário condicional) */}
-            {isFullscreen ? (
-                <FullscreenLayout
-                    handlers={handlers}
-                    voiceState={voiceState}
-                    onExitFullscreen={() => setIsFullscreen(false)}
+            {/* Content Wrapper - Takes remaining space and pushes banner down */}
+            <div className="relative flex-1 w-full min-h-0">
+                {/* Background Effects */}
+                <BackgroundGlow
+                    isSwapped={swappedSides}
+                    isFullscreen={isFullscreen}
+                    colorA={teamARoster.color}
+                    colorB={teamBRoster.color}
+                    lowPowerMode={config.lowGraphics}
                 />
-            ) : (
-                <NormalLayout
-                    handlers={handlers}
-                    voiceState={voiceState}
-                    onToggleFullscreen={() => setIsFullscreen(true)}
+                <SuddenDeathOverlay
+                    active={inSuddenDeath && !isMatchOver}
+                    lowGraphics={config.lowGraphics}
                 />
-            )}
 
-            {/* Smart Banner */}
+                {/* Overlays (offline, timeout, live sync) */}
+                <GameOverlays isOnline={isOnline} isFullscreen={isFullscreen} />
+
+                {/* Layout Switch */}
+                {/* Layout Switch - SIMPLIFIED FOR DEBUGGING */}
+                {isFullscreen ? (
+                    <div className="absolute inset-0 w-full h-full z-50 bg-black/50">
+                        <FullscreenLayout
+                            handlers={handlers}
+                            voiceState={voiceState}
+                            onExitFullscreen={() => setIsFullscreen(false)}
+                        />
+                    </div>
+                ) : (
+                    <div className="absolute inset-0 w-full h-full flex flex-col z-0">
+                        <NormalLayout
+                            handlers={handlers}
+                            voiceState={voiceState}
+                            onToggleFullscreen={() => setIsFullscreen(true)}
+                        />
+                    </div>
+                )}
+
+                {/* Modal Manager - Inside Content Wrapper so it covers content but potentially not ads? 
+                    Actually, modals usually cover EVERYTHING. Let's keep it here for now as z-index should handle it.
+                 */}
+                <ModalManager
+                    handleNextGame={handleNextGame}
+                    handleResetGame={handleResetWithAd}
+                    showAdConfirm={showAdConfirm}
+                    confirmWatchAd={confirmWatchAd}
+                    cancelWatchAd={cancelWatchAd}
+                    isAdLoading={isAdLoading}
+                />
+
+                {/* Notification Toast */}
+                <NotificationToast
+                    isFullscreen={isFullscreen}
+                />
+            </div>
+
+            {/* Smart Banner - Fixed at bottom, outside content wrapper */}
+            {/* It will naturally sit at the bottom of the flex-col container */}
             <SmartBanner isVisible={!isFullscreen && !config.adsRemoved} />
-
-            {/* Modal Manager */}
-            <ModalManager
-                handleNextGame={handleNextGame}
-                handleResetGame={handleResetWithAd}
-                showAdConfirm={showAdConfirm}
-                confirmWatchAd={confirmWatchAd}
-                cancelWatchAd={cancelWatchAd}
-                isAdLoading={isAdLoading}
-            />
-
-            {/* Notification Toast */}
-            <NotificationToast
-                isFullscreen={isFullscreen}
-            />
         </div>
     );
 };

@@ -204,7 +204,7 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = memo((props) =>
     };
 
     return createPortal(
-        <Modal isOpen={props.isOpen} onClose={props.onClose} title="" showCloseButton={false} variant="fullscreen" zIndex={props.zIndex}>
+        <Modal isOpen={props.isOpen} onClose={props.onClose} title="" showCloseButton={false} variant="immersive" zIndex={props.zIndex}>
             <Suspense fallback={null}>
                 {activeTutorial === 'manager' && (<RichTutorialModal isOpen={true} tutorialKey="manager" onClose={completeTutorial} />)}
             </Suspense>
@@ -213,7 +213,7 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = memo((props) =>
 
                     {/* STICKY HEADER - Otimizado para proximidade do notch */}
                     <div className="sticky top-0 z-50 pt-safe-top px-1 pointer-events-none">
-                        <motion.div initial={{ y: 0 }} animate={{ y: showHeader ? 0 : -100, opacity: showHeader ? 1 : 0 }} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="bg-slate-50/70 dark:bg-[#020617]/70 backdrop-blur-xl border-b border-white/20 dark:border-white/10 shadow-sm rounded-b-2xl pb-2 pt-2 px-2 pointer-events-auto">
+                        <motion.div initial={{ y: 0 }} animate={{ y: showHeader ? 0 : -100, opacity: showHeader ? 1 : 0 }} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="bg-slate-50/95 dark:bg-[#020617]/95 backdrop-blur-xl border-b border-white/20 dark:border-white/10 shadow-md rounded-b-2xl pb-2 pt-2 px-2 pointer-events-auto relative z-50">
                             <div className="flex gap-2 mb-2">
                                 <div className="flex flex-1 bg-slate-100 dark:bg-white/5 rounded-2xl p-1 gap-1">
                                     <button onClick={() => setActiveTab('roster')} className={`flex-1 py-2 px-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all active:scale-95 ${activeTab === 'roster' ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}><List size={14} /> {t('teamManager.tabs.roster')}</button>

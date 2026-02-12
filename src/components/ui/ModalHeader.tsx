@@ -1,42 +1,24 @@
-import React from 'react';
-import { X, ChevronLeft, Search } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useState, useRef } from 'react';
+import { X, ChevronLeft } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useSafeAreaInsets } from '../../hooks/useSafeAreaInsets';
-import { normalize } from '../../utils/responsive';
-import { resolveTheme } from '../../utils/colors';
-
-export interface ModalHeaderTab {
-    id: string;
-    label: string;
-    icon?: React.ReactNode;
-}
 
 export interface ModalHeaderProps {
     title: string;
     subtitle?: string;
     onClose: () => void;
-    variant?: 'standard' | 'large' | 'tabbed' | 'complex';
+    behavior?: 'fixed' | 'sticky' | 'scroll-aware';
+    scrollContainerRef?: React.RefObject<HTMLElement>;
 
-    // Feature props
-    tabs?: ModalHeaderTab[];
-    activeTab?: string;
-    onTabChange?: (tabId: string) => void;
-
-    // Search/Filter props for 'complex' variant
-    searchProps?: {
-        value: string;
-        onChange: (value: string) => void;
-        placeholder?: string;
-    };
+    // Slots
+    leftAction?: React.ReactNode;
+    centerContent?: React.ReactNode;
+    rightAction?: React.ReactNode;
     bottomContent?: React.ReactNode;
 
-    rightContent?: React.ReactNode;
-    centerContent?: React.ReactNode;
-
-    showDivider?: boolean;
-    scrolled?: boolean;
+    // Legacy/Convenience props
     onBack?: () => void;
-
+    showDivider?: boolean;
     className?: string;
 }
 
@@ -44,171 +26,111 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
     title,
     subtitle,
     onClose,
-    variant = 'standard',
-    tabs,
-    activeTab,
-    onTabChange,
-    searchProps,
-    bottomContent,
-    rightContent,
+    behavior = 'fixed',
+    scrollContainerRef,
+    leftAction,
     centerContent,
-    showDivider = true,
-    scrolled = false,
+    rightAction,
+    bottomContent,
     onBack,
+    showDivider = true,
     className = ''
 }) => {
     const { top } = useSafeAreaInsets();
+    const [isVisible, setIsVisible] = useState(true);
+    const lastScrollY = useRef(0);
 
-    // Dynamic height calculation based on content
-    // Base is usually around 56-60px + safe area
-    // Tabbed/Complex adds more height
+    // Scroll Aware Logic
+    useEffect(() => {
+        if (behavior !== 'scroll-aware' || !scrollContainerRef?.current) return;
+
+        const handleScroll = () => {
+            const currentY = scrollContainerRef.current?.scrollTop || 0;
+            const diff = currentY - lastScrollY.current;
+
+            // Bounce protection
+            if (currentY < 0) return;
+
+            if (diff > 10 && currentY > 50 && isVisible) {
+                setIsVisible(false);
+            } else if (diff < -5 && !isVisible) {
+                setIsVisible(true);
+            }
+            lastScrollY.current = currentY;
+        };
+
+        const el = scrollContainerRef.current;
+        el.addEventListener('scroll', handleScroll, { passive: true });
+        return () => el.removeEventListener('scroll', handleScroll);
+    }, [behavior, scrollContainerRef, isVisible]);
 
     return (
         <motion.header
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2 }}
+            initial={{ y: 0 }}
+            animate={{
+                y: isVisible ? 0 : -100,
+                opacity: isVisible ? 1 : 0
+            }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className={`
                 sticky top-0 z-50 w-full
-                bg-slate-50/80 dark:bg-[#020617]/80
-                backdrop-blur-3xl
+                bg-slate-50/70 dark:bg-[#020617]/70
+                backdrop-blur-xl
                 transition-all duration-300
-                ${showDivider && !scrolled ? 'border-b border-black/5 dark:border-white/5' : ''}
-                ${scrolled ? 'shadow-lg shadow-black/5 dark:shadow-black/20 border-b border-black/5 dark:border-white/5' : ''}
+                ${showDivider ? 'border-b border-black/5 dark:border-white/5' : ''}
                 ${className}
             `}
             style={{ paddingTop: `${top}px` }}
         >
             <div className="flex flex-col w-full">
-                {/* TOP ROW: Title, Close, Actions */}
-                <div className={`flex items-center justify-between px-4 w-full ${variant === 'tabbed' ? 'pb-2' : 'h-14'}`}>
+                {/* PRIMARY ROW */}
+                <div className="flex items-center justify-between px-2 pt-2 pb-2 min-h-[56px] gap-2">
 
                     {/* LEFT SECTION */}
-                    <div className="flex items-center gap-2">
-                        {onBack && (
-                            <button
-                                onClick={onBack}
-                                className="
-                                    p-2 -ml-2 rounded-full
-                                    text-slate-500 dark:text-slate-400
-                                    hover:bg-black/5 dark:hover:bg-white/10
-                                    active:scale-95 transition-all
-                                "
-                            >
-                                <ChevronLeft size={24} />
-                            </button>
-                        )}
-
-                        {variant !== 'standard' ? (
-                            <div className="flex flex-col">
-                                <h2 className="text-lg font-bold text-slate-800 dark:text-white leading-tight">
-                                    {title}
-                                </h2>
-                                {subtitle && (
-                                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                                        {subtitle}
-                                    </p>
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                        {leftAction ? leftAction : (
+                            <div className="flex items-center gap-2">
+                                {onBack && (
+                                    <button onClick={onBack} className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors active:scale-90">
+                                        <ChevronLeft size={20} strokeWidth={2.5} />
+                                    </button>
                                 )}
-                            </div>
-                        ) : (
-                            // Close button on left for standard variant if no back button? 
-                            // Standard usually has close on right, empty left or back.
-                            // Let's keep close on right for all.
-                            <div />
-                        )}
-                    </div>
-
-                    {/* CENTER SECTION (Standard Only usually) */}
-                    {variant === 'standard' && (
-                        <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center text-center max-w-[60%]">
-                            {centerContent ? centerContent : (
-                                <>
-                                    <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 dark:text-white truncate w-full">
+                                <div className="flex flex-col min-w-0">
+                                    <h2 className="text-sm font-bold text-slate-800 dark:text-white leading-tight truncate uppercase tracking-wider">
                                         {title}
                                     </h2>
                                     {subtitle && (
-                                        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 truncate uppercase tracking-wide">
                                             {subtitle}
-                                        </span>
+                                        </p>
                                     )}
-                                </>
-                            )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* CENTER SECTION */}
+                    {centerContent && (
+                        <div className="flex-shrink-0">
+                            {centerContent}
                         </div>
                     )}
 
                     {/* RIGHT SECTION */}
-                    <div className="flex items-center gap-2">
-                        {rightContent}
+                    <div className="flex items-center gap-2 flex-1 justify-end min-w-0">
+                        {rightAction}
                         <button
                             onClick={onClose}
-                            className={`
-                                p-2 rounded-full
-                                text-slate-400 hover:text-slate-600 dark:text-slate-400 dark:hover:text-white
-                                hover:bg-black/5 dark:hover:bg-white/10 
-                                active:bg-black/10 dark:active:bg-white/20
-                                transition-all active:scale-95
-                                ${variant === 'standard' ? '-mr-2' : ''}
-                            `}
-                            aria-label="Close"
+                            className="w-10 h-10 flex items-center justify-center bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors active:scale-90 border border-black/5 dark:border-white/5"
                         >
-                            <X size={22} strokeWidth={2} />
+                            <X size={20} strokeWidth={2.5} />
                         </button>
                     </div>
                 </div>
 
-                {/* MIDDLE ROW: Search (Complex Variant) */}
-                {variant === 'complex' && searchProps && (
-                    <div className="px-4 pb-3">
-                        <div className="relative group">
-                            <div className="absolute inset-0 bg-slate-200/50 dark:bg-white/5 rounded-xl transition-all group-focus-within:bg-white dark:group-focus-within:bg-white/10 group-focus-within:ring-2 group-focus-within:ring-indigo-500/20" />
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                            <input
-                                value={searchProps.value}
-                                onChange={(e) => searchProps.onChange(e.target.value)}
-                                placeholder={searchProps.placeholder || "Search..."}
-                                className="
-                                    relative w-full bg-transparent border-none 
-                                    pl-10 pr-4 py-2.5 
-                                    text-sm font-medium text-slate-800 dark:text-white 
-                                    placeholder:text-slate-400 
-                                    focus:outline-none
-                                "
-                            />
-                        </div>
-                    </div>
-                )}
-
-                {/* BOTTOM ROW: Tabs or Custom Content */}
-                {(variant === 'tabbed' && tabs) && (
-                    <div className="px-4 pb-3">
-                        <div className="flex p-1 bg-slate-200/50 dark:bg-black/20 rounded-xl">
-                            {tabs.map((tab) => {
-                                const isActive = activeTab === tab.id;
-                                return (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => onTabChange?.(tab.id)}
-                                        className={`
-                                            flex-1 flex items-center justify-center gap-2 
-                                            py-2 px-3 rounded-lg text-xs font-bold uppercase tracking-wider
-                                            transition-all duration-200
-                                            ${isActive
-                                                ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm'
-                                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-                                            }
-                                        `}
-                                    >
-                                        {tab.icon}
-                                        <span>{tab.label}</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
-
-                {(variant === 'complex' || bottomContent) && bottomContent && (
-                    <div className="px-4 pb-3">
+                {/* BOTTOM ROW (Tabs, Search, etc) */}
+                {bottomContent && (
+                    <div className="px-2 pb-2">
                         {bottomContent}
                     </div>
                 )}

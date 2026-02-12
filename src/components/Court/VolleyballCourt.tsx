@@ -18,6 +18,10 @@ interface VolleyballCourtProps {
     isDragActive?: boolean;
     /** Rotation angle for player name labels (e.g., -90 for inline portrait mode) */
     nameRotation?: number;
+    /** Where to place the name label relative to the player badge */
+    namePlacement?: 'auto' | 'right';
+    /** Orientation of the court (landscape is default) */
+    orientation?: 'landscape' | 'portrait';
 }
 
 // --- 1. THE DROP ZONE (Glass Slot) ---
@@ -41,7 +45,7 @@ const ZoneMarker = memo(({ index, visualZone, teamId }: { index: number, visualZ
 });
 
 // --- 2. THE PLAYER TOKEN (Ultraglass Jewel) ---
-const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActivate, isMVP, isGlobalDragging, nameRotation }: { player: Player, index: number, teamId: string, theme: any, isServer: boolean, onActivate?: (player: Player) => void, isMVP: boolean, isGlobalDragging: boolean, nameRotation?: number }) => {
+const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActivate, isMVP, isGlobalDragging, nameRotation, namePlacement = 'auto' }: { player: Player, index: number, teamId: string, theme: any, isServer: boolean, onActivate?: (player: Player) => void, isMVP: boolean, isGlobalDragging: boolean, nameRotation?: number, namePlacement?: 'auto' | 'right' }) => {
     // Draggable Logic Only (Collision handled by ZoneMarker underneath)
     const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
         id: player.id,
@@ -55,14 +59,38 @@ const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActiva
         }
     };
 
+    // Determine layout based on rotation to ensure label appears "above" visually
+    // When rotated 90deg (nameRotation = -90), visual "top" is local "left"
+    const isRotatedLeft = nameRotation === -90;
+    const isRotatedRight = nameRotation === 90;
+
+    const positionClass = namePlacement === 'right'
+        ? 'left-[100%] top-1/2 ml-0.5' // Right of badge, vertically centered, very close
+        : isRotatedLeft
+            ? 'left-0 top-1/2' // Anchor to left edge, centered vertically
+            : isRotatedRight
+                ? 'right-0 top-1/2' // Anchor to right edge, centered vertically
+                : '-top-5 left-1/2';
+
+    const transformStyle = namePlacement === 'right'
+        ? `translate(0, -50%)` // Vertically center
+        : isRotatedLeft
+            ? `translate(-50%, -50%) rotate(${nameRotation}deg) translateY(-140%)` // Center on left edge, rotate, push up
+            : isRotatedRight
+                ? `translate(50%, -50%) rotate(${nameRotation}deg) translateY(-140%)` // Center on right edge, rotate, push up
+                : nameRotation
+                    ? `translateX(-50%) rotate(${nameRotation}deg)`
+                    : 'translateX(-50%)';
+
     return (
         <motion.div
-            layoutId={player.id}
-            layout="position"
+            layoutId={nameRotation ? undefined : player.id}
+            layout={nameRotation ? false : "position"}
             transition={{ type: "spring", stiffness: 220, damping: 24, mass: 0.9 }}
             ref={setNodeRef}
             {...listeners}
             {...attributes}
+            data-draggable
             onClick={handleClick}
             className={`
                 relative w-12 h-12 sm:w-14 sm:h-14 flex flex-col items-center justify-center touch-none cursor-grab active:cursor-grabbing z-20 group
@@ -76,7 +104,7 @@ const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActiva
             {/* Server Indicator Ring */}
             {isServer && (
                 <motion.div
-                    layoutId={`serve-ring-${teamId}`}
+                    layoutId={nameRotation ? undefined : `serve-ring-${teamId}`}
                     className="absolute -inset-2 rounded-full border-[3px] border-dashed border-amber-400/90 animate-[spin_8s_linear_infinite]"
                     transition={{ type: "spring", stiffness: 220, damping: 24, mass: 0.9 }}
                 />
@@ -108,11 +136,11 @@ const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActiva
 
             {/* Name Label */}
             <div
-                className={`absolute -bottom-5 left-1/2 -translate-x-1/2 bg-slate-900/80 backdrop-blur-md px-2.5 py-0.5 rounded-md border shadow-lg max-w-[200%] transition-opacity duration-200
-                 ${isMVP ? 'border-amber-500/50' : 'border-white/10'}
-                 ${isGlobalDragging ? 'opacity-0' : 'opacity-100'}
-                `}
-                style={{ transform: nameRotation ? `translateX(-50%) rotate(${nameRotation}deg)` : 'translateX(-50%)' }}
+                className={`absolute ${positionClass} bg-slate-900/90 backdrop-blur-md px-2.5 py-0.5 rounded-full border shadow-xl max-w-[200%] transition-opacity duration-200
+                         ${isMVP ? 'border-amber-500/50' : 'border-white/10'}
+                         ${isGlobalDragging ? 'opacity-0' : 'opacity-100'}
+                        `}
+                style={{ transform: transformStyle }}
             >
                 <span className={`text-[9px] font-bold uppercase tracking-wider block truncate text-center max-w-[80px] leading-tight ${isMVP ? 'text-amber-400' : 'text-slate-200'}`}>
                     {player.name}
@@ -123,7 +151,7 @@ const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActiva
 });
 
 export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
-    players, color, isServing, side, teamId, variant = 'full', onPlayerClick, mvpId, layoutConfig, isDragActive = false, nameRotation
+    players, color, isServing, side, teamId, variant = 'full', onPlayerClick, mvpId, layoutConfig, isDragActive = false, nameRotation, namePlacement = 'auto', orientation = 'landscape'
 }) => {
     const theme = resolveTheme(color);
 
@@ -133,17 +161,36 @@ export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
             onPlayerClick(player);
         }
     }, [onPlayerClick]);
+
     const isMinimal = variant === 'minimal';
     const isBeachStyle = layoutConfig.playersOnCourt <= 4;
+    const isPortrait = orientation === 'portrait';
+
+    // Determine Grid Order and Zone Map based on Orientation
+    let gridOrder: number[] = [];
+    if (isPortrait) {
+        // In portrait mode:
+        // 'left' side (Team A) becomes 'top'
+        // 'right' side (Team B) becomes 'bottom'
+        if (side === 'left') {
+            gridOrder = layoutConfig.gridOrderTop || layoutConfig.gridOrderLeft; // Fallback if missing
+        } else {
+            gridOrder = layoutConfig.gridOrderBottom || layoutConfig.gridOrderRight; // Fallback
+        }
+    } else {
+        gridOrder = side === 'left' ? layoutConfig.gridOrderLeft : layoutConfig.gridOrderRight;
+    }
+
     const slotCount = layoutConfig.playersOnCourt;
     const slots = new Array(slotCount).fill(null);
     players.slice(0, slotCount).forEach((p, i) => { slots[i] = p; });
 
-    const gridOrder = side === 'left' ? layoutConfig.gridOrderLeft : layoutConfig.gridOrderRight;
-
     // Grid Setup
-    const gridRowsClass = layoutConfig.gridRows === 1 ? 'grid-rows-1' : layoutConfig.gridRows === 2 ? 'grid-rows-2' : 'grid-rows-3';
-    const gridColsClass = layoutConfig.gridCols === 3 ? 'grid-cols-3' : 'grid-cols-2';
+    const rows = isPortrait ? (layoutConfig.gridRowsVertical || 2) : layoutConfig.gridRows;
+    const cols = isPortrait ? (layoutConfig.gridColsVertical || 3) : layoutConfig.gridCols;
+
+    const gridRowsClass = rows === 1 ? 'grid-rows-1' : rows === 2 ? 'grid-rows-2' : 'grid-rows-3';
+    const gridColsClass = cols === 3 ? 'grid-cols-3' : 'grid-cols-2';
 
     // Visual Styles
     const lineColor = isBeachStyle ? 'border-blue-900/20' : 'border-white/50';
@@ -155,18 +202,30 @@ export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
             {/* Court Lines (Simplified & Cleaner) */}
             <div className={`
                 absolute ${isMinimal ? 'inset-0' : 'inset-4'} border-[4px] ${lineColor}
-                ${side === 'left' ? 'border-r-0' : 'border-l-0'}
+                ${isPortrait
+                    ? (side === 'left' ? 'border-b-0' : 'border-t-0')
+                    : (side === 'left' ? 'border-r-0' : 'border-l-0')
+                }
                 opacity-80
             `}>
                 {!isBeachStyle && (
-                    <div className={`absolute top-0 bottom-0 w-[2px] bg-white/30 ${side === 'left' ? 'right-[33%]' : 'left-[33%]'}`} />
+                    <div className={`
+                        absolute bg-white/30
+                        ${isPortrait
+                            ? `left-0 right-0 h-[2px] ${side === 'left' ? 'bottom-[33%]' : 'top-[33%]'}`
+                            : `top-0 bottom-0 w-[2px] ${side === 'left' ? 'right-[33%]' : 'left-[33%]'}`
+                        }
+                    `} />
                 )}
             </div>
 
             {/* Players Grid */}
             <div className={`
                 relative z-10 w-full h-full grid gap-2 sm:gap-4 ${gridRowsClass} ${gridColsClass}
-                ${side === 'left' ? 'pr-8 pl-4 lg:pr-12 lg:pl-6' : 'pl-8 pr-4 lg:pl-12 lg:pr-6'}
+                ${isPortrait
+                    ? (side === 'left' ? 'pb-8 pt-4 lg:pb-12 lg:pt-6' : 'pt-8 pb-4 lg:pt-12 lg:pb-6')
+                    : (side === 'left' ? 'pr-8 pl-4 lg:pr-12 lg:pl-6' : 'pl-8 pr-4 lg:pl-12 lg:pr-6')
+                }
             `}>
                 {gridOrder.map((arrayIndex, gridPosition) => {
                     if (isEmptySlot(arrayIndex)) return <div key={`empty-${gridPosition}`} className="relative" />;
@@ -203,6 +262,7 @@ export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
                                     isMVP={mvpId === slots[arrayIndex].id}
                                     isGlobalDragging={isDragActive}
                                     nameRotation={nameRotation}
+                                    namePlacement={namePlacement}
                                 />
                             ) : (
                                 <div className="w-12 h-12 rounded-full border-2 border-dashed border-white/10 opacity-50 pointer-events-none" />

@@ -64,9 +64,9 @@ export const NormalLayout: React.FC<NormalLayoutProps> = ({
         pageIndex,
         goToPage,
         offsetX,
-        handlePanStart,
-        handlePan,
-        handlePanEnd,
+        onDragEnd,
+        dragConstraints,
+        isSwipeLocked,
         lockSwipe,
         unlockSwipe,
         totalPages
@@ -98,9 +98,9 @@ export const NormalLayout: React.FC<NormalLayoutProps> = ({
             {/* Horizontal Pages (Score Cards + Court) */}
             <HorizontalPagesContainer
                 offsetX={offsetX}
-                onPanStart={handlePanStart}
-                onPan={handlePan}
-                onPanEnd={handlePanEnd}
+                onDragEnd={onDragEnd}
+                dragConstraints={dragConstraints}
+                isSwipeLocked={isSwipeLocked}
                 onWidthChange={setContainerWidth}
             >
                 {/* Page 0: Score Cards */}

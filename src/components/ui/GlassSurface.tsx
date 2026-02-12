@@ -42,13 +42,13 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
 
     // High: Deep Glass - Stronger Gradients + Heavier Shadows
     high: `${overflowClass} 
-      bg-gradient-to-br from-white/20 to-white/10
-      dark:bg-gradient-to-br dark:from-white/[0.12] dark:to-white/[0.03]
+      bg-gradient-to-br from-white/95 to-slate-50/90
+      dark:bg-gradient-to-br dark:from-slate-900/95 dark:to-slate-900/85
       backdrop-blur-2xl 
-      border border-white/30 dark:border-white/15 
-      ring-1 ring-inset ring-white/20 dark:ring-white/10
+      border border-white/30 dark:border-white/10 
+      ring-1 ring-inset ring-white/20 dark:ring-white/5
       shadow-[inset_0_1px_0_0_rgba(255,255,255,0.25)]
-      shadow-2xl shadow-black/30`,
+      shadow-2xl shadow-black/50`,
 
     transparent: 'bg-transparent border-none shadow-none ring-0 backdrop-blur-none'
   };

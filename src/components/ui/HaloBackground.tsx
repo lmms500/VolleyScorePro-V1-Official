@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export type HaloMode = 'idle' | 'serving' | 'lastScorer' | 'critical';
 
-interface HaloBackgroundProps {
+export interface HaloBackgroundProps {
     mode: HaloMode;
     colorTheme: string; // ex: 'indigo', 'rose', 'amber'
     lowGraphics?: boolean;
@@ -42,18 +42,18 @@ const glowVariants = {
         transition: { duration: 0.3 }
     },
     serving: {
-        opacity: 0.35,
-        scale: 1,
+        opacity: 0.8, // increased from 0.35
+        scale: 1.2, // increased from 1
         transition: { duration: 0.5, ease: "easeOut" }
     },
     lastScorer: {
-        opacity: 0.45,
-        scale: 1,
+        opacity: 0.9, // increased from 0.45
+        scale: 1.2, // increased from 1
         transition: { duration: 0.5, ease: "easeOut" }
     },
     critical: {
-        opacity: [0.5, 0.8, 0.5],
-        scale: [1, 1.15, 1],
+        opacity: [0.8, 1, 0.8], // increased from 0.5-0.8
+        scale: [1.1, 1.3, 1.1], // increased from 1-1.15
         transition: {
             duration: 2,
             repeat: Infinity,
@@ -113,9 +113,9 @@ export const HaloBackground: React.FC<HaloBackgroundProps> = memo(({
     `;
 
     // Tamanho base do halo
-    const haloSize = size || 'min(50vw, 50vh)';
+    const haloSize = size || 'min(35vw, 35vh)';
     // Tamanho do flash (40% maior)
-    const flashSize = size ? `calc(${size} * 1.4)` : 'min(70vw, 70vh)';
+    const flashSize = size ? `calc(${size} * 1.4)` : 'min(50vw, 50vh)';
 
     return (
         // Wrapper ponto-zero: tamanho 0, centralizado pelo grid

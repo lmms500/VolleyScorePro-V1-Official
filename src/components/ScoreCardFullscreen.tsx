@@ -39,7 +39,8 @@ const ScoreNumberDisplay = memo(({
     colliderRef,
     lowGraphics,
     haloMode,
-    colorTheme
+    colorTheme,
+    layoutId,
 }: {
     score: number;
     textEffectClass: string;
@@ -51,6 +52,7 @@ const ScoreNumberDisplay = memo(({
     lowGraphics: boolean;
     haloMode: HaloMode;
     colorTheme: string;
+    layoutId?: string;
 }) => {
 
     return (
@@ -71,6 +73,7 @@ const ScoreNumberDisplay = memo(({
             {/* 2. Number Layer: Relative Content (z-10 para ficar na frente) */}
             <motion.div
                 ref={numberRef}
+                layoutId={layoutId}
                 className="relative z-10 flex flex-col items-center justify-center will-change-transform overflow-visible"
                 variants={pulseHeartbeat}
                 animate={isCritical ? "pulse" : "idle"}
@@ -153,10 +156,10 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
             <motion.div
                 ref={containerRef}
                 layout
-                layoutId={`score-card-fs-${teamId}`}
+                layoutId={`score-card-${teamId}`}
                 transition={{ type: "spring", stiffness: 280, damping: 28, mass: 1.2 }}
                 className={`
-                fixed z-10 flex flex-col justify-center items-center select-none overflow-visible isolate
+                absolute z-10 flex flex-col justify-center items-center select-none overflow-visible isolate
                 ${containerClasses}
             `}
                 style={{
@@ -201,6 +204,7 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
                             lowGraphics={config.lowGraphics}
                             haloMode={haloMode}
                             colorTheme={resolvedColor}
+                            layoutId={`score-text-${teamId}`}
                         />
                     </div>
                 </div>

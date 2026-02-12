@@ -19,6 +19,40 @@ const LAYOUT_6V6: CourtLayoutConfig = {
   zoneMap: [1, 6, 5, 4, 3, 2],
   gridOrderLeft: [2, 3, 1, 4, 0, 5],
   gridOrderRight: [5, 0, 4, 1, 3, 2],
+  gridRowsVertical: 2,
+  gridColsVertical: 3,
+  gridOrderTop: [0, 1, 2, 5, 4, 3], // Row 0 (Back): Z1(R), Z6(C), Z5(L) [Screen: L, C, R]. Row 1 (Front): Z2(R), Z3(C), Z4(L) [Screen: L, C, R].
+  gridOrderBottom: [3, 4, 5, 2, 1, 0], // Row 0 (Front): Z4(L), Z3(C), Z2(R). Row 1 (Back): Z5(L), Z6(C), Z1(R).
+  // Wait, indices:
+  // Team A (Top): Row 0 (Back): P2(Z5), P1(Z6), P0(Z1). Row 1 (Front): P3(Z4), P4(Z3), P5(Z2).
+  //  -> [2, 1, 0, 3, 4, 5] ??
+  // Let's re-verify visual mapping.
+  // Team A Left Side (Normal):
+  // Col 0 (Back): Z5(P2), Z6(P1), Z1(P0).
+  // Col 1 (Front): Z4(P3), Z3(P4), Z2(P5).
+  // Row 0 (Top): Z5, Z4. Row 1 (Mid): Z6, Z3. Row 2 (Bot): Z1, Z2.
+  // Rotated 90 CW (Team A Top):
+  // Old Row 2 -> New Col 0. Old Row 1 -> New Col 1. Old Row 0 -> New Col 2.
+  // Old Col 0 -> New Row 0 (Back). Old Col 1 -> New Row 1 (Front).
+  //
+  // Row 0 (Back): Old (2,0)=P0(Z1), Old(1,0)=P1(Z6), Old(0,0)=P2(Z5). -> [0, 1, 2]
+  // Row 1 (Front): Old (2,1)=P5(Z2), Old(1,1)=P4(Z3), Old(0,1)=P3(Z4). -> [5, 4, 3]
+  // So: [0, 1, 2, 5, 4, 3] is correct for "Left-to-Right" on screen?
+  // Yes.
+  //
+  // Team B Right Side (Normal):
+  // Col 0 (Front/Net), Col 1 (Back).
+  // Row 0 (Top): Z2(P5), Z1(P0).
+  // Row 1 (Mid): Z3(P4), Z6(P1).
+  // Row 2 (Bot): Z4(P3), Z5(P2).
+  // Rotated 90 CW (Team B Bottom):
+  // Old Col 0 -> New Row 0 (Front/Net). Old Col 1 -> New Row 1 (Back).
+  // Old Row 0 -> New Col 2. Old Row 2 -> New Col 0.
+  //
+  // Row 0 (Front): Old (2,0)=P3(Z4), Old(1,0)=P4(Z3), Old(0,0)=P5(Z2). -> [3, 4, 5]
+  // Row 1 (Back): Old (2,1)=P2(Z5), Old(1,1)=P1(Z6), Old(0,1)=P0(Z1). -> [2, 1, 0]
+  // So: [3, 4, 5, 2, 1, 0] is correct.
+
 };
 
 const LAYOUT_5V5: CourtLayoutConfig = {
@@ -40,6 +74,29 @@ const LAYOUT_5V5: CourtLayoutConfig = {
   // [3 (MidLeft)] [-]
   // [2 (BotLeft)] [1 (BotRight)]
   gridOrderRight: [4, 0, 3, -1, 2, 1],
+  gridRowsVertical: 2,
+  gridColsVertical: 3,
+  // 5v5 Logic (similar to 6v6 but with holes)
+  // Team A Left:
+  // [1 (TopLeft)] [2 (TopRight)] -> Row 0
+  // [-]           [3 (MidRight)] -> Row 1
+  // [0 (BotLeft)] [4 (BotRight)] -> Row 2
+  // Rotated 90 CW (Team A Top):
+  // Row 0 (Back): P0(0,0), -1(1,0), P1(2,0)? No.
+  // Old Row 2 -> New Col 0. Old Row 1 -> New Col 1. Old Row 0 -> New Col 2.
+  // Old Col 0 -> New Row 0 (Back). Old Col 1 -> New Row 1 (Front).
+  //
+  // Row 0 (Back): Old(2,0)=P0, Old(1,0)=-1, Old(0,0)=P1. -> [0, -1, 1]
+  // Row 1 (Front): Old(2,1)=P4, Old(1,1)=P3, Old(0,1)=P2. -> [4, 3, 2]
+  gridOrderTop: [0, -1, 1, 4, 3, 2],
+  // Team B Right:
+  // [4 (TopLeft)] [0 (TopRight)] -> Row 0
+  // [3 (MidLeft)] [-]            -> Row 1
+  // [2 (BotLeft)] [1 (BotRight)] -> Row 2
+  // Rotated 90 CW (Team B Bottom):
+  // Row 0 (Front): Old(2,0)=P2, Old(1,0)=P3, Old(0,0)=P4. -> [2, 3, 4]
+  // Row 1 (Back): Old(2,1)=P1, Old(1,1)=-1, Old(0,1)=P0. -> [1, -1, 0]
+  gridOrderBottom: [2, 3, 4, 1, -1, 0],
 };
 
 const LAYOUT_4V4: CourtLayoutConfig = {
@@ -50,6 +107,18 @@ const LAYOUT_4V4: CourtLayoutConfig = {
   zoneMap: [1, 4, 3, 2],
   gridOrderLeft: [1, 2, 0, 3],
   gridOrderRight: [3, 0, 2, 1],
+  gridRowsVertical: 2,
+  gridColsVertical: 2,
+  // 4v4 Left:
+  // [1] [2]
+  // [0] [3]
+  // Top: [0, 1, 3, 2]
+  gridOrderTop: [0, 1, 3, 2],
+  // 4v4 Right:
+  // [3] [0]
+  // [2] [1]
+  // Bottom: [2, 3, 1, 0]
+  gridOrderBottom: [2, 3, 1, 0],
 };
 
 const LAYOUT_3V3: CourtLayoutConfig = {
@@ -73,6 +142,24 @@ const LAYOUT_3V3: CourtLayoutConfig = {
   // [2 (Net)]     [-]
   // [-]           [1 (BotRight)]
   gridOrderRight: [-1, 0, 2, -1, -1, 1],
+  gridRowsVertical: 2,
+  gridColsVertical: 3,
+  // 3v3 Left:
+  // [1] [-]
+  // [-] [2]
+  // [0] [-]
+  // Top:
+  // Row 0 (Back): [0, -1, 1]
+  // Row 1 (Front): [-1, 2, -1]
+  gridOrderTop: [0, -1, 1, -1, 2, -1],
+  // 3v3 Right:
+  // [-] [0]
+  // [2] [-]
+  // [-] [1]
+  // Bottom:
+  // Row 0 (Front): [-1, 2, -1]
+  // Row 1 (Back): [1, -1, 0]
+  gridOrderBottom: [-1, 2, -1, 1, -1, 0],
 };
 
 const LAYOUT_2V2: CourtLayoutConfig = {
@@ -83,6 +170,24 @@ const LAYOUT_2V2: CourtLayoutConfig = {
   zoneMap: [1, 2],
   gridOrderLeft: [0, 1],
   gridOrderRight: [1, 0],
+  gridRowsVertical: 1,
+  gridColsVertical: 2,
+  // 2v2 Left: [0, 1] (Back Left, Back Right? Usually Side by Side)
+  // [0] [1] (Vertical stack in landscape -> Wait 2v2 usually is side by side)
+  // Grid Rows 1 means 1 row (vertical in landscape).
+  // So P0 (Left), P1 (Right).
+  // Rotated: P1 (Top), P0 (Bottom)? No.
+  // Rotated 90 CW:
+  // Old Left -> Top. Old Right -> Bottom.
+  // So: P0 (Bottom? No, Left becomes Top).
+  // Wait.
+  // Left Baseline is Left. Right Baseline is Right.
+  // P0 is closer to Left Baseline?
+  // Let's assume standard side-by-side.
+  // Top: [1, 0]
+  // Bottom: [0, 1]
+  gridOrderTop: [1, 0],
+  gridOrderBottom: [0, 1],
 };
 
 // ============================================
