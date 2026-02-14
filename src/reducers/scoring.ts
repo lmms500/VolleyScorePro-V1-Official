@@ -79,22 +79,23 @@ export const scoringReducer = (state: GameState, action: GameAction): GameState 
                     const simResult = handleRotate(state.teamARoster, state.teamBRoster, state.queue, setWinner, state.rotationMode, courtLimit);
                     rotReport = simResult.report;
                 }
-                return { ...state, scoreA: matchWinner ? newScoreA : 0, scoreB: matchWinner ? newScoreB : 0, setsA: newSetsA, setsB: newSetsB, history: [...state.history, historyEntry], currentSet: matchWinner ? state.currentSet : state.currentSet + 1, matchWinner: matchWinner, isMatchOver: !!matchWinner, servingTeam: null, isTimerRunning: !matchWinner, timeoutsA: 0, timeoutsB: 0, inSuddenDeath: false, pendingSideSwitch: false, actionLog: [], matchLog: [...state.matchLog, newAction], lastSnapshot: snapshotState, rotationReport: rotReport };
+                return { ...state, scoreA: matchWinner ? newScoreA : 0, scoreB: matchWinner ? newScoreB : 0, setsA: newSetsA, setsB: newSetsB, history: [...state.history, historyEntry], currentSet: matchWinner ? state.currentSet : state.currentSet + 1, matchWinner: matchWinner, isMatchOver: !!matchWinner, servingTeam: null, isTimerRunning: !matchWinner, timeoutsA: 0, timeoutsB: 0, inSuddenDeath: false, pendingSideSwitch: false, actionLog: [], matchLog: [...state.matchLog, newAction], lastScorerTeam: team, lastSnapshot: snapshotState, rotationReport: rotReport };
             }
             
-            return { 
-                ...state, 
-                scoreA: newScoreA, 
-                scoreB: newScoreB, 
-                teamARoster: nextTeamA, 
-                teamBRoster: nextTeamB, 
-                servingTeam: team, 
-                isTimerRunning: true, 
-                inSuddenDeath: state.inSuddenDeath || enteringSuddenDeath, 
-                pendingSideSwitch: triggerSideSwitch, 
+            return {
+                ...state,
+                scoreA: newScoreA,
+                scoreB: newScoreB,
+                teamARoster: nextTeamA,
+                teamBRoster: nextTeamB,
+                servingTeam: team,
+                isTimerRunning: true,
+                inSuddenDeath: state.inSuddenDeath || enteringSuddenDeath,
+                pendingSideSwitch: triggerSideSwitch,
                 swappedSides: triggerSideSwitch ? !state.swappedSides : state.swappedSides,
-                actionLog: [...state.actionLog, newAction], 
-                matchLog: [...state.matchLog, newAction] 
+                actionLog: [...state.actionLog, newAction],
+                matchLog: [...state.matchLog, newAction],
+                lastScorerTeam: team
             };
         }
 

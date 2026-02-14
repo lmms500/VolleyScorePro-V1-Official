@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { motion, type MotionValue, type PanInfo } from 'framer-motion';
 import { useElementSize } from '../../hooks/useElementSize';
 
@@ -25,14 +25,14 @@ export const HorizontalPagesContainer: React.FC<HorizontalPagesContainerProps> =
     // Arredonda para evitar variações de sub-pixel do ResizeObserver
     // que causariam resets espúrios do offsetX durante o pan
     const width = Math.round(rawWidth);
-    const lastWidthRef = useRef(width);
     const [isInternalDrag, setIsInternalDrag] = React.useState(false);
 
     // Notify parent of width changes
-    if (width > 0 && width !== lastWidthRef.current) {
-        lastWidthRef.current = width;
-        onWidthChange?.(width);
-    }
+    useEffect(() => {
+        if (width > 0) {
+            onWidthChange?.(width);
+        }
+    }, [width, onWidthChange]);
 
     // Captura pointerdown antes de qualquer handler para detectar elementos draggable (dnd-kit).
     // Se o toque iniciou em um player token, bloqueia o pan para não interferir com o drag-and-drop.

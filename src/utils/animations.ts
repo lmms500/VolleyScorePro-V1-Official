@@ -66,23 +66,23 @@ export const springPremium: Transition = {
 
 // 1. Modal Entrance
 export const modalVariants: Variants = {
-  hidden: { 
+  hidden: {
     opacity: 0,
     scale: 0.92,
     y: 20,
     filter: "blur(4px)",
     transition: { duration: 0.2 }
   },
-  visible: { 
-    opacity: 1, 
-    scale: 1, 
+  visible: {
+    opacity: 1,
+    scale: 1,
     y: 0,
-    filter: "none", 
+    filter: "none",
     transition: isReducedMotion ? { duration: 0.1 } : liquidSpring
   },
-  exit: { 
-    opacity: 0, 
-    scale: 0.96, 
+  exit: {
+    opacity: 0,
+    scale: 0.96,
     y: 10,
     filter: "blur(4px)",
     transition: { duration: 0.2, ease: "easeIn" }
@@ -107,59 +107,65 @@ export const staggerContainer: Variants = {
 
 // 3. Staggered Item
 export const staggerItem: Variants = {
-  hidden: { 
-    opacity: 0, 
-    y: 15, 
-    scale: 0.95 
+  hidden: {
+    opacity: 0,
+    y: 15,
+    scale: 0.95
   },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
+  visible: {
+    opacity: 1,
+    y: 0,
     scale: 1,
-    transition: isReducedMotion ? { duration: 0 } : liquidSpring 
+    transition: isReducedMotion ? { duration: 0 } : liquidSpring
   },
-  exit: { 
-    opacity: 0, 
-    scale: 0.9, 
-    transition: { duration: 0.15 } 
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    transition: { duration: 0.15 }
   }
 };
 
 // 4. Backdrop Fade
 export const overlayVariants: Variants = {
   hidden: { opacity: 0 },
-  visible: { 
-    opacity: 1, 
-    transition: { duration: isReducedMotion ? 0.1 : 0.4, ease: "easeOut" } 
+  visible: {
+    opacity: 1,
+    transition: { duration: isReducedMotion ? 0.1 : 0.4, ease: "easeOut" }
   },
-  exit: { 
-    opacity: 0, 
-    transition: { duration: 0.1, ease: "easeIn" } 
+  exit: {
+    opacity: 0,
+    transition: { duration: 0.1, ease: "easeIn" }
   }
 };
 
 // 5. Button Press
 export const buttonTap: Variants = {
   idle: { scale: 1, filter: "brightness(1)" },
-  tap: { 
-    scale: isReducedMotion ? 1 : 0.94, 
-    filter: "brightness(1.15)", 
-    transition: { type: "spring", stiffness: 800, damping: 15 } 
+  tap: {
+    scale: isReducedMotion ? 1 : 0.94,
+    filter: "brightness(1.15)",
+    transition: { type: "spring", stiffness: 800, damping: 15 }
   },
-  hover: { 
-    scale: isReducedMotion ? 1 : 1.02, 
-    transition: { type: "spring", stiffness: 400, damping: 25 } 
+  hover: {
+    scale: isReducedMotion ? 1 : 1.02,
+    transition: { type: "spring", stiffness: 400, damping: 25 }
   }
 };
 
 // 6. Liquid Ticker - Increased scale from 0.5 to 0.8 for smoother headroom
 export const tickerVariants: Variants = {
   enter: (direction: number) => ({
-    y: isReducedMotion ? 0 : (direction > 0 ? "60%" : "-60%"), 
+    y: isReducedMotion ? 0 : (direction > 0 ? "60%" : "-60%"),
     opacity: 0,
     scale: isReducedMotion ? 1 : 0.8,
     filter: isReducedMotion ? "blur(0px)" : "blur(10px)",
-    position: "absolute"
+    position: "relative",
+    transition: isReducedMotion ? { duration: 0 } : {
+      y: tickerSpring,
+      scale: tickerSpring,
+      opacity: { duration: 0.2, ease: "easeOut" },
+      filter: { type: "tween", ease: "easeOut", duration: 0.2 }
+    }
   }),
   center: {
     y: "0%",
@@ -168,7 +174,12 @@ export const tickerVariants: Variants = {
     filter: "blur(0px)",
     position: "relative",
     zIndex: 1,
-    transition: isReducedMotion ? { duration: 0 } : tickerSpring
+    transition: isReducedMotion ? { duration: 0 } : {
+      y: tickerSpring,
+      scale: tickerSpring,
+      opacity: { duration: 0.2, ease: "easeOut" },
+      filter: { type: "tween", ease: "easeOut", duration: 0.2 }
+    }
   },
   exit: (direction: number) => ({
     y: isReducedMotion ? 0 : (direction > 0 ? "-60%" : "60%"),
@@ -177,7 +188,12 @@ export const tickerVariants: Variants = {
     filter: isReducedMotion ? "blur(0px)" : "blur(10px)",
     position: "absolute",
     zIndex: 0,
-    transition: { duration: isReducedMotion ? 0 : 0.25 }
+    transition: isReducedMotion ? { duration: 0 } : {
+      y: { duration: 0.25, ease: "easeIn" },
+      scale: { duration: 0.25, ease: "easeIn" },
+      opacity: { duration: 0.2, ease: "easeIn" },
+      filter: { type: "tween", ease: "easeIn", duration: 0.2 }
+    }
   })
 };
 
@@ -198,9 +214,9 @@ export const pulseHeartbeat: Variants = {
 // 8. Ghost Score (Background Highlight)
 export const ghostScoreVariants: Variants = {
   hidden: { opacity: 0, scale: 0.5, filter: "blur(10px)" },
-  visible: { 
-    opacity: 0.08, 
-    scale: 1, 
+  visible: {
+    opacity: 0.08,
+    scale: 1,
     filter: "blur(0px)",
     transition: { duration: 0.8, ease: "easeOut" }
   },
@@ -214,23 +230,23 @@ export const ghostScoreVariants: Variants = {
 // 9. Stamp
 export const stampVariants: Variants = {
   hidden: { scale: 2, opacity: 0, filter: "blur(10px)" },
-  visible: { 
-    scale: 1, 
-    opacity: 1, 
-    filter: "none", 
+  visible: {
+    scale: 1,
+    opacity: 1,
+    filter: "none",
     transition: isReducedMotion ? { duration: 0 } : softBounce
   },
-  exit: { 
-    opacity: 0, 
+  exit: {
+    opacity: 0,
     scale: 0.8,
     filter: "blur(5px)",
-    transition: { duration: 0.2 } 
+    transition: { duration: 0.2 }
   }
 };
 
 // 10. Vignette (Sudden Death - Phase 1 Polish)
 export const vignettePulse: Variants = {
-  hidden: { 
+  hidden: {
     opacity: 0,
     scale: 1.2,
     transition: { duration: 0.5 }

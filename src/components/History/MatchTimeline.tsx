@@ -12,7 +12,6 @@ import { Share } from '@capacitor/share';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 import { useTranslation } from '../../contexts/LanguageContext';
-import { toPng } from 'html-to-image';
 import { TimelineNode } from '../../types/domain';
 import { generateTimelineNodes } from '../../utils/timelineGenerator';
 
@@ -119,6 +118,8 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
         if (!captureRef.current) return;
         setIsExporting(true);
         try {
+            // Lazy load html-to-image only when user exports timeline (~15KB saved from initial bundle)
+            const { toPng } = await import('html-to-image');
             const dataUrl = await toPng(captureRef.current, { cacheBust: true, pixelRatio: 2, backgroundColor: '#0f172a' });
             const filename = `visual_timeline_${match.id.substring(0, 8)}.png`;
             if (Capacitor.isNativePlatform()) {

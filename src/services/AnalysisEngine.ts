@@ -1,5 +1,4 @@
 
-import { GoogleGenAI } from "@google/genai";
 import { Match } from "../stores/historyStore";
 import { MatchAnalysis } from "../types";
 import { MATCH_ANALYSIS_SCHEMA } from "./ai/schemas";
@@ -85,6 +84,8 @@ export class AnalysisEngine {
   }
 
   private static async localAnalyze(match: Match): Promise<MatchAnalysis | null> {
+    // Lazy load GoogleGenAI only when analysis is triggered (~40KB saved from initial bundle)
+    const { GoogleGenAI } = await import("@google/genai");
     const ai = new GoogleGenAI({ apiKey: this.apiKey });
     // Using gemini-3-pro-preview for deep reasoning tasks as per guidelines
     const model = "gemini-3-pro-preview"; 

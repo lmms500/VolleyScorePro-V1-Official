@@ -1,7 +1,7 @@
 
 import React, { lazy, Suspense, useCallback, useEffect, useRef, useState, memo } from 'react';
 import { useModals } from '../../contexts/ModalContext';
-import { useActions, useScore, useRoster } from '../../contexts/GameContext';
+import { useActions, useScore, useLog, useRoster } from '../../contexts/GameContext';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { useNotification } from '../../contexts/NotificationContext';
 import { GlobalLoader } from '../ui/GlobalLoader';
@@ -49,11 +49,12 @@ export const ModalManager: React.FC<ModalManagerProps> = memo(({
   const { showNotification } = useNotification();
   const { handleHostSession, handleJoinSession, handleStopBroadcast, handleLeaveSession } = useSyncManager();
   const scoreState = useScore();
+  const logState = useLog();
   const rosterState = useRoster();
 
   // Reconstruct necessary state parts for child components
-  // We avoid creating the full GameState on every render unless needed, but for MatchOver saving we need it all.
-  const { isMatchOver, matchWinner, scoreA, scoreB, setsA, setsB, matchDurationSeconds, history, inSuddenDeath, servingTeam, currentSet, timeoutsA, timeoutsB, isDeuce, isMatchPointA, isMatchPointB, isSetPointA, isSetPointB, matchLog, actionLog } = scoreState;
+  const { isMatchOver, matchWinner, scoreA, scoreB, setsA, setsB, matchDurationSeconds, inSuddenDeath, servingTeam, currentSet, timeoutsA, timeoutsB, isDeuce, isMatchPointA, isMatchPointB, isSetPointA, isSetPointB } = scoreState;
+  const { history, matchLog, actionLog } = logState;
   const { teamAName, teamBName, teamARoster, teamBRoster, config, syncRole, sessionId } = rosterState;
 
   // Hooks managed here now

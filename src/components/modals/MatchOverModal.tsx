@@ -203,7 +203,7 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                         colors={[winnerColorKey, winnerColorKey]}
                         intensity="high"
                         physicsVariant="ambient"
-                        enabled={!state.config.lowGraphics}
+                        enabled
                     />
                 </div>
 

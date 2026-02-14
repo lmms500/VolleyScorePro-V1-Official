@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { LayoutGroup } from 'framer-motion';
 import { Minimize2 } from 'lucide-react';
 import { useScore, useRoster, useActions } from '../../contexts/GameContext';
@@ -95,6 +95,17 @@ export const FullscreenLayout: React.FC<FullscreenLayoutProps> = ({
     const isLastScorerA = lastScorerTeam === 'A';
     const isLastScorerB = lastScorerTeam === 'B';
 
+    // --- STABLE CALLBACKS (prevent ScoreCardFullscreen re-renders) ---
+    const handleInteractionStartA = useCallback(() => setInteractingTeam('A'), []);
+    const handleInteractionStartB = useCallback(() => setInteractingTeam('B'), []);
+    const handleInteractionEnd = useCallback(() => setInteractingTeam(null), []);
+    const handleOpenReset = useCallback(() => openModal('resetConfirm'), [openModal]);
+    const handleOpenMenu = useCallback(() => openModal('fsMenu'), [openModal]);
+    const handleOpenCourt = useCallback(() => openModal('court'), [openModal]);
+    const handleOpenSettings = useCallback(() => openModal('settings'), [openModal]);
+    const handleOpenRoster = useCallback(() => openModal('manager'), [openModal]);
+    const handleOpenHistory = useCallback(() => openModal('history'), [openModal]);
+
     // --- HUD MEASUREMENT (anteriormente no GameScreen) ---
     // enabled: não precisa checar isFullscreen (sempre true neste layout)
     const hudPlacement = useHudMeasure({
@@ -129,9 +140,9 @@ export const FullscreenLayout: React.FC<FullscreenLayoutProps> = ({
                 onUndo={handlers.handleUndo}
                 canUndo={canUndo && !isSpectator}
                 onSwap={handlers.handleToggleSides}
-                onReset={() => openModal('resetConfirm')}
-                onMenu={() => openModal('fsMenu')}
-                onCourt={() => openModal('court')}
+                onReset={handleOpenReset}
+                onMenu={handleOpenMenu}
+                onCourt={handleOpenCourt}
                 voiceEnabled={config.voiceControlEnabled && !isSpectator}
                 isListening={voiceState.isListening}
                 onToggleListening={voiceState.toggleListening}
@@ -152,16 +163,19 @@ export const FullscreenLayout: React.FC<FullscreenLayoutProps> = ({
             <FullscreenMenuDrawer
                 isOpen={activeModal === 'fsMenu'}
                 onClose={closeModal}
-                onOpenSettings={() => openModal('settings')}
-                onOpenRoster={() => openModal('manager')}
-                onOpenHistory={() => openModal('history')}
+                onOpenSettings={handleOpenSettings}
+                onOpenRoster={handleOpenRoster}
+                onOpenHistory={handleOpenHistory}
                 onExitFullscreen={onExitFullscreen}
             />
 
             {/* Score Cards */}
             <div className="relative w-full flex-1 flex flex-col min-h-0 p-0">
                 <LayoutGroup>
-                    <div className="flex-1 flex flex-col landscape:flex-row gap-2 sm:gap-4 min-h-0 my-2 sm:my-4 justify-between">
+                    <div className={`
+                        flex-1 flex gap-2 sm:gap-4 min-h-0 my-2 sm:my-4 justify-between
+                        ${swappedSides ? 'flex-col-reverse landscape:flex-row-reverse' : 'flex-col landscape:flex-row'}
+                    `}>
                         <ScoreCardFullscreen
                             teamId="A"
                             team={teamARoster}
@@ -172,8 +186,8 @@ export const FullscreenLayout: React.FC<FullscreenLayoutProps> = ({
                             isSetPoint={isSetPointA}
                             colorTheme={teamARoster.color}
                             isLocked={isSpectator || interactingTeam === 'B'}
-                            onInteractionStart={() => setInteractingTeam('A')}
-                            onInteractionEnd={() => setInteractingTeam(null)}
+                            onInteractionStart={handleInteractionStartA}
+                            onInteractionEnd={handleInteractionEnd}
                             reverseLayout={swappedSides}
                             scoreRefCallback={setScoreElA}
                             isServing={servingTeam === 'A'}
@@ -190,8 +204,8 @@ export const FullscreenLayout: React.FC<FullscreenLayoutProps> = ({
                             isSetPoint={isSetPointB}
                             colorTheme={teamBRoster.color}
                             isLocked={isSpectator || interactingTeam === 'A'}
-                            onInteractionStart={() => setInteractingTeam('B')}
-                            onInteractionEnd={() => setInteractingTeam(null)}
+                            onInteractionStart={handleInteractionStartB}
+                            onInteractionEnd={handleInteractionEnd}
                             reverseLayout={swappedSides}
                             scoreRefCallback={setScoreElB}
                             isServing={servingTeam === 'B'}

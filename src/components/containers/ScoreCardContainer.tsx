@@ -1,5 +1,5 @@
 
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { memo, useCallback } from 'react';
 import { TeamId, SkillType } from '../../types';
 import { useActions, useScore, useRoster } from '../../contexts/GameContext';
 import { useTranslation } from '../../contexts/LanguageContext';
@@ -26,16 +26,16 @@ export const ScoreCardContainer: React.FC<ScoreCardContainerProps> = memo(({
   const { showNotification } = useNotification();
   
   // Consume contexts
-  const { 
-    scoreA, scoreB, 
-    setsA, setsB, 
-    servingTeam, 
+  const {
+    scoreA, scoreB,
+    setsA, setsB,
+    servingTeam,
     isMatchPointA, isMatchPointB,
     isSetPointA, isSetPointB,
-    isDeuce, 
-    inSuddenDeath, 
+    isDeuce,
+    inSuddenDeath,
     setsNeededToWin,
-    matchLog,
+    lastScorerTeam,
     timeoutsA,
     timeoutsB
   } = useScore();
@@ -66,12 +66,8 @@ export const ScoreCardContainer: React.FC<ScoreCardContainerProps> = memo(({
 
   const isSpectator = syncRole === 'spectator';
 
-  // Compute last scorer
-  const isLastScorer = useMemo(() => {
-    const logs = matchLog || [];
-    const lastPoint = [...logs].reverse().find(log => log.type === 'POINT');
-    return lastPoint ? (lastPoint as any).team === teamId : false;
-  }, [matchLog, teamId]);
+  // O(1) from reducer - no more array reversal
+  const isLastScorer = lastScorerTeam === teamId;
 
   // Handlers
   const handleAddPoint = useCallback((targetTeamId: TeamId, playerId?: string, skill?: SkillType) => {

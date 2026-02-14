@@ -6,7 +6,7 @@
  */
 
 import { useEffect } from 'react';
-import { useScore, useActions } from '../contexts/GameContext';
+import { useScore, useLog, useActions } from '../contexts/GameContext';
 import { useTimerControls, useTimerValue } from '../contexts/TimerContext';
 
 /**
@@ -16,7 +16,8 @@ import { useTimerControls, useTimerValue } from '../contexts/TimerContext';
  * - Effect #4: Se jogo é resetado (scores = 0, sets = 0), reseta o timer
  */
 export function useTimerSync(): void {
-    const { isTimerRunning, matchDurationSeconds, scoreA, scoreB, setsA, setsB, history } = useScore();
+    const { isTimerRunning, matchDurationSeconds, scoreA, scoreB, setsA, setsB } = useScore();
+    const { history } = useLog();
     const { setState } = useActions();
     const timer = useTimerControls();
     const timerValue = useTimerValue();

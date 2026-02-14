@@ -1,14 +1,16 @@
 
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { getHexFromColor } from '../../utils/colors';
 import { TeamColor } from '../../types';
-import { useLayoutManager, ColliderRect } from '../../contexts/LayoutContext';
+import { useLayoutManager } from '../../contexts/LayoutContext';
+import { usePerformanceSafe } from '../../contexts/PerformanceContext';
 
 interface ConfettiProps {
-  colors: TeamColor[]; 
+  colors: TeamColor[];
   intensity?: 'low' | 'high';
   physicsVariant?: 'interactive' | 'ambient';
-  enabled?: boolean; // New Prop for Graphics Control
+  /** @deprecated Prefer PerformanceContext. Kept for backward compat. */
+  enabled?: boolean;
 }
 
 interface Particle {
@@ -49,15 +51,19 @@ interface OptimizedCollider {
     lineHeightTrim: number;
 }
 
-export const Confetti: React.FC<ConfettiProps> = ({ 
-  colors, 
+export const Confetti: React.FC<ConfettiProps> = ({
+  colors,
   intensity = 'high',
   physicsVariant = 'ambient',
-  enabled = true
+  enabled: enabledProp = true
 }) => {
+  const { config: perf } = usePerformanceSafe();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { colliders } = useLayoutManager();
-  
+
+  // Adaptive: disable confetti if performance mode says so, or prop says so
+  const enabled = enabledProp && perf.visual.confetti;
+
   // Cache Ref to avoid stale closures in RAF loop
   const physicsWorldRef = useRef<OptimizedCollider[]>([]);
 
@@ -156,7 +162,7 @@ export const Confetti: React.FC<ConfettiProps> = ({
 
     const init = () => {
       resize();
-      const count = intensity === 'high' ? (physicsVariant === 'ambient' ? 250 : 200) : 80;
+      const count = intensity === 'high' ? (physicsVariant === 'ambient' ? 150 : 120) : 60;
       particles = [];
       for (let i = 0; i < count; i++) {
         particles.push(createParticle(
@@ -282,10 +288,8 @@ export const Confetti: React.FC<ConfettiProps> = ({
 
       ctx.clearRect(0, 0, width, height);
 
-      ctx.shadowColor = "rgba(0, 0, 0, 0.1)";
-      ctx.shadowBlur = physicsVariant === 'ambient' ? 0 : 2; 
-      ctx.shadowOffsetY = 1;
-      ctx.shadowOffsetX = 0.5;
+      // Shadows removed: canvas shadows are extremely expensive (applied per-particle).
+      // Particles are too small for shadow to be visually noticeable.
 
       particles.forEach((p) => {
         updatePhysics(p, height);

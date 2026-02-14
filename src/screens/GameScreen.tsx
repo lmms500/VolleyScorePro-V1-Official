@@ -13,8 +13,9 @@
  */
 
 import React, { useState } from 'react';
-import { AnimatePresence, motion, LayoutGroup } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useActions, useScore, useRoster } from '../contexts/GameContext';
+import { usePerformance } from '../contexts/PerformanceContext';
 import { useNativeIntegration } from '../hooks/useNativeIntegration';
 import { useImmersiveMode } from '../hooks/useImmersiveMode';
 import { useVoiceControl } from '../hooks/useVoiceControl';
@@ -66,9 +67,12 @@ export const GameScreen: React.FC = () => {
     const scoreState = useScore();
     const rosterState = useRoster();
 
-    const { subtractPoint, setServer, useTimeout, applySettings } = actions;
+    const { subtractPoint, setServer, useTimeout } = actions;
     const { isMatchActive, inSuddenDeath, isMatchOver, swappedSides } = scoreState;
     const { teamARoster, teamBRoster, config, syncRole } = rosterState;
+
+    // --- ADAPTIVE PERFORMANCE ---
+    const { mode: perfMode, downgrade: perfDowngrade } = usePerformance();
 
     const { t, language } = useTranslation();
     const { user } = useAuth();
@@ -93,14 +97,14 @@ export const GameScreen: React.FC = () => {
     useKeepAwake(isMatchActive);
     useScoreAnnouncer({ state: combinedState, enabled: config.announceScore });
 
-    // Performance Monitoring
+    // Performance Monitoring: triggers adaptive downgrade via PerformanceContext
     usePerformanceMonitor({
-        isEnabled: !config.lowGraphics,
+        isEnabled: perfMode === 'NORMAL',
         onDowngrade: () => {
-            applySettings({ ...config, lowGraphics: true }, false);
+            perfDowngrade();
             showNotification({
                 mainText: 'Performance Optimized',
-                subText: 'Low Graphics enabled automatically.',
+                subText: 'Visual quality reduced automatically.',
                 type: 'info',
                 systemIcon: 'save'
             });
@@ -183,35 +187,56 @@ export const GameScreen: React.FC = () => {
                     isFullscreen={isFullscreen}
                     colorA={teamARoster.color}
                     colorB={teamBRoster.color}
-                    lowPowerMode={config.lowGraphics}
                 />
                 <SuddenDeathOverlay
                     active={inSuddenDeath && !isMatchOver}
-                    lowGraphics={config.lowGraphics}
                 />
 
                 {/* Overlays (offline, timeout, live sync) */}
                 <GameOverlays isOnline={isOnline} isFullscreen={isFullscreen} />
 
                 {/* Layout Switch */}
-                {/* Layout Switch - SIMPLIFIED FOR DEBUGGING */}
-                {isFullscreen ? (
-                    <div className="absolute inset-0 w-full h-full z-50 bg-black/50">
-                        <FullscreenLayout
-                            handlers={handlers}
-                            voiceState={voiceState}
-                            onExitFullscreen={() => setIsFullscreen(false)}
-                        />
-                    </div>
-                ) : (
-                    <div className="absolute inset-0 w-full h-full flex flex-col z-0">
-                        <NormalLayout
-                            handlers={handlers}
-                            voiceState={voiceState}
-                            onToggleFullscreen={() => setIsFullscreen(true)}
-                        />
-                    </div>
-                )}
+                <AnimatePresence mode="wait">
+                    {isFullscreen ? (
+                        <motion.div
+                            key="fullscreen"
+                            className="absolute inset-0 w-full h-full flex flex-col"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 1.05 }}
+                            transition={{
+                                type: "spring",
+                                stiffness: 300,
+                                damping: 30
+                            }}
+                        >
+                            <FullscreenLayout
+                                handlers={handlers}
+                                voiceState={voiceState}
+                                onExitFullscreen={() => setIsFullscreen(false)}
+                            />
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="normal"
+                            className="absolute inset-0 w-full h-full flex flex-col"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 1.05 }}
+                            transition={{
+                                type: "spring",
+                                stiffness: 300,
+                                damping: 30
+                            }}
+                        >
+                            <NormalLayout
+                                handlers={handlers}
+                                voiceState={voiceState}
+                                onToggleFullscreen={() => setIsFullscreen(true)}
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Modal Manager - Inside Content Wrapper so it covers content but potentially not ads? 
                     Actually, modals usually cover EVERYTHING. Let's keep it here for now as z-index should handle it.

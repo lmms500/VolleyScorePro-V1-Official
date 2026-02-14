@@ -1,6 +1,6 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, lazy, Suspense } from 'react';
 import { LayoutGroup } from 'framer-motion';
-import { useScore, useRoster } from '../../contexts/GameContext';
+import { useScore, useLog, useRoster } from '../../contexts/GameContext';
 import { useModals } from '../../contexts/ModalContext';
 import { ScoreCardContainer } from '../containers/ScoreCardContainer';
 import { HistoryBar } from '../HistoryBar';
@@ -10,8 +10,10 @@ import { TeamId } from '../../types';
 import type { GameHandlers } from '../../hooks/useGameHandlers';
 import { useHorizontalPages } from '../../hooks/useHorizontalPages';
 import { HorizontalPagesContainer } from './HorizontalPagesContainer';
-import { CourtPage } from './CourtPage';
 import { PageIndicator } from '../ui/PageIndicator';
+
+// Lazy load CourtPage and @dnd-kit (~30KB saved from initial bundle)
+const CourtPage = lazy(() => import('./CourtPage').then(m => ({ default: m.CourtPage })));
 
 interface VoiceState {
     isListening: boolean;
@@ -51,7 +53,8 @@ export const NormalLayout: React.FC<NormalLayoutProps> = ({
     const [courtMounted, setCourtMounted] = useState(false);
 
     // --- CONTEXT CONSUMPTION ---
-    const { history, setsA, setsB, swappedSides } = useScore();
+    const { setsA, setsB, swappedSides } = useScore();
+    const { history } = useLog();
     const { teamARoster, teamBRoster, canUndo, syncRole, config } = useRoster();
     const { openModal } = useModals();
 
@@ -83,6 +86,13 @@ export const NormalLayout: React.FC<NormalLayoutProps> = ({
         if (isDragging) lockSwipe();
         else unlockSwipe();
     }, [lockSwipe, unlockSwipe]);
+
+    // --- STABLE CALLBACKS (prevent Controls re-renders) ---
+    const handleOpenSettings = useCallback(() => openModal('settings'), [openModal]);
+    const handleOpenRoster = useCallback(() => openModal('manager'), [openModal]);
+    const handleOpenHistory = useCallback(() => openModal('history'), [openModal]);
+    const handleOpenReset = useCallback(() => openModal('resetConfirm'), [openModal]);
+    const handleOpenLiveSync = useCallback(() => openModal('liveSync'), [openModal]);
 
     return (
         <div className="relative w-full flex-1 flex flex-col min-h-0 p-2 sm:p-4">
@@ -123,7 +133,9 @@ export const NormalLayout: React.FC<NormalLayoutProps> = ({
 
                 {/* Page 1: Tactical Court */}
                 {courtMounted ? (
-                    <CourtPage onDragActiveChange={handleDragActiveChange} />
+                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="text-slate-400 text-sm">Loading court...</div></div>}>
+                        <CourtPage onDragActiveChange={handleDragActiveChange} />
+                    </Suspense>
                 ) : (
                     <div />
                 )}
@@ -141,17 +153,17 @@ export const NormalLayout: React.FC<NormalLayoutProps> = ({
                 onUndo={handlers.handleUndo}
                 canUndo={canUndo && !isSpectator}
                 onSwap={handlers.handleToggleSides}
-                onSettings={() => openModal('settings')}
-                onRoster={() => openModal('manager')}
-                onHistory={() => openModal('history')}
-                onReset={() => openModal('resetConfirm')}
+                onSettings={handleOpenSettings}
+                onRoster={handleOpenRoster}
+                onHistory={handleOpenHistory}
+                onReset={handleOpenReset}
                 onToggleFullscreen={onToggleFullscreen}
                 voiceEnabled={config.voiceControlEnabled && !isSpectator}
                 isListening={voiceState.isListening}
                 onToggleListening={voiceState.toggleListening}
                 onLiveSync={
                     FEATURE_FLAGS.ENABLE_LIVE_SYNC
-                        ? () => openModal('liveSync')
+                        ? handleOpenLiveSync
                         : undefined
                 }
                 syncActive={FEATURE_FLAGS.ENABLE_LIVE_SYNC && (isHost || isSpectator)}

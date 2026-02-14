@@ -6,19 +6,20 @@
  */
 
 import { useEffect } from 'react';
-import { useScore, useRoster } from '../contexts/GameContext';
+import { useScore } from '../contexts/GameContext';
 import { useModals } from '../contexts/ModalContext';
+import { usePerformanceSafe } from '../contexts/PerformanceContext';
 import { setGlobalReducedMotion } from '../utils/animations';
 
 /**
  * Responsável por:
  * - Fechar todos os modais quando a partida termina (isMatchOver)
- * - Sincronizar config.reducedMotion com utilitário global de animações
+ * - Sincronizar PerformanceContext.isReducedMotion com utilitário global de animações
  */
 export function useMatchLifecycle(): void {
     const { isMatchOver } = useScore();
-    const { config } = useRoster();
     const { closeAll } = useModals();
+    const { isReducedMotion } = usePerformanceSafe();
 
     // Effect #5: Fecha modais quando match over
     useEffect(() => {
@@ -27,8 +28,8 @@ export function useMatchLifecycle(): void {
         }
     }, [isMatchOver, closeAll]);
 
-    // Effect #8: Sincroniza reducedMotion global
+    // Effect #8: Sincroniza reducedMotion global (animations.ts)
     useEffect(() => {
-        setGlobalReducedMotion(config.reducedMotion);
-    }, [config.reducedMotion]);
+        setGlobalReducedMotion(isReducedMotion);
+    }, [isReducedMotion]);
 }

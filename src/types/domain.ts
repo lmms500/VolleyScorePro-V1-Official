@@ -315,6 +315,7 @@ export interface GameState {
   history: SetHistory[];
   actionLog: ActionLog[];
   matchLog: ActionLog[];
+  lastScorerTeam: TeamId | null;
   lastSnapshot?: GameState;
   isMatchOver: boolean;
   matchWinner: TeamId | null;

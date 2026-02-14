@@ -1,6 +1,5 @@
 
 import { useCallback, useState } from 'react';
-import { toPng } from 'html-to-image';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
@@ -9,6 +8,8 @@ export const useSocialShare = () => {
   const [isSharing, setIsSharing] = useState(false);
 
   const generateImage = async (): Promise<string> => {
+      // Lazy load html-to-image only when user shares/downloads (~15KB saved from initial bundle)
+      const { toPng } = await import('html-to-image');
       const element = document.getElementById('social-share-card');
       if (!element) throw new Error('Card element not found');
       // pixelRatio 2 offers good balance of quality vs memory usage on mobile

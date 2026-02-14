@@ -20,6 +20,7 @@ export const INITIAL_STATE: GameState = {
   history: [],
   actionLog: [],
   matchLog: [],
+  lastScorerTeam: null,
   isMatchOver: false,
   matchWinner: null,
   servingTeam: null,

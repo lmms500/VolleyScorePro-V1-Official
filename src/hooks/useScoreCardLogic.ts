@@ -6,6 +6,7 @@ import { useScoreGestures } from './useScoreGestures';
 import { useGameAudio } from './useGameAudio';
 import { useHaptics } from './useHaptics';
 import { HaloMode } from '../components/ui/HaloBackground';
+import { usePerformanceSafe } from '../contexts/PerformanceContext';
 
 interface UseScoreCardLogicParams {
   teamId: TeamId;
@@ -41,6 +42,7 @@ export const useScoreCardLogic = ({
   // --- Serviços ---
   const audio = useGameAudio(config);
   const haptics = useHaptics(true);
+  const { config: perf } = usePerformanceSafe();
 
   // --- Estado Local ---
   const [showScout, setShowScout] = useState(false);
@@ -93,7 +95,7 @@ export const useScoreCardLogic = ({
     setIsPressed(true);
     onInteractionStart?.();
 
-    if (containerRef.current && !config.lowGraphics) {
+    if (containerRef.current && perf.visual.rippleEffects) {
       const rect = containerRef.current.getBoundingClientRect();
       setRipple({
         x: e.clientX - rect.left,
@@ -101,7 +103,7 @@ export const useScoreCardLogic = ({
         id: Date.now(),
       });
     }
-  }, [onInteractionStart, isLocked, config.lowGraphics]);
+  }, [onInteractionStart, isLocked, perf.visual.rippleEffects]);
 
   const handleInteractionEnd = useCallback(() => {
     setIsPressed(false);

@@ -181,7 +181,12 @@
             "lowPower": "Modo Eco",
             "lowPowerSub": "Reducir efectos",
             "reducedMotion": "Reducir Movimiento",
-            "reducedMotionSub": "Menos animación"
+            "reducedMotionSub": "Menos animación",
+            "performanceMode": "Calidad Visual",
+            "performanceModeSub": "Ajusta los efectos para tu dispositivo",
+            "perfNormal": "Full",
+            "perfEco": "Eco",
+            "perfMinimal": "Mínimo"
         },
         "rules": {
             "title": "Regras",

@@ -1,10 +1,12 @@
 
 import React, { useState } from 'react';
-import { Sun, Moon, Globe, Battery, ZapOff, Volume2, Megaphone, User, User2, AlignJustify, BellRing, Gauge, AudioWaveform, Loader2, Play, Mic, HelpCircle, Activity } from 'lucide-react';
+import { Sun, Moon, Globe, Sparkles, Volume2, Megaphone, User, User2, AlignJustify, BellRing, Gauge, AudioWaveform, Loader2, Play, Mic, HelpCircle, Activity } from 'lucide-react';
 import { GameConfig } from '../../types';
 import { SectionTitle, SettingItem } from './SettingsUI';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { usePerformance } from '../../contexts/PerformanceContext';
+import type { PerformanceMode } from '../../utils/deviceDetection';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ttsService } from '../../services/TTSService';
 import { VoiceCommandsModal } from '../modals/VoiceCommandsModal';
@@ -17,8 +19,15 @@ interface AppTabProps {
 export const AppTab: React.FC<AppTabProps> = ({ localConfig, setLocalConfig }) => {
     const { t, language, setLanguage } = useTranslation();
     const { theme, setTheme } = useTheme();
+    const { mode: perfMode, setMode: setPerfMode } = usePerformance();
     const [isTestingVoice, setIsTestingVoice] = useState(false);
     const [showVoiceHelp, setShowVoiceHelp] = useState(false);
+
+    const perfOptions: { key: PerformanceMode; label: string; color: string }[] = [
+        { key: 'NORMAL', label: t('settings.appearance.perfNormal'), color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' },
+        { key: 'ECONOMICO', label: t('settings.appearance.perfEco'), color: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300' },
+        { key: 'REDUZIR_MOVIMENTO', label: t('settings.appearance.perfMinimal'), color: 'bg-slate-200 text-slate-700 dark:bg-white/20 dark:text-white' },
+    ];
 
     const handleTestVoice = async () => {
         if (isTestingVoice) return;
@@ -50,15 +59,18 @@ export const AppTab: React.FC<AppTabProps> = ({ localConfig, setLocalConfig }) =
                                 ))}
                             </div>
                         </SettingItem>
-                        <SettingItem label={t('settings.appearance.lowPower')} sub={t('settings.appearance.lowPowerSub')} icon={Battery} color={{ bg: 'bg-slate-500/10', text: 'text-slate-500' }}>
-                            <button onClick={() => setLocalConfig(prev => ({ ...prev, lowGraphics: !prev.lowGraphics }))} className={`w-10 h-6 rounded-full p-1 transition-colors ${localConfig.lowGraphics ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-white/10'}`}>
-                                <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${localConfig.lowGraphics ? 'translate-x-4' : ''}`} />
-                            </button>
-                        </SettingItem>
-                        <SettingItem label={t('settings.appearance.reducedMotion')} sub={t('settings.appearance.reducedMotionSub')} icon={ZapOff} color={{ bg: 'bg-amber-500/10', text: 'text-amber-500' }}>
-                            <button onClick={() => setLocalConfig(prev => ({ ...prev, reducedMotion: !prev.reducedMotion }))} className={`w-10 h-6 rounded-full p-1 transition-colors ${localConfig.reducedMotion ? 'bg-amber-500' : 'bg-slate-200 dark:bg-white/10'}`}>
-                                <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${localConfig.reducedMotion ? 'translate-x-4' : ''}`} />
-                            </button>
+                        <SettingItem label={t('settings.appearance.performanceMode')} sub={t('settings.appearance.performanceModeSub')} icon={Sparkles} color={{ bg: 'bg-violet-500/10', text: 'text-violet-500' }}>
+                            <div className="flex bg-slate-100 dark:bg-black/20 rounded-xl p-1 border border-black/5 dark:border-white/5">
+                                {perfOptions.map(opt => (
+                                    <button
+                                        key={opt.key}
+                                        onClick={() => setPerfMode(opt.key)}
+                                        className={`px-2.5 py-1.5 rounded-lg text-[9px] font-bold uppercase transition-colors ${perfMode === opt.key ? `${opt.color} shadow-sm` : 'text-slate-400'}`}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                ))}
+                            </div>
                         </SettingItem>
                     </div>
                 </div>

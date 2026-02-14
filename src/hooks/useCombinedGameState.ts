@@ -9,7 +9,7 @@
  */
 
 import { useMemo } from 'react';
-import { useScore, useRoster } from '../contexts/GameContext';
+import { useScore, useLog, useRoster } from '../contexts/GameContext';
 import { GameState } from '../types';
 
 /**
@@ -20,6 +20,7 @@ import { GameState } from '../types';
  */
 export function useCombinedGameState(): GameState {
     const scoreState = useScore();
+    const logState = useLog();
     const rosterState = useRoster();
 
     return useMemo((): GameState => ({
@@ -40,11 +41,12 @@ export function useCombinedGameState(): GameState {
         setsA: scoreState.setsA,
         setsB: scoreState.setsB,
         currentSet: scoreState.currentSet,
-        history: scoreState.history,
+        history: logState.history,
 
         // --- LOGS ---
-        actionLog: scoreState.actionLog,
-        matchLog: scoreState.matchLog,
+        actionLog: logState.actionLog,
+        matchLog: logState.matchLog,
+        lastScorerTeam: scoreState.lastScorerTeam,
         lastSnapshot: undefined, // Não armazenado nos contexts (runtime only)
 
         // --- MATCH STATUS ---
@@ -75,5 +77,5 @@ export function useCombinedGameState(): GameState {
         syncRole: rosterState.syncRole,
         sessionId: rosterState.sessionId,
         connectedSpectators: rosterState.connectedSpectators
-    }), [scoreState, rosterState]);
+    }), [scoreState, logState, rosterState]);
 }

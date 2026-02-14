@@ -14,7 +14,6 @@ import { DEFAULT_CONFIG } from '../constants';
 import { useTranslation } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { useCollider } from '../hooks/useCollider';
-import { useRoster } from '../contexts/GameContext';
 
 interface HistoryBarProps {
   history: SetHistory[];
@@ -141,8 +140,6 @@ export const HistoryBar: React.FC<HistoryBarProps> = memo(({ history, setsA, set
   const audio = useGameAudio(DEFAULT_CONFIG);
   const { t } = useTranslation();
   const { showNotification } = useNotification();
-  const { config } = useRoster(); // Access global config to check lowGraphics
-
   const logoRef = useCollider('hist-logo');
   const setsScoreRef = useCollider('hist-score');
   const timerRef = useCollider('hist-timer');
@@ -182,7 +179,7 @@ export const HistoryBar: React.FC<HistoryBarProps> = memo(({ history, setsA, set
             colors={[colorA, colorB]}
             intensity="high"
             physicsVariant="interactive"
-            enabled={!config.lowGraphics}
+            enabled
           />
         </div>,
         document.body

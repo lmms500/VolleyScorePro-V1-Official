@@ -35,6 +35,18 @@ export const metaReducer = (state: GameState, action: GameAction): GameState => 
                 }
             }
 
+            // Migration v3: Ensure lastScorerTeam exists for backwards compatibility
+            if (loadedState.lastScorerTeam === undefined) {
+                const logs = loadedState.matchLog || [];
+                for (let i = logs.length - 1; i >= 0; i--) {
+                    if (logs[i].type === 'POINT') {
+                        loadedState.lastScorerTeam = (logs[i] as { team: 'A' | 'B' }).team;
+                        break;
+                    }
+                }
+                if (loadedState.lastScorerTeam === undefined) loadedState.lastScorerTeam = null;
+            }
+
             return loadedState;
         }
 
@@ -48,6 +60,7 @@ export const metaReducer = (state: GameState, action: GameAction): GameState => 
                     ...newState,
                     scoreA: 0, scoreB: 0, setsA: 0, setsB: 0, currentSet: 1,
                     history: [], actionLog: [], matchLog: [],
+                    lastScorerTeam: null,
                     isMatchOver: false, matchWinner: null, servingTeam: null,
                     timeoutsA: 0, timeoutsB: 0,
                     inSuddenDeath: false, pendingSideSwitch: false,
@@ -116,6 +129,7 @@ export const metaReducer = (state: GameState, action: GameAction): GameState => 
                 history: [],
                 actionLog: [],
                 matchLog: [],
+                lastScorerTeam: null,
                 lastSnapshot: undefined,
                 // Reset de estado da partida
                 isMatchOver: false,
@@ -148,20 +162,38 @@ export const metaReducer = (state: GameState, action: GameAction): GameState => 
             return { ...state, matchDurationSeconds: action.duration };
 
         case 'UNDO': {
-            if (state.lastSnapshot) return { ...state.lastSnapshot };
+            if (state.lastSnapshot) {
+                const snap = { ...state.lastSnapshot };
+                // Migration: compute lastScorerTeam if missing from old snapshots
+                if (snap.lastScorerTeam === undefined) {
+                    snap.lastScorerTeam = null;
+                    const logs = snap.matchLog || [];
+                    for (let i = logs.length - 1; i >= 0; i--) {
+                        if (logs[i].type === 'POINT') { snap.lastScorerTeam = (logs[i] as { team: any }).team; break; }
+                    }
+                }
+                return snap;
+            }
             if (state.isMatchOver || state.actionLog.length === 0) return state;
             const newLog = [...state.actionLog];
             const lastAction = newLog.pop()!;
             const newMatchLog = [...state.matchLog];
             if (newMatchLog.length > 0 && newMatchLog[newMatchLog.length - 1].type === lastAction.type) newMatchLog.pop();
-            if (lastAction.type === 'TIMEOUT') return { ...state, actionLog: newLog, matchLog: newMatchLog, timeoutsA: lastAction.prevTimeoutsA, timeoutsB: lastAction.prevTimeoutsB };
-            if (lastAction.type === 'ROTATION') return { ...state, actionLog: newLog, matchLog: newMatchLog, ...lastAction.snapshot };
+
+            // Compute lastScorerTeam from remaining matchLog (O(n) but UNDO is infrequent)
+            let undoLastScorer: typeof state.lastScorerTeam = null;
+            for (let i = newMatchLog.length - 1; i >= 0; i--) {
+                if (newMatchLog[i].type === 'POINT') { undoLastScorer = (newMatchLog[i] as { team: any }).team; break; }
+            }
+
+            if (lastAction.type === 'TIMEOUT') return { ...state, actionLog: newLog, matchLog: newMatchLog, lastScorerTeam: undoLastScorer, timeoutsA: lastAction.prevTimeoutsA, timeoutsB: lastAction.prevTimeoutsB };
+            if (lastAction.type === 'ROTATION') return { ...state, actionLog: newLog, matchLog: newMatchLog, lastScorerTeam: undoLastScorer, ...lastAction.snapshot };
             if (lastAction.type === 'MANUAL_ROTATION') {
                 const { teamId, direction } = lastAction;
                 let teamA = { ...state.teamARoster }, teamB = { ...state.teamBRoster };
                 if (teamId === 'A') teamA.players = direction === 'clockwise' ? rotateCounterClockwise(teamA.players) : rotateClockwise(teamA.players);
                 else if (teamId === 'B') teamB.players = direction === 'clockwise' ? rotateCounterClockwise(teamB.players) : rotateClockwise(teamB.players);
-                return { ...state, actionLog: newLog, matchLog: newMatchLog, teamARoster: teamA, teamBRoster: teamB };
+                return { ...state, actionLog: newLog, matchLog: newMatchLog, lastScorerTeam: undoLastScorer, teamARoster: teamA, teamBRoster: teamB };
             }
             if (lastAction.type === 'POINT') {
                 let teamA = state.teamARoster;
@@ -175,6 +207,7 @@ export const metaReducer = (state: GameState, action: GameAction): GameState => 
                     ...state,
                     actionLog: newLog,
                     matchLog: newMatchLog,
+                    lastScorerTeam: undoLastScorer,
                     scoreA: lastAction.prevScoreA,
                     scoreB: lastAction.prevScoreB,
                     servingTeam: lastAction.prevServingTeam,

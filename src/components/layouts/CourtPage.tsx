@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { useScore, useRoster, useActions } from '../../contexts/GameContext';
+import { useScore, useLog, useRoster, useActions } from '../../contexts/GameContext';
 import { CourtLayout } from '../Court/CourtLayout';
 import { TeamId, SkillType } from '../../types';
 
@@ -11,9 +11,9 @@ export const CourtPage: React.FC<CourtPageProps> = ({ onDragActiveChange }) => {
     const {
         scoreA, scoreB, setsA, setsB, currentSet, servingTeam,
         timeoutsA, timeoutsB, inSuddenDeath, isDeuce,
-        isMatchPointA, isMatchPointB, isSetPointA, isSetPointB,
-        matchLog
+        isMatchPointA, isMatchPointB, isSetPointA, isSetPointB
     } = useScore();
+    const { matchLog } = useLog();
     const { teamARoster, teamBRoster, config } = useRoster();
     const { manualRotate, addPoint, subtractPoint, swapPositions, substitutePlayers, useTimeout } = useActions();
 

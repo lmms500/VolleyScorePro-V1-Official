@@ -15,15 +15,13 @@ interface ScoreTickerProps {
  */
 export const ScoreTicker: React.FC<ScoreTickerProps> = memo(({ value, className, style }) => {
   const prevValue = useRef(value);
-  const [direction, setDirection] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
+  // Calculate direction synchronously to avoid layout thrashing on first render
+  const direction = value > prevValue.current ? 1 : (value < prevValue.current ? -1 : 0);
 
-  useEffect(() => {
-    if (value !== prevValue.current) {
-      setDirection(value > prevValue.current ? 1 : -1);
-      prevValue.current = value;
-    }
-  }, [value]);
+  // Update ref after render (safe for this use case as we want the direction for *this* render)
+  if (value !== prevValue.current) {
+    prevValue.current = value;
+  }
 
   return (
     <div
@@ -40,8 +38,9 @@ export const ScoreTicker: React.FC<ScoreTickerProps> = memo(({ value, className,
         isolation: 'isolate',
         overflow: 'visible',
         willChange: 'transform',
-        contain: 'layout size',
-        transform: 'translateZ(0)'
+        transform: 'translateZ(0)',
+        backfaceVisibility: 'hidden',
+        WebkitBackfaceVisibility: 'hidden'
       }}
     >
       <AnimatePresence mode="popLayout" custom={direction} initial={false}>
@@ -53,17 +52,14 @@ export const ScoreTicker: React.FC<ScoreTickerProps> = memo(({ value, className,
           animate="center"
           exit="exit"
           data-testid="score-value"
-          onAnimationStart={() => setIsAnimating(true)}
-          onAnimationComplete={() => setIsAnimating(false)}
-          className="block text-center leading-none origin-center absolute inset-0 flex items-center justify-center"
+          className="text-center leading-none origin-center absolute inset-0 flex items-center justify-center"
           style={{
             backfaceVisibility: "hidden",
             WebkitBackfaceVisibility: "hidden",
             height: '100%',
             width: '100%',
-            willChange: 'transform, opacity, filter',
+            willChange: 'transform, opacity',
             transformStyle: 'preserve-3d',
-            filter: isAnimating ? 'blur(2px)' : 'none',
           }}
         >
           {value}

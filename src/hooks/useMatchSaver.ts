@@ -12,7 +12,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { useActions, useScore, useRoster } from '../contexts/GameContext';
+import { useActions, useScore, useLog, useRoster } from '../contexts/GameContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
 import { useNotification } from '../contexts/NotificationContext';
@@ -43,10 +43,9 @@ export function useMatchSaver(): UseMatchSaverReturn {
         scoreB,
         setsA,
         setsB,
-        matchDurationSeconds,
-        history,
-        matchLog
+        matchDurationSeconds
     } = useScore();
+    const { history, matchLog } = useLog();
     const { teamAName, teamBName, teamARoster, teamBRoster, config } = useRoster();
     const { user } = useAuth();
     const { t } = useTranslation();

@@ -1,6 +1,5 @@
 
 import { useEffect, useRef, useState } from 'react';
-import { Capacitor } from '@capacitor/core';
 
 interface PerformanceMonitorProps {
   onDowngrade: () => void;
@@ -8,57 +7,54 @@ interface PerformanceMonitorProps {
 }
 
 export const usePerformanceMonitor = ({ onDowngrade, isEnabled }: PerformanceMonitorProps) => {
-  const frameCount = useRef(0);
-  const lastTime = useRef(performance.now());
   const dropCount = useRef(0);
   const [isMonitoring, setIsMonitoring] = useState(true);
 
   useEffect(() => {
-    // Skip if disabled, native (native usually handles better, but can enable if needed), or arguably generic web
-    // We prioritize checking mostly on Android Web/Native where GPU variety is huge.
     if (!isEnabled || !isMonitoring) return;
 
-    const checkPerformance = () => {
-      const now = performance.now();
-      const delta = now - lastTime.current;
-      
-      frameCount.current++;
+    let observer: PerformanceObserver | null = null;
+    let active = false;
 
-      if (delta >= 1000) {
-        const fps = (frameCount.current / delta) * 1000;
-        
-        // Threshold: Consistent drops below 35 FPS
-        if (fps < 35) {
-          dropCount.current++;
-        } else {
-          dropCount.current = Math.max(0, dropCount.current - 1); // Recover heuristic
+    // Grace period: ignore the first 3s of startup where long tasks are expected
+    const startDelay = setTimeout(() => {
+      active = true;
+      dropCount.current = 0;
+    }, 3000);
+
+    try {
+      observer = new PerformanceObserver((list) => {
+        if (!active) return;
+
+        for (const entry of list.getEntries()) {
+          // Only count truly severe jank (>150ms)
+          if (entry.duration > 150) {
+            dropCount.current += 2;
+          } else if (entry.duration > 80) {
+            dropCount.current += 1;
+          }
         }
 
-        // If we have 3 consecutive bad seconds, trigger downgrade
-        if (dropCount.current >= 3) {
-          console.warn(`[PerfMonitor] Low FPS detected (${fps.toFixed(1)}). Triggering Graceful Degradation.`);
+        if (dropCount.current >= 15) {
+          console.warn(`[PerfMonitor] Excessive long tasks detected. Triggering Graceful Degradation.`);
           onDowngrade();
-          setIsMonitoring(false); // Stop monitoring after downgrade
+          setIsMonitoring(false);
         }
+      });
+      observer.observe({ entryTypes: ['longtask'] });
+    } catch {
+      setIsMonitoring(false);
+      return;
+    }
 
-        frameCount.current = 0;
-        lastTime.current = now;
-      }
-
-      if (isMonitoring) {
-        requestAnimationFrame(checkPerformance);
-      }
-    };
-
-    const rafId = requestAnimationFrame(checkPerformance);
-
-    // Stop monitoring after 15 seconds to save battery
+    // Stop monitoring after 15 seconds (3s grace + 12s active)
     const timeoutId = setTimeout(() => {
       setIsMonitoring(false);
     }, 15000);
 
     return () => {
-      cancelAnimationFrame(rafId);
+      observer?.disconnect();
+      clearTimeout(startDelay);
       clearTimeout(timeoutId);
     };
   }, [isEnabled, isMonitoring, onDowngrade]);

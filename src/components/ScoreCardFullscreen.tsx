@@ -7,6 +7,7 @@ import { ScoutModal } from './modals/ScoutModal';
 import { useCollider } from '../hooks/useCollider';
 import { HaloBackground, HaloMode } from './ui/HaloBackground';
 import { useScoreCardLogic } from '../hooks/useScoreCardLogic';
+import { usePerformanceSafe } from '../contexts/PerformanceContext';
 
 interface ScoreCardFullscreenProps {
     teamId: TeamId;
@@ -37,10 +38,8 @@ const ScoreNumberDisplay = memo(({
     numberRef,
     isCritical,
     colliderRef,
-    lowGraphics,
     haloMode,
     colorTheme,
-    layoutId,
 }: {
     score: number;
     textEffectClass: string;
@@ -49,10 +48,8 @@ const ScoreNumberDisplay = memo(({
     numberRef: React.Ref<HTMLDivElement>;
     isCritical: boolean;
     colliderRef: React.Ref<HTMLDivElement>;
-    lowGraphics: boolean;
     haloMode: HaloMode;
     colorTheme: string;
-    layoutId?: string;
 }) => {
 
     return (
@@ -64,17 +61,14 @@ const ScoreNumberDisplay = memo(({
                     mode={haloMode}
                     colorTheme={colorTheme}
                     score={score}
-                    lowGraphics={lowGraphics}
                     className=""
-                    size="min(45vw, 45vh)"
+                    size="1em"
                 />
             </div>
 
-            {/* 2. Number Layer: Relative Content (z-10 para ficar na frente) */}
             <motion.div
                 ref={numberRef}
-                layoutId={layoutId}
-                className="relative z-10 flex flex-col items-center justify-center will-change-transform overflow-visible"
+                className="relative z-10 flex flex-col items-center justify-center overflow-visible"
                 variants={pulseHeartbeat}
                 animate={isCritical ? "pulse" : "idle"}
             >
@@ -104,6 +98,7 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
     isLocked = false, onInteractionStart, onInteractionEnd, reverseLayout,
     scoreRefCallback, isServing, isLastScorer = false, config, colorTheme
 }) => {
+    const { config: perf } = usePerformanceSafe();
     const numberRef = useRef<HTMLDivElement>(null);
     const colliderRef = useCollider(`sc-fs-${teamId}`);
 
@@ -127,17 +122,16 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
     });
 
     const textEffectClass = useMemo(() => {
-        if (config.lowGraphics) return '';
+        if (!perf.visual.criticalGlow) return '';
         if (isMatchPoint) return 'drop-shadow-[0_0_60px_rgba(251,191,36,0.9)]';
         if (isSetPoint) return 'drop-shadow-[0_0_40px_rgba(255,255,255,0.15)]';
         return '';
-    }, [isMatchPoint, isSetPoint, config.lowGraphics]);
+    }, [isMatchPoint, isSetPoint, perf.visual.criticalGlow]);
 
     const isLeftSide = reverseLayout ? teamId === 'B' : teamId === 'A';
 
-    const containerClasses = isLeftSide
-        ? 'left-0 top-0 w-full h-[50dvh] landscape:w-[50vw] landscape:h-[100dvh]'
-        : 'left-0 top-[50dvh] w-full h-[50dvh] landscape:left-[50vw] landscape:top-0 landscape:w-[50vw] landscape:h-[100dvh]';
+    // Simplified container classes: purely relative flex item now
+    const containerClasses = 'relative w-full flex-1 flex flex-col justify-center items-center select-none';
 
     const offsetClass = isLeftSide
         ? 'landscape:-translate-x-[6vw]'
@@ -153,15 +147,9 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
                 colorTheme={team.color || 'indigo'}
             />
 
-            <motion.div
+            <div
                 ref={containerRef}
-                layout
-                layoutId={`score-card-${teamId}`}
-                transition={{ type: "spring", stiffness: 280, damping: 28, mass: 1.2 }}
-                className={`
-                absolute z-10 flex flex-col justify-center items-center select-none overflow-visible isolate
-                ${containerClasses}
-            `}
+                className={containerClasses}
                 style={{
                     touchAction: 'none',
                     WebkitUserSelect: 'none',
@@ -169,8 +157,8 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
                 }}
                 {...gestureHandlers}
             >
-                <AnimatePresence>
-                    {ripple && !config.lowGraphics && (
+                <AnimatePresence mode="wait">
+                    {ripple && perf.visual.rippleEffects && (
                         <motion.div
                             key={ripple.id}
                             initial={{ scale: 0, opacity: 0.3 }}
@@ -201,14 +189,12 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
                             numberRef={numberRef}
                             isCritical={isCritical}
                             colliderRef={colliderRef}
-                            lowGraphics={config.lowGraphics}
                             haloMode={haloMode}
                             colorTheme={resolvedColor}
-                            layoutId={`score-text-${teamId}`}
                         />
                     </div>
                 </div>
-            </motion.div>
+            </div>
         </>
     );
 });

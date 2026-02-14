@@ -13,9 +13,9 @@ import { resolveTheme } from '../utils/colors';
 import { TeamLogo } from './ui/TeamLogo';
 import { normalize, hp } from '../utils/responsive';
 import { useResponsive } from '../contexts/ResponsiveContext';
-import { HaloBackground } from './ui/HaloBackground';
 import { HaloPortal } from './ui/HaloPortal';
 import { useScoreCardLogic } from '../hooks/useScoreCardLogic';
+import { usePerformanceSafe } from '../contexts/PerformanceContext';
 
 interface ScoreCardNormalProps {
     teamId: TeamId;
@@ -49,6 +49,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
 }) => {
     const { t } = useTranslation();
     const { resizeKey } = useResponsive();
+    const { config: perf } = usePerformanceSafe();
 
     const {
         showScout,
@@ -103,7 +104,6 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
             overflow-visible
         `}
             style={{ order }}
-            lowGraphics={config.lowGraphics}
         >
             <ScoutModal isOpen={showScout} onClose={handleScoutClose} team={team} onConfirm={(pid, skill) => onAdd(teamId, pid, skill)} colorTheme={team.color || 'indigo'} />
 
@@ -203,8 +203,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                             mode={haloMode}
                             colorTheme={resolvedColor}
                             score={score}
-                            lowGraphics={config.lowGraphics}
-                            size="min(60vw, 60vh)" // Can be large now!
+                            size="min(60vw, 60vh)"
                         />
 
                         {/* 2. Number Layer: Relative Content (z-10 para ficar na frente) */}
@@ -219,7 +218,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                                 className={`
                                     font-black tracking-tighter leading-none select-none
                                     text-slate-900 dark:text-white
-                                    ${isCritical ? (isMatchPoint ? 'drop-shadow-[0_0_40px_rgba(251,191,36,0.5)]' : 'drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]') : ''}
+                                    ${isCritical && perf.visual.criticalGlow ? (isMatchPoint ? 'drop-shadow-[0_0_40px_rgba(251,191,36,0.5)]' : 'drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]') : ''}
                                 `}
                             />
                         </motion.div>

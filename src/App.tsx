@@ -14,6 +14,7 @@ import { ResponsiveProvider } from './contexts/ResponsiveContext';
 import { GameProvider } from './contexts/GameContext';
 import { LayoutProvider } from './contexts/LayoutContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { PerformanceProvider } from './contexts/PerformanceContext';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
 import { TimerProvider } from './contexts/TimerContext';
 import { AuthProvider } from './contexts/AuthContext';
@@ -24,27 +25,29 @@ import { GameScreen } from './screens';
 
 function App() {
     return (
-        <LayoutProvider>
-            <ThemeProvider>
-                <ResponsiveProvider>
-                    <ErrorBoundary>
-                        <AuthProvider>
-                            <TimerProvider>
-                                <GameProvider>
-                                    <ModalProvider>
-                                        <NotificationProvider>
-                                            <TimeoutProvider>
-                                                <GameScreen />
-                                            </TimeoutProvider>
-                                        </NotificationProvider>
-                                    </ModalProvider>
-                                </GameProvider>
-                            </TimerProvider>
-                        </AuthProvider>
-                    </ErrorBoundary>
-                </ResponsiveProvider>
-            </ThemeProvider>
-        </LayoutProvider>
+        <PerformanceProvider>
+            <LayoutProvider>
+                <ThemeProvider>
+                    <ResponsiveProvider>
+                        <ErrorBoundary>
+                            <AuthProvider>
+                                <TimerProvider>
+                                    <GameProvider>
+                                        <ModalProvider>
+                                            <NotificationProvider>
+                                                <TimeoutProvider>
+                                                    <GameScreen />
+                                                </TimeoutProvider>
+                                            </NotificationProvider>
+                                        </ModalProvider>
+                                    </GameProvider>
+                                </TimerProvider>
+                            </AuthProvider>
+                        </ErrorBoundary>
+                    </ResponsiveProvider>
+                </ThemeProvider>
+            </LayoutProvider>
+        </PerformanceProvider>
     );
 }
 

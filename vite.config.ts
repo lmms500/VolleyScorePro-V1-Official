@@ -32,8 +32,14 @@ export default defineConfig({
         manualChunks: {
           // React MUST be first chunk to avoid initialization errors
           'react-core': ['react', 'react-dom'],
+          // Firebase (~100KB) - Auth, Firestore, Storage
           'vendor-firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
-          'vendor-ui': ['framer-motion', 'lucide-react'],
+          // Framer Motion (~45KB) - Animations
+          'vendor-motion': ['framer-motion'],
+          // Lucide React (tree-shakeable) - Icons
+          'vendor-icons': ['lucide-react'],
+          // DnD Kit (~30KB) - Drag and Drop (lazy loaded via CourtPage/CourtModal)
+          'vendor-dnd': ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
         },
       },
     },
@@ -87,19 +93,13 @@ export default defineConfig({
         id: 'volleyscore-pro-v2',
         icons: [
           {
-            src: 'logo.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
-            purpose: 'any maskable'
-          },
-          {
-            src: 'pwa-192x192.png',
+            src: 'icon.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any maskable'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'icon.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'

@@ -1,5 +1,4 @@
 
-import jsPDF from "jspdf";
 import { Match } from "../stores/historyStore";
 import { Capacitor } from "@capacitor/core";
 import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
@@ -7,6 +6,8 @@ import { Share } from "@capacitor/share";
 
 export class PDFService {
   public static async generateReport(match: Match): Promise<void> {
+    // Lazy load jsPDF only when export is triggered (~90KB saved from initial bundle)
+    const { default: jsPDF } = await import("jspdf");
     const doc = new jsPDF();
     const date = new Date(match.timestamp).toLocaleDateString();
 

@@ -1,29 +1,29 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
 import { Player, TeamId, SkillType, VoiceCommandIntent } from "../types";
 
 // Schema defined inline to ensure strict typing with the SDK and remove external dependencies
+// Using JSON Schema literals to avoid bundling @google/genai Type enum (~40KB saved)
 const VOICE_COMMAND_SCHEMA = {
-  type: Type.OBJECT,
+  type: 'object' as const,
   properties: {
     type: {
-      type: Type.STRING,
+      type: 'string' as const,
       description: "Tipo do comando: 'point', 'timeout', 'server', 'undo', 'unknown'"
     },
     team: {
-      type: Type.STRING,
+      type: 'string' as const,
       description: "ID do time: 'A' ou 'B'."
     },
     playerId: {
-      type: Type.STRING,
+      type: 'string' as const,
       description: "UUID do jogador. 'unknown' se não encontrado."
     },
     skill: {
-      type: Type.STRING,
+      type: 'string' as const,
       description: "Habilidade: 'attack', 'block', 'ace', 'opponent_error', 'generic'"
     },
     isNegative: {
-      type: Type.BOOLEAN,
+      type: 'boolean' as const,
       description: "True se for correção/remover ponto."
     }
   },
@@ -134,6 +134,8 @@ export class GeminiCommandService {
    * NOTE: API Key is exposed here. Use only for development or protected builds.
    */
   private async localParse(transcript: string, context: any): Promise<VoiceCommandIntent | null> {
+    // Lazy load GoogleGenAI only when voice commands are used (~40KB saved from initial bundle)
+    const { GoogleGenAI } = await import("@google/genai");
     const ai = new GoogleGenAI({ apiKey: this.apiKey });
 
     try {

@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import { useVolleyGame } from '../hooks/useVolleyGame';
 import { GlobalLoader } from '../components/ui/GlobalLoader';
-import { GameState, Team, Player, GameConfig, TeamId, SkillType, PlayerProfile, ActionLog, RotationReport, SyncRole } from '../types';
+import { GameState, Team, Player, GameConfig, TeamId, SkillType, PlayerProfile, ActionLog, RotationReport, SyncRole, SetHistory } from '../types';
 
 // --- 1. ACTION CONTEXT (Stable - Never triggers re-renders) ---
 interface GameActions {
@@ -50,7 +50,7 @@ interface GameActions {
     mergeProfiles: (remoteProfiles: PlayerProfile[]) => void;
 }
 
-// --- 2. SCORE CONTEXT (Hot Path - Updates frequently) ---
+// --- 2. SCORE CONTEXT (Hot Path - Updates frequently, NO logs) ---
 interface ScoreContextState {
     scoreA: number;
     scoreB: number;
@@ -67,10 +67,7 @@ interface ScoreContextState {
     matchDurationSeconds: number;
     isTimerRunning: boolean;
     swappedSides: boolean;
-    history: any[];
-    matchLog: ActionLog[]; // Moved here as it updates with score
-    actionLog: ActionLog[]; // Moved here as it updates with score
-    
+
     // Computed
     isMatchActive: boolean;
     isMatchPointA: boolean;
@@ -83,7 +80,14 @@ interface ScoreContextState {
     lastScorerTeam: TeamId | null;
 }
 
-// --- 3. ROSTER CONTEXT (Warm Path - Updates on config/roster change) ---
+// --- 3. LOG CONTEXT (Updates on actions - isolated from score renders) ---
+interface LogContextState {
+    history: SetHistory[];
+    matchLog: ActionLog[];
+    actionLog: ActionLog[];
+}
+
+// --- 4. ROSTER CONTEXT (Warm Path - Updates on config/roster change) ---
 interface RosterContextState {
     teamARoster: Team;
     teamBRoster: Team;
@@ -110,66 +114,62 @@ interface RosterContextState {
 
 const ActionContext = createContext<GameActions | undefined>(undefined);
 const ScoreContext = createContext<ScoreContextState | undefined>(undefined);
+const LogContext = createContext<LogContextState | undefined>(undefined);
 const RosterContext = createContext<RosterContextState | undefined>(undefined);
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const game = useVolleyGame();
 
-  // 1. Actions Memo - STABLE. 
+  // 1. Actions Memo - STABLE.
   // We use game.actions (which is memoized in the hook) to avoid re-creating this context on every tick.
   const actions = game.actions;
 
-  // 2. Score Memo - Updates on points/timer
-  const scoreState = useMemo((): ScoreContextState => {
-      // Computed: lastScorerTeam
-      const lastScorerTeam = (() => {
-          const logs = game.state.matchLog || [];
-          const lastPoint = [...logs].reverse().find(log => log.type === 'POINT');
-          return lastPoint ? (lastPoint as { team: TeamId }).team : null;
-      })();
-
-      return {
-          scoreA: game.state.scoreA,
-          scoreB: game.state.scoreB,
-          setsA: game.state.setsA,
-          setsB: game.state.setsB,
-          currentSet: game.state.currentSet,
-          servingTeam: game.state.servingTeam,
-          isMatchOver: game.state.isMatchOver,
-          matchWinner: game.state.matchWinner,
-          timeoutsA: game.state.timeoutsA,
-          timeoutsB: game.state.timeoutsB,
-          inSuddenDeath: game.state.inSuddenDeath,
-          pendingSideSwitch: game.state.pendingSideSwitch,
-          matchDurationSeconds: game.state.matchDurationSeconds,
-          isTimerRunning: game.state.isTimerRunning,
-          swappedSides: game.state.swappedSides,
-          history: game.state.history,
-          matchLog: game.state.matchLog,
-          actionLog: game.state.actionLog,
-          // Computed
-          isMatchActive: game.isMatchActive,
-          isMatchPointA: game.isMatchPointA,
-          isMatchPointB: game.isMatchPointB,
-          isSetPointA: game.isSetPointA,
-          isSetPointB: game.isSetPointB,
-          isDeuce: game.isDeuce,
-          isTieBreak: game.isTieBreak,
-          setsNeededToWin: game.setsNeededToWin,
-          lastScorerTeam
-      };
-  }, [
+  // 2. Score Memo - Updates on points/timer. NO log arrays in deps.
+  const scoreState = useMemo((): ScoreContextState => ({
+      scoreA: game.state.scoreA,
+      scoreB: game.state.scoreB,
+      setsA: game.state.setsA,
+      setsB: game.state.setsB,
+      currentSet: game.state.currentSet,
+      servingTeam: game.state.servingTeam,
+      isMatchOver: game.state.isMatchOver,
+      matchWinner: game.state.matchWinner,
+      timeoutsA: game.state.timeoutsA,
+      timeoutsB: game.state.timeoutsB,
+      inSuddenDeath: game.state.inSuddenDeath,
+      pendingSideSwitch: game.state.pendingSideSwitch,
+      matchDurationSeconds: game.state.matchDurationSeconds,
+      isTimerRunning: game.state.isTimerRunning,
+      swappedSides: game.state.swappedSides,
+      // Computed
+      isMatchActive: game.isMatchActive,
+      isMatchPointA: game.isMatchPointA,
+      isMatchPointB: game.isMatchPointB,
+      isSetPointA: game.isSetPointA,
+      isSetPointB: game.isSetPointB,
+      isDeuce: game.isDeuce,
+      isTieBreak: game.isTieBreak,
+      setsNeededToWin: game.setsNeededToWin,
+      lastScorerTeam: game.state.lastScorerTeam  // O(1) from reducer
+  }), [
       game.state.scoreA, game.state.scoreB, game.state.setsA, game.state.setsB,
       game.state.currentSet, game.state.servingTeam, game.state.isMatchOver,
       game.state.matchWinner, game.state.timeoutsA, game.state.timeoutsB,
       game.state.inSuddenDeath, game.state.pendingSideSwitch,
       game.state.matchDurationSeconds, game.state.isTimerRunning,
-      game.state.swappedSides, game.state.history, game.state.matchLog, game.state.actionLog,
+      game.state.swappedSides, game.state.lastScorerTeam,
       game.isMatchActive, game.isMatchPointA, game.isMatchPointB,
       game.isSetPointA, game.isSetPointB, game.isDeuce, game.isTieBreak, game.setsNeededToWin
   ]);
 
-  // 3. Roster Memo - Updates on team changes/config
+  // 3. Log Memo - Isolated from score context. Updates only when logs/history change.
+  const logState = useMemo((): LogContextState => ({
+      history: game.state.history,
+      matchLog: game.state.matchLog,
+      actionLog: game.state.actionLog
+  }), [game.state.history, game.state.matchLog, game.state.actionLog]);
+
+  // 4. Roster Memo - Updates on team changes/config
   const rosterState = useMemo((): RosterContextState => ({
       teamARoster: game.state.teamARoster,
       teamBRoster: game.state.teamBRoster,
@@ -206,9 +206,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <ActionContext.Provider value={actions}>
       <RosterContext.Provider value={rosterState}>
-        <ScoreContext.Provider value={scoreState}>
-          {children}
-        </ScoreContext.Provider>
+        <LogContext.Provider value={logState}>
+          <ScoreContext.Provider value={scoreState}>
+            {children}
+          </ScoreContext.Provider>
+        </LogContext.Provider>
       </RosterContext.Provider>
     </ActionContext.Provider>
   );
@@ -228,6 +230,12 @@ export const useScore = () => {
     return context;
 };
 
+export const useLog = () => {
+    const context = useContext(LogContext);
+    if (!context) throw new Error('useLog must be used within GameProvider');
+    return context;
+};
+
 export const useRoster = () => {
     const context = useContext(RosterContext);
     if (!context) throw new Error('useRoster must be used within GameProvider');
@@ -242,6 +250,7 @@ export const useRoster = () => {
 export const useGame = () => {
   const actions = useActions();
   const score = useScore();
+  const log = useLog();
   const roster = useRoster();
 
   // Reconstruct the "God Object" shape expected by App.tsx and legacy consumers
@@ -249,15 +258,15 @@ export const useGame = () => {
   // the original behavior (re-render everything).
   const combinedState: GameState = useMemo(() => ({
       ...score, // scoreA, scoreB...
+      ...log,   // history, matchLog, actionLog
       ...roster, // teamARoster...
-      // Explicitly map nested state parts that might be missing or overridden
-      // (Though the spreads above cover the flat properties of GameState found in Score and Roster)
-  } as unknown as GameState), [score, roster]);
+  } as unknown as GameState), [score, log, roster]);
 
   return useMemo(() => ({
       ...actions,
       ...score, // Exposed computed props like isMatchPointA
+      ...log,   // Exposed log data
       ...roster, // Exposed meta props like isLoaded
       state: combinedState
-  }), [actions, score, roster, combinedState]);
+  }), [actions, score, log, roster, combinedState]);
 };
