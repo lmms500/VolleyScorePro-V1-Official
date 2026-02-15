@@ -165,9 +165,9 @@ export const FullscreenLayout: React.FC<FullscreenLayoutProps> = ({
             />
 
             {/* Score Cards */}
-            <div className="relative w-full flex-1 flex flex-col min-h-0 p-0">
+            <div className="relative w-full flex-1 flex flex-col justify-center min-h-0 p-0">
                 <LayoutGroup>
-                    <div className="flex-1 flex flex-col landscape:flex-row gap-2 sm:gap-4 min-h-0 my-2 sm:my-4 justify-between">
+                    <div className="flex-1 flex flex-col landscape:flex-row gap-2 sm:gap-4 min-h-0 my-2 sm:my-4 items-center justify-center">
                         <motion.div
                             layout
                             transition={{ type: "spring", stiffness: 200, damping: 26, mass: 0.9 }}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { GameState } from '@types';
-import { BroadcastOverlay } from '@features/broadcast/components/BroadcastOverlay';
-import { ObsScoreDisplay } from '@features/broadcast/components/ObsScoreDisplay';
+import { BroadcastBar } from '@features/broadcast/components/BroadcastBar';
+
 
 interface BroadcastScreenProps {
     state: GameState;
@@ -16,23 +16,12 @@ interface BroadcastScreenProps {
  * - Sem param → BroadcastOverlay padrão
  */
 export const BroadcastScreen: React.FC<BroadcastScreenProps> = ({ state }) => {
-    // Parse obsLayout from URL
-    const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
-    const obsLayout = params.get('obsLayout') as 'horizontal' | 'vertical' | null;
 
-    if (obsLayout) {
-        // OBS-optimized display (spectator-only, high performance)
-        return (
-            <div className="w-full h-screen bg-slate-950 overflow-hidden">
-                <ObsScoreDisplay state={state} layout={obsLayout} />
-            </div>
-        );
-    }
 
     // Standard broadcast overlay
     return (
         <div className="w-full h-screen bg-transparent overflow-hidden">
-            <BroadcastOverlay state={state} />
+            <BroadcastBar state={state} />
         </div>
     );
 };

@@ -108,7 +108,8 @@ export const GameOverlays: React.FC<GameOverlaysProps> = ({ isOnline, isFullscre
             {FEATURE_FLAGS.ENABLE_LIVE_SYNC && (isHost || isSpectator) && (
                 <button
                     onClick={() => openModal('liveSync')}
-                    className="fixed top-2 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-1 pointer-events-auto"
+                    className={`fixed left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-1 pointer-events-auto transition-all duration-300 ease-in-out ${isFullscreen ? 'top-24' : 'bottom-28'
+                        }`}
                 >
                     <div
                         className={`px-3 py-1 rounded-full flex items-center gap-2 backdrop-blur-md border transition-all hover:scale-105 active:scale-95 ${isHost

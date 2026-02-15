@@ -160,14 +160,53 @@ export const rosterReducer = (state: GameState, action: GameAction): GameState =
             let changed = false;
             const syncList = (list: Player[]): Player[] => list.map((p): Player => {
                 const m = p.profileId ? profs.get(p.profileId) : Array.from(profs.values()).find(pr => pr.name.trim().toLowerCase() === p.name.trim().toLowerCase());
-                if (!m) { if (p.profileId) changed = true; return { ...p, profileId: undefined }; }
+
+                // Se não encontrou perfil correspondente:
+                // Se tinha profileId antes, significa que o perfil foi deletado ou perdido -> desvincula.
+                // Se não tinha, continua sem.
+                if (!m) {
+                    if (p.profileId) { changed = true; return { ...p, profileId: undefined }; }
+                    return p;
+                }
+
                 const roleMatch = (m.role || 'none') === (p.role || 'none');
-                const needsUpdate = p.profileId !== m.id || m.name !== p.name || m.skillLevel !== m.skillLevel || (m.number && m.number !== p.number) || !roleMatch;
-                if (needsUpdate) { changed = true; return { ...p, profileId: m.id, name: m.name, skillLevel: m.skillLevel, number: m.number || p.number, role: m.role }; }
+
+                // [FIX] Typo: m.skillLevel !== m.skillLevel estava errado. Deve ser !== p.skillLevel
+                const needsUpdate =
+                    p.profileId !== m.id ||
+                    m.name !== p.name ||
+                    m.skillLevel !== p.skillLevel ||
+                    (m.number && m.number !== p.number) ||
+                    !roleMatch;
+
+                if (needsUpdate) {
+                    changed = true;
+                    return {
+                        ...p,
+                        profileId: m.id,
+                        name: m.name,
+                        skillLevel: m.skillLevel,
+                        number: m.number || p.number,
+                        role: m.role || 'none'
+                    };
+                }
                 return p;
             });
+
             if (!changed) return state;
-            return { ...state, teamARoster: { ...state.teamARoster, players: syncList(state.teamARoster.players), reserves: syncList(state.teamARoster.reserves || []) }, teamBRoster: { ...state.teamBRoster, players: syncList(state.teamBRoster.players), reserves: syncList(state.teamBRoster.reserves || []) }, queue: state.queue.map(t => ({ ...t, players: syncList(t.players), reserves: syncList(t.reserves || []) })) };
+
+            const syncTeam = (t: Team) => ({
+                ...t,
+                players: syncList(t.players),
+                reserves: syncList(t.reserves || [])
+            });
+
+            return {
+                ...state,
+                teamARoster: syncTeam(state.teamARoster),
+                teamBRoster: syncTeam(state.teamBRoster),
+                queue: state.queue.map(syncTeam)
+            };
         }
 
         case 'ROSTER_UNLINK_PROFILE': {

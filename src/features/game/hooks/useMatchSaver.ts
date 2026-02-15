@@ -114,7 +114,15 @@ export function useMatchSaver(): UseMatchSaverReturn {
             teamARoster.players.forEach(p => mapPlayer(p, 'A'));
             teamBRoster.players.forEach(p => mapPlayer(p, 'B'));
 
-            const deltas = calculateMatchDeltas(matchLog, matchWinner, playerTeamMap);
+            // Create Roster Map (RosterID -> ProfileID) for resolving actions
+            const rosterMap = new Map<string, string>();
+            const mapRoster = (p: any) => {
+                if (p.id && p.profileId) rosterMap.set(p.id, p.profileId);
+            };
+            teamARoster.players.forEach(mapRoster);
+            teamBRoster.players.forEach(mapRoster);
+
+            const deltas = calculateMatchDeltas(matchLog, matchWinner, playerTeamMap, rosterMap);
             batchUpdateStats(deltas);
 
             // Success notification

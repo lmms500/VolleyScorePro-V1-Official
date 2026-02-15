@@ -14,6 +14,7 @@ import { normalize, hp } from '@lib/utils/responsive';
 import { HaloPortal } from '@ui/HaloPortal';
 import { useScoreCardLogic } from '@features/game/hooks/useScoreCardLogic';
 import { usePerformanceSafe } from '@contexts/PerformanceContext';
+import { useResponsive } from '@contexts/ResponsiveContext';
 
 interface ScoreCardNormalProps {
     teamId: TeamId;
@@ -38,15 +39,18 @@ interface ScoreCardNormalProps {
     onInteractionEnd?: () => void;
     config: GameConfig;
     swappedSides?: boolean;
+    layoutContainerRef?: React.RefObject<HTMLDivElement>;
 }
 
 export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
     teamId, team, score, setsWon, isServing, onAdd, onSubtract, onSetServer, timeouts, onTimeout,
     isMatchPoint, isSetPoint, isLastScorer, isDeuce, inSuddenDeath, setsNeededToWin,
-    isLocked = false, onInteractionStart, onInteractionEnd, config, colorTheme, swappedSides = false
+    isLocked = false, onInteractionStart, onInteractionEnd, config, colorTheme, swappedSides = false,
+    layoutContainerRef
 }) => {
     const { t } = useTranslation();
     const { config: perf } = usePerformanceSafe();
+    const { resizeKey } = useResponsive();
 
     const {
         showScout,
@@ -87,7 +91,9 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
     }
 
     return (
-        <div
+        <motion.div
+            layout
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             className={`
             flex flex-col flex-1 relative h-full select-none
             rounded-3xl min-h-0 py-2
@@ -197,6 +203,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                             score={score}
                             size="min(60vw, 60vh)"
                             swapTrigger={swappedSides}
+                            layoutContainerRef={layoutContainerRef}
                         />
 
                         {/* 2. Number Layer: Relative Content (z-10 para ficar na frente) */}
@@ -254,6 +261,6 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                 </div>
 
             </div>
-        </div>
+        </motion.div>
     );
 });

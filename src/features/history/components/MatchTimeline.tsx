@@ -1,18 +1,16 @@
-
 import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { Match } from '../store/historyStore';
-import { ActionLog, TeamId, SkillType } from '@types';
+import { TimelineNode } from '@types';
 import {
     Swords, Shield, Target, AlertTriangle, Timer,
-    Clock, Share2, FileText, Circle, Skull, Crown, Info
+    Clock, Share2, FileText, Circle, Skull, Crown
 } from 'lucide-react';
-import { motion, Variants, AnimatePresence } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { resolveTheme } from '@lib/utils/colors';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 import { useTranslation } from '@contexts/LanguageContext';
-import { TimelineNode } from '@types';
 import { generateTimelineNodes } from '../utils/timelineGenerator';
 
 interface MatchTimelineProps {
@@ -51,6 +49,7 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
     // Auto-scroll to start on mount
     useEffect(() => {
         if (scrollRef.current) {
+            // Pequeno delay para garantir renderização antes do scroll
             setTimeout(() => {
                 if (scrollRef.current) scrollRef.current.scrollLeft = 0;
             }, 100);
@@ -62,7 +61,6 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
     };
 
     // --- 1. CORE LOGIC ENGINE ---
-    // Use cached timeline if available, otherwise generate it (legacy compatibility)
     const timelineNodes = useMemo(() => {
         if (match.timeline && match.timeline.length > 0) {
             return match.timeline;
@@ -118,7 +116,6 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
         if (!captureRef.current) return;
         setIsExporting(true);
         try {
-            // Lazy load html-to-image only when user exports timeline (~15KB saved from initial bundle)
             const { toPng } = await import('html-to-image');
             const dataUrl = await toPng(captureRef.current, { cacheBust: true, pixelRatio: 2, backgroundColor: '#0f172a' });
             const filename = `visual_timeline_${match.id.substring(0, 8)}.png`;
@@ -149,12 +146,11 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
         }
     };
 
-    // --- RENDER ---
     if (timelineNodes.length === 0) return null;
 
-    // Layout Constants
-    const ITEM_WIDTH = 80;
-    const CONTAINER_HEIGHT = 280;
+    // Layout Constants ajustados
+    const ITEM_WIDTH = 70; // Largura base fixa por item
+    const MIN_CONTAINER_WIDTH = timelineNodes.length * ITEM_WIDTH + 100; // Largura mínima calculada
 
     return (
         <div className="bg-white dark:bg-white/5 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden flex flex-col mt-4">
@@ -178,11 +174,27 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
             {/* Horizontal Scroll Container */}
             <div
                 ref={scrollRef}
-                className="overflow-x-auto w-full p-4 no-scrollbar cursor-grab active:cursor-grabbing relative touch-pan-y"
-                style={{ scrollBehavior: 'smooth' }}
+                className="overflow-x-auto w-full p-4 no-scrollbar cursor-grab active:cursor-grabbing relative touch-pan-x"
+                style={{
+                    scrollBehavior: 'smooth',
+                    WebkitOverflowScrolling: 'touch', // Smooth scroll no iOS
+                    overscrollBehaviorX: 'contain'
+                }}
                 onClick={handleBackgroundClick}
             >
-                <div ref={captureRef} className="flex items-center relative" style={{ height: `${CONTAINER_HEIGHT}px`, minWidth: 'max-content', paddingLeft: 40, paddingRight: 40 }}>
+                {/* 
+                    Define minWidth explicitamente no container interno. 
+                    Isso força o pai (overflow-x-auto) a scrollar em vez de encolher os filhos.
+                */}
+                <div
+                    ref={captureRef}
+                    className="flex items-center relative py-12"
+                    style={{
+                        minWidth: `${Math.max(MIN_CONTAINER_WIDTH, 600)}px`,
+                        paddingLeft: 40,
+                        paddingRight: 40
+                    }}
+                >
 
                     {/* Central Axis Line */}
                     <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 dark:bg-white/10 -translate-y-1/2 rounded-full z-0" />
@@ -191,7 +203,7 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
                         variants={containerVariants}
                         initial="hidden"
                         animate="visible"
-                        className="flex items-center relative z-10 gap-0"
+                        className="flex items-center relative z-10 w-full justify-between"
                     >
                         {timelineNodes.map((node, i) => {
 
@@ -204,11 +216,12 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
                                     <motion.div
                                         key={node.id}
                                         variants={nodeVariants}
-                                        className="flex flex-col items-center justify-center relative z-20 mx-4"
+                                        className="flex flex-col items-center justify-center relative z-20 shrink-0 mx-2"
+                                        style={{ width: isSetEnd || isSD ? 120 : 60 }}
                                     >
                                         {/* Vertical Line */}
                                         {(isSetEnd || isSD) && (
-                                            <div className={`absolute top-1/2 -translate-y-1/2 h-40 w-px border-l-2 border-dashed ${isSD ? 'border-red-500/50' : 'border-slate-300 dark:border-white/20'}`} />
+                                            <div className={`absolute top-1/2 -translate-y-1/2 h-48 w-px border-l-2 border-dashed ${isSD ? 'border-red-500/50' : 'border-slate-300 dark:border-white/20'}`} />
                                         )}
 
                                         <div className={`
@@ -223,7 +236,7 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
                                         </div>
 
                                         {(isSetEnd || isSD) && (
-                                            <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 mt-2 bg-white/80 dark:bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm">
+                                            <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 mt-2 bg-white/80 dark:bg-black/40 px-1.5 py-0.5 rounded backdrop-blur-sm relative z-30">
                                                 {node.scoreSnapshot}
                                             </span>
                                         )}
@@ -236,19 +249,18 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
                             const theme = node.team === 'A' ? themeA : themeB;
 
                             // Staggering Logic (Vertical Offset)
-                            const baseOffset = 40;
+                            const baseOffset = 45;
                             const staggerAmount = 35 * node.staggerLevel;
                             const totalOffset = baseOffset + staggerAmount;
                             const yOffset = node.isTop ? -totalOffset : totalOffset;
 
-                            // Connector Height
                             const connectorHeight = Math.abs(yOffset);
 
                             return (
                                 <motion.div
                                     key={node.id}
                                     variants={nodeVariants}
-                                    className={`relative flex flex-col items-center justify-center group`}
+                                    className={`relative flex flex-col items-center justify-center group shrink-0`}
                                     style={{
                                         width: ITEM_WIDTH,
                                         zIndex: isActive ? 50 : 10
@@ -258,21 +270,23 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
                                         setActiveNodeId(isActive ? null : node.id);
                                     }}
                                 >
-                                    {/* 1. Central Axis Dot */}
-                                    <div className={`
-                                    w-2.5 h-2.5 rounded-full z-10 ring-2 ring-slate-50 dark:ring-[#0f172a] transition-transform duration-200
-                                    ${node.type === 'TIMEOUT' ? 'bg-slate-400' : theme.halo.replace('bg-', 'bg-')}
-                                    ${isActive ? 'scale-150 ring-4' : 'group-hover:scale-125'}
-                                `} />
+                                    {/* 1. Central Axis Dot - Área de clique aumentada */}
+                                    <div className="relative p-2 cursor-pointer z-10 flex items-center justify-center">
+                                        <div className={`
+                                            w-3 h-3 rounded-full ring-2 ring-slate-50 dark:ring-[#0f172a] transition-all duration-300
+                                            ${node.type === 'TIMEOUT' ? 'bg-slate-400' : theme.halo.replace('bg-', 'bg-')}
+                                            ${isActive ? 'scale-150 ring-4' : 'group-hover:scale-125'}
+                                        `} />
+                                    </div>
 
                                     {/* 2. Connector Line */}
                                     <div
-                                        className={`absolute left-1/2 -translate-x-1/2 w-0.5 transition-all duration-300 origin-center
+                                        className={`absolute left-1/2 -translate-x-1/2 w-0.5 transition-all duration-300 origin-center pointer-events-none
                                     ${node.isTop ? 'bottom-1/2' : 'top-1/2'}
                                     ${node.type === 'TIMEOUT'
                                                 ? `bg-transparent border-l border-dashed border-slate-400`
                                                 : `${theme.bg.replace('/20', '')}`}
-                                    ${isActive ? 'opacity-100' : 'opacity-30 group-hover:opacity-100'}
+                                    ${isActive ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}
                                     `}
                                         style={{ height: `${connectorHeight}px` }}
                                     />
@@ -284,12 +298,13 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
                                         ${isActive ? 'scale-110 z-50' : 'scale-100'}
                                     `}
                                         style={{
-                                            transform: `translate(-50%, ${yOffset > 0 ? yOffset + 10 : yOffset - 10}px)`
+                                            transform: `translate(-50%, ${yOffset > 0 ? yOffset : yOffset}px)`,
+                                            top: '50%'
                                         }}
                                     >
                                         {/* Bubble Content */}
                                         <div className={`
-                                        flex items-center gap-2 px-2.5 py-1.5 rounded-xl shadow-sm border backdrop-blur-md cursor-pointer transition-all
+                                        flex items-center gap-2 px-3 py-2 rounded-xl shadow-sm border backdrop-blur-md cursor-pointer transition-all
                                         ${node.type === 'TIMEOUT'
                                                 ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 border-slate-200 dark:border-slate-700'
                                                 : `${theme.bg} ${theme.text} ${theme.textDark} ${theme.border}`}
@@ -298,7 +313,7 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
                                             {getIcon(node)}
                                             <div className="flex flex-col leading-none">
                                                 {node.player ? (
-                                                    <span className={`text-[10px] font-black uppercase tracking-wider truncate max-w-[100px]`}>
+                                                    <span className={`text-[10px] font-black uppercase tracking-wider truncate max-w-[120px]`}>
                                                         {node.player}
                                                     </span>
                                                 ) : (
@@ -307,7 +322,7 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
                                                     </span>
                                                 )}
                                                 {/* Skill / Desc */}
-                                                {node.description && <span className="text-[8px] opacity-80 uppercase tracking-tight mt-0.5">{node.description}</span>}
+                                                {node.description && <span className="text-[9px] opacity-80 uppercase tracking-tight mt-0.5">{node.description}</span>}
                                             </div>
                                         </div>
 

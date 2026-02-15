@@ -44,7 +44,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = memo(({ isOpen, onClose
                 )}
             </Suspense>
 
-            <div className="h-full flex flex-col pb-safe-bottom glass-hardware-accelerated">
+            <div className="h-full flex flex-col pb-safe-bottom">
                 <HistoryList onClose={onClose} />
             </div>
         </Modal>

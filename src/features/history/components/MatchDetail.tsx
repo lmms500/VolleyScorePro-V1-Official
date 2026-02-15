@@ -10,43 +10,13 @@ import { MomentumGraph } from './MomentumGraph';
 import { GlassSurface } from '@ui/GlassSurface';
 // DISABLED FOR PLAY STORE v1: Pro Analysis
 // import { ProAnalysis } from './ProAnalysis';
+import { MatchStatistics } from './MatchStatistics';
 import { isFeatureEnabled } from '@config/featureFlags';
 
 interface MatchDetailProps {
     match: Match;
     onBack: () => void;
 }
-
-const StatBar = ({ label, valueA, valueB, colorA, colorB, icon: Icon }: any) => {
-    const total = valueA + valueB || 1;
-    const percentA = Math.round((valueA / total) * 100);
-    const percentB = Math.round((valueB / total) * 100);
-
-    return (
-        <div className="flex flex-col gap-1 w-full mb-3 last:mb-0">
-            <div className="flex items-center justify-between px-0 w-full text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                <span className={`font-black tabular-nums text-xs ${colorA.text} ${colorA.textDark}`}>{valueA}</span>
-                <div className="flex items-center gap-1.5 opacity-80">
-                    {Icon && <Icon size={10} />}
-                    <span>{label}</span>
-                </div>
-                <span className={`font-black tabular-nums text-xs ${colorB.text} ${colorB.textDark}`}>{valueB}</span>
-            </div>
-
-            <div className="flex h-1.5 w-full rounded-full overflow-hidden bg-black/10 dark:bg-white/5 shadow-inner">
-                <motion.div
-                    initial={{ width: 0 }} animate={{ width: `${percentA}%` }}
-                    className={`h-full ${colorA.halo} shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] relative z-10`}
-                />
-                <div className="w-px bg-transparent" />
-                <motion.div
-                    initial={{ width: 0 }} animate={{ width: `${percentB}%` }}
-                    className={`h-full ${colorB.halo} shadow-[inset_0_1px_0_rgba(255,255,255,0.3)] relative z-10`}
-                />
-            </div>
-        </div>
-    );
-};
 
 const TeamHero = ({ name, winner, isRight = false, theme }: { name: string, winner: boolean, isRight?: boolean, theme: any }) => {
     return (
@@ -72,15 +42,15 @@ export const MatchDetail: React.FC<MatchDetailProps> = ({ match, onBack }) => {
     const isWinnerA = match.winner === 'A';
 
     return (
-        <div className="flex flex-col h-full bg-transparent overflow-hidden relative">
+        <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900 overflow-hidden relative w-full pt-safe-top pl-safe-left pr-safe-right">
 
-            <div className="px-4 py-4 landscape:py-2 flex items-center justify-between shrink-0 bg-transparent z-50">
-                <button onClick={onBack} className="flex landscape:hidden items-center gap-1.5 text-slate-600 dark:text-slate-300 hover:text-indigo-500 font-bold text-xs uppercase tracking-wider transition-colors px-3 py-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10">
-                    <ArrowLeft size={16} /> {t('common.back')}
+            <div className="px-4 py-2 flex items-center justify-between shrink-0 bg-transparent z-50 min-h-[56px]">
+                <button onClick={onBack} className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 hover:text-indigo-500 font-bold text-xs uppercase tracking-wider transition-colors px-3 py-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 active:bg-black/10 dark:active:bg-white/20">
+                    <ArrowLeft size={18} /> {t('common.back')}
                 </button>
 
                 {isFeatureEnabled('PLAYER_ANALYSIS_ENABLED') && (
-                    <div className="flex bg-slate-100 dark:bg-white/5 p-1 rounded-2xl border border-black/5 dark:border-white/10">
+                    <div className="flex bg-slate-200 dark:bg-white/5 p-1 rounded-2xl border border-black/5 dark:border-white/10">
                         <button
                             onClick={() => setView('stats')}
                             className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${view === 'stats' ? 'bg-white dark:bg-slate-800 text-indigo-500 shadow-sm' : 'text-slate-400'}`}
@@ -98,26 +68,26 @@ export const MatchDetail: React.FC<MatchDetailProps> = ({ match, onBack }) => {
             </div>
 
             <motion.div
-                className="flex-1 overflow-y-auto custom-scrollbar px-4 pb-safe-bottom"
+                className="flex-1 overflow-y-auto custom-scrollbar content-container pb-safe-bottom px-4"
                 key={view}
                 initial={{ opacity: 0, x: view === 'stats' ? -20 : 20 }}
                 animate={{ opacity: 1, x: 0 }}
             >
                 {view === 'stats' ? (
-                    <div className="space-y-6 pt-4 pb-20">
+                    <div className="space-y-6 pt-2 pb-20 max-w-3xl mx-auto">
                         {/* HERO SCORE CARD */}
                         <GlassSurface
                             intensity="high"
-                            className="rounded-3xl p-6"
+                            className="rounded-3xl p-6 relative overflow-hidden"
                         >
-                            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 w-full">
+                            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 w-full relative z-10">
                                 <TeamHero name={match.teamAName} winner={isWinnerA} theme={themeA} />
 
-                                <div className="flex flex-col items-center justify-center px-4 sm:px-8 border-x border-black/5 dark:border-white/5">
+                                <div className="flex flex-col items-center justify-center px-6 py-2 border-x border-black/5 dark:border-white/5 bg-black/5 dark:bg-white/5 rounded-2xl mx-2">
                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Final</span>
-                                    <div className="text-3xl sm:text-4xl font-black tabular-nums tracking-tighter text-slate-800 dark:text-white flex items-center gap-2">
+                                    <div className="text-4xl sm:text-5xl font-black tabular-nums tracking-tighter text-slate-800 dark:text-white flex items-center gap-3">
                                         <span className={isWinnerA ? `${themeA.text} ${themeA.textDark}` : ''}>{match.setsA}</span>
-                                        <span className="text-slate-300 dark:text-slate-600 text-xl">:</span>
+                                        <span className="text-slate-300 dark:text-slate-600 text-2xl">:</span>
                                         <span className={!isWinnerA ? `${themeB.text} ${themeB.textDark}` : ''}>{match.setsB}</span>
                                     </div>
                                 </div>
@@ -126,6 +96,9 @@ export const MatchDetail: React.FC<MatchDetailProps> = ({ match, onBack }) => {
                             </div>
                         </GlassSurface>
 
+                        {/* MATCH STATISTICS */}
+                        <MatchStatistics match={match} />
+
                         {/* MOMENTUM GRAPH - New */}
                         <MomentumGraph match={match} />
 
@@ -133,9 +106,11 @@ export const MatchDetail: React.FC<MatchDetailProps> = ({ match, onBack }) => {
                         <MatchTimeline match={match} />
                     </div>
                 ) : isFeatureEnabled('PLAYER_ANALYSIS_ENABLED') ? (
-                    <div className="pt-4">
+                    <div className="pt-4 max-w-3xl mx-auto">
                         {/* <ProAnalysis match={match} /> */}
-                        DISABLED FOR PLAY STORE v1
+                        <div className="p-8 text-center text-slate-400 text-sm">
+                            Detailed analysis coming in Pro version
+                        </div>
                     </div>
                 ) : null}
             </motion.div>

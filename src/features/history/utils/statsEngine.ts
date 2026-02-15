@@ -8,7 +8,7 @@ export interface StatsDelta {
   attacks: number;
   blocks: number;
   aces: number;
-  mvpScore: number; 
+  mvpScore: number;
 }
 
 /**
@@ -22,16 +22,17 @@ export interface StatsDelta {
 export const calculateMatchDeltas = (
   matchLog: ActionLog[],
   winnerTeamId: TeamId | null,
-  playerTeamMap: Map<string, TeamId>
+  playerTeamMap: Map<string, TeamId>,
+  rosterMap: Map<string, string> // RosterID -> ProfileID
 ): Map<string, StatsDelta> => {
-  
+
   const deltas = new Map<string, StatsDelta>();
 
   // Helper to init delta
   const getDelta = (id: string) => {
     if (!deltas.has(id)) {
       deltas.set(id, {
-        matchesPlayed: 1, 
+        matchesPlayed: 1,
         matchesWon: 0,
         totalPoints: 0,
         attacks: 0,
@@ -55,25 +56,24 @@ export const calculateMatchDeltas = (
   for (const log of matchLog) {
     if (log.type !== 'POINT') continue;
 
-    // log.playerId comes from the game instance. 
-    // The calling function MUST have mapped this to a ProfileID if applicable BEFORE passing matchLog here
-    // OR we assume the IDs in matchLog match what's in playerTeamMap keys if pre-processed.
-    // In this implementation, we assume the caller (App.tsx) has already mapped the log to use ProfileIDs
-    // OR we assume the IDs in the log are ProfileIDs. 
-    
-    // HOWEVER, `useVolleyGame` stores Roster IDs in logs. 
-    // App.tsx handles the mapping logic before calling this function in our current architecture.
-    
+    // Resolve Roster ID to Profile ID
+    let targetProfileId: string | undefined;
+
     if (log.playerId && log.playerId !== 'unknown') {
-      const d = getDelta(log.playerId);
-      
+      targetProfileId = rosterMap.get(log.playerId);
+    }
+
+    // Only process if mapped to a real profile
+    if (targetProfileId) {
+      const d = getDelta(targetProfileId);
+
       d.totalPoints += 1;
-      d.mvpScore += 1; 
+      d.mvpScore += 1;
 
       switch (log.skill) {
         case 'attack':
           d.attacks += 1;
-          d.mvpScore += 0.5; 
+          d.mvpScore += 0.5;
           break;
         case 'block':
           d.blocks += 1;
@@ -108,6 +108,6 @@ export const mergeStats = (current: ProfileStats | undefined, delta: StatsDelta)
     attacks: base.attacks + delta.attacks,
     blocks: base.blocks + delta.blocks,
     aces: base.aces + delta.aces,
-    mvpCount: base.mvpCount 
+    mvpCount: base.mvpCount
   };
 };

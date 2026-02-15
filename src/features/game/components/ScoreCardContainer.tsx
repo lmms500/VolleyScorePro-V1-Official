@@ -13,6 +13,7 @@ interface ScoreCardContainerProps {
   onInteractionStart?: () => void;
   onInteractionEnd?: () => void;
   swappedSides?: boolean;
+  layoutContainerRef?: React.RefObject<HTMLDivElement>;
 }
 
 export const ScoreCardContainer: React.FC<ScoreCardContainerProps> = memo(({
@@ -20,11 +21,12 @@ export const ScoreCardContainer: React.FC<ScoreCardContainerProps> = memo(({
   isLocked = false,
   onInteractionStart,
   onInteractionEnd,
-  swappedSides = false
+  swappedSides = false,
+  layoutContainerRef
 }) => {
   const { t } = useTranslation();
   const { showNotification } = useNotification();
-  
+
   // Consume contexts
   const {
     scoreA, scoreB,
@@ -40,17 +42,17 @@ export const ScoreCardContainer: React.FC<ScoreCardContainerProps> = memo(({
     timeoutsB
   } = useScore();
 
-  const { 
+  const {
     teamARoster, teamBRoster,
     config,
     syncRole
   } = useRoster();
 
-  const { 
-    addPoint, 
-    subtractPoint, 
-    setServer, 
-    useTimeout 
+  const {
+    addPoint,
+    subtractPoint,
+    setServer,
+    useTimeout
   } = useActions();
 
   const audio = useGameAudio(config);
@@ -72,36 +74,36 @@ export const ScoreCardContainer: React.FC<ScoreCardContainerProps> = memo(({
   // Handlers
   const handleAddPoint = useCallback((targetTeamId: TeamId, playerId?: string, skill?: SkillType) => {
     if (isSpectator) return;
-    
+
     // Audio feedback
     audio.playTap();
-    
+
     // Logic
-    const metadata = (playerId && playerId !== 'unknown') 
-      ? { playerId, skill: skill || 'generic' } 
+    const metadata = (playerId && playerId !== 'unknown')
+      ? { playerId, skill: skill || 'generic' }
       : undefined;
-      
+
     addPoint(targetTeamId, metadata);
 
     // Notification
     const currentTeam = targetTeamId === 'A' ? teamARoster : teamBRoster;
     const color = currentTeam.color || (targetTeamId === 'A' ? 'indigo' : 'rose');
-    
+
     let mainText = currentTeam.name;
     if (skill === 'opponent_error') {
       mainText = t('scout.skills.opponent_error');
     } else if (playerId && playerId !== 'unknown') {
-      const player = currentTeam.players.find(p => p.id === playerId) 
-                  || currentTeam.reserves?.find(p => p.id === playerId);
+      const player = currentTeam.players.find(p => p.id === playerId)
+        || currentTeam.reserves?.find(p => p.id === playerId);
       if (player) mainText = player.name;
     }
 
-    showNotification({ 
-      type: 'success', 
-      mainText, 
-      subText: t('notifications.forTeam', { teamName: currentTeam.name }), 
-      skill, 
-      color 
+    showNotification({
+      type: 'success',
+      mainText,
+      subText: t('notifications.forTeam', { teamName: currentTeam.name }),
+      skill,
+      color
     });
   }, [isSpectator, audio, addPoint, teamARoster, teamBRoster, t, showNotification]);
 
@@ -144,6 +146,7 @@ export const ScoreCardContainer: React.FC<ScoreCardContainerProps> = memo(({
       onInteractionEnd={onInteractionEnd}
       config={config}
       swappedSides={swappedSides}
+      layoutContainerRef={layoutContainerRef}
     />
   );
 });

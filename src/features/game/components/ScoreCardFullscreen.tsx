@@ -128,12 +128,19 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
 
     const isLeftSide = reverseLayout ? teamId === 'B' : teamId === 'A';
 
+    // Dynamic padding logic:
+    // Outer side (away from center): Safe Area + 2rem base
+    // Inner side (towards center): HUD Space (approx 5rem/80px)
+    const containerStyle: React.CSSProperties = {
+        paddingLeft: isLeftSide ? 'max(env(safe-area-inset-left), 2rem)' : '5rem',
+        paddingRight: isLeftSide ? '5rem' : 'max(env(safe-area-inset-right), 2rem)',
+        touchAction: 'none',
+        WebkitUserSelect: 'none',
+        userSelect: 'none'
+    };
+
     // Simplified container classes: purely relative flex item now
     const containerClasses = 'relative w-full flex-1 flex flex-col justify-center items-center select-none';
-
-    const offsetClass = isLeftSide
-        ? 'landscape:-translate-x-[6vw]'
-        : 'landscape:translate-x-[6vw]';
 
     return (
         <>
@@ -148,11 +155,7 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
             <div
                 ref={containerRef}
                 className={containerClasses}
-                style={{
-                    touchAction: 'none',
-                    WebkitUserSelect: 'none',
-                    userSelect: 'none'
-                }}
+                style={containerStyle}
                 {...gestureHandlers}
             >
                 <AnimatePresence mode="wait">
@@ -178,7 +181,7 @@ export const ScoreCardFullscreen: React.FC<ScoreCardFullscreenProps> = memo(({
                 `}
                     style={{ fontSize: 'clamp(5rem, 28vmax, 22rem)', lineHeight: 1 }}
                 >
-                    <div className={`transform transition-transform duration-500 w-full flex justify-center overflow-visible ${offsetClass}`}>
+                    <div className="w-full flex justify-center overflow-visible">
                         <ScoreNumberDisplay
                             score={score}
                             textEffectClass={textEffectClass}

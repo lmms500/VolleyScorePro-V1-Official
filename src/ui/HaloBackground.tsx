@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState, useRef } from 'react';
+import React, { memo, useEffect, useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePerformanceSafe } from '@contexts/PerformanceContext';
 
@@ -6,7 +6,7 @@ export type HaloMode = 'idle' | 'serving' | 'lastScorer' | 'critical';
 
 export interface HaloBackgroundProps {
     mode: HaloMode;
-    colorTheme: string; // ex: 'indigo', 'rose', 'amber'
+    colorTheme: string; // ex: 'indigo', 'rose', 'amber' or hex/rgb
     /** @deprecated Prefer PerformanceContext. Kept for backward compat. */
     lowGraphics?: boolean;
     className?: string;
@@ -109,12 +109,33 @@ export const HaloBackground: React.FC<HaloBackgroundProps> = memo(({
 
     // Adaptive: disable halos when performance mode says so, or when lowGraphics prop is true
     const haloDisabled = lowGraphicsProp === true || !perf.visual.haloEffects;
-    if (haloDisabled) return null;
 
     // Resolve hex color for box-shadow glow (GPU-friendly alternative to filter: blur)
-    const glowHex = mode === 'critical'
-        ? hexColorMap['amber']
-        : (hexColorMap[colorTheme] || hexColorMap['indigo']);
+    const glowHex = useMemo(() => {
+        if (haloDisabled) return '#00000000'; // Return transparent if disabled
+
+        if (mode === 'critical') return hexColorMap['amber'];
+
+        // 1. Check mapped themes
+        if (hexColorMap[colorTheme]) return hexColorMap[colorTheme];
+
+        // 2. Check for "custom:HEX" format from resolveTheme
+        if (colorTheme?.startsWith('custom:')) {
+            const parts = colorTheme.split(':');
+            return parts[1] || hexColorMap['indigo'];
+        }
+
+        // 3. Check for valid CSS color (hex, rgb, hsl)
+        // Simple heuristic: starts with # or contains 'rgb'/'hsl'
+        if (colorTheme && (colorTheme.startsWith('#') || colorTheme.includes('rgb') || colorTheme.includes('hsl'))) {
+            return colorTheme;
+        }
+
+        // 4. Default fallback
+        return hexColorMap['indigo'];
+    }, [mode, colorTheme, haloDisabled]);
+
+    if (haloDisabled) return null;
 
     // Glow size via box-shadow spread (element itself is invisible 0x0)
     // Glow size and Flash size are now calculated inline using em units relative to the container font-size
@@ -140,6 +161,8 @@ export const HaloBackground: React.FC<HaloBackgroundProps> = memo(({
                     y: '-50%',
                     // Using em units allows the glow to scale with the fontSize set above
                     boxShadow: `0 0 0.5em 0.4em ${glowHex}, 0 0 1em 0.8em ${glowHex}66`,
+                    willChange: "transform, opacity",
+                    transform: "translateZ(0)",
                 }}
             />
 
@@ -163,6 +186,8 @@ export const HaloBackground: React.FC<HaloBackgroundProps> = memo(({
                                 x: '-50%',
                                 y: '-50%',
                                 boxShadow: `0 0 0.8em 0.6em ${glowHex}, 0 0 1.5em 1em ${glowHex}44`,
+                                willChange: "transform, opacity",
+                                transform: "translateZ(0)",
                             }}
                         />
                     )}

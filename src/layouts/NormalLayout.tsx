@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, lazy, Suspense } from 'react';
+import { LayoutGroup } from 'framer-motion';
 import { useScore, useLog, useRoster } from '@contexts/GameContext';
 import { useModals } from '@contexts/ModalContext';
 import { ScoreCardContainer } from '@features/game/components/ScoreCardContainer';
@@ -50,6 +51,9 @@ export const NormalLayout: React.FC<NormalLayoutProps> = ({
     const [interactingTeam, setInteractingTeam] = useState<TeamId | null>(null);
     const [containerWidth, setContainerWidth] = useState(0);
     const [courtMounted, setCourtMounted] = useState(false);
+
+    // Ref for layout synchronization (HaloPortal)
+    const layoutContainerRef = React.useRef<HTMLDivElement>(null);
 
     // --- CONTEXT CONSUMPTION ---
     const { setsA, setsB, swappedSides } = useScore();
@@ -124,19 +128,23 @@ export const NormalLayout: React.FC<NormalLayoutProps> = ({
                 onWidthChange={setContainerWidth}
             >
                 {/* Page 0: Score Cards */}
-                <div className="flex-1 flex flex-col landscape:flex-row gap-2 sm:gap-4 min-h-0 my-2 sm:my-4 justify-between h-full">
-                    <ScoreCardContainer
-                        key="card-A"
-                        teamId="A"
-                        isLocked={interactingTeam === 'B'}
-                        swappedSides={swappedSides}
-                    />
-                    <ScoreCardContainer
-                        key="card-B"
-                        teamId="B"
-                        isLocked={interactingTeam === 'A'}
-                        swappedSides={swappedSides}
-                    />
+                <div ref={layoutContainerRef} className="relative flex-1 flex flex-col landscape:flex-row gap-2 sm:gap-4 min-h-0 my-2 sm:my-4 justify-between h-full">
+                    <LayoutGroup id="score-cards">
+                        <ScoreCardContainer
+                            key="card-A"
+                            teamId="A"
+                            isLocked={interactingTeam === 'B'}
+                            swappedSides={swappedSides}
+                            layoutContainerRef={layoutContainerRef}
+                        />
+                        <ScoreCardContainer
+                            key="card-B"
+                            teamId="B"
+                            isLocked={interactingTeam === 'A'}
+                            swappedSides={swappedSides}
+                            layoutContainerRef={layoutContainerRef}
+                        />
+                    </LayoutGroup>
                 </div>
 
                 {/* Page 1: Tactical Court */}
