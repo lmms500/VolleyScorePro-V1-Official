@@ -19,11 +19,44 @@
     "allowJs": true,
     "jsx": "react-jsx",
     "esModuleInterop": true,
+    // ========== PATH ALIASES (NOVO) ==========
+    "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./*"
+        "./src/*"
+      ],
+      "@types": [
+        "./src/@types"
+      ],
+      "@types/*": [
+        "./src/@types/*"
+      ],
+      "@ui": [
+        "./src/ui"
+      ],
+      "@ui/*": [
+        "./src/ui/*"
+      ],
+      "@lib/*": [
+        "./src/lib/*"
+      ],
+      "@features/*": [
+        "./src/features/*"
+      ],
+      "@contexts/*": [
+        "./src/contexts/*"
+      ],
+      "@layouts/*": [
+        "./src/layouts/*"
+      ],
+      "@config/*": [
+        "./src/config/*"
+      ],
+      "@hooks/*": [
+        "./src/hooks/*"
       ]
     },
+    // ========================================
     "allowImportingTsExtensions": true,
     "noEmit": true
   }

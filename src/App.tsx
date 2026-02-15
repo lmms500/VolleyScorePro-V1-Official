@@ -15,13 +15,13 @@ import { GameProvider } from './contexts/GameContext';
 import { LayoutProvider } from './contexts/LayoutContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { PerformanceProvider } from './contexts/PerformanceContext';
-import { ErrorBoundary } from './components/ui/ErrorBoundary';
+import { ErrorBoundary } from '@ui/ErrorBoundary';
 import { TimerProvider } from './contexts/TimerContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { ModalProvider } from './contexts/ModalContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { TimeoutProvider } from './contexts/TimeoutContext';
-import { GameScreen } from './screens';
+import { GameScreen } from '@features/game/screens';
 
 function App() {
     return (

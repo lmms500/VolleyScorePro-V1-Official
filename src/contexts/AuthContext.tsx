@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged, getRedirectResult, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
-import { auth, googleProvider, isFirebaseInitialized } from '../services/firebase';
+import { auth, googleProvider, isFirebaseInitialized } from '@lib/firebase';
 import { Capacitor } from '@capacitor/core';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 

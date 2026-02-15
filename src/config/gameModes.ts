@@ -5,7 +5,7 @@
  * Defines court limits, bench limits, and visual layout for each mode.
  */
 
-import { GameModeConfig, GameModePreset, CourtLayoutConfig, GameMode, GameConfig } from '../types';
+import { GameModeConfig, GameModePreset, CourtLayoutConfig, GameMode, GameConfig } from '@types';
 
 // ============================================
 // COURT LAYOUT CONFIGURATIONS

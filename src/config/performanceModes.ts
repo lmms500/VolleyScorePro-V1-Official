@@ -5,7 +5,7 @@
  * Used by PerformanceContext to control component behavior.
  */
 
-import type { PerformanceMode } from '../utils/deviceDetection';
+import type { PerformanceMode } from '@lib/platform/deviceDetection';
 
 export interface PerformanceModeConfig {
     animations: {

@@ -9,7 +9,7 @@
  */
 
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
-import { detectPerformanceMode, persistPerformanceMode, PerformanceMode } from '../utils/deviceDetection';
+import { detectPerformanceMode, persistPerformanceMode, PerformanceMode } from '@lib/platform/deviceDetection';
 import { PERFORMANCE_CONFIGS, PerformanceModeConfig } from '../config/performanceModes';
 
 interface PerformanceContextType {

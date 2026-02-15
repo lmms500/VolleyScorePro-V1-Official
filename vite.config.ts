@@ -11,8 +11,20 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   resolve: {
-    // Let Vite resolve React correctly - don't override with manual alias
-    // Vite respects package.json exports field automatically
+    // ========== PATH ALIASES (NOVO) ==========
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      '@types': path.resolve(__dirname, './src/@types'),
+      '@ui': path.resolve(__dirname, './src/ui'),
+      '@lib': path.resolve(__dirname, './src/lib'),
+      '@features': path.resolve(__dirname, './src/features'),
+      '@contexts': path.resolve(__dirname, './src/contexts'),
+      '@layouts': path.resolve(__dirname, './src/layouts'),
+      '@config': path.resolve(__dirname, './src/config'),
+      '@hooks': path.resolve(__dirname, './src/hooks'),
+    },
+    // ========================================
+
     dedupe: ['react', 'react-dom'],
   },
   build: {

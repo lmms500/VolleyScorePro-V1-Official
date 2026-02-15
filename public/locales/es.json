@@ -427,7 +427,9 @@
         "step1": "Anotador",
         "step2": "Acción",
         "whoScored": "¿Quién?",
-        "selectAction": "¿Qué?",
+        "selectPlayer": "Seleccionar Jugador",
+        "selectAction": "Seleccionar Acción",
+        "tapToConfirm": "Toque para confirmar",
         "unknownPlayer": "Desconocido",
         "back": "Volver",
         "skills": {

@@ -1,7 +1,4 @@
-
-// RE-EXPORT BARREL
-// This file ensures backward compatibility with all existing imports.
-
-export * from './types/ui';
-export * from './types/services';
-export * from './types/domain';
+// DEPRECATED: Use '@types' instead
+// This file exists for backward compatibility during migration
+// TODO: Remove after all imports are migrated to @types
+export * from './@types';

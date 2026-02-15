@@ -433,6 +433,7 @@
     "scout": {
         "step1": "Pontuador",
         "step2": "Ação",
+        "selectPlayer": "Selecionar Jogador",
         "whoScored": "Quem?",
         "selectAction": "O quê?",
         "unknownPlayer": "Desconhecido",

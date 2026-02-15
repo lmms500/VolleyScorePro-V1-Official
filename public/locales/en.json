@@ -429,7 +429,9 @@
         "step1": "Scorer",
         "step2": "Action",
         "whoScored": "Who?",
-        "selectAction": "What?",
+        "selectPlayer": "Select Player",
+        "selectAction": "Select Action",
+        "tapToConfirm": "Tap to confirm",
         "unknownPlayer": "Unknown",
         "back": "Back",
         "skills": {

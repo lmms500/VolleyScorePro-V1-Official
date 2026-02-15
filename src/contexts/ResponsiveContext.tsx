@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useCallback } from 'react';
-import { spacing, normalize } from '../utils/responsive';
+import { spacing, normalize } from '@lib/utils/responsive';
 
 interface ResponsiveContextData {
     updateStyles: () => void;

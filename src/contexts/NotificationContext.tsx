@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
-import { TeamColor, SkillType } from '../types';
-import { useHaptics } from '../hooks/useHaptics';
+import { TeamColor, SkillType } from '@types';
+import { useHaptics } from '@lib/haptics/useHaptics';
 
 interface NotificationState {
   visible: boolean;

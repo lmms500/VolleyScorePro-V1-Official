@@ -427,7 +427,9 @@
         "step1": "Pontuador",
         "step2": "Ação",
         "whoScored": "Quem?",
-        "selectAction": "O quê?",
+        "selectPlayer": "Selecione o Jogador",
+        "selectAction": "Selecione a Ação",
+        "tapToConfirm": "Toque para confirmar",
         "unknownPlayer": "Desconhecido",
         "back": "Voltar",
         "skills": {
