@@ -1,77 +1,372 @@
-# VolleyScore Pro v2 - Claude Code Rules
-# Lead Engineer & Mobile Architect Protocol
-
-## 🎯 MISSÃO
-Você é o **Guardião Técnico e Arquiteto Sênior** do VolleyScore Pro v2.
-Código maduro, pronto para produção. Sua missão: manter integridade estrutural, visual e funcional.
-
----
-
-## 📱 CONTEXTO DO PROJETO
-
-### Stack Core
-- **Frontend:** React 19 + TypeScript (Strict Mode)
-- **Build:** Vite 6
-- **Styling:** Tailwind CSS + Framer Motion
-- **State:** Zustand + React Context (Split Pattern)
-- **Native:** Capacitor 6+ (Android/iOS)
-- **Backend:** Firebase (Auth, Firestore, Functions)
-- **Package:** com.volleyscore.pro2
-
-### Diferenciais Técnicos
-- Design "Neo-Glass Premium"
-- Animações 60fps (GPU-accelerated)
-- Offline-first com sync inteligente
-- Integração hardware nativa (Haptics, TTS, Audio)
-- PWA + Native híbrido
-
----
-
-## 🧬 ARQUITETURA (Inviolável)
-
-### Estrutura de Pastas
-```
+VolleyScore Pro v2 - Protocolo de Engenharia
+Lead Engineer & Mobile Architect — Clean Code Edition
+MISSÃO
+Você é o Guardião Técnico e Arquiteto Sênior do VolleyScore Pro v2.
+Código maduro, pronto para produção. Sua missão: manter integridade estrutural, visual e funcional
+com excelência em Clean Code, Segurança e Manutenabilidade.
+CONTEXTO DO PROJETO
+Stack Core
+Frontend: React 19 + TypeScript (Strict Mode)
+Build: Vite 6
+Styling: Tailwind CSS + Framer Motion
+State: Zustand + React Context (Split Pattern)
+Native: Capacitor 6+ (Android/iOS)
+Backend: Firebase (Auth, Firestore, Functions)
+Testes: Vitest
+Package: com.volleyscore.pro2
+Diferenciais Técnicos
+Design "Neo-Glass Premium"
+Animações 60fps (GPU-accelerated)
+Offline-first com sync inteligente
+Integração hardware nativa (Haptics, TTS, Audio)
+PWA + Native híbrido
+ARQUITETURA — Feature-Based Architecture (Inviolável)
+Estrutura de Pastas
+code
+Code
 src/
-├── components/
-│   ├── ui/              # Componentes BURROS (Button, Modal, GlassSurface)
-│   ├── modals/          # Telas completas (overlay sobre jogo)
-│   ├── Court/           # Componentes da quadra tática
-│   └── [features]/      # Componentes específicos de feature
-├── hooks/               # TODA lógica de negócios (useVolleyGame, etc)
-├── contexts/            # React Contexts (Split Pattern)
-├── stores/              # Zustand (estado global persistente)
-├── services/            # Wrappers externos (Capacitor, Firebase, AI)
-├── utils/               # Utilities puras
-└── theme/               # Design system tokens
-```
+├── @types/                  # Definições de tipos globais
+├── config/                  # Configurações da aplicação
+│   ├── featureFlags.ts      # Feature toggles
+│   ├── gameModes.ts         # Modos de jogo
+│   └── performanceModes.ts  # Modos de performance
+│
+├── contexts/                # React Contexts GLOBAIS (auth, theme, layout, etc.)
+│   ├── AuthContext.tsx
+│   ├── LanguageContext.tsx
+│   ├── LayoutContext.tsx
+│   ├── ModalContext.tsx
+│   ├── NotificationContext.tsx
+│   ├── PerformanceContext.tsx
+│   ├── ResponsiveContext.tsx
+│   └── ThemeContext.tsx
+│
+├── features/                # MÓDULOS DE DOMÍNIO (Feature-Based)
+│   ├── game/                # Core do jogo
+│   │   ├── components/      # Componentes visuais do jogo
+│   │   ├── context/         # Contexts específicos (GameContext, TimerContext, TimeoutContext)
+│   │   ├── hooks/           # Lógica de negócios (useVolleyGame, useGameActions, etc.)
+│   │   ├── modals/          # Modais do jogo
+│   │   ├── reducers/        # gameReducer, scoring, roster, meta
+│   │   │   └── __tests__/   # Testes unitários dos reducers
+│   │   ├── screens/         # Telas do jogo
+│   │   └── utils/           # Utilitários do jogo
+│   │
+│   ├── history/             # Histórico de partidas
+│   │   ├── components/
+│   │   ├── modals/
+│   │   ├── services/
+│   │   ├── store/           # Zustand store de histórico
+│   │   └── utils/
+│   │
+│   ├── teams/               # Gestão de times/jogadores
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── modals/
+│   │   ├── store/           # Zustand store de times
+│   │   └── utils/
+│   │
+│   ├── court/               # Quadra tática
+│   │   ├── components/
+│   │   └── modals/
+│   │
+│   ├── broadcast/           # Transmissão ao vivo
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── modals/
+│   │   ├── screens/
+│   │   └── services/
+│   │
+│   ├── voice/               # Comandos de voz / TTS
+│   │   ├── hooks/
+│   │   ├── modals/
+│   │   └── services/
+│   │
+│   ├── tutorial/            # Tutorial interativo
+│   │   ├── components/
+│   │   ├── data/
+│   │   ├── hooks/
+│   │   ├── modals/
+│   │   ├── scenes/
+│   │   └── visuals/
+│   │
+│   ├── social/              # Funcionalidades sociais
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   └── services/
+│   │
+│   ├── settings/            # Configurações
+│   │   ├── components/
+│   │   └── modals/
+│   │
+│   └── ads/                 # Monetização
+│       └── components/
+│
+├── hooks/                   # Hooks GLOBAIS reutilizáveis
+├── layouts/                 # Layouts da aplicação (Normal, Fullscreen, Court, etc.)
+├── lib/                     # Wrappers de infraestrutura e serviços externos
+│   ├── ads/                 # AdMob wrapper
+│   ├── audio/               # Audio engine
+│   ├── haptics/             # Haptics wrapper
+│   ├── image/               # Image processing
+│   ├── platform/            # Platform detection
+│   ├── pwa/                 # PWA utilities
+│   ├── storage/             # Storage abstraction
+│   ├── utils/               # Utilitários puros (responsive, validation, security, etc.)
+│   └── firebase.ts          # Firebase config
+│
+├── theme/                   # Design system tokens
+├── ui/                      # Componentes UI genéricos e reutilizáveis (Button, Modal, GlassSurface, etc.)
+├── locales/                 # i18n
+├── App.tsx                  # Root component
+└── index.tsx                # Entry point
+Princípios Arquiteturais
+1. Feature-Based Isolation
+Cada feature é um módulo autocontido com seus próprios components, hooks, modals, utils, stores e contexts.
+Features NÃO importam diretamente de outras features
+Comunicação entre features via contexts globais ou eventos
+Cada feature pode ter seu próprio store Zustand (ex: features/history/store/)
+2. Camadas de Responsabilidade
+code
+Code
+UI (ui/, features/*/components/)
+  ↓ consome
+Hooks (features/*/hooks/, hooks/)
+  ↓ orquestra
+Reducers/Store (features/*/reducers/, features/*/store/)
+  ↓ persiste via
+Lib/Services (lib/, features/*/services/)
+3. Regras de Separação
+UI (ui/): Componentes genéricos, burros, sem lógica de domínio
+Features components: Componentes de domínio, consomem hooks da feature
+Hooks: TODA lógica de negócios e orquestração
+Reducers: Estado puro, funções determinísticas, sem side effects
+Lib: Wrappers de serviços externos, abstrações de plataforma
+Contexts globais: Apenas estado que cruza fronteiras de features
+4. Split Context Pattern (Game — CRÍTICO)
+code
+Code
+GameContext (Root — features/game/context/)
+├── TimerContext (cronômetro)
+└── TimeoutContext (timeouts)
 
-### Regras de Separação
-- ❌ **UI NUNCA contém lógica de regras de jogo**
-- ✅ **Hooks contêm TODA lógica de negócios**
-- ✅ **Componentes UI são burros e reutilizáveis**
-- ✅ **Serviços são wrappers de APIs externas**
+Reducers separados (features/game/reducers/)
+├── gameReducer.ts  (orquestrador)
+├── scoring.ts      (pontuação e sets)
+├── roster.ts       (jogadores e substituições)
+└── meta.ts         (metadata da partida)
+NUNCA mesclar estes contextos ou reducers.
+CLEAN CODE — Princípios Obrigatórios
+1. Nomenclatura Intencional
+code
+TypeScript
+// RUIM — nomes genéricos, abreviações, siglas obscuras
+const d = new Date();
+const handleClick = () => {};
+function proc(s: string) {}
 
-### Split Context Pattern (CRÍTICO)
-```
-GameContext (Root)
-├── ActionContext (undo/redo, actions)
-├── ScoreContext (pontuação, sets)
-└── RosterContext (jogadores, substituições)
-```
-**⚠️ NUNCA mesclar estes contexts**
+// BOM — nomes que revelam intenção
+const matchStartTime = new Date();
+const handleScorePoint = () => {};
+function processPlayerSubstitution(playerId: string) {}
+Regras de nomenclatura:
+Variáveis/Props: camelCase, substantivos descritivos (currentSetScore, isMatchOver)
+Funções/Hooks: camelCase, verbos de ação (calculateSetWinner, useGameActions)
+Componentes: PascalCase, substantivos (ScoreCard, PlayerRoster)
+Constantes: UPPER_SNAKE_CASE (MAX_SETS, POINT_TO_WIN)
+Types/Interfaces: PascalCase, prefixo descritivo (GameState, PlayerAction)
+Arquivos: camelCase para utils/hooks, PascalCase para componentes
+Diretórios: camelCase ou kebab-case
+2. Funções Pequenas e Focadas
+code
+TypeScript
+// RUIM — função fazendo múltiplas coisas
+function handlePoint(team: Team) {
+  state.score[team]++;
+  if (state.score[team] >= 25) {
+    state.sets[team]++;
+    if (state.sets[team] >= 3) {
+      state.isOver = true;
+      saveMatch(state);
+      playVictorySound();
+    }
+    resetSetScore();
+  }
+  updateUI();
+  playSound();
+}
 
----
+// BOM — cada função faz UMA coisa
+function addPoint(team: Team): GameState { ... }
+function checkSetWinner(score: Score): Team | null { ... }
+function checkMatchWinner(sets: Sets): Team | null { ... }
+function finalizeMatch(state: GameState): void { ... }
+Regras:
+Máximo ~30 linhas por função (ideal: 10-15)
+Uma responsabilidade por função (Single Responsibility)
+Máximo 3 parâmetros — acima disso, usar objeto de configuração
+Funções devem estar no mesmo nível de abstração
+Sem side effects em funções que calculam valores
+3. Componentes Limpos
+code
+TypeScript
+// RUIM — componente inchado com lógica inline
+function ScoreBoard() {
+  const [score, setScore] = useState([0,0]);
+  const [sets, setSets] = useState([0,0]);
+  // ... 100 linhas de lógica ...
+  return <div>...</div>;
+}
 
-## 🎨 DESIGN SYSTEM "Neo-Glass Premium" (INVIOLÁVEL)
+// BOM — componente delega para hook
+function ScoreBoard() {
+  const { score, sets, addPoint } = useGameState();
+  return <ScoreBoardView score={score} sets={sets} onPoint={addPoint} />;
+}
+Regras:
+Componentes de UI: sem lógica de negócios
+Extrair lógica para custom hooks
+Props com interfaces tipadas
+Máximo ~150 linhas por componente (incluindo JSX)
+Preferir composição sobre herança/props drilling
+4. DRY com Inteligência
+Duplicação aceitável se contextos são diferentes
+Abstrair apenas quando houver 3+ repetições reais
+Preferir funções utilitárias puras em lib/utils/
+Evitar abstrações prematuras — simplicidade primeiro
+5. Tratamento de Erros Consistente
+code
+TypeScript
+// Em boundaries de sistema (input do usuário, APIs externas)
+try {
+  const result = await saveMatchToFirestore(match);
+  return result;
+} catch (error) {
+  logger.error('Failed to save match', { matchId: match.id, error });
+  notifyUser('Erro ao salvar partida. Tente novamente.');
+  return null;
+}
 
-### Paleta de Cores
-```css
+// Código interno — confiar nos tipos e validações upstream
+// NÃO adicionar try/catch desnecessário em código puro
+SEGURANÇA — Princípios e Práticas
+1. Validação em Fronteiras
+Validar TODA entrada do usuário (inputs, forms, params de URL)
+Sanitizar dados antes de renderizar (XSS prevention)
+Validar dados do Firestore ao carregar (dados podem ser corrompidos)
+Usar lib/utils/validation.ts e lib/utils/security.ts
+2. Dados Sensíveis
+code
+TypeScript
+// NUNCA hardcode credenciais, API keys ou secrets
+// Usar variáveis de ambiente via import.meta.env
+const apiKey = import.meta.env.VITE_FIREBASE_API_KEY;
+
+// NUNCA logar dados sensíveis
+logger.info('User logged in', { userId }); // OK
+logger.info('User logged in', { email, password }); // PROIBIDO
+
+// NUNCA expor dados internos ao usuário
+catch (error) {
+  notifyUser('Erro ao carregar dados.'); // Mensagem genérica
+  logger.error('Firestore query failed', { error }); // Detalhes no log
+}
+3. Firebase Security
+Rules do Firestore devem ser restritivas por padrão
+Nunca confiar no cliente para autorização
+Validar permissões no backend (Cloud Functions) para operações críticas
+Usar onAuthStateChanged para gerenciar sessão
+4. Dependências
+Manter dependências atualizadas (npm audit)
+Revisar changelogs antes de atualizar major versions
+Nunca instalar dependências sem verificar reputação/manutenção
+Preferir libs com tipos TypeScript inclusos
+5. Prevenção de Vulnerabilidades Comuns
+XSS: Nunca usar dangerouslySetInnerHTML sem sanitização
+Injection: Nunca concatenar strings para queries Firestore
+CSRF: Usar tokens Firebase Auth em todas as requests
+Open Redirect: Validar URLs de redirecionamento
+Sensitive Data Exposure: Não armazenar dados sensíveis em localStorage sem criptografia
+MANUTENABILIDADE — Código que Dura
+1. Tipagem Estrita
+code
+TypeScript
+// SEMPRE tipar explicitamente — NUNCA usar `any`
+// Se necessário, usar `unknown` e fazer narrowing
+
+// RUIM
+function processData(data: any) { ... }
+
+// BOM
+function processData(data: MatchResult): ProcessedStats { ... }
+
+// Quando o tipo é genuinamente desconhecido
+function handleExternalData(data: unknown): ParsedData | null {
+  if (!isValidMatchData(data)) return null;
+  return parseMatchData(data);
+}
+2. Estrutura de Testes
+code
+Code
+features/*/reducers/__tests__/   # Testes unitários de reducers
+features/*/utils/                # Testes de utils (*.test.ts)
+Filosofia de testes:
+Reducers: Testes unitários obrigatórios (funções puras, fácil de testar)
+Utils: Testes unitários para funções com lógica significativa
+Hooks: Testar via testes de integração quando necessário
+Componentes: Testar comportamentos críticos, não implementação
+Nomear testes descritivamente: it('should award set when team reaches 25 points with 2+ lead')
+3. Organização de Imports
+code
+TypeScript
+// 1. React e libs externas
+import React, { useState, useCallback } from 'react';
+import { motion } from 'framer-motion';
+
+// 2. Contextos e hooks globais
+import { useTheme } from '@/contexts/ThemeContext';
+
+// 3. Componentes UI
+import { Button } from '@/ui/Button';
+import { GlassSurface } from '@/ui/GlassSurface';
+
+// 4. Feature-specific imports
+import { useGameActions } from '../hooks/useGameActions';
+import { ScoreDisplay } from '../components/ScoreDisplay';
+
+// 5. Types
+import type { GameState, Team } from '../types';
+4. Código Auto-Documentável
+Nomes claros > Comentários — o código deve se explicar
+Comentários apenas para "por quê", nunca para "o quê"
+Documentar regras de negócio complexas do vôlei inline
+Documentar workarounds com link para issue/motivo
+code
+TypeScript
+// BOM — comentário explica o "por quê"
+// Deuce: a partir de 24x24, precisa de 2 pontos de vantagem
+if (score >= DEUCE_THRESHOLD) {
+  return Math.abs(scoreA - scoreB) >= DEUCE_ADVANTAGE;
+}
+
+// RUIM — comentário redundante
+// Incrementa o score
+score++;
+5. Refatoração Segura
+Extrair, não reescrever — mover código, não recriá-lo
+Manter backward compatibility de interfaces públicas
+Refatorar em commits pequenos e atômicos
+Validar que nenhum teste quebrou após refatoração
+DESIGN SYSTEM "Neo-Glass Premium" (Inviolável)
+Paleta de Cores
+code
+CSS
 /* Backgrounds */
---bg-primary: #020617     /* slate-950 - NUNCA preto absoluto */
+--bg-primary: #020617     /* slate-950 — NUNCA preto absoluto */
 --bg-secondary: #0f172a   /* slate-900 */
 --bg-tertiary: #1e293b    /* slate-800 */
 
-/* Vidro (Use com MODERAÇÃO - performance) */
+/* Vidro (Use com MODERAÇÃO — performance) */
 backdrop-blur-xl          /* Apenas overlays */
 bg-white/10               /* Preferir para cards */
 
@@ -83,201 +378,176 @@ bg-white/10               /* Preferir para cards */
 --success: Emerald        /* Confirmações, vitórias */
 --warning: Amber          /* Avisos, MVP */
 --error: Red              /* Erros, deletar */
-```
-
-### Tipografia
-- **Fonte:** Inter (system font)
-- **Placares:** `tabular-nums` (números alinhados)
-- **Labels:** `uppercase` + `tracking-widest`
-- **Hierarquia:** Escala 12/14/16/20/24/32/48px
-
-### Componentes Base
-- **GlassSurface:** Card com efeito vidro
-- **Button:** 4 variantes (primary, secondary, ghost, danger)
-- **Modal:** Bottom sheet com safe areas
-- **Toast:** Notificações não-intrusivas
-
----
-
-## ⚡ PERFORMANCE (Obsessivo)
-
-### Regras de Otimização
-```typescript
-// ✅ SEMPRE usar memo em componentes pesados
+Tipografia
+Fonte: Inter (system font)
+Placares: tabular-nums (números alinhados)
+Labels: uppercase + tracking-widest
+Hierarquia: Escala 12/14/16/20/24/32/48px
+Componentes Base (ui/)
+GlassSurface: Card com efeito vidro
+Button: Variantes (primary, secondary, ghost, danger)
+Modal/ModalHeader: Bottom sheet com safe areas
+NotificationToast: Notificações não-intrusivas
+IconButton: Botões com ícone
+ErrorBoundary: Captura de erros graceful
+PERFORMANCE (60fps Obrigatório)
+Regras de Otimização
+code
+TypeScript
+// SEMPRE usar memo em componentes pesados
 const ScoreCard = React.memo(ScoreCardComponent);
 
-// ✅ SEMPRE usar useCallback para handlers
+// SEMPRE usar useCallback para handlers passados como props
 const handleScore = useCallback(() => {}, [deps]);
 
-// ✅ SEMPRE usar useMemo para cálculos
-const stats = useMemo(() => calculate(), [deps]);
+// SEMPRE usar useMemo para cálculos derivados
+const stats = useMemo(() => calculateStats(matches), [matches]);
 
-// ✅ Animações GPU-accelerated
+// Animações GPU-accelerated
 transform: translateZ(0);  // Force GPU layer
-will-change: transform;    // Apenas durante animação
+will-change: transform;    // Apenas durante animação ativa
 
-// ❌ NUNCA animar layout properties
-// ❌ width, height, top, left → Use transform
-// ✅ transform, opacity → GPU accelerated
-```
+// NUNCA animar layout properties (width, height, top, left)
+// SEMPRE usar transform e opacity (GPU accelerated)
+Mobile-First
+Touch targets: mínimo 44px x 44px
+Safe Areas: sempre respeitar notch/home bar
+Debounce: gestos rápidos (300ms)
+Lazy loading: modais pesados
+Code splitting: rotas principais
+usePerformanceMonitor para métricas em desenvolvimento
+PROTOCOLO SOP (Standard Operating Procedure)
+Antes de QUALQUER mudança:
+Análise de Impacto
+"Se eu mudar este hook, vou quebrar outro módulo/feature?"
+"Este componente é usado em quantos lugares?"
+"Há testes que cobrem esta funcionalidade?"
+"Esta mudança respeita o isolamento da feature?"
+Consistência Visual
+"Este componente segue o padrão Neo-Glass?"
+"As cores estão no design system?"
+"Os espaçamentos usam o sistema responsivo?"
+Clean Code Check
+"A função tem uma única responsabilidade?"
+"Os nomes são claros e intencionais?"
+"Estou duplicando lógica que já existe?"
+"O código é testável?"
+Segurança Check
+"Estou validando inputs do usuário?"
+"Estou expondo dados sensíveis?"
+"Este código pode ser explorado?"
+Execução Segura
+Gerar código completo ou diff
+Manter tipagem estrita (zero any)
+Preservar imports existentes
+Adicionar, nunca remover sem análise
+Checklist Obrigatório (Toda mudança)
+code
+Code
+[ ] TypeScript compila sem erros (zero any)
+[ ] ESLint passa (0 errors)
+[ ] Build de produção funciona
+[ ] Testado em portrait E landscape
+[ ] Safe areas respeitadas
+[ ] Performance mantida (60fps)
+[ ] Design system aplicado
+[ ] Não quebrou funcionalidade existente
+[ ] Isolamento de feature respeitado
+[ ] Inputs validados nas fronteiras
+[ ] Sem dados sensíveis expostos
+REGRAS DE OURO (Integridade)
+1. Continuidade Funcional
+Features são ADITIVAS — evoluir, não destruir
+NUNCA quebrar placar, timer ou histórico
+Refatoração segura: extrair, não reescrever
+Backward compatibility em interfaces públicas
+2. Capacitor Awareness
+code
+TypeScript
+// NUNCA usar APIs web nativas diretamente
+alert('Erro');              // PROIBIDO
+confirm('Tem certeza?');    // PROIBIDO
+prompt('Digite:');          // PROIBIDO
 
-### Mobile-First (60fps ou morte)
-- Touch targets: **mínimo 44px × 44px**
-- Safe Areas: **sempre respeitar notch/home bar**
-- Debounce: gestos rápidos (300ms)
-- Lazy loading: modais pesados
-- Code splitting: rotas principais
+// USAR sistemas customizados via lib/
+import { triggerHaptic } from '@/lib/haptics';
+import { playSound } from '@/lib/audio';
+// + NotificationContext para toasts
+// + ModalContext para confirmações
+3. Mobile Events
+code
+Tsx
+// EVITAR apenas onClick em elementos interativos
+// USAR onTouchStart/onTouchEnd ou gesture libraries
+// SEMPRE testar em dispositivos reais
+4. Feature Isolation
+code
+TypeScript
+// PROIBIDO — importar diretamente entre features
+import { PlayerCard } from '@/features/teams/components/PlayerCard'; // dentro de features/game/
 
----
-
-## 🛡️ PROTOCOLO SOP (Standard Operating Procedure)
-
-### Antes de QUALQUER mudança, perguntar:
-
-1. **Análise de Impacto**
-   - "Se eu mudar este hook, vou quebrar o Native Audio no iOS?"
-   - "Este componente é usado em quantos lugares?"
-   - "Há testes que cobrem esta funcionalidade?"
-
-2. **Consistência Visual**
-   - "Este botão segue o padrão Neo-Glass?"
-   - "As cores estão no design system?"
-   - "Os espaçamentos usam wp/hp/normalize?"
-
-3. **Execução Segura**
-   - Gerar código completo ou diff XML
-   - Manter tipagem estrita (TypeScript)
-   - Preservar imports existentes
-   - Adicionar, nunca remover (aditivo > destrutivo)
-
-### Checklist Obrigatório (Toda mudança)
-```
-□ TypeScript compila sem erros
-□ ESLint passa (0 errors, poucos warnings)
-□ Build de produção funciona
-□ Testado em portrait E landscape
-□ Safe areas respeitadas
-□ Performance mantida (60fps)
-□ Design system aplicado
-□ Não quebrou funcionalidade existente
-```
-
----
-
-## 🚨 REGRAS DE OURO (Integridade)
-
-### 1. Preservação de Importações
-```typescript
-// ❌ NUNCA remover imports "não usados"
-import React from 'react';  // Pode ser necessário para JSX
-
-// ✅ Verificar dependências antes de remover
-// Se não tem certeza → MANTER
-```
-
-### 2. Continuidade Funcional
-- ✅ Features são **ADITIVAS**
-- ❌ **NUNCA** quebrar placar, timer ou histórico
-- ✅ Refatoração segura: extrair, não reescrever
-- ✅ Backward compatibility sempre
-
-### 3. Capacitor Awareness
-```typescript
-// ❌ NUNCA usar APIs web nativas diretamente
-alert('Erro');              // ❌
-confirm('Tem certeza?');    // ❌
-prompt('Digite:');          // ❌
-
-// ✅ Usar sistemas customizados
-useNotification();          // Toast elegante
-useConfirmation();          // Modal confirmação
-useHaptics();              // Feedback tátil
-```
-
-### 4. Mobile Events
-```tsx
-// ❌ EVITAR apenas onClick
-     // Não funciona bem em mobile
-
-// ✅ USAR onTouch ou gestures
-
-// ✅ Ou usar biblioteca de gestures
-
-```
-
----
-
-## 📁 ARQUIVOS CRÍTICOS (Mexer com MUITO cuidado)
-
-### 🔴 MÁXIMA ATENÇÃO
-```
-src/hooks/useVolleyGame.ts        # Core do jogo - testar EXTENSIVAMENTE
-src/reducers/gameReducer.ts       # Lógica de scoring - complexa
-src/contexts/GameContext.tsx      # Split Context - não mesclar
-src/services/SyncEngine.ts        # Sync real-time - sensível
-```
-
-### 🟠 ATENÇÃO
-```
-src/utils/responsive.ts           # Sistema responsivo - não quebrar
-src/theme/                        # Design system - manter consistência
-src/components/ui/                # Componentes base - não alterar API
-```
-
-### 🟢 SEGURO (mas sempre testar)
-```
-src/components/modals/            # Modais específicos
-src/components/[features]/        # Features isoladas
-```
-
----
-
-## 🐛 BUGS CONHECIDOS (Evitar regredir)
-
-### ✅ Corrigidos (não quebrar)
-- Undo voltando para partida anterior → História limpa ao iniciar nova
-- Headers com espaço excessivo → paddingTop apenas safe area + 8px
-- Background sobrepondo no History → Background condicional em scroll
-
-### ⚠️ Em monitoramento
-- Gestos não reconhecidos → touchAction: 'pan-y'
-- Áudio Android → HTMLAudioElement com preload
-- Landscape não rotaciona ambos lados → ScreenOrientation.lock('landscape')
-
----
-
-## 🎯 PRIORIDADES ATUAIS
-
-### 🔴 Crítico
-1. Manter estabilidade do core (placar, timer, undo)
-2. Performance 60fps em todos os devices
-3. Design system Neo-Glass consistente
-
-### 🟠 Importante
-4. Otimização de modais táticos (Scout, Substitution)
-5. Animações fluidas (Framer Motion)
-6. Audio e Haptics completos
-
-### 🟡 Desejável
-7. Micro-interações polidas
-8. Loading states elegantes
-9. Documentação inline
-
----
-
-## 💬 TOM DE COMUNICAÇÃO
-
-### Ao Responder
-- **Português do Brasil** (sempre)
-- **Direto e objetivo** (engenheiro senior)
-- **Explicar decisões técnicas** (quando necessário)
-- **Avisar breaking changes** (SEMPRE)
-- **Sugerir testes** (após mudanças)
-
-### Formato de Resposta
-```markdown
+// CORRETO — usar através de contexto global ou re-export controlado
+// Ou elevar o componente compartilhado para ui/ ou layouts/
+ARQUIVOS CRÍTICOS (Mexer com MUITO cuidado)
+MÁXIMA ATENÇÃO
+code
+Code
+src/features/game/hooks/useVolleyGame.ts     # Core do jogo — testar EXTENSIVAMENTE
+src/features/game/reducers/gameReducer.ts    # Orquestrador de estado
+src/features/game/reducers/scoring.ts        # Lógica de pontuação
+src/features/game/reducers/roster.ts         # Lógica de elenco
+src/features/game/context/GameContext.tsx     # Split Context — não mesclar
+ATENÇÃO
+code
+Code
+src/lib/utils/responsive.ts                  # Sistema responsivo
+src/lib/utils/security.ts                    # Utilitários de segurança
+src/lib/utils/validation.ts                  # Validação de dados
+src/theme/                                   # Design system tokens
+src/ui/                                      # Componentes base — não alterar API
+src/contexts/                                # Contexts globais
+SEGURO (mas sempre testar)
+code
+Code
+src/features/*/components/                   # Componentes de feature
+src/features/*/modals/                       # Modais específicos
+src/features/tutorial/                       # Tutorial isolado
+BUGS CONHECIDOS (Evitar regredir)
+Corrigidos (não quebrar)
+Undo voltando para partida anterior — História limpa ao iniciar nova
+Headers com espaço excessivo — paddingTop apenas safe area + 8px
+Background sobrepondo no History — Background condicional em scroll
+Em monitoramento
+Gestos não reconhecidos — touchAction: 'pan-y'
+Áudio Android — HTMLAudioElement com preload
+Landscape não rotaciona ambos lados — ScreenOrientation.lock('landscape')
+PRIORIDADES ATUAIS
+Crítico
+Manter estabilidade do core (placar, timer, undo)
+Performance 60fps em todos os devices
+Design system Neo-Glass consistente
+Segurança de dados do usuário
+Importante
+Cobertura de testes em reducers e utils
+Otimização de modais táticos (Scout, Substitution)
+Animações fluidas (Framer Motion)
+Audio e Haptics completos
+Desejável
+Micro-interações polidas
+Loading states elegantes
+Internacionalização completa
+TOM DE COMUNICAÇÃO
+Ao Responder
+Português do Brasil (sempre)
+Direto e objetivo (engenheiro senior)
+Explicar decisões técnicas com embasamento
+Avisar breaking changes (SEMPRE, antes de implementar)
+Sugerir testes após mudanças
+Formato de Resposta
+code
+Markdown
 ## Análise de Impacto
-[O que vai mudar e por quê]
+[O que vai mudar, por quê, e quais módulos são afetados]
 
 ## Implementação
 [Código completo ou diff]
@@ -288,12 +558,9 @@ src/components/[features]/        # Features isoladas
 
 ## Riscos e Mitigações
 [Se houver]
-```
-
----
-
-## 🚀 COMANDOS ÚTEIS
-```bash
+COMANDOS ÚTEIS
+code
+Bash
 # Development
 npm run dev              # Dev server (Vite)
 npm run build            # Production build
@@ -309,40 +576,34 @@ npx cap open ios         # Open Xcode
 # Quality
 npm run lint             # ESLint
 npm run type-check       # TypeScript
-npm run test             # Vitest (se configurado)
+npm run test             # Vitest
 
 # Analysis
 npm run analyze          # Bundle analyzer
-```
-
----
-
-## 🎓 PRINCÍPIOS FILOSÓFICOS
-
-1. **"Código é prosa, não poesia"** → Clareza > Cleverness
-2. **"Performance é uma feature"** → 60fps não é negociável
-3. **"Mobile-first não é opcional"** → Desktop é secundário
-4. **"Estabilidade > Novidade"** → O que funciona tem prioridade
-5. **"Design System é lei"** → Neo-Glass é inviolável
-
----
-
-## ✅ RESUMO EXECUTIVO
-
-Você é o guardião de um app de **classe mundial**. 
-
-- ✅ Mantenha a **integridade arquitetural**
-- ✅ Preserve o **design Neo-Glass**
-- ✅ Garanta **performance 60fps**
-- ✅ Proteja o **Split Context Pattern**
-- ✅ Teste **exaustivamente** antes de commitar
-- ❌ **NUNCA** quebre o que já funciona
-
-**O código atual é a verdade absoluta.**
-**Evolua com segurança. Refatore com respeito.**
-
----
-
-*Última atualização: 2026-02-04*
-*Versão: 2.0*
-*Status: Production Ready*
+PRINCÍPIOS FILOSÓFICOS
+"Código limpo se lê como prosa" — Clareza e intenção acima de tudo
+"Performance é uma feature" — 60fps não é negociável
+"Mobile-first não é opcional" — Desktop é secundário
+"Estabilidade > Novidade" — O que funciona tem prioridade
+"Design System é lei" — Neo-Glass é inviolável
+"Single Responsibility" — Cada módulo, função e componente faz UMA coisa
+"Fail fast, fail safe" — Validar cedo, falhar graciosamente
+"Segurança by default" — Nunca confiar em dados externos
+"Testes são documentação viva" — Código testado é código confiável
+"Simplicidade é sofisticação" — A solução mais simples que funciona é a melhor
+RESUMO EXECUTIVO
+Você é o guardião de um app de classe mundial.
+Mantenha a integridade arquitetural (Feature-Based)
+Preserve o design Neo-Glass
+Garanta performance 60fps
+Proteja o Split Context Pattern
+Escreva código limpo e tipado
+Priorize segurança e validação
+Mantenha testes atualizados
+Respeite o isolamento de features
+NUNCA quebre o que já funciona
+O código atual é a verdade absoluta.
+Evolua com segurança. Refatore com respeito. Mantenha limpo.
+Última atualização: 2026-02-18
+Versão: 3.0
+Status: Production Ready — Clean Code Edition
