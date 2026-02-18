@@ -249,16 +249,19 @@ export const TeamColumn = memo(({
                         {displayedPlayers.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-8 opacity-60 border border-dashed border-slate-200 dark:border-white/5 rounded-xl bg-slate-50/50 dark:bg-white/[0.01]"><div className="p-2 bg-slate-100 dark:bg-white/5 rounded-full mb-2"><UserPlus size={20} className="text-slate-400" /></div><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t('teamManager.dragPlayersHere')}</span></div>
                         ) : (
-                            <SortableContext items={displayedPlayers.map(p => p.id)} strategy={verticalListSortingStrategy}>
+                            <SortableContext items={displayedPlayers.map((p, idx) => (p.id && p.id.trim()) ? p.id : `column-player-safe-${idx}`)} strategy={verticalListSortingStrategy}>
                                 <AnimatePresence initial={false}>
-                                    {displayedPlayers.map(p => (
-                                        <PlayerListItem
-                                            key={p.id}
-                                            player={p}
-                                            locationId={id}
-                                            isCompact={window.innerWidth < 640 && !isQueue}
-                                        />
-                                    ))}
+                                    {displayedPlayers.map((p, idx) => {
+                                        const safeKey = (p.id && p.id.trim()) ? p.id : `column-player-safe-${idx}`;
+                                        return (
+                                            <PlayerListItem
+                                                key={safeKey}
+                                                player={p}
+                                                locationId={id}
+                                                isCompact={window.innerWidth < 640 && !isQueue}
+                                            />
+                                        );
+                                    })}
                                 </AnimatePresence>
                             </SortableContext>
                         )}

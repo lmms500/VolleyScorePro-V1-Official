@@ -9,8 +9,6 @@ import { useCallback, useMemo } from 'react';
 import { useActions, useRoster } from '@contexts/GameContext';
 import { useGameAudio } from './useGameAudio';
 import { useHaptics } from '@lib/haptics/useHaptics';
-import { useNotification } from '@contexts/NotificationContext';
-import { useTranslation } from '@contexts/LanguageContext';
 import { TeamId, SkillType } from '@types';
 
 export interface GameHandlers {
@@ -42,8 +40,6 @@ export function useGameHandlers(triggerSupportAd: (onComplete: () => void) => vo
     const { syncRole, config } = useRoster();
     const audio = useGameAudio(config);
     const haptics = useHaptics(true);
-    const { showNotification } = useNotification();
-    const { t } = useTranslation();
 
     const isSpectator = syncRole === 'spectator';
 
@@ -93,25 +89,14 @@ export function useGameHandlers(triggerSupportAd: (onComplete: () => void) => vo
         undo();
         audio.playUndo();
         haptics.impact('medium');
-        showNotification({
-            type: 'info',
-            mainText: t('notifications.actionUndone'),
-            subText: t('notifications.actionUndoneSub'),
-            systemIcon: 'undo'
-        });
-    }, [undo, audio, haptics, t, isSpectator, showNotification]);
+    }, [undo, audio, haptics, isSpectator]);
 
     const handleToggleSides = useCallback(() => {
         if (isSpectator) return;
 
         toggleSides();
-        showNotification({
-            type: 'info',
-            mainText: t('notifications.sidesSwapped'),
-            subText: t('notifications.sidesSwappedSub'),
-            systemIcon: 'transfer'
-        });
-    }, [toggleSides, t, isSpectator, showNotification]);
+        haptics.impact('light');
+    }, [toggleSides, isSpectator, haptics]);
 
     // --- RESET/ROTATION HANDLERS (with ad support) ---
 

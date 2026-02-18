@@ -9,8 +9,8 @@ import { motion } from 'framer-motion';
 import { staggerContainer, staggerItem } from '@lib/utils/animations';
 
 interface TeamStatsModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+    isOpen: boolean;
+    onClose: () => void;
 }
 
 interface TeamAggregate {
@@ -54,7 +54,7 @@ export const TeamStatsModal: React.FC<TeamStatsModalProps> = ({ isOpen, onClose 
             if (!teamMap.has(key)) {
                 teamMap.set(key, {
                     id: key,
-                    name: displayName.trim(), 
+                    name: displayName.trim(),
                     matches: 0, wins: 0, losses: 0, winRate: 0,
                     setsWon: 0, setsLost: 0, pointsScored: 0, pointsConceded: 0
                 });
@@ -116,8 +116,8 @@ export const TeamStatsModal: React.FC<TeamStatsModalProps> = ({ isOpen, onClose 
                 <div className="mb-4 sticky top-0 z-10 py-1 px-1">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             placeholder={t('historyList.searchPlaceholder')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -126,7 +126,7 @@ export const TeamStatsModal: React.FC<TeamStatsModalProps> = ({ isOpen, onClose 
                     </div>
                 </div>
 
-                <motion.div 
+                <motion.div
                     className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pb-safe-bottom px-1"
                     variants={staggerContainer}
                     initial="hidden"
@@ -135,50 +135,53 @@ export const TeamStatsModal: React.FC<TeamStatsModalProps> = ({ isOpen, onClose 
                     {filteredStats.length === 0 ? (
                         <div className="text-center py-12 text-slate-400 italic text-sm flex flex-col items-center gap-2">
                             <Trophy size={32} className="opacity-20" />
-                            {stats.length === 0 ? t('historyList.empty') : t('teamManager.profiles.noMatch', {term: searchTerm})}
+                            {stats.length === 0 ? t('historyList.empty') : t('teamManager.profiles.noMatch', { term: searchTerm })}
                         </div>
                     ) : (
-                        filteredStats.map((team) => (
-                            <motion.div key={team.id} variants={staggerItem} className="bg-white dark:bg-white/5 rounded-2xl p-4 border border-black/5 dark:border-white/5 shadow-sm">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-base sm:text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight truncate max-w-[70%]">{team.name}</h3>
-                                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${team.winRate >= 50 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'}`}>
-                                        {team.winRate}% {t('stats.winRate')}
+                        filteredStats.map((team, idx) => {
+                            const safeKey = (team.id && team.id.trim()) ? team.id : `stats-team-safe-${idx}`;
+                            return (
+                                <motion.div key={safeKey} variants={staggerItem} className="bg-white dark:bg-white/5 rounded-2xl p-4 border border-black/5 dark:border-white/5 shadow-sm">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-base sm:text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight truncate max-w-[70%]">{team.name}</h3>
+                                        <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${team.winRate >= 50 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'}`}>
+                                            {team.winRate}% {t('stats.winRate')}
+                                        </div>
                                     </div>
-                                </div>
-                                
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                    <StatCard 
-                                        title={t('stats.matches')}
-                                        value={team.matches} 
-                                        sub={`${team.wins}W - ${team.losses}L`}
-                                        icon={Trophy} 
-                                        colorClass="bg-amber-500 text-amber-500" 
-                                    />
-                                    <StatCard 
-                                        title={t('stats.sets')}
-                                        value={team.setsWon + team.setsLost} 
-                                        sub={`${team.setsWon}W - ${team.setsLost}L`}
-                                        icon={Activity} 
-                                        colorClass="bg-indigo-500 text-indigo-500" 
-                                    />
-                                    <StatCard 
-                                        title={t('stats.points')} 
-                                        value={team.pointsScored} 
-                                        sub={`Avg ${Math.round(team.pointsScored / (team.matches || 1))}`}
-                                        icon={Target} 
-                                        colorClass="bg-emerald-500 text-emerald-500" 
-                                    />
-                                    <StatCard 
-                                        title={t('stats.conceded')}
-                                        value={team.pointsConceded} 
-                                        sub={`Diff ${team.pointsScored - team.pointsConceded > 0 ? '+' : ''}${team.pointsScored - team.pointsConceded}`}
-                                        icon={TrendingUp} 
-                                        colorClass="bg-rose-500 text-rose-500" 
-                                    />
-                                </div>
-                            </motion.div>
-                        ))
+
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                        <StatCard
+                                            title={t('stats.matches')}
+                                            value={team.matches}
+                                            sub={`${team.wins}W - ${team.losses}L`}
+                                            icon={Trophy}
+                                            colorClass="bg-amber-500 text-amber-500"
+                                        />
+                                        <StatCard
+                                            title={t('stats.sets')}
+                                            value={team.setsWon + team.setsLost}
+                                            sub={`${team.setsWon}W - ${team.setsLost}L`}
+                                            icon={Activity}
+                                            colorClass="bg-indigo-500 text-indigo-500"
+                                        />
+                                        <StatCard
+                                            title={t('stats.points')}
+                                            value={team.pointsScored}
+                                            sub={`Avg ${Math.round(team.pointsScored / (team.matches || 1))}`}
+                                            icon={Target}
+                                            colorClass="bg-emerald-500 text-emerald-500"
+                                        />
+                                        <StatCard
+                                            title={t('stats.conceded')}
+                                            value={team.pointsConceded}
+                                            sub={`Diff ${team.pointsScored - team.pointsConceded > 0 ? '+' : ''}${team.pointsScored - team.pointsConceded}`}
+                                            icon={TrendingUp}
+                                            colorClass="bg-rose-500 text-rose-500"
+                                        />
+                                    </div>
+                                </motion.div>
+                            );
+                        })
                     )}
                 </motion.div>
             </div>

@@ -144,15 +144,7 @@ export const GameScreen: React.FC = () => {
             subtractPoint(team);
         },
         onUndo: handlers.handleUndo,
-        onThinkingState: (thinking) =>
-            thinking
-                ? showNotification({
-                    mainText: t('notifications.thinking'),
-                    type: 'info',
-                    subText: t('notifications.aiProcessing'),
-                    systemIcon: 'mic'
-                })
-                : hideNotification(),
+        onThinkingState: () => {},
         onTimeout: (team) => useTimeout(team),
         onSetServer: (team) => setServer(team),
         language,

@@ -17,6 +17,7 @@ interface ModalProps {
   backdropClassName?: string;
   zIndex?: string;
   variant?: 'floating' | 'fullscreen' | 'immersive';
+  footer?: React.ReactNode;
 }
 
 const fullscreenVariants: Variants = {
@@ -85,7 +86,8 @@ export const Modal: React.FC<ModalProps> = ({
   persistent = false,
   backdropClassName = "bg-slate-950/60 backdrop-blur-sm",
   zIndex = "z-[60]",
-  variant = 'floating'
+  variant = 'floating',
+  footer
 }) => {
   const [mounted, setMounted] = useState(false);
 
@@ -184,13 +186,26 @@ export const Modal: React.FC<ModalProps> = ({
               </div>
             )}
 
-            <div className={`
-              relative z-10
-              ${isImmersive ? 'w-full h-full' : 'overflow-y-auto custom-scrollbar flex-1 flex flex-col'}
-              ${!isImmersive && (isFullscreen ? `px-4 pb-4 ${!shouldRenderHeader ? 'pt-0' : ''}` : 'px-6 pb-6 landscape:px-5')}
-            `}>
+            <div
+              className={`
+                relative z-10
+                ${isImmersive ? 'w-full h-full' : 'overflow-y-auto overflow-x-hidden custom-scrollbar flex-1 min-h-0'}
+                ${!isImmersive && (isFullscreen ? `px-4 pb-4 ${!shouldRenderHeader ? 'pt-0' : ''}` : 'px-6 pb-6 landscape:px-5')}
+              `}
+              style={{
+                touchAction: isImmersive ? 'none' : 'pan-y',
+                WebkitOverflowScrolling: 'touch',
+                overscrollBehaviorY: 'contain'
+              }}
+            >
               {children}
             </div>
+
+            {footer && (
+              <div className="shrink-0 z-20">
+                {footer}
+              </div>
+            )}
           </GlassSurface>
         </div>
       )}

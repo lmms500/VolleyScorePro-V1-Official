@@ -66,25 +66,33 @@ export const isNumberAvailable = (team: Team, number: string | undefined, exclud
     return validateUniqueNumber(roster, number, excludePlayerId).valid;
 };
 
-export const createPlayer = (name: string, index: number, profileId?: string, skillLevel: number = 5, number?: string): Player => ({
-    id: uuidv4(),
-    name: sanitizeInput(name),
-    profileId,
-    skillLevel,
-    number: number ? number.trim() : undefined,
-    isFixed: false,
-    originalIndex: index,
-    displayOrder: index
-});
+export const createPlayer = (name: string, index: number, profileId?: string, skillLevel: number = 5, number?: string, id?: string): Player => {
+    // [FIX] Robust ID generation - handle null/empty/whitespace
+    const finalId = (id && id.trim()) ? id : uuidv4();
+    return {
+        id: finalId,
+        name: sanitizeInput(name),
+        profileId,
+        skillLevel,
+        number: number ? number.trim() : undefined,
+        isFixed: false,
+        originalIndex: index,
+        displayOrder: index
+    };
+};
 
-export const createTeam = (name: string, players: Player[], color: string = 'slate'): Team => ({
-    id: uuidv4(),
-    name: sanitizeInput(name),
-    color,
-    players,
-    reserves: [],
-    hasActiveBench: false
-});
+export const createTeam = (name: string, players: Player[], color: string = 'slate', id?: string): Team => {
+    // [FIX] Robust ID generation - handle null/empty/whitespace
+    const finalId = (id && id.trim()) ? id : uuidv4();
+    return {
+        id: finalId,
+        name: sanitizeInput(name),
+        color,
+        players,
+        reserves: [],
+        hasActiveBench: false
+    };
+};
 
 const generateNextTeamName = (courtA: Team, courtB: Team, queue: Team[]): string => {
     const allTeams = [courtA, courtB, ...queue];

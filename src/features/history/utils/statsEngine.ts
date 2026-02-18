@@ -9,6 +9,7 @@ export interface StatsDelta {
   blocks: number;
   aces: number;
   mvpScore: number;
+  mvpCount: number;
 }
 
 /**
@@ -38,7 +39,8 @@ export const calculateMatchDeltas = (
         attacks: 0,
         blocks: 0,
         aces: 0,
-        mvpScore: 0
+        mvpScore: 0,
+        mvpCount: 0
       });
     }
     return deltas.get(id)!;
@@ -87,6 +89,22 @@ export const calculateMatchDeltas = (
     }
   }
 
+  // 3. Determine MVP(s)
+  let maxScore = -1;
+  deltas.forEach((delta) => {
+    if (delta.mvpScore > maxScore) {
+      maxScore = delta.mvpScore;
+    }
+  });
+
+  if (maxScore > 0) {
+    deltas.forEach((delta) => {
+      if (delta.mvpScore === maxScore) {
+        delta.mvpCount = 1;
+      }
+    });
+  }
+
   return deltas;
 };
 
@@ -108,6 +126,6 @@ export const mergeStats = (current: ProfileStats | undefined, delta: StatsDelta)
     attacks: base.attacks + delta.attacks,
     blocks: base.blocks + delta.blocks,
     aces: base.aces + delta.aces,
-    mvpCount: base.mvpCount
+    mvpCount: (base.mvpCount || 0) + (delta.mvpCount || 0)
   };
 };

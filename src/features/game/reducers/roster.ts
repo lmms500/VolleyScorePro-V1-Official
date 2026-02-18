@@ -228,9 +228,21 @@ export const rosterReducer = (state: GameState, action: GameAction): GameState =
 
         case 'ROSTER_ENSURE_TEAM_IDS': {
             let c = false, na = state.teamARoster, nb = state.teamBRoster;
-            if (state.teamARoster.id === 'A') { na = { ...state.teamARoster, id: uuidv4() }; c = true; }
-            if (state.teamBRoster.id === 'B') { nb = { ...state.teamBRoster, id: uuidv4() }; c = true; }
-            return c ? { ...state, teamARoster: na, teamBRoster: nb } : state;
+            if (!state.teamARoster.id || state.teamARoster.id === 'A') { na = { ...state.teamARoster, id: uuidv4() }; c = true; }
+            if (!state.teamBRoster.id || state.teamBRoster.id === 'B') { nb = { ...state.teamBRoster, id: uuidv4() }; c = true; }
+            
+            let nq = state.queue;
+            const fixedQueue = state.queue.map(t => {
+                if (!t.id || t.id.trim() === '') {
+                    c = true;
+                    return { ...t, id: uuidv4() };
+                }
+                return t;
+            });
+
+            if (c) nq = fixedQueue;
+
+            return c ? { ...state, teamARoster: na, teamBRoster: nb, queue: nq } : state;
         }
 
         case 'ROSTER_SWAP_POSITIONS': {

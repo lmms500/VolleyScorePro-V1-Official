@@ -243,19 +243,73 @@ export const RosterBoard: React.FC<RosterBoardProps> = ({ courtLimit, benchLimit
             ) : (
               <AnimatePresence initial={false} mode="popLayout">
                 {queue.map((team: Team, idx: number) => {
+                  // [FIX] Highly robust key generation. 
+                  // Handles cases where team.id is missing, empty, or just whitespace.
+                  // Using index fallback ensures each item has a unique key in the current list.
+                  const safeKey = (team.id && team.id.trim()) ? team.id : `queue-team-${idx}`;
+
                   const isVisible = idx >= (queuePage - 1 - RENDER_WINDOW) && idx <= (queuePage - 1 + RENDER_WINDOW);
-                  if (!isVisible) return <div key={team.id} className="snap-center w-[calc(100vw-3rem)] sm:w-96 landscape:w-[calc(50vw-2rem)] flex-shrink-0 h-full" />;
+                  if (!isVisible) return <div key={safeKey} className="snap-center w-[calc(100vw-3rem)] sm:w-96 landscape:w-[calc(50vw-2rem)] flex-shrink-0 h-full" />;
 
                   return (
-                    <motion.div id={`queue-card-${team.id}`} key={team.id} layout="position" layoutId={`queue-card-${team.id}`} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }} transition={{ type: "spring", stiffness: 60, damping: 15, mass: 1 }} className="snap-center w-[calc(100vw-3rem)] sm:w-96 landscape:w-[calc(50vw-2rem)] flex-shrink-0 h-full flex flex-col">
-                      <RosterColumn id={team.id} team={team} usedColors={usedColors} isQueue={true} isNext={idx === 0} onDisband={wrappedDisband} onReorder={handleReorderLocal} queueIndex={idx} queueSize={queue.length} isDragOver={dragOverContainerId === team.id || dragOverContainerId === `${team.id}_Reserves`} highlighted={highlightedTeamId === team.id} maxPlayers={courtLimit} maxBench={benchLimit} />
+                    <motion.div
+                      key={safeKey}
+                      id={`queue-card-${safeKey}`}
+                      layout="position"
+                      layoutId={`queue-card-${safeKey}`}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                      transition={{ type: "spring", stiffness: 60, damping: 15, mass: 1 }}
+                      className="snap-center w-[calc(100vw-3rem)] sm:w-96 landscape:w-[calc(50vw-2rem)] flex-shrink-0 h-full flex flex-col"
+                    >
+                      <RosterColumn
+                        id={team.id || safeKey}
+                        team={team}
+                        usedColors={usedColors}
+                        isQueue={true}
+                        isNext={idx === 0}
+                        onDisband={wrappedDisband}
+                        onReorder={handleReorderLocal}
+                        queueIndex={idx}
+                        queueSize={queue.length}
+                        isDragOver={dragOverContainerId === team.id || dragOverContainerId === `${team.id}_Reserves`}
+                        highlighted={highlightedTeamId === team.id}
+                        maxPlayers={courtLimit}
+                        maxBench={benchLimit}
+                      />
                     </motion.div>
                   );
                 })}
               </AnimatePresence>
             )}
           </div>
-          <AnimatePresence>{canScrollLeft && (<motion.button initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} onClick={() => scrollContainer('left')} className="absolute left-2 top-1/2 -translate-y-1/2 z-40 w-9 h-9 flex items-center justify-center rounded-full bg-black/20 dark:bg-white/10 backdrop-blur-md shadow-lg border border-white/10 text-white hover:bg-black/40 dark:hover:bg-white/20 hover:scale-110 transition-transform active:scale-90"><ChevronLeft size={18} strokeWidth={2.5} /></motion.button>)}{canScrollRight && (<motion.button initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} onClick={() => scrollContainer('right')} className="absolute right-2 top-1/2 -translate-y-1/2 z-40 w-9 h-9 flex items-center justify-center rounded-full bg-black/20 dark:bg-white/10 backdrop-blur-md shadow-lg border border-white/10 text-white hover:bg-black/40 dark:hover:bg-white/20 hover:scale-110 transition-transform active:scale-90"><ChevronRight size={18} strokeWidth={2.5} /></motion.button>)}</AnimatePresence>
+          <AnimatePresence>
+            {canScrollLeft && (
+              <motion.button
+                key="scroll-left"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                onClick={() => scrollContainer('left')}
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-40 w-9 h-9 flex items-center justify-center rounded-full bg-black/20 dark:bg-white/10 backdrop-blur-md shadow-lg border border-white/10 text-white hover:bg-black/40 dark:hover:bg-white/20 hover:scale-110 transition-transform active:scale-90"
+              >
+                <ChevronLeft size={18} strokeWidth={2.5} />
+              </motion.button>
+            )}
+            {canScrollRight && (
+              <motion.button
+                key="scroll-right"
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                onClick={() => scrollContainer('right')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-40 w-9 h-9 flex items-center justify-center rounded-full bg-black/20 dark:bg-white/10 backdrop-blur-md shadow-lg border border-white/10 text-white hover:bg-black/40 dark:hover:bg-white/20 hover:scale-110 transition-transform active:scale-90"
+              >
+                <ChevronRight size={18} strokeWidth={2.5} />
+              </motion.button>
+            )}
+          </AnimatePresence>
         </div>
       </motion.div>
     </motion.div>

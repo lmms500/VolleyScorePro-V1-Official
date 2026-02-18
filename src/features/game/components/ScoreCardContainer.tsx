@@ -4,7 +4,6 @@ import { TeamId, SkillType } from '@types';
 import { useActions, useScore, useRoster } from '@contexts/GameContext';
 import { useTranslation } from '@contexts/LanguageContext';
 import { useGameAudio } from '@features/game/hooks/useGameAudio';
-import { useNotification } from '@contexts/NotificationContext';
 import { ScoreCardNormal } from '@features/game/components/ScoreCardNormal';
 
 interface ScoreCardContainerProps {
@@ -25,7 +24,6 @@ export const ScoreCardContainer: React.FC<ScoreCardContainerProps> = memo(({
   layoutContainerRef
 }) => {
   const { t } = useTranslation();
-  const { showNotification } = useNotification();
 
   // Consume contexts
   const {
@@ -84,28 +82,7 @@ export const ScoreCardContainer: React.FC<ScoreCardContainerProps> = memo(({
       : undefined;
 
     addPoint(targetTeamId, metadata);
-
-    // Notification
-    const currentTeam = targetTeamId === 'A' ? teamARoster : teamBRoster;
-    const color = currentTeam.color || (targetTeamId === 'A' ? 'indigo' : 'rose');
-
-    let mainText = currentTeam.name;
-    if (skill === 'opponent_error') {
-      mainText = t('scout.skills.opponent_error');
-    } else if (playerId && playerId !== 'unknown') {
-      const player = currentTeam.players.find(p => p.id === playerId)
-        || currentTeam.reserves?.find(p => p.id === playerId);
-      if (player) mainText = player.name;
-    }
-
-    showNotification({
-      type: 'success',
-      mainText,
-      subText: t('notifications.forTeam', { teamName: currentTeam.name }),
-      skill,
-      color
-    });
-  }, [isSpectator, audio, addPoint, teamARoster, teamBRoster, t, showNotification]);
+  }, [isSpectator, audio, addPoint, teamARoster, teamBRoster]);
 
   const handleSubtract = useCallback(() => {
     if (isSpectator) return;

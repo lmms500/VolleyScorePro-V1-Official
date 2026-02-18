@@ -87,11 +87,9 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
             variant="floating"
             backdropClassName="bg-black/60 backdrop-blur-md"
         >
-            {/* Main Container - removed h-full/overflow-hidden to allow natural scroll */}
-            <div className="flex flex-col min-h-full -mx-6 -mb-6 bg-transparent">
+            <div className="flex flex-col h-full -mx-6 -mb-6">
 
-                {/* CONTENT AREA - Natural Height */}
-                <div className="flex-1 p-6 sm:p-8 pt-6">
+                <div className="flex-1 overflow-y-auto min-h-0 p-6 sm:p-8 custom-scrollbar">
 
                     <div className="flex flex-col landscape:flex-row gap-6 sm:gap-8">
 
@@ -203,8 +201,7 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
                     </div>
                 </div>
 
-                {/* 3. STICKY FOOTER */}
-                <div className="sticky bottom-0 pt-4 border-t border-slate-200 dark:border-white/5 flex gap-3 px-6 sm:px-8 pb-6 sm:pb-8 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md z-30 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+                <div className="shrink-0 pt-4 border-t border-slate-200 dark:border-white/5 flex gap-3 px-6 sm:px-8 pb-6 sm:pb-8 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md z-30 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
                     <Button variant="ghost" onClick={onClose} className="flex-1 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 h-14 rounded-2xl hover:bg-slate-200 dark:hover:bg-white/10">
                         {t('common.back')}
                     </Button>

@@ -5,9 +5,10 @@ import { motion } from 'framer-motion';
 import { Share2, Users, Radio, ArrowRight, Loader2, Check, ShieldAlert, Monitor, Copy } from 'lucide-react';
 import { useTranslation } from '@contexts/LanguageContext';
 import { useHaptics } from '@lib/haptics/useHaptics';
+import { useNotification } from '@contexts/NotificationContext';
 import { SyncEngine } from '@features/broadcast/services/SyncEngine';
 import { useAuth } from '@contexts/AuthContext';
-import { useRoster } from '@contexts/GameContext'; // UPDATED
+import { useRoster } from '@contexts/GameContext';
 
 interface LiveSyncModalProps {
   isOpen: boolean;
@@ -28,13 +29,14 @@ export const LiveSyncModal: React.FC<LiveSyncModalProps> = ({ isOpen, onClose, o
   const sessionId = propSessionId; 
   
   const haptics = useHaptics();
+  const { showNotification } = useNotification();
   const [code, setCode] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [mode, setMode] = useState<'selection' | 'join'>('selection');
 
   const handleCreateSession = async () => {
       if (!user) {
-          alert(t('liveSync.syncRequirement'));
+          showNotification({ mainText: t('liveSync.syncRequirement'), type: 'error' });
           haptics.notification('error');
           return;
       }
@@ -63,7 +65,7 @@ export const LiveSyncModal: React.FC<LiveSyncModalProps> = ({ isOpen, onClose, o
       if (!sessionId) return;
       navigator.clipboard.writeText(sessionId);
       haptics.notification('success');
-      alert(t('liveSync.codeCopied'));
+      showNotification({ mainText: t('liveSync.codeCopied'), type: 'success' });
   };
 
   const copyObsUrl = () => {
@@ -72,7 +74,7 @@ export const LiveSyncModal: React.FC<LiveSyncModalProps> = ({ isOpen, onClose, o
       const url = `${baseUrl}?mode=broadcast&code=${sessionId}&obsLayout=horizontal`;
       navigator.clipboard.writeText(url);
       haptics.notification('success');
-      alert(t('liveSync.overlayCopied'));
+      showNotification({ mainText: t('liveSync.overlayCopied'), type: 'success' });
   };
 
   const handleCopyCode = () => {

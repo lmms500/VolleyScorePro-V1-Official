@@ -9,8 +9,6 @@ import { useRef, useEffect, useCallback } from 'react';
 import { useActiveTimeout } from './useActiveTimeout';
 import { useScore, useActions } from '@contexts/GameContext';
 import { useModals } from '@contexts/ModalContext';
-import { useNotification } from '@contexts/NotificationContext';
-import { useTranslation } from '@contexts/LanguageContext';
 import { TeamId } from '@types';
 
 export interface TimeoutManagerReturn {
@@ -37,8 +35,6 @@ export function useTimeoutManager(): TimeoutManagerReturn {
     const { timeoutsA, timeoutsB } = useScore();
     const { undo } = useActions();
     const { activeModal, openModal } = useModals();
-    const { showNotification } = useNotification();
-    const { t } = useTranslation();
 
     // --- CORE TIMEOUT STATE (INALTERADO) ---
     const {
@@ -74,8 +70,7 @@ export function useTimeoutManager(): TimeoutManagerReturn {
     const handleTimeoutUndo = useCallback(() => {
         undo();
         stopTimeout();
-        showNotification({ type: 'info', mainText: t('notifications.actionUndone') });
-    }, [undo, t, showNotification, stopTimeout]);
+    }, [undo, stopTimeout]);
 
     const handleTacticalBoard = useCallback(() => {
         minimizeTimeout();

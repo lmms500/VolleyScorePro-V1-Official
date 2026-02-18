@@ -73,6 +73,8 @@ export const useGamePersistence = ({
             payload: { ...finalState, syncRole: 'local' }
           });
           lastLogLength.current = (finalState.actionLog?.length || 0) + (finalState.matchLog?.length || 0);
+          // [FIX] Sanitiza IDs que possam estar vazios no state carregado
+          setTimeout(() => dispatch({ type: 'ROSTER_ENSURE_TEAM_IDS' }), 0);
         } else {
           dispatch({ type: 'ROSTER_ENSURE_TEAM_IDS' });
         }

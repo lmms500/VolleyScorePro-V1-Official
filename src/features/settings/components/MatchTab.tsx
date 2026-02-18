@@ -6,6 +6,7 @@ import { SectionTitle, SettingItem, PresetButton } from './SettingsUI';
 import { parseJSONFile, exportActiveMatch } from '@lib/storage/io';
 import { useTranslation } from '@contexts/LanguageContext';
 import { useActions, useScore, useRoster } from '@contexts/GameContext';
+import { useNotification } from '@contexts/NotificationContext';
 import { GAME_MODE_PRESETS } from '@config/gameModes';
 import type { GameModePreset } from '@types';
 import { useCombinedGameState } from '@features/game/hooks/useCombinedGameState';
@@ -19,6 +20,7 @@ interface MatchTabProps {
 
 export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig, onClose }) => {
     const { t } = useTranslation();
+    const { showNotification } = useNotification();
     const gameImportRef = useRef<HTMLInputElement>(null);
     const { loadStateFromFile } = useActions();
 
@@ -53,10 +55,10 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
                 loadStateFromFile(json.data);
                 onClose();
             } else {
-                alert(t('historyList.importError'));
+                showNotification({ mainText: t('historyList.importError'), type: 'error' });
             }
         } catch (e) {
-            alert(t('historyList.importError'));
+            showNotification({ mainText: t('historyList.importError'), type: 'error' });
         }
     };
 

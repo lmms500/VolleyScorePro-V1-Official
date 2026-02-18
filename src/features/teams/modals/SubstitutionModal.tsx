@@ -276,18 +276,21 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
                             <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">{t('substitution.outCourt')}</h3>
                         </div>
                         <div className="flex flex-col gap-3">
-                            {courtPlayers.map(p => (
-                                <PlayerCardBlock
-                                    key={p.id}
-                                    player={p}
-                                    isSelected={getPairIndex(p.id) !== null}
-                                    isPending={pendingOutId === p.id}
-                                    pairIndex={getPairIndex(p.id)}
-                                    type="out"
-                                    onSelect={handleSelect}
-                                    teamColor={team.color || 'slate'}
-                                />
-                            ))}
+                            {courtPlayers.map((p, idx) => {
+                                const safeKey = (p.id && p.id.trim()) ? p.id : `sub-out-${idx}`;
+                                return (
+                                    <PlayerCardBlock
+                                        key={safeKey}
+                                        player={p}
+                                        isSelected={getPairIndex(p.id) !== null}
+                                        isPending={pendingOutId === p.id}
+                                        pairIndex={getPairIndex(p.id)}
+                                        type="out"
+                                        onSelect={handleSelect}
+                                        teamColor={team.color || 'slate'}
+                                    />
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -297,18 +300,21 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
                             <h3 className="text-xs font-black uppercase tracking-widest text-slate-500">{t('substitution.inBench')}</h3>
                         </div>
                         <div className="flex flex-col gap-3">
-                            {benchPlayers.map(p => (
-                                <PlayerCardBlock
-                                    key={p.id}
-                                    player={p}
-                                    isSelected={getPairIndex(p.id) !== null}
-                                    isPending={false}
-                                    pairIndex={getPairIndex(p.id)}
-                                    type="in"
-                                    onSelect={handleSelect}
-                                    teamColor={team.color || 'slate'}
-                                />
-                            ))}
+                            {benchPlayers.map((p, idx) => {
+                                const safeKey = (p.id && p.id.trim()) ? p.id : `sub-in-${idx}`;
+                                return (
+                                    <PlayerCardBlock
+                                        key={safeKey}
+                                        player={p}
+                                        isSelected={getPairIndex(p.id) !== null}
+                                        isPending={false}
+                                        pairIndex={getPairIndex(p.id)}
+                                        type="in"
+                                        onSelect={handleSelect}
+                                        teamColor={team.color || 'slate'}
+                                    />
+                                );
+                            })}
                             {benchPlayers.length === 0 && (
                                 <div className="py-8 flex flex-col items-center justify-center text-slate-400/60 gap-2 border-2 border-dashed border-slate-200 dark:border-white/5 rounded-2xl bg-slate-50/50 dark:bg-white/[0.01]">
                                     <User size={20} />
@@ -333,18 +339,21 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
                         {/* Fixed Height Scroll Area with Padding for Rings */}
                         <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
                             <div className="grid grid-cols-3 gap-3 content-start">
-                                {courtPlayers.map(p => (
-                                    <CompactPlayerCard
-                                        key={p.id}
-                                        player={p}
-                                        isSelected={getPairIndex(p.id) !== null}
-                                        isPending={pendingOutId === p.id}
-                                        pairIndex={getPairIndex(p.id)}
-                                        type="out"
-                                        onSelect={handleSelect}
-                                        teamColor={team.color || 'slate'}
-                                    />
-                                ))}
+                                {courtPlayers.map((p, idx) => {
+                                    const safeKey = (p.id && p.id.trim()) ? p.id : `sub-out-compact-${idx}`;
+                                    return (
+                                        <CompactPlayerCard
+                                            key={safeKey}
+                                            player={p}
+                                            isSelected={getPairIndex(p.id) !== null}
+                                            isPending={pendingOutId === p.id}
+                                            pairIndex={getPairIndex(p.id)}
+                                            type="out"
+                                            onSelect={handleSelect}
+                                            teamColor={team.color || 'slate'}
+                                        />
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>
@@ -366,18 +375,21 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
                                         <span className="text-[10px] font-bold uppercase">{t('substitution.emptyBench')}</span>
                                     </div>
                                 ) : (
-                                    benchPlayers.map(p => (
-                                        <CompactPlayerCard
-                                            key={p.id}
-                                            player={p}
-                                            isSelected={getPairIndex(p.id) !== null}
-                                            isPending={false}
-                                            pairIndex={getPairIndex(p.id)}
-                                            type="in"
-                                            onSelect={handleSelect}
-                                            teamColor={team.color || 'slate'}
-                                        />
-                                    ))
+                                    benchPlayers.map((p, idx) => {
+                                        const safeKey = (p.id && p.id.trim()) ? p.id : `sub-in-compact-${idx}`;
+                                        return (
+                                            <CompactPlayerCard
+                                                key={safeKey}
+                                                player={p}
+                                                isSelected={getPairIndex(p.id) !== null}
+                                                isPending={false}
+                                                pairIndex={getPairIndex(p.id)}
+                                                type="in"
+                                                onSelect={handleSelect}
+                                                teamColor={team.color || 'slate'}
+                                            />
+                                        );
+                                    })
                                 )}
                             </div>
                         </div>

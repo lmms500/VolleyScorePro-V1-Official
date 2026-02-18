@@ -183,7 +183,12 @@
             "lowPower": "Eco Mode",
             "lowPowerSub": "Reduce effects",
             "reducedMotion": "Reduced Motion",
-            "reducedMotionSub": "Less animation"
+            "reducedMotionSub": "Less animation",
+            "perfNormal": "High Perf.",
+            "perfEco": "Eco Mode",
+            "perfMinimal": "No Effects",
+            "performanceMode": "Performance",
+            "performanceModeSub": "Adjust graphic effects"
         },
         "rules": {
             "title": "Rules",

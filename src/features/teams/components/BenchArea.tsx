@@ -74,16 +74,19 @@ export const BenchArea = memo(({ teamId, reserves, onClose, isFull }: BenchAreaP
                         </span>
                     </div>
                 ) : (
-                    <SortableContext items={reserves.map(p => p.id)} strategy={verticalListSortingStrategy}>
+                    <SortableContext items={reserves.map((p, idx) => (p.id && p.id.trim()) ? p.id : `bench-safe-${idx}`)} strategy={verticalListSortingStrategy}>
                         <AnimatePresence initial={false}>
-                            {reserves.map(p => (
-                                <PlayerListItem
-                                    key={p.id}
-                                    player={p}
-                                    locationId={benchId}
-                                    isCompact={true}
-                                />
-                            ))}
+                            {reserves.map((p, idx) => {
+                                const safeKey = (p.id && p.id.trim()) ? p.id : `bench-safe-${idx}`;
+                                return (
+                                    <PlayerListItem
+                                        key={safeKey}
+                                        player={p}
+                                        locationId={benchId}
+                                        isCompact={true}
+                                    />
+                                );
+                            })}
                         </AnimatePresence>
                     </SortableContext>
                 )}
