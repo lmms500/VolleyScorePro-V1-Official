@@ -19,10 +19,14 @@ interface FloatingControlBarProps {
   voiceEnabled: boolean;
   isListening: boolean;
   onToggleListening: () => void;
+  onStartListening?: () => void;
+  onStopListening?: () => void;
+  isPushToTalkMode?: boolean;
 }
 
 export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({
-  onUndo, canUndo, onSwap, onReset, onMenu, onCourt, voiceEnabled, isListening, onToggleListening
+  onUndo, canUndo, onSwap, onReset, onMenu, onCourt, voiceEnabled, isListening, onToggleListening,
+  onStartListening, onStopListening, isPushToTalkMode
 }) => {
   const { t } = useTranslation();
   const [isMinimized, setIsMinimized] = useState(false);
@@ -42,10 +46,10 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({
   const handleReset = useCallback(() => { onReset(); setIsHovering(false); }, [onReset]);
   const handleMenu = useCallback(() => { onMenu(); setIsHovering(false); }, [onMenu]);
   const handleCourt = useCallback(() => { onCourt(); setIsHovering(false); }, [onCourt]);
-  const handleToggleListening = useCallback(() => { 
+  const handleToggleListening = useCallback(() => {
     console.log('[FloatingControlBar] handleToggleListening called');
-    onToggleListening(); 
-    setIsHovering(false); 
+    onToggleListening();
+    setIsHovering(false);
   }, [onToggleListening]);
   const { ref, width, height } = useElementSize<HTMLDivElement>();
 
@@ -114,11 +118,15 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({
             {voiceEnabled && (
               <IconButton
                 icon={isListening ? <Mic size={iconSize} strokeWidth={1.5} /> : <MicOff size={iconSize} strokeWidth={1.5} />}
-                onClick={() => { 
+                onClick={isPushToTalkMode ? undefined : () => {
                   console.log('[FloatingControlBar] Button clicked, calling handleToggleListening');
-                  handleToggleListening(); 
-                  handleUserActivity(); 
+                  handleToggleListening();
+                  handleUserActivity();
                 }}
+                onPointerDown={isPushToTalkMode ? () => { onStartListening?.(); handleUserActivity(); } : undefined}
+                onPointerUp={isPushToTalkMode ? () => onStopListening?.() : undefined}
+                onPointerLeave={isPushToTalkMode ? () => onStopListening?.() : undefined}
+                onContextMenu={(e) => e.preventDefault()}
                 variant={isListening ? "filled" : "ghost"}
                 size="lg"
                 isActive={isListening}

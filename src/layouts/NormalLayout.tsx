@@ -18,6 +18,9 @@ const CourtPage = lazy(() => import('./CourtPage').then(m => ({ default: m.Court
 interface VoiceState {
     isListening: boolean;
     toggleListening: () => void;
+    startListening?: () => void;
+    stopListening?: () => void;
+    isPushToTalkMode?: boolean;
 }
 
 interface NormalLayoutProps {
@@ -177,6 +180,9 @@ export const NormalLayout: React.FC<NormalLayoutProps> = ({
                 voiceEnabled={config.voiceControlEnabled && !isSpectator}
                 isListening={voiceState.isListening}
                 onToggleListening={voiceState.toggleListening}
+                onStartListening={voiceState.startListening}
+                onStopListening={voiceState.stopListening}
+                isPushToTalkMode={voiceState.isPushToTalkMode}
                 onLiveSync={
                     FEATURE_FLAGS.ENABLE_LIVE_SYNC
                         ? handleOpenLiveSync

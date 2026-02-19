@@ -59,7 +59,7 @@ export const ModalManager: React.FC<ModalManagerProps> = memo(({
   const rosterState = useRoster();
 
   // Reconstruct necessary state parts for child components
-  const { isMatchOver, matchWinner, scoreA, scoreB, setsA, setsB, inSuddenDeath, servingTeam, currentSet, timeoutsA, timeoutsB, isDeuce, isMatchPointA, isMatchPointB, isSetPointA, isSetPointB, setsNeededToWin } = scoreState;
+  const { isMatchOver, matchWinner, scoreA, scoreB, setsA, setsB, inSuddenDeath, servingTeam, currentSet, timeoutsA, timeoutsB, isDeuce, isMatchPointA, isMatchPointB, isSetPointA, isSetPointB, setsNeededToWin, swappedSides } = scoreState;
   const { history, matchLog, actionLog } = logState;
   const { teamAName, teamBName, teamARoster, teamBRoster, config, syncRole, sessionId } = rosterState;
   const { seconds: matchDurationSeconds } = useTimerValue();
@@ -138,6 +138,7 @@ export const ModalManager: React.FC<ModalManagerProps> = memo(({
           currentSet={currentSet} setsA={setsA} setsB={setsB}
           isMatchPointA={false} isMatchPointB={false} isSetPointA={false} isSetPointB={false}
           isDeuce={false} inSuddenDeath={inSuddenDeath} config={config} matchLog={matchLog}
+          swappedSides={swappedSides}
           onOpenManager={() => openModal('manager')} onOpenHistory={() => openModal('history')} onOpenSettings={() => openModal('settings')}
         />
       )}

@@ -57,13 +57,17 @@ interface CourtLayoutProps {
 
     /** Rotation applied to the court visualization only (not header/footer). E.g., 90 for portrait inline. */
     courtRotation?: number;
+
+    /** Mirrors team display to match the main scoreboard swap state. */
+    swappedSides?: boolean;
 }
 
 export const CourtLayout: React.FC<CourtLayoutProps> = ({
     teamA, teamB, scoreA, scoreB, servingTeam, onManualRotate, onAddPoint, onSubtractPoint, onMovePlayer, onSubstitute,
     onTimeoutA, onTimeoutB, timeoutsA, timeoutsB,
     currentSet, setsA, setsB, isMatchPointA, isMatchPointB, isSetPointA, isSetPointB, isDeuce, inSuddenDeath,
-    matchLog, config, variant, onOpenManager, onOpenHistory, onOpenSettings, onDragActiveChange, nameRotation, courtRotation
+    matchLog, config, variant, onOpenManager, onOpenHistory, onOpenSettings, onDragActiveChange, nameRotation, courtRotation,
+    swappedSides
 }) => {
     const haptics = useHaptics();
 
@@ -173,6 +177,43 @@ export const CourtLayout: React.FC<CourtLayoutProps> = ({
         if (subModalTeamId && onSubstitute) onSubstitute(subModalTeamId, pIn, pOut);
     }, [subModalTeamId, onSubstitute]);
 
+    // --- SWAP DISPLAY LOGIC ---
+    const swapped = swappedSides ?? false;
+    const leftTeamId: TeamId  = swapped ? 'B' : 'A';
+    const rightTeamId: TeamId = swapped ? 'A' : 'B';
+    const leftTeam  = swapped ? teamB : teamA;
+    const rightTeam = swapped ? teamA : teamB;
+    const scoreLeft  = swapped ? scoreB : scoreA;
+    const scoreRight = swapped ? scoreA : scoreB;
+    const setsLeft   = swapped ? setsB  : setsA;
+    const setsRight  = swapped ? setsA  : setsB;
+    const timeoutsLeft  = swapped ? (timeoutsB ?? 0) : (timeoutsA ?? 0);
+    const timeoutsRight = swapped ? (timeoutsA ?? 0) : (timeoutsB ?? 0);
+    const isMatchPointLeft  = swapped ? isMatchPointB : isMatchPointA;
+    const isMatchPointRight = swapped ? isMatchPointA : isMatchPointB;
+    const isSetPointLeft    = swapped ? isSetPointB   : isSetPointA;
+    const isSetPointRight   = swapped ? isSetPointA   : isSetPointB;
+    const onTimeoutLeft  = swapped ? onTimeoutB : onTimeoutA;
+    const onTimeoutRight = swapped ? onTimeoutA : onTimeoutB;
+    const servingTeamDisplay: TeamId | null = swapped
+        ? (servingTeam === 'A' ? 'B' : servingTeam === 'B' ? 'A' : null)
+        : servingTeam;
+
+    const handleScoreForDisplay = useCallback((visualId: TeamId, delta: number) => {
+        const actual = swapped ? (visualId === 'A' ? 'B' : 'A') as TeamId : visualId;
+        handleScore(actual, delta);
+    }, [swapped, handleScore]);
+
+    const handleRotateForDisplay = useCallback((visualId: string, dir: 'clockwise' | 'counter') => {
+        const actual = swapped ? (visualId === 'A' ? 'B' : 'A') : visualId;
+        handleRotate(actual, dir);
+    }, [swapped, handleRotate]);
+
+    const handleSubstituteForDisplay = useCallback((visualId: string) => {
+        const actual = swapped ? (visualId === 'A' ? 'B' : 'A') : visualId;
+        handleSubstituteRequest(actual);
+    }, [swapped, handleSubstituteRequest]);
+
     const dragTheme = resolveTheme(activeDragTeamColor);
     const isBeach = config?.mode === 'beach';
     const courtBgClass = isBeach ? "bg-[#e3cba5]" : "bg-orange-500";
@@ -211,15 +252,16 @@ export const CourtLayout: React.FC<CourtLayoutProps> = ({
                 }
             `} />
 
-            <div className="flex-1 relative z-10 w-full h-full">
+            {/* key força unmount/remount quando o time muda, prevenindo animações cross-court do Framer Motion */}
+            <div key={`left-${leftTeamId}`} className="flex-1 relative z-10 w-full h-full">
                 <VolleyballCourt
-                    players={teamA.players}
-                    color={teamA.color}
-                    isServing={servingTeam === 'A'}
+                    players={leftTeam.players}
+                    color={leftTeam.color}
+                    isServing={servingTeam === leftTeamId}
                     side="left"
-                    teamId="A"
+                    teamId={leftTeamId}
                     variant="minimal"
-                    onPlayerClick={(p) => handlePlayerClick(p, 'A')}
+                    onPlayerClick={(p) => handlePlayerClick(p, leftTeamId)}
                     mvpId={currentMVPId}
                     layoutConfig={getCourtLayoutFromConfig(config || { mode: 'indoor' } as any)}
                     isDragActive={isDragging}
@@ -228,15 +270,15 @@ export const CourtLayout: React.FC<CourtLayoutProps> = ({
                     orientation={isVertical ? 'portrait' : 'landscape'}
                 />
             </div>
-            <div className="flex-1 relative z-10 w-full h-full">
+            <div key={`right-${rightTeamId}`} className="flex-1 relative z-10 w-full h-full">
                 <VolleyballCourt
-                    players={teamB.players}
-                    color={teamB.color}
-                    isServing={servingTeam === 'B'}
+                    players={rightTeam.players}
+                    color={rightTeam.color}
+                    isServing={servingTeam === rightTeamId}
                     side="right"
-                    teamId="B"
+                    teamId={rightTeamId}
                     variant="minimal"
-                    onPlayerClick={(p) => handlePlayerClick(p, 'B')}
+                    onPlayerClick={(p) => handlePlayerClick(p, rightTeamId)}
                     mvpId={currentMVPId}
                     layoutConfig={getCourtLayoutFromConfig(config || { mode: 'indoor' } as any)}
                     isDragActive={isDragging}
@@ -257,11 +299,15 @@ export const CourtLayout: React.FC<CourtLayoutProps> = ({
 
             <div className="relative w-full h-full text-slate-900 dark:text-white flex flex-col overflow-visible select-none z-10">
                 <CourtHeader
-                    teamA={teamA} teamB={teamB} scoreA={scoreA} scoreB={scoreB} setsA={setsA} setsB={setsB}
-                    currentSet={currentSet} servingTeam={servingTeam} timeoutsA={timeoutsA || 0} timeoutsB={timeoutsB || 0}
-                    onScore={handleScore} onTimeoutA={onTimeoutA} onTimeoutB={onTimeoutB}
-                    isMatchPointA={isMatchPointA} isMatchPointB={isMatchPointB}
-                    isSetPointA={isSetPointA} isSetPointB={isSetPointB}
+                    teamA={leftTeam} teamB={rightTeam}
+                    scoreA={scoreLeft} scoreB={scoreRight}
+                    setsA={setsLeft} setsB={setsRight}
+                    currentSet={currentSet} servingTeam={servingTeamDisplay}
+                    timeoutsA={timeoutsLeft} timeoutsB={timeoutsRight}
+                    onScore={handleScoreForDisplay}
+                    onTimeoutA={onTimeoutLeft} onTimeoutB={onTimeoutRight}
+                    isMatchPointA={isMatchPointLeft} isMatchPointB={isMatchPointRight}
+                    isSetPointA={isSetPointLeft} isSetPointB={isSetPointRight}
                     isDeuce={isDeuce} inSuddenDeath={inSuddenDeath}
                     compact={isInline}
                 />
@@ -275,9 +321,9 @@ export const CourtLayout: React.FC<CourtLayoutProps> = ({
 
 
                 <CourtFooter
-                    teamA={teamA} teamB={teamB}
-                    onRotate={handleRotate}
-                    onSubstituteRequest={handleSubstituteRequest}
+                    teamA={leftTeam} teamB={rightTeam}
+                    onRotate={handleRotateForDisplay}
+                    onSubstituteRequest={handleSubstituteForDisplay}
                     hideNavButtons={isInline}
                     onOpenManager={isInline ? undefined : () => onOpenManager?.()}
                     onOpenHistory={isInline ? undefined : () => onOpenHistory?.()}

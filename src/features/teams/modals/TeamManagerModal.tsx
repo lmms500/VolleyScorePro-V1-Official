@@ -48,7 +48,7 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = memo((props) =>
     }, [isLoaded, props.isOpen, triggerTutorial]);
 
     // Data from Hooks
-    const { teamARoster: courtA, teamBRoster: courtB, queue, profiles, config, canUndo, rotationMode } = useRoster();
+    const { teamARoster: courtA, teamBRoster: courtB, queue, profiles, config, hasDeletedPlayers, rotationMode } = useRoster();
     const {
         generateTeams, togglePlayerFixed, deletePlayer, movePlayer,
         undoRemovePlayer, balanceTeams,
@@ -229,7 +229,7 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = memo((props) =>
                                         <button onClick={() => setRotationMode('balanced')} className={`px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase border transition-all active:scale-95 ${rotationMode === 'balanced' ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-emerald-400/20 shadow-lg shadow-emerald-500/30 ring-1 ring-inset ring-white/10' : 'bg-white/40 dark:bg-white/5 backdrop-blur-sm border-white/60 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-white/10'}`}>{t('teamManager.modes.balanced')}</button>
                                     </div>
                                     <div className={`flex gap-1`}>
-                                        {canUndo && (<button onClick={undoRemovePlayer} className="flex items-center justify-center bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/60 dark:border-white/10 hover:bg-white/80 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl px-3 py-1.5 text-[9px] font-bold uppercase transition-all active:scale-95 ring-1 ring-inset ring-white/10 shadow-sm">{t('teamManager.undo')}</button>)}
+                                        {hasDeletedPlayers && (<button onClick={undoRemovePlayer} className="flex items-center justify-center bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/60 dark:border-white/10 hover:bg-white/80 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl px-3 py-1.5 text-[9px] font-bold uppercase transition-all active:scale-95 ring-1 ring-inset ring-white/10 shadow-sm">{t('teamManager.undo')}</button>)}
                                         <button onClick={balanceTeams} className="flex items-center justify-center gap-1.5 bg-indigo-500/10 dark:bg-indigo-500/10 border border-indigo-200/80 dark:border-indigo-500/20 hover:bg-indigo-500/20 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl px-3 py-1.5 text-[9px] font-bold uppercase transition-all active:scale-95 ring-1 ring-inset ring-indigo-500/10">{rotationMode === 'balanced' ? t('teamManager.actions.globalBalance') : t('teamManager.actions.restoreOrder')}</button>
                                         <button onClick={() => setResetConfirmOpen(true)} className="flex items-center justify-center bg-rose-500/10 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xl px-3 py-1.5 text-[9px] font-bold uppercase transition-all hover:bg-rose-500/20 border border-rose-500/20 dark:border-rose-500/15 ring-1 ring-inset ring-rose-500/10 shadow-sm active:scale-95">{t('teamManager.sort.reset')}</button>
                                     </div>

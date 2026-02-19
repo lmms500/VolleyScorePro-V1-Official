@@ -20,6 +20,9 @@ interface ControlsProps {
     onToggleListening: () => void;
     onLiveSync: () => void;
     syncActive?: boolean;
+    onStartListening?: () => void;
+    onStopListening?: () => void;
+    isPushToTalkMode?: boolean;
 }
 
 // Spring animation refinada para microinterações premium
@@ -29,7 +32,7 @@ const premiumSpring = {
     damping: 30
 };
 
-const ControlButton = memo(({ onClick, disabled, icon: Icon, active = false, title, badge, badgeColor = 'emerald' }: {
+const ControlButton = memo(({ onClick, disabled, icon: Icon, active = false, title, badge, badgeColor = 'emerald', onPointerDown, onPointerUp, onPointerLeave }: {
     onClick?: () => void;
     disabled?: boolean;
     icon: any;
@@ -37,11 +40,18 @@ const ControlButton = memo(({ onClick, disabled, icon: Icon, active = false, tit
     title?: string;
     badge?: boolean;
     badgeColor?: 'emerald' | 'rose' | 'amber' | 'indigo';
+    onPointerDown?: (e: React.PointerEvent) => void;
+    onPointerUp?: (e: React.PointerEvent) => void;
+    onPointerLeave?: (e: React.PointerEvent) => void;
 }) => {
     return (
         <div className="relative">
             <motion.button
                 onClick={onClick}
+                onPointerDown={onPointerDown}
+                onPointerUp={onPointerUp}
+                onPointerLeave={onPointerLeave}
+                onContextMenu={(e) => e.preventDefault()} // impede abrir menu de contexto natched segurar
                 disabled={disabled}
                 whileHover={disabled ? undefined : {
                     scale: 1.05,
@@ -90,7 +100,8 @@ const Divider = memo(() => (
 
 export const Controls: React.FC<ControlsProps> = memo(({
     onUndo, canUndo, onSwap, onSettings, onRoster, onHistory, onReset, onToggleFullscreen,
-    voiceEnabled, isListening, onToggleListening, onLiveSync, syncActive
+    voiceEnabled, isListening, onToggleListening, onLiveSync, syncActive,
+    onStartListening, onStopListening, isPushToTalkMode
 }) => {
     const { t } = useTranslation();
     const controlsRef = useCollider('controls-bar');
@@ -153,10 +164,13 @@ export const Controls: React.FC<ControlsProps> = memo(({
                     />
                     {voiceEnabled && (
                         <ControlButton
-                            onClick={() => {
+                            onClick={isPushToTalkMode ? undefined : () => {
                                 console.log('[Controls] Button clicked, calling onToggleListening');
                                 onToggleListening();
                             }}
+                            onPointerDown={isPushToTalkMode ? () => onStartListening?.() : undefined}
+                            onPointerUp={isPushToTalkMode ? () => onStopListening?.() : undefined}
+                            onPointerLeave={isPushToTalkMode ? () => onStopListening?.() : undefined}
                             icon={isListening ? Mic : MicOff}
                             active={isListening}
                             title={t('controls.voiceControl')}

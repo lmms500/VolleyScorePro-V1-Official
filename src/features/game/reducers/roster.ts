@@ -87,7 +87,12 @@ export const rosterReducer = (state: GameState, action: GameAction): GameState =
             return { ...state, teamARoster: newA, teamBRoster: newB, queue: newQ, deletedPlayerHistory: history };
         }
 
-        case 'ROSTER_DELETE_PLAYER': { const { courtA, courtB, queue, record } = handleDeletePlayer(state.teamARoster, state.teamBRoster, state.queue, action.playerId); return { ...state, teamARoster: courtA, teamBRoster: courtB, queue, deletedPlayerHistory: record ? [...state.deletedPlayerHistory, record] : state.deletedPlayerHistory }; }
+        case 'ROSTER_DELETE_PLAYER': {
+            const { courtA, courtB, queue, record } = handleDeletePlayer(state.teamARoster, state.teamBRoster, state.queue, action.playerId);
+            const newHistory = record ? [...state.deletedPlayerHistory, record] : state.deletedPlayerHistory;
+            const limitedHistory = newHistory.length > 2 ? newHistory.slice(-2) : newHistory;
+            return { ...state, teamARoster: courtA, teamBRoster: courtB, queue, deletedPlayerHistory: limitedHistory };
+        }
 
         case 'ROSTER_MOVE_PLAYER': {
             const { playerId, fromId, toId, newIndex } = action;

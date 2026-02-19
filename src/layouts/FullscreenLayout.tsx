@@ -16,6 +16,9 @@ import type { GameHandlers } from '@features/game/hooks/useGameHandlers';
 interface VoiceState {
     isListening: boolean;
     toggleListening: () => void;
+    startListening?: () => void;
+    stopListening?: () => void;
+    isPushToTalkMode?: boolean;
 }
 
 interface FullscreenLayoutProps {
@@ -141,6 +144,9 @@ export const FullscreenLayout: React.FC<FullscreenLayoutProps> = ({
                 voiceEnabled={config.voiceControlEnabled && !isSpectator}
                 isListening={voiceState.isListening}
                 onToggleListening={voiceState.toggleListening}
+                onStartListening={voiceState.startListening}
+                onStopListening={voiceState.stopListening}
+                isPushToTalkMode={voiceState.isPushToTalkMode}
             />
 
             {/* Exit Button (only visible when menu is closed) */}
