@@ -146,7 +146,7 @@ export const MomentumGraph: React.FC<MomentumGraphProps> = ({ match }) => {
     };
 
     return (
-        <div className="w-full bg-white dark:bg-white/5 rounded-3xl p-4 border border-black/5 dark:border-white/5 shadow-sm mt-4">
+        <div className="w-full bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-3xl p-4 border border-white/60 dark:border-white/10 ring-1 ring-inset ring-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)] mt-4">
             <div className="flex items-center justify-between mb-2 px-2">
                 <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('stats.momentum')}</h3>
                 <div className="flex items-center gap-4 text-[10px] font-bold uppercase tracking-wider">

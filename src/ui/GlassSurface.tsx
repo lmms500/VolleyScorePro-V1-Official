@@ -43,14 +43,6 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
   // Shadow classes based on performance mode
   const shadowMd = perf.visual.boxShadows === 'none' ? '' : 'shadow-md';
 
-  const shadowXl = perf.visual.boxShadows === 'none' ? ''
-    : perf.visual.boxShadows === 'simple' ? 'shadow-md'
-      : 'shadow-xl shadow-black/10';
-
-  const shadow2xl = perf.visual.boxShadows === 'none' ? ''
-    : perf.visual.boxShadows === 'simple' ? 'shadow-lg'
-      : 'shadow-2xl shadow-black/50';
-
   // NEO-GLASS 3.0: Premium Tokens (Adaptive)
   const intensityMap = {
     // Low: Subtle gradient + adaptive blur
@@ -63,8 +55,7 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
       ${blurClass}
       border border-white/20 dark:border-white/10
       ring-1 ring-inset ring-white/10 dark:ring-white/5
-      ${perf.visual.boxShadows !== 'none' ? 'shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]' : ''}
-      ${shadowXl}`,
+      ${perf.visual.boxShadows === 'none' ? '' : perf.visual.boxShadows === 'simple' ? 'shadow-md' : 'shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),inset_0_1px_0_0_rgba(255,255,255,0.15)]'}`,
 
     // High: Deep Glass - Stronger Gradients + Heavier Shadows (adaptive)
     high: `${overflowClass}
@@ -73,8 +64,7 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
       ${blur2xlClass}
       border border-white/30 dark:border-white/10
       ring-1 ring-inset ring-white/20 dark:ring-white/5
-      ${perf.visual.boxShadows !== 'none' ? 'shadow-[inset_0_1px_0_0_rgba(255,255,255,0.25)]' : ''}
-      ${shadow2xl}`,
+      ${perf.visual.boxShadows === 'none' ? '' : perf.visual.boxShadows === 'simple' ? 'shadow-lg' : 'shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.25)]'}`,
 
     transparent: 'bg-transparent border-none shadow-none ring-0 backdrop-blur-none'
   };

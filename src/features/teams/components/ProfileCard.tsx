@@ -42,12 +42,12 @@ export const ProfileCard = memo(({ profile, onDelete, onAddToGame, status, onEdi
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg bg-slate-100 dark:bg-black/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ring-1 ring-inset ring-black/5 dark:ring-white/5 border border-white/50 dark:border-white/5">
                         {profile.avatar || '👤'}
                     </div>
-                    {status && (<div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-800" />)}
+                    {status && (<div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full border-2 border-white dark:border-slate-800 shadow-sm shadow-emerald-500/30" />)}
                 </div>
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                         <span className="text-sm font-bold text-slate-800 dark:text-white truncate">{profile.name}</span>
-                        {profile.number && <span className="text-[10px] font-black bg-slate-100 dark:bg-white/10 px-1.5 py-0.5 rounded text-slate-500 dark:text-slate-400">{profile.number}</span>}
+                        {profile.number && <span className="text-[10px] font-black bg-white/60 dark:bg-white/10 backdrop-blur-sm border border-white/60 dark:border-white/10 ring-1 ring-inset ring-white/5 px-1.5 py-0.5 rounded-md text-slate-500 dark:text-slate-400">{profile.number}</span>}
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-[10px] font-medium text-slate-400">Lvl {profile.skillLevel}</span>
@@ -60,7 +60,7 @@ export const ProfileCard = memo(({ profile, onDelete, onAddToGame, status, onEdi
                     </button>
                     <AnimatePresence>
                         {showMenu && (
-                            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="absolute right-0 top-full mt-1 z-50 min-w-[160px] bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 dark:border-white/10 ring-1 ring-black/5 overflow-hidden p-1">
+                            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="absolute right-0 top-full mt-1 z-50 min-w-[160px] bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.2),inset_0_1px_0_0_rgba(255,255,255,0.15)] border border-white/20 dark:border-white/10 ring-1 ring-inset ring-white/10 overflow-hidden p-1">
                                 <button onClick={() => { onView(); setShowMenu(false); }} className="w-full text-left px-3 py-2 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 rounded-lg flex items-center gap-2">
                                     <User size={14} /> {t('common.view')}
                                 </button>

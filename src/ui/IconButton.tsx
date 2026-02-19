@@ -41,11 +41,11 @@ export const IconButton: React.FC<IconButtonProps> = ({
 
   // Variantes
   const variants = {
-    default: "bg-white/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:bg-white/70 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-slate-200 shadow-sm",
+    default: "bg-white/50 dark:bg-white/5 border border-white/50 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:bg-white/70 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-slate-200 shadow-sm ring-1 ring-inset ring-white/10 dark:ring-white/5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:shadow-md",
     ghost: "bg-transparent text-slate-500 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-slate-700 dark:hover:text-slate-200",
-    filled: "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/20 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 shadow-sm shadow-indigo-500/10",
-    danger: "bg-rose-50 dark:bg-rose-500/10 text-rose-500 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20 hover:bg-rose-100 dark:hover:bg-rose-500/20 shadow-sm shadow-rose-500/10",
-    success: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 shadow-sm shadow-emerald-500/10"
+    filled: "bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/30 ring-1 ring-inset ring-white/10 border border-indigo-400/20 hover:from-indigo-400 hover:to-indigo-500 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)]",
+    danger: "bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/30 ring-1 ring-inset ring-white/10 border border-rose-400/20 hover:from-rose-400 hover:to-rose-500 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)]",
+    success: "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/30 ring-1 ring-inset ring-white/10 border border-emerald-400/20 hover:from-emerald-400 hover:to-emerald-500 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)]"
   };
 
   // Tamanhos

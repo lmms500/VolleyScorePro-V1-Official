@@ -153,19 +153,19 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
     const MIN_CONTAINER_WIDTH = timelineNodes.length * ITEM_WIDTH + 100; // Largura mínima calculada
 
     return (
-        <div className="bg-white dark:bg-white/5 rounded-3xl border border-black/5 dark:border-white/10 shadow-sm overflow-hidden flex flex-col mt-4">
+        <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-3xl border border-white/60 dark:border-white/10 ring-1 ring-inset ring-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)] overflow-hidden flex flex-col mt-4">
 
             {/* Header Control Bar */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-black/5 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.02]">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-white/50 dark:border-white/5 bg-white/40 dark:bg-white/[0.02]">
                 <div className="flex items-center gap-2">
-                    <Clock size={16} className="text-indigo-500" />
+                    <div className="p-1.5 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-sm shadow-indigo-500/30"><Clock size={14} /></div>
                     <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">{t('history.timeline')}</h3>
                 </div>
                 <div className="flex gap-2">
-                    <button onClick={handleExportText} disabled={isExporting} className="p-2 rounded-xl bg-white dark:bg-white/10 border border-black/5 dark:border-white/10 text-slate-400 hover:text-indigo-500 dark:hover:text-white transition-colors" title={t('history.exportText')}>
+                    <button onClick={handleExportText} disabled={isExporting} className="p-2 rounded-xl bg-white/60 dark:bg-white/10 backdrop-blur-sm border border-white/60 dark:border-white/10 ring-1 ring-inset ring-white/10 text-slate-400 hover:text-indigo-500 dark:hover:text-white transition-colors shadow-sm" title={t('history.exportText')}>
                         <FileText size={16} />
                     </button>
-                    <button onClick={handleExportImage} disabled={isExporting} className="p-2 rounded-xl bg-white dark:bg-white/10 border border-black/5 dark:border-white/10 text-slate-400 hover:text-indigo-500 dark:hover:text-white transition-colors" title={t('history.exportImage')}>
+                    <button onClick={handleExportImage} disabled={isExporting} className="p-2 rounded-xl bg-white/60 dark:bg-white/10 backdrop-blur-sm border border-white/60 dark:border-white/10 ring-1 ring-inset ring-white/10 text-slate-400 hover:text-indigo-500 dark:hover:text-white transition-colors shadow-sm" title={t('history.exportImage')}>
                         <Share2 size={16} />
                     </button>
                 </div>

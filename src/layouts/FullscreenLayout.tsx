@@ -148,7 +148,7 @@ export const FullscreenLayout: React.FC<FullscreenLayoutProps> = ({
                 <button
                     onClick={onExitFullscreen}
                     style={{ touchAction: 'manipulation' }}
-                    className="absolute top-4 right-4 z-[80] p-2 rounded-full bg-black/20 dark:bg-white/10 hover:bg-black/40 dark:hover:bg-white/20 backdrop-blur-md text-slate-300 dark:text-slate-400 hover:text-white transition-all active:scale-95 border border-white/5"
+                    className="absolute top-4 right-4 z-[80] p-2 rounded-full bg-black/20 dark:bg-white/10 hover:bg-black/40 dark:hover:bg-white/20 backdrop-blur-md text-slate-300 dark:text-slate-400 hover:text-white transition-all active:scale-95 border border-white/10 ring-1 ring-inset ring-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]"
                 >
                     <Minimize2 size={18} strokeWidth={2} />
                 </button>

@@ -26,10 +26,10 @@ interface TeamAggregate {
     pointsConceded: number;
 }
 
-const StatCard = ({ title, value, sub, icon: Icon, colorClass }: any) => (
-    <div className="bg-slate-50 dark:bg-white/5 rounded-2xl p-3 flex flex-col items-center justify-center text-center border border-black/5 dark:border-white/5 h-full">
-        <div className={`p-2 rounded-full mb-1 bg-opacity-10 ${colorClass}`}>
-            <Icon size={16} className={colorClass.replace('bg-', 'text-').replace('/10', '')} />
+const StatCard = ({ title, value, sub, icon: Icon, gradientFrom, gradientTo, shadowColor }: any) => (
+    <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-2xl p-3 flex flex-col items-center justify-center text-center border border-white/60 dark:border-white/10 ring-1 ring-inset ring-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)] h-full">
+        <div className={`p-2 rounded-xl mb-1 bg-gradient-to-br ${gradientFrom} ${gradientTo} text-white shadow-sm ${shadowColor}`}>
+            <Icon size={16} />
         </div>
         <span className="text-lg font-black text-slate-800 dark:text-white leading-none tabular-nums">{value}</span>
         <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 mt-1">{title}</span>
@@ -121,7 +121,7 @@ export const TeamStatsModal: React.FC<TeamStatsModalProps> = ({ isOpen, onClose 
                             placeholder={t('historyList.searchPlaceholder')}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-slate-100 dark:bg-white/5 border border-transparent focus:border-indigo-500 rounded-xl pl-10 pr-4 py-3 text-sm font-bold text-slate-800 dark:text-white outline-none transition-all placeholder:text-slate-400"
+                            className="w-full bg-white/70 dark:bg-white/5 backdrop-blur-sm border border-white/60 dark:border-white/10 focus:border-indigo-500 ring-1 ring-inset ring-white/10 focus:ring-indigo-500/20 rounded-xl pl-10 pr-4 py-3 text-sm font-bold text-slate-800 dark:text-white outline-none transition-all placeholder:text-slate-400 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)]"
                         />
                     </div>
                 </div>
@@ -141,10 +141,10 @@ export const TeamStatsModal: React.FC<TeamStatsModalProps> = ({ isOpen, onClose 
                         filteredStats.map((team, idx) => {
                             const safeKey = (team.id && team.id.trim()) ? team.id : `stats-team-safe-${idx}`;
                             return (
-                                <motion.div key={safeKey} variants={staggerItem} className="bg-white dark:bg-white/5 rounded-2xl p-4 border border-black/5 dark:border-white/5 shadow-sm">
+                                <motion.div key={safeKey} variants={staggerItem} className="bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/60 dark:border-white/10 ring-1 ring-inset ring-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                                     <div className="flex items-center justify-between mb-4">
                                         <h3 className="text-base sm:text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight truncate max-w-[70%]">{team.name}</h3>
-                                        <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${team.winRate >= 50 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400'}`}>
+                                        <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ring-1 ring-inset ${team.winRate >= 50 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-emerald-500/10' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 ring-rose-500/10'}`}>
                                             {team.winRate}% {t('stats.winRate')}
                                         </div>
                                     </div>
@@ -155,28 +155,28 @@ export const TeamStatsModal: React.FC<TeamStatsModalProps> = ({ isOpen, onClose 
                                             value={team.matches}
                                             sub={`${team.wins}W - ${team.losses}L`}
                                             icon={Trophy}
-                                            colorClass="bg-amber-500 text-amber-500"
+                                            gradientFrom="from-amber-400" gradientTo="to-amber-500" shadowColor="shadow-amber-500/30"
                                         />
                                         <StatCard
                                             title={t('stats.sets')}
                                             value={team.setsWon + team.setsLost}
                                             sub={`${team.setsWon}W - ${team.setsLost}L`}
                                             icon={Activity}
-                                            colorClass="bg-indigo-500 text-indigo-500"
+                                            gradientFrom="from-indigo-500" gradientTo="to-indigo-600" shadowColor="shadow-indigo-500/30"
                                         />
                                         <StatCard
                                             title={t('stats.points')}
                                             value={team.pointsScored}
                                             sub={`Avg ${Math.round(team.pointsScored / (team.matches || 1))}`}
                                             icon={Target}
-                                            colorClass="bg-emerald-500 text-emerald-500"
+                                            gradientFrom="from-emerald-500" gradientTo="to-emerald-600" shadowColor="shadow-emerald-500/30"
                                         />
                                         <StatCard
                                             title={t('stats.conceded')}
                                             value={team.pointsConceded}
                                             sub={`Diff ${team.pointsScored - team.pointsConceded > 0 ? '+' : ''}${team.pointsScored - team.pointsConceded}`}
                                             icon={TrendingUp}
-                                            colorClass="bg-rose-500 text-rose-500"
+                                            gradientFrom="from-rose-500" gradientTo="to-rose-600" shadowColor="shadow-rose-500/30"
                                         />
                                     </div>
                                 </motion.div>

@@ -104,12 +104,12 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
         onClose();
     };
 
-    const roles: { id: PlayerRole, label: string, icon: any, color: string, bg: string, border: string }[] = [
-        { id: 'setter', label: t('roles.setter'), icon: Hand, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
-        { id: 'hitter', label: t('roles.hitter'), icon: Zap, color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
-        { id: 'middle', label: t('roles.middle'), icon: Target, color: 'text-indigo-500', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20' },
-        { id: 'libero', label: t('roles.libero'), icon: Shield, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-        { id: 'none', label: t('roles.none'), icon: UserCircle2, color: 'text-slate-400', bg: 'bg-slate-100 dark:bg-white/5', border: 'border-slate-200 dark:border-white/10' },
+    const roles: { id: PlayerRole, label: string, icon: any, color: string, bg: string, border: string, gradient: string, shadow: string }[] = [
+        { id: 'setter', label: t('roles.setter'), icon: Hand, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20', gradient: 'from-amber-400 to-amber-500', shadow: 'shadow-amber-500/30' },
+        { id: 'hitter', label: t('roles.hitter'), icon: Zap, color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/20', gradient: 'from-rose-500 to-rose-600', shadow: 'shadow-rose-500/30' },
+        { id: 'middle', label: t('roles.middle'), icon: Target, color: 'text-indigo-500', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', gradient: 'from-indigo-500 to-indigo-600', shadow: 'shadow-indigo-500/30' },
+        { id: 'libero', label: t('roles.libero'), icon: Shield, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', gradient: 'from-emerald-500 to-emerald-600', shadow: 'shadow-emerald-500/30' },
+        { id: 'none', label: t('roles.none'), icon: UserCircle2, color: 'text-slate-400', bg: 'bg-slate-100 dark:bg-white/5', border: 'border-slate-200 dark:border-white/10', gradient: 'from-slate-400 to-slate-500', shadow: 'shadow-slate-400/20' },
     ];
 
     // Helper for slider color
@@ -142,7 +142,7 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
                                 onClick={() => setIsAvatarExpanded(!isAvatarExpanded)}
                                 className="relative group transition-transform active:scale-95 shrink-0 mt-1"
                             >
-                                <div className="w-24 h-24 rounded-[1.5rem] bg-slate-100 dark:bg-white/5 flex items-center justify-center text-5xl shadow-lg border border-white/50 dark:border-white/10 overflow-hidden relative">
+                                <div className="w-24 h-24 rounded-[1.5rem] bg-white/60 dark:bg-white/5 backdrop-blur-sm flex items-center justify-center text-5xl shadow-[0_4px_16px_rgba(0,0,0,0.08),inset_0_1px_0_0_rgba(255,255,255,0.2)] border border-white/60 dark:border-white/10 overflow-hidden relative ring-1 ring-inset ring-white/10">
                                     {mode === 'emoji' ? selectedEmoji : (customText || getInitials(name))}
 
                                     {/* Edit Overlay Hint */}
@@ -150,7 +150,7 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
                                         <Palette size={24} className="text-white drop-shadow-md" />
                                     </div>
                                 </div>
-                                <div className="absolute -bottom-2 -right-2 bg-indigo-600 text-white p-2 rounded-full shadow-lg border-2 border-white dark:border-slate-800 z-10">
+                                <div className="absolute -bottom-2 -right-2 bg-gradient-to-br from-indigo-500 to-indigo-600 text-white p-2 rounded-full shadow-lg shadow-indigo-500/30 border-2 border-white dark:border-slate-800 z-10 ring-1 ring-inset ring-white/10">
                                     {isAvatarExpanded ? <X size={14} strokeWidth={3} /> : <Palette size={14} strokeWidth={3} />}
                                 </div>
                             </button>
@@ -163,13 +163,13 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         placeholder={t('profile.namePlaceholder')}
-                                        className="w-full h-12 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 rounded-xl px-4 text-base font-bold text-slate-800 dark:text-white outline-none transition-all placeholder:text-slate-400/50 shadow-sm"
+                                        className="w-full h-12 bg-white/70 dark:bg-white/5 backdrop-blur-sm border border-white/60 dark:border-white/10 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 rounded-xl px-4 text-base font-bold text-slate-800 dark:text-white outline-none transition-all placeholder:text-slate-400/50 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)] ring-1 ring-inset ring-white/10"
                                     />
                                 </div>
                                 <div>
                                     <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase ml-1 mb-1 block">{t('profile.numberPlaceholder')}</label>
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-400 font-black text-xs">#</div>
+                                        <div className="w-8 h-8 rounded-lg bg-white/60 dark:bg-white/10 border border-white/60 dark:border-white/10 ring-1 ring-inset ring-white/10 shadow-sm flex items-center justify-center text-slate-400 font-black text-xs">#</div>
                                         <input
                                             type="tel"
                                             inputMode="numeric"
@@ -177,7 +177,7 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
                                             onChange={(e) => setNumber(e.target.value)}
                                             placeholder="00"
                                             maxLength={3}
-                                            className="w-full h-10 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 rounded-xl px-3 text-center text-sm font-black text-slate-800 dark:text-white outline-none transition-all placeholder:text-slate-400/50 shadow-sm"
+                                            className="w-full h-10 bg-white/70 dark:bg-white/5 backdrop-blur-sm border border-white/60 dark:border-white/10 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 rounded-xl px-3 text-center text-sm font-black text-slate-800 dark:text-white outline-none transition-all placeholder:text-slate-400/50 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)] ring-1 ring-inset ring-white/10"
                                         />
                                     </div>
                                 </div>
@@ -191,18 +191,18 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
                                     initial={{ height: 0, opacity: 0 }}
                                     animate={{ height: 'auto', opacity: 1 }}
                                     exit={{ height: 0, opacity: 0 }}
-                                    className="overflow-hidden bg-slate-50 dark:bg-black/20 rounded-2xl border border-black/5 dark:border-white/5 p-3 shadow-inner"
+                                    className="overflow-hidden bg-white/70 dark:bg-white/5 backdrop-blur-sm rounded-2xl border border-white/60 dark:border-white/5 p-3 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)] ring-1 ring-inset ring-white/10"
                                 >
-                                    <div className="flex gap-2 mb-3 bg-white dark:bg-white/5 p-1 rounded-xl shadow-sm border border-black/5 dark:border-white/5">
-                                        <button onClick={() => setMode('emoji')} className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${mode === 'emoji' ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>{t('profile.emoji')}</button>
-                                        <button onClick={() => setMode('text')} className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${mode === 'text' ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>{t('profile.text')}</button>
+                                    <div className="flex gap-2 mb-3 bg-white/60 dark:bg-white/5 backdrop-blur-sm p-1 rounded-xl shadow-sm border border-white/60 dark:border-white/5 ring-1 ring-inset ring-white/10">
+                                        <button onClick={() => setMode('emoji')} className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${mode === 'emoji' ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-sm shadow-indigo-500/20 ring-1 ring-inset ring-white/10' : 'text-slate-400 hover:text-slate-600'}`}>{t('profile.emoji')}</button>
+                                        <button onClick={() => setMode('text')} className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${mode === 'text' ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-sm shadow-indigo-500/20 ring-1 ring-inset ring-white/10' : 'text-slate-400 hover:text-slate-600'}`}>{t('profile.text')}</button>
                                     </div>
 
                                     {mode === 'emoji' ? (
                                         <>
                                             <div className="flex gap-1 overflow-x-auto pb-2 mb-1 no-scrollbar mask-linear-fade-right">
                                                 {Object.keys(EMOJI_CATEGORIES).map(cat => (
-                                                    <button key={cat} onClick={() => setActiveCategory(cat as any)} className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase transition-colors shrink-0 border border-transparent ${activeCategory === cat ? 'bg-white dark:bg-white/10 text-indigo-500 shadow-sm border-black/5 dark:border-white/5' : 'text-slate-400 hover:bg-white/50 dark:hover:bg-white/5'}`}>
+                                                    <button key={cat} onClick={() => setActiveCategory(cat as any)} className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase transition-all shrink-0 border ${activeCategory === cat ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-sm shadow-indigo-500/20 border-indigo-400/20 ring-1 ring-inset ring-white/10' : 'text-slate-400 hover:bg-white/50 dark:hover:bg-white/5 border-transparent'}`}>
                                                         {cat}
                                                     </button>
                                                 ))}
@@ -234,10 +234,10 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
                     <div className="flex flex-col gap-6 w-full landscape:flex-1 flex-shrink-0 landscape:border-l border-slate-200 dark:border-white/5 landscape:pl-6 min-w-0">
 
                         {/* SKILL SLIDER - Highly Responsive Rainbow */}
-                        <div className="bg-white/60 dark:bg-white/5 rounded-3xl p-5 border border-white/50 dark:border-white/5 shadow-lg shadow-black/5 overflow-visible">
+                        <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-3xl p-5 border border-white/60 dark:border-white/5 shadow-[0_4px_16px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)] overflow-visible ring-1 ring-inset ring-white/10">
                             <div className="flex justify-between items-center mb-6">
                                 <div className="flex items-center gap-2.5">
-                                    <div className="p-2 bg-amber-500/10 rounded-lg text-amber-500">
+                                    <div className="p-2 bg-gradient-to-br from-amber-400 to-amber-500 rounded-lg text-white shadow-sm shadow-amber-500/30">
                                         <Star size={16} fill="currentColor" />
                                     </div>
                                     <span className="text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">{t('profile.skillLevel')}</span>
@@ -294,8 +294,8 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
                                         className={`
                                     flex flex-col items-center justify-center gap-2 py-3 rounded-2xl border transition-all active:scale-95 duration-200 min-w-0
                                     ${role === r.id
-                                                ? `bg-white dark:bg-slate-800 ${r.color} border-transparent ring-2 ring-inset ${r.color.replace('text-', 'ring-')} shadow-lg transform scale-105`
-                                                : 'bg-white/40 dark:bg-white/5 border-transparent text-slate-400 hover:bg-white/80 dark:hover:bg-white/10 hover:shadow-sm'}
+                                                ? `bg-gradient-to-br ${r.gradient} text-white border-transparent shadow-lg ${r.shadow} ring-1 ring-inset ring-white/10 transform scale-105`
+                                                : 'bg-white/60 dark:bg-white/5 backdrop-blur-sm border-white/60 dark:border-white/5 ring-1 ring-inset ring-white/10 text-slate-400 hover:bg-white/80 dark:hover:bg-white/10 hover:shadow-sm'}
                                 `}
                                     >
                                         <r.icon size={20} strokeWidth={2.5} />
@@ -309,11 +309,11 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
                 </div>
 
                 {/* FOOTER ACTIONS */}
-                <div className="fixed bottom-0 left-0 right-0 p-6 pt-4 border-t border-slate-200 dark:border-white/5 flex gap-4 z-50 shrink-0 bg-white/90 dark:bg-[#0f172a]/90 backdrop-blur-xl">
-                    <Button variant="ghost" onClick={onClose} className="flex-1 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 h-14 rounded-2xl hover:bg-slate-200 dark:hover:bg-white/10">
+                <div className="fixed bottom-0 left-0 right-0 p-6 pt-4 border-t border-white/30 dark:border-white/5 flex gap-4 z-50 shrink-0 bg-white/90 dark:bg-[#0f172a]/90 backdrop-blur-xl shadow-[0_-10px_40px_rgba(0,0,0,0.05),inset_0_1px_0_0_rgba(255,255,255,0.1)]">
+                    <Button variant="ghost" onClick={onClose} className="flex-1 bg-white/60 dark:bg-white/5 text-slate-500 dark:text-slate-400 h-14 rounded-2xl hover:bg-white/80 dark:hover:bg-white/10 border border-white/60 dark:border-white/10 ring-1 ring-inset ring-white/10 shadow-sm">
                         {t('common.cancel')}
                     </Button>
-                    <Button onClick={handleSave} disabled={!name.trim()} className="flex-[2] bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-500/30 h-14 rounded-2xl text-sm font-black uppercase tracking-widest ring-1 ring-white/20">
+                    <Button onClick={handleSave} disabled={!name.trim()} className="flex-[2] bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white shadow-xl shadow-indigo-500/30 h-14 rounded-2xl text-sm font-black uppercase tracking-widest ring-1 ring-inset ring-white/20">
                         <Save size={18} className="mr-2" strokeWidth={2.5} /> {t('common.save')}
                     </Button>
                 </div>

@@ -51,12 +51,6 @@ export const BenchArea = memo(({ teamId, reserves, onClose, isFull }: BenchAreaP
                 <h4 className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
                     {t('teamManager.benchLabel')}
                 </h4>
-                <button
-                    onClick={onClose}
-                    className="flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/10 text-[9px] font-bold uppercase hover:bg-slate-200 transition-colors"
-                >
-                    <ChevronLeft size={12} /> {t('common.back')}
-                </button>
             </div>
 
             {/* Bench List */}

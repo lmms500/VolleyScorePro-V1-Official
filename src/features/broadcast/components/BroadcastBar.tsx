@@ -76,7 +76,7 @@ export const BroadcastBar: React.FC<BroadcastBarProps> = ({ state }) => {
                 initial={{ y: -100, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                className="flex items-center bg-black/80 backdrop-blur-md rounded-full border border-white/10 shadow-2xl overflow-hidden px-1 py-1"
+                className="flex items-center bg-black/80 backdrop-blur-md rounded-full border border-white/10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.05)] ring-1 ring-inset ring-white/10 overflow-hidden px-1 py-1"
             >
                 {/* TEAM A */}
                 <div className="flex items-center pl-2 pr-4 gap-3 h-14">

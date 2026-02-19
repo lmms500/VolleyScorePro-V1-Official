@@ -31,7 +31,7 @@ interface CourtHeaderProps {
 }
 
 const MiniBadge = memo(({ icon: Icon, colorClass, text }: any) => (
-    <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider ${colorClass} shadow-sm border border-white/10`}>
+    <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider ${colorClass} shadow-sm border border-white/10 ring-1 ring-inset ring-white/10`}>
         <Icon size={8} fill="currentColor" />
         <span>{text}</span>
     </div>
@@ -49,7 +49,7 @@ const TimeoutControl = memo(({ onTimeout, count = 0, theme }: { onTimeout?: () =
                 flex flex-col items-center justify-center gap-1 p-1.5 rounded-xl border transition-all active:scale-95 h-10 w-10
                 ${isExhausted
                     ? 'bg-slate-100 dark:bg-white/5 border-transparent opacity-50 cursor-not-allowed'
-                    : 'bg-white dark:bg-black/20 border-slate-200 dark:border-white/10 hover:border-indigo-500/50 shadow-sm'}
+                    : 'bg-white/60 dark:bg-black/20 backdrop-blur-sm border-white/60 dark:border-white/10 hover:border-indigo-500/50 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)] ring-1 ring-inset ring-white/10'}
             `}
         >
             <Timer size={14} className={isExhausted ? "text-slate-400" : theme.text} />
@@ -104,7 +104,7 @@ export const CourtHeader: React.FC<CourtHeaderProps> = memo(({
                             {servingTeam === 'A' && <div className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400 shadow-[0_0_8px_currentColor] animate-pulse flex-shrink-0" />}
                         </div>
                         <div className={`flex items-center ${compact ? 'gap-1' : 'gap-2'}`}>
-                            <div className={`flex items-center bg-white/60 dark:bg-slate-800/50 rounded-xl p-1 border border-slate-200 dark:border-white/5 backdrop-blur-sm shadow-sm ${compact ? 'gap-1' : 'gap-2'}`}>
+                            <div className={`flex items-center bg-white/60 dark:bg-slate-800/50 rounded-xl p-1 border border-white/60 dark:border-white/5 backdrop-blur-sm shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.1)] ring-1 ring-inset ring-white/10 ${compact ? 'gap-1' : 'gap-2'}`}>
                                 <button onClick={() => onScore('A', -1)} className={`${compact ? 'w-7 h-7' : 'w-8 h-8'} rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 flex items-center justify-center text-slate-400 transition-colors`}><Minus size={compact ? 10 : 12} strokeWidth={3} /></button>
                                 <span className={`${compact ? 'text-2xl min-w-[24px]' : 'text-3xl min-w-[32px]'} font-black tabular-nums leading-none text-center text-slate-800 dark:text-white`}>{scoreA}</span>
                                 <button onClick={() => onScore('A', 1)} className={`${compact ? 'w-7 h-7' : 'w-8 h-8'} rounded-lg ${themeA.bg} hover:${themeA.bg.replace('/20', '/30')} flex items-center justify-center ${themeA.text} ${themeA.textDark}`}><Plus size={compact ? 10 : 12} strokeWidth={3} /></button>
@@ -155,9 +155,9 @@ export const CourtHeader: React.FC<CourtHeaderProps> = memo(({
 
             {(inSuddenDeath || isDeuce || isMatchPointA || isMatchPointB) && (
                 <div className="flex justify-center gap-2 mt-1 pointer-events-auto">
-                    {inSuddenDeath && <MiniBadge icon={Skull} text={t('status.sudden_death')} colorClass="bg-red-500 text-white" />}
-                    {isDeuce && <MiniBadge icon={TrendingUp} text="DEUCE" colorClass="bg-indigo-500 text-white" />}
-                    {(isMatchPointA || isMatchPointB) && <MiniBadge icon={Crown} text="MATCH POINT" colorClass="bg-amber-500 text-black" />}
+                    {inSuddenDeath && <MiniBadge icon={Skull} text={t('status.sudden_death')} colorClass="bg-gradient-to-br from-red-500 to-red-600 text-white" />}
+                    {isDeuce && <MiniBadge icon={TrendingUp} text="DEUCE" colorClass="bg-gradient-to-br from-indigo-500 to-indigo-600 text-white" />}
+                    {(isMatchPointA || isMatchPointB) && <MiniBadge icon={Crown} text="MATCH POINT" colorClass="bg-gradient-to-br from-amber-400 to-amber-500 text-white" />}
                 </div>
             )}
         </div>

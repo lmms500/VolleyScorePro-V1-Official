@@ -10,7 +10,7 @@ import { useHaptics } from '@lib/haptics/useHaptics';
 import { MatchAnalysis } from '@types';
 
 const EfficiencyBadge = ({ label, value, colorClass, icon: Icon }: any) => (
-    <div className="flex flex-col gap-2 p-4 bg-white/40 dark:bg-white/[0.03] rounded-3xl border border-black/5 dark:border-white/5 relative overflow-hidden group">
+    <div className="flex flex-col gap-2 p-4 bg-white/60 dark:bg-white/[0.03] backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 ring-1 ring-inset ring-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.1)] relative overflow-hidden group">
         <div className="flex items-center justify-between relative z-10">
             <div className={`p-2 rounded-xl ${colorClass.replace('bg-', 'bg-opacity-20 bg-')} ${colorClass.replace('bg-', 'text-')}`}>
                 <Icon size={16} strokeWidth={2.5} />
@@ -91,14 +91,14 @@ export const ProAnalysis: React.FC<{ match: Match }> = ({ match }) => {
             </div>
 
             {/* KEY INSIGHT */}
-            <div className="bg-slate-900 dark:bg-indigo-950/40 rounded-[2rem] p-6 text-white shadow-2xl relative overflow-hidden ring-1 ring-white/10">
+            <div className="bg-slate-900 dark:bg-indigo-950/40 rounded-[2rem] p-6 text-white shadow-[0_20px_50px_-12px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.05)] relative overflow-hidden ring-1 ring-inset ring-white/10">
                 <Sparkles className="absolute -top-4 -right-4 text-white/10" size={120} />
                 <div className="relative z-10">
                     <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-300 mb-3 flex items-center gap-2">
                         <Flame size={12} className="text-amber-400" /> {t('analysis.insight')}
                     </h3>
                     <p className="text-xl font-black leading-tight tracking-tight mb-4">{data.tacticalSummary}</p>
-                    <div className="flex items-start gap-3 p-4 bg-white/10 rounded-2xl border border-white/10">
+                    <div className="flex items-start gap-3 p-4 bg-white/10 rounded-2xl border border-white/10 ring-1 ring-inset ring-white/10">
                         <Info size={16} className="text-indigo-300 shrink-0 mt-1" />
                         <p className="text-xs font-medium text-indigo-100 leading-relaxed italic">"{data.clutchMoment}"</p>
                     </div>
@@ -106,7 +106,7 @@ export const ProAnalysis: React.FC<{ match: Match }> = ({ match }) => {
             </div>
 
             {/* FUTURE PREDICTION */}
-            <div className="bg-white/60 dark:bg-white/[0.03] rounded-3xl p-5 border border-black/5 dark:border-white/5">
+            <div className="bg-white/60 dark:bg-white/[0.03] backdrop-blur-sm rounded-3xl p-5 border border-black/5 dark:border-white/5 ring-1 ring-inset ring-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.1)]">
                 <div className="flex items-center gap-2 mb-3">
                     <Binary size={16} className="text-slate-400" />
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('analysis.projection')}</h4>
@@ -118,8 +118,8 @@ export const ProAnalysis: React.FC<{ match: Match }> = ({ match }) => {
             <div className="space-y-3">
                 <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">{t('analysis.nextSteps')}</h4>
                 {data.performanceTips.map((tip: string, i: number) => (
-                    <div key={i} className="flex gap-4 p-4 bg-white dark:bg-white/5 rounded-2xl border border-black/5 shadow-sm">
-                        <div className="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center font-black text-xs shrink-0">{i+1}</div>
+                    <div key={i} className="flex gap-4 p-4 bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-2xl border border-black/5 ring-1 ring-inset ring-white/5 shadow-sm">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 text-white flex items-center justify-center font-black text-xs shrink-0 ring-1 ring-inset ring-white/10 shadow-sm shadow-indigo-500/30">{i+1}</div>
                         <p className="text-xs font-bold text-slate-600 dark:text-slate-300">{tip}</p>
                     </div>
                 ))}
@@ -128,7 +128,7 @@ export const ProAnalysis: React.FC<{ match: Match }> = ({ match }) => {
             {/* EXPORT PDF */}
             <button 
                 onClick={() => PDFService.generateReport(match)}
-                className="w-full flex items-center justify-center gap-3 py-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-[2rem] text-xs font-black uppercase tracking-[0.2em] shadow-xl active:scale-[0.98] transition-all"
+                className="w-full flex items-center justify-center gap-3 py-5 bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white rounded-[2rem] text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-indigo-500/30 ring-1 ring-inset ring-white/10 active:scale-[0.98] transition-all"
             >
                 <FileText size={18} /> {t('analysis.downloadReport')}
             </button>

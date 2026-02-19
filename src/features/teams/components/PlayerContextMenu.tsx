@@ -113,7 +113,7 @@ export const PlayerContextMenu = ({
                 exit={{ opacity: 0, scale: 0.9, y: 10 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 style={style}
-                className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-xl shadow-2xl border border-white/20 dark:border-white/10 ring-1 ring-black/5 dark:ring-white/5 p-1 min-w-[160px] flex flex-col gap-1 origin-top-left"
+                className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.2),inset_0_1px_0_0_rgba(255,255,255,0.15)] border border-white/20 dark:border-white/10 ring-1 ring-inset ring-white/10 dark:ring-white/5 p-1 min-w-[160px] flex flex-col gap-1 origin-top-left"
             >
                 {/* Contextual Action: Move to Bench/Court */}
                 {locationType === 'Main' && (

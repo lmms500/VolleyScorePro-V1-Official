@@ -39,7 +39,7 @@ export const TimeoutOverlay: React.FC<TimeoutOverlayProps> = ({
             {/* Minimize Button - Explicitly Top-Right Safe Area */}
             <button
                 onClick={onMinimize}
-                className="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 shadow-lg text-white/40 hover:text-white transition-all z-[110] active:scale-95"
+                className="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 ring-1 ring-inset ring-white/10 shadow-[0_4px_12px_rgba(0,0,0,0.2),inset_0_1px_0_0_rgba(255,255,255,0.1)] text-white/40 hover:text-white transition-all z-[110] active:scale-95"
                 title="Minimize Timer"
             >
                 <Minimize2 size={24} strokeWidth={2} />
@@ -120,7 +120,7 @@ export const TimeoutOverlay: React.FC<TimeoutOverlayProps> = ({
                 >
                     <button
                         onClick={onResume}
-                        className="flex-1 flex flex-col items-center justify-center gap-2 p-5 rounded-3xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-2xl shadow-emerald-900/50 transition-all active:scale-95 border-t border-white/20"
+                        className="flex-1 flex flex-col items-center justify-center gap-2 p-5 rounded-3xl bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-[0_8px_20px_rgba(16,185,129,0.35),inset_0_1px_0_0_rgba(255,255,255,0.15)] ring-1 ring-inset ring-white/20 transition-all active:scale-95"
                     >
                         <Play size={32} fill="currentColor" />
                         <span className="text-xs font-black uppercase tracking-wider">Resume</span>
@@ -129,7 +129,7 @@ export const TimeoutOverlay: React.FC<TimeoutOverlayProps> = ({
                     <div className="flex-1 flex flex-col gap-3">
                         <button
                             onClick={onTactical}
-                            className="flex-1 flex items-center justify-center gap-2 p-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 transition-all active:scale-95 group"
+                            className="flex-1 flex items-center justify-center gap-2 p-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 ring-1 ring-inset ring-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)] transition-all active:scale-95 group"
                         >
                             <Activity size={18} className="text-indigo-400" />
                             <span className="text-xs font-bold uppercase tracking-wider text-slate-200">Tactical</span>
@@ -137,7 +137,7 @@ export const TimeoutOverlay: React.FC<TimeoutOverlayProps> = ({
 
                         <button
                             onClick={onUndo}
-                            className="flex-1 flex items-center justify-center gap-2 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all active:scale-95 group"
+                            className="flex-1 flex items-center justify-center gap-2 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 ring-1 ring-inset ring-white/5 transition-all active:scale-95 group"
                         >
                             <RotateCcw size={18} className="text-rose-400" />
                             <span className="text-xs font-bold uppercase tracking-wider text-slate-400 group-hover:text-rose-400">Undo</span>

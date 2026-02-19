@@ -33,10 +33,10 @@ export const InstallReminder: React.FC<InstallReminderProps> = ({
             initial={{ opacity: 0, y: 50, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.95 }}
-            className="fixed bottom-20 left-4 right-4 md:left-auto md:right-6 md:w-96 z-[90] flex items-center justify-between p-4 bg-slate-900/95 dark:bg-white/10 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-2xl shadow-black/50"
+            className="fixed bottom-20 left-4 right-4 md:left-auto md:right-6 md:w-96 z-[90] flex items-center justify-between p-4 bg-slate-900/95 dark:bg-white/10 backdrop-blur-2xl border border-white/10 ring-1 ring-inset ring-white/10 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.08)]"
         >
             <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-indigo-500 rounded-xl text-white shadow-lg shadow-indigo-500/20">
+                <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-500/30 ring-1 ring-inset ring-white/10">
                     <Smartphone size={20} />
                 </div>
                 <div className="flex flex-col">
@@ -53,7 +53,7 @@ export const InstallReminder: React.FC<InstallReminderProps> = ({
                 {!isIOS && canInstall && (
                     <button 
                         onClick={onInstall}
-                        className="px-3 py-2 bg-white text-slate-900 rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-slate-200 transition-colors"
+                        className="px-3 py-2 bg-gradient-to-br from-white to-slate-100 text-slate-900 rounded-lg text-xs font-bold uppercase tracking-wider hover:from-slate-50 hover:to-slate-200 transition-colors ring-1 ring-inset ring-white/20 shadow-sm"
                     >
                         {t('common.add')}
                     </button>

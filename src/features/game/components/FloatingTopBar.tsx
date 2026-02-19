@@ -102,7 +102,7 @@ const TimeoutButton = memo<{
            w-10 h-full flex-shrink-0 gap-1 min-h-[44px]
         `}
     >
-      <div className={`p-1 rounded-full bg-gradient-to-b from-slate-100 to-slate-200 dark:from-white/10 dark:to-white/5 border border-white/30 dark:border-white/10 shadow-inner ${hudText}`}>
+      <div className={`p-1 rounded-full bg-gradient-to-b from-slate-100 to-slate-200 dark:from-white/10 dark:to-white/5 border border-white/40 dark:border-white/10 ring-1 ring-inset ring-white/20 shadow-[inset_0_1px_3px_rgba(0,0,0,0.1),inset_0_1px_0_0_rgba(255,255,255,0.15)] ${hudText}`}>
         <Timer size={12} className="text-slate-600 dark:text-white" strokeWidth={3} />
       </div>
       <TimeoutDots count={timeouts} teamColor={color} />

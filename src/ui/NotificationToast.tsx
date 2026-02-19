@@ -216,7 +216,7 @@ export const NotificationToast: React.FC<NotificationToastProps> = memo(({
       ${theme.gradient}
       ${theme.border} border
       ${theme.shadow} ${theme.glow}
-      ring-1 ring-black/5 dark:ring-white/5
+      ring-1 ring-inset ring-white/10 dark:ring-white/5
       min-w-[180px] w-auto max-w-sm h-auto
       cursor-pointer active:scale-95 transition-transform
     `;
@@ -236,8 +236,8 @@ export const NotificationToast: React.FC<NotificationToastProps> = memo(({
                             {/* Floating Icon Container */}
                             <div className={`
                                 relative w-10 h-10 rounded-xl flex items-center justify-center shrink-0
-                                ${theme.iconBg} 
-                                shadow-sm
+                                ${theme.iconBg}
+                                ring-1 ring-inset ring-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)]
                             `}>
                                 <theme.Icon size={20} className={theme.iconColor} strokeWidth={2} />
 

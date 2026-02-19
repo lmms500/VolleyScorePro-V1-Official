@@ -92,14 +92,14 @@ export const LiveSyncModal: React.FC<LiveSyncModalProps> = ({ isOpen, onClose, o
         
         {mode === 'selection' ? (
           <div className="space-y-4">
-            <div className="bg-indigo-500/10 p-4 rounded-2xl border border-indigo-500/20 text-center">
+            <div className="bg-indigo-500/10 backdrop-blur-sm p-4 rounded-2xl border border-indigo-500/20 text-center ring-1 ring-inset ring-indigo-500/5 shadow-sm">
                 <Radio size={32} className="mx-auto text-indigo-500 mb-2 animate-pulse" />
                 <h3 className="font-black text-slate-800 dark:text-white uppercase tracking-tight">{t('status.live')}</h3>
                 <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 uppercase font-bold">{t('liveSync.syncRequirement')}</p>
             </div>
 
             {sessionId ? (
-                <div className="p-4 bg-slate-100 dark:bg-white/5 rounded-2xl border border-black/5 dark:border-white/10 flex flex-col gap-4">
+                <div className="p-4 bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-2xl border border-white/60 dark:border-white/10 flex flex-col gap-4 ring-1 ring-inset ring-white/10 shadow-sm">
                     {/* Status Badge */}
                     <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2 flex-1">
@@ -124,15 +124,15 @@ export const LiveSyncModal: React.FC<LiveSyncModalProps> = ({ isOpen, onClose, o
                     {isHost && (
                         <div className="space-y-3">
                             <div className="grid grid-cols-3 gap-2 text-center text-[10px]">
-                                <div className="p-2 bg-white/5 rounded-lg">
+                                <div className="p-2 bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/60 dark:border-white/5 ring-1 ring-inset ring-white/5 rounded-xl shadow-sm">
                                     <p className="text-slate-400 uppercase font-bold tracking-widest">Role</p>
                                     <p className="font-black text-red-500 mt-1">Host</p>
                                 </div>
-                                <div className="p-2 bg-white/5 rounded-lg">
+                                <div className="p-2 bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/60 dark:border-white/5 ring-1 ring-inset ring-white/5 rounded-xl shadow-sm">
                                     <p className="text-slate-400 uppercase font-bold tracking-widest">Status</p>
                                     <p className="font-black text-emerald-500 mt-1">Active</p>
                                 </div>
-                                <div className="p-2 bg-white/5 rounded-lg">
+                                <div className="p-2 bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/60 dark:border-white/5 ring-1 ring-inset ring-white/5 rounded-xl shadow-sm">
                                     <p className="text-slate-400 uppercase font-bold tracking-widest">Watching</p>
                                     <p className="font-black text-indigo-500 mt-1">{spectatorCount}</p>
                                 </div>
@@ -140,7 +140,7 @@ export const LiveSyncModal: React.FC<LiveSyncModalProps> = ({ isOpen, onClose, o
 
                             <button 
                                 onClick={copyObsUrl}
-                                className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/20 hover:shadow-lg hover:bg-indigo-600 active:scale-95 transition-all"
+                                className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/30 active:scale-95 transition-all ring-1 ring-inset ring-white/10"
                             >
                                 <Monitor size={14} /> {t('liveSync.copyObsLink')}
                             </button>
@@ -151,7 +151,7 @@ export const LiveSyncModal: React.FC<LiveSyncModalProps> = ({ isOpen, onClose, o
                                         onStopBroadcast();
                                         onClose();
                                     }}
-                                    className="w-full flex items-center justify-center gap-2 py-3 bg-rose-500/20 text-rose-600 dark:text-rose-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-rose-500/30 hover:bg-rose-500/30 active:scale-95 transition-all"
+                                    className="w-full flex items-center justify-center gap-2 py-3 bg-rose-500/10 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-rose-500/20 dark:border-rose-500/15 hover:bg-rose-500/20 active:scale-95 transition-all ring-1 ring-inset ring-rose-500/10"
                                 >
                                     <Radio size={14} /> {t('liveSync.stopBroadcast')}
                                 </button>
@@ -173,7 +173,7 @@ export const LiveSyncModal: React.FC<LiveSyncModalProps> = ({ isOpen, onClose, o
                                         onLeaveSession();
                                         onClose();
                                     }}
-                                    className="w-full flex items-center justify-center gap-2 py-3 bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-amber-500/30 hover:bg-amber-500/30 active:scale-95 transition-all"
+                                    className="w-full flex items-center justify-center gap-2 py-3 bg-amber-500/10 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-amber-500/20 dark:border-amber-500/15 hover:bg-amber-500/20 active:scale-95 transition-all ring-1 ring-inset ring-amber-500/10"
                                 >
                                     <Users size={14} /> {t('liveSync.leaveSession')}
                                 </button>
@@ -195,13 +195,13 @@ export const LiveSyncModal: React.FC<LiveSyncModalProps> = ({ isOpen, onClose, o
                         onClick={handleCreateSession}
                         disabled={isProcessing || !user}
                         className={`w-full group flex items-center justify-between p-4 rounded-2xl transition-all ${
-                            !user 
-                                ? 'bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 opacity-50 cursor-not-allowed' 
-                                : 'bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 hover:border-indigo-500/50 active:scale-[0.98]'
+                            !user
+                                ? 'bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 opacity-50 cursor-not-allowed'
+                                : 'bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/60 dark:border-white/10 hover:border-indigo-400/50 active:scale-[0.98] ring-1 ring-inset ring-white/10 shadow-sm'
                         }`}
                     >
                         <div className="flex items-center gap-4">
-                            <div className={`p-3 rounded-xl shadow-lg ${!user ? 'bg-slate-300 dark:bg-slate-700' : 'bg-indigo-500 shadow-indigo-500/20'} text-white`}>
+                            <div className={`p-3 rounded-xl shadow-lg ${!user ? 'bg-slate-300 dark:bg-slate-700' : 'bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-indigo-500/30 ring-1 ring-inset ring-white/10'} text-white`}>
                                 {isProcessing ? <Loader2 size={20} className="animate-spin" /> : <Share2 size={20} />}
                             </div>
                             <div className="text-left">
@@ -218,10 +218,10 @@ export const LiveSyncModal: React.FC<LiveSyncModalProps> = ({ isOpen, onClose, o
 
             <button 
                 onClick={() => setMode('join')}
-                className="w-full group flex items-center justify-between p-4 bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl hover:border-emerald-500/50 transition-all active:scale-[0.98]"
+                className="w-full group flex items-center justify-between p-4 bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/60 dark:border-white/10 rounded-2xl hover:border-emerald-400/50 transition-all active:scale-[0.98] ring-1 ring-inset ring-white/10 shadow-sm"
             >
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-emerald-500 rounded-xl text-white shadow-lg shadow-emerald-500/20">
+                    <div className="p-3 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl text-white shadow-lg shadow-emerald-500/30 ring-1 ring-inset ring-white/10">
                         <Users size={20} />
                     </div>
                     <div className="text-left">
@@ -242,7 +242,7 @@ export const LiveSyncModal: React.FC<LiveSyncModalProps> = ({ isOpen, onClose, o
                     value={code}
                     onChange={(e) => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, ''))}
                     placeholder="ABC-12"
-                    className="w-full bg-slate-100 dark:bg-black/40 border-2 border-transparent focus:border-emerald-500 rounded-2xl py-4 text-center text-4xl font-black tracking-[0.15em] outline-none text-slate-800 dark:text-white"
+                    className="w-full bg-white/70 dark:bg-white/5 backdrop-blur-sm border-2 border-white/60 dark:border-white/10 focus:border-emerald-400 rounded-2xl py-4 text-center text-4xl font-black tracking-[0.15em] outline-none text-slate-800 dark:text-white ring-1 ring-inset ring-white/10 shadow-sm"
                  />
              </div>
 
@@ -251,7 +251,7 @@ export const LiveSyncModal: React.FC<LiveSyncModalProps> = ({ isOpen, onClose, o
                  <Button 
                     onClick={code.length >= 5 ? handleJoinSession : handleCopyCode} 
                     disabled={code.length === 0}
-                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/20"
+                    className="flex-1 bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/30 ring-1 ring-inset ring-white/10"
                 >
                     {code.length >= 5 ? t('liveSync.connect') : t('liveSync.copy')}
                 </Button>
@@ -259,7 +259,7 @@ export const LiveSyncModal: React.FC<LiveSyncModalProps> = ({ isOpen, onClose, o
           </div>
         )}
 
-        <div className="flex items-start gap-2 p-3 bg-amber-500/5 rounded-xl border border-amber-500/10">
+        <div className="flex items-start gap-2 p-3 bg-amber-500/5 backdrop-blur-sm rounded-xl border border-amber-500/15 ring-1 ring-inset ring-amber-500/5">
             <ShieldAlert size={14} className="text-amber-500 shrink-0 mt-0.5" />
             <p className="text-[9px] text-amber-700 dark:text-amber-400 font-medium leading-relaxed">
                 {t('liveSync.syncRequirement')}

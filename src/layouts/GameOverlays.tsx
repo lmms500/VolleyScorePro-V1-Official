@@ -56,7 +56,7 @@ export const GameOverlays: React.FC<GameOverlaysProps> = ({ isOnline, isFullscre
                         initial={{ y: -50, x: '-50%', opacity: 0 }}
                         animate={{ y: 0, x: '-50%', opacity: 1 }}
                         exit={{ y: -50, x: '-50%', opacity: 0 }}
-                        className={`fixed left-1/2 z-[110] px-4 py-1.5 bg-rose-600 text-white rounded-full flex items-center gap-2 shadow-2xl border border-white/20 backdrop-blur-md transition-all duration-300 ${isFullscreen ? 'top-24' : 'top-14'
+                        className={`fixed left-1/2 z-[110] px-4 py-1.5 bg-gradient-to-br from-rose-500 to-rose-600 text-white rounded-full flex items-center gap-2 shadow-[0_8px_20px_rgba(244,63,94,0.35),inset_0_1px_0_0_rgba(255,255,255,0.15)] border border-white/20 backdrop-blur-md ring-1 ring-inset ring-white/10 transition-all duration-300 ${isFullscreen ? 'top-24' : 'top-14'
                             }`}
                     >
                         <WifiOff size={14} strokeWidth={3} />
@@ -112,9 +112,9 @@ export const GameOverlays: React.FC<GameOverlaysProps> = ({ isOnline, isFullscre
                         }`}
                 >
                     <div
-                        className={`px-3 py-1 rounded-full flex items-center gap-2 backdrop-blur-md border transition-all hover:scale-105 active:scale-95 ${isHost
+                        className={`px-3 py-1 rounded-full flex items-center gap-2 backdrop-blur-md border ring-1 ring-inset ring-white/10 transition-all hover:scale-105 active:scale-95 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.1)] ${isHost
                             ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-500 hover:bg-indigo-500/20 hover:border-indigo-500/40'
-                            : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 shadow-lg shadow-emerald-500/10 hover:bg-emerald-500/20 hover:border-emerald-500/40'
+                            : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20 hover:border-emerald-500/40'
                             }`}
                     >
                         <Radio size={12} className="animate-pulse" />

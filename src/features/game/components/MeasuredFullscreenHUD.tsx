@@ -89,7 +89,7 @@ export const MeasuredFullscreenHUD: React.FC<MeasuredFullscreenHUDProps> = memo(
                 className="relative"
                 style={{ transformStyle: 'preserve-3d' }}
             >
-                <div className="relative flex items-center justify-center gap-0 px-6 py-2 rounded-[2rem] bg-slate-900/40 dark:bg-black/60 backdrop-blur-3xl border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-white/10">
+                <div className="relative flex items-center justify-center gap-0 px-6 py-2 rounded-[2rem] bg-slate-900/40 dark:bg-black/60 backdrop-blur-3xl border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)] ring-1 ring-inset ring-white/10">
                     <SetNumber value={setsLeft} color={colorLeft} />
                     <div className="w-1.5 h-1.5 rounded-full bg-white/20 mx-1 shadow-inner" />
                     <SetNumber value={setsRight} color={colorRight} />

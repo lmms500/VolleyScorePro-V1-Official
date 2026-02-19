@@ -196,7 +196,7 @@ export const HistoryBar: React.FC<HistoryBarProps> = memo(({ history, setsA, set
           onClick={handleLogoTap}
           animate={isPartyTime ? { rotate: [0, 360, 720, 1080], scale: [1, 1.2, 1] } : { rotate: 0, scale: 1 }}
         >
-          <AppLogo className="w-8 h-8 rounded-full border border-black/10 dark:border-white/20 shadow-sm" />
+          <AppLogo className="w-8 h-8 rounded-full border border-black/10 dark:border-white/20 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200" />
         </motion.div>
 
         <div ref={setsScoreRef} className="flex-shrink-0 flex items-center gap-2 px-3 h-8 rounded-full bg-white/70 dark:bg-white/[0.05] border border-white/40 dark:border-white/5 ring-1 ring-inset ring-black/5 dark:ring-white/10 backdrop-blur-md shadow-sm shadow-black/5">
@@ -211,7 +211,7 @@ export const HistoryBar: React.FC<HistoryBarProps> = memo(({ history, setsA, set
           <SetHistoryList history={history} colorA={colorA} colorB={colorB} />
         </div>
 
-        <div ref={timerRef} className="flex-shrink-0 flex items-center gap-1.5 px-3 h-8 rounded-full bg-slate-100/60 dark:bg-black/40 border border-black/5 dark:border-white/5 ring-1 ring-inset ring-black/5 dark:ring-white/10 backdrop-blur-md">
+        <div ref={timerRef} className="flex-shrink-0 flex items-center gap-1.5 px-3 h-8 rounded-full bg-white/60 dark:bg-black/40 border border-white/60 dark:border-white/5 ring-1 ring-inset ring-white/10 dark:ring-white/10 backdrop-blur-md shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
           <Clock size={10} className="text-slate-400" strokeWidth={2.5} />
           <GameTimer />
         </div>

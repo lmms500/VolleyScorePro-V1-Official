@@ -35,7 +35,8 @@
         "undo": "Desfazer",
         "summary": "Resumo",
         "continue": "Continuar?",
-        "players": "jogadores"
+        "players": "jogadores",
+        "confirm": "Confirmar"
     },
     "controls": {
         "undo": "Desfazer",
@@ -425,7 +426,7 @@
         "inBench": "Entra",
         "emptyCourt": "Vazio",
         "emptyBench": "Vazio",
-        "confirm": "Confirmar {count}",
+        "confirm": "Confirmar ({count})",
         "select": "Selecione"
     },
     "scout": {

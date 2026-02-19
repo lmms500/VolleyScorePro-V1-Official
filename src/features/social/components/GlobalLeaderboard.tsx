@@ -49,16 +49,16 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({ onJoinMatc
     return (
         <div className="flex flex-col gap-4">
             {/* SUB-TABS SELECTOR */}
-            <div className="flex gap-2 p-1 bg-slate-200 dark:bg-black/40 rounded-xl mx-1">
-                <button 
+            <div className="flex gap-2 p-1 bg-slate-200 dark:bg-black/40 rounded-xl mx-1 shadow-inner ring-1 ring-inset ring-black/5 dark:ring-white/5">
+                <button
                     onClick={() => setSubTab('ranking')}
-                    className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${subTab === 'ranking' ? 'bg-white dark:bg-slate-800 text-indigo-500 shadow-sm' : 'text-slate-500'}`}
+                    className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${subTab === 'ranking' ? 'bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 text-indigo-500 shadow-sm ring-1 ring-inset ring-white/20' : 'text-slate-500'}`}
                 >
                     <Trophy size={14} /> Ranking
                 </button>
-                <button 
+                <button
                     onClick={() => setSubTab('live')}
-                    className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${subTab === 'live' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500'}`}
+                    className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${subTab === 'live' ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/30 ring-1 ring-inset ring-white/10' : 'text-slate-500'}`}
                 >
                     <Radio size={14} className={subTab === 'live' ? 'animate-pulse' : ''} /> Live Feed
                 </button>
@@ -73,7 +73,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({ onJoinMatc
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             placeholder="Buscar jogador..."
-                            className="w-full bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl pl-9 pr-4 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all"
+                            className="w-full bg-white/80 dark:bg-white/5 backdrop-blur-sm border border-black/5 dark:border-white/10 ring-1 ring-inset ring-white/10 dark:ring-white/5 rounded-xl pl-9 pr-4 py-2 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 shadow-sm transition-all"
                         />
                     </div>
                 </form>
@@ -97,7 +97,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({ onJoinMatc
                         {players.map((player, idx) => (
                             <motion.div 
                                 key={player.id} variants={staggerItem}
-                                className={`flex items-center justify-between p-4 rounded-2xl border bg-white dark:bg-white/[0.03] border-black/5 dark:border-white/5 transition-all ${idx === 0 ? 'ring-2 ring-amber-500/30 bg-amber-500/[0.02]' : ''}`}
+                                className={`flex items-center justify-between p-4 rounded-2xl border bg-white/80 dark:bg-white/[0.03] backdrop-blur-sm border-black/5 dark:border-white/5 ring-1 ring-inset ring-white/10 dark:ring-white/5 shadow-sm hover:shadow-md transition-all ${idx === 0 ? 'ring-2 ring-amber-500/30 bg-amber-500/[0.02]' : ''}`}
                             >
                                 <div className="flex items-center gap-4">
                                     <div className="w-8 flex items-center justify-center">{getRankBadge(idx)}</div>
@@ -138,21 +138,21 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({ onJoinMatc
                             liveMatches.map((match) => (
                                 <motion.div 
                                     key={match.id} variants={staggerItem}
-                                    className="p-4 rounded-2xl bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 shadow-sm"
+                                    className="p-4 rounded-2xl bg-white/80 dark:bg-white/5 backdrop-blur-sm border border-black/5 dark:border-white/10 ring-1 ring-inset ring-white/5 shadow-sm"
                                 >
                                     <div className="flex justify-between items-center mb-3">
                                         <div className="flex items-center gap-2">
                                             <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                                             <span className="text-[10px] font-black uppercase text-red-500 tracking-widest">Live Now</span>
                                         </div>
-                                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 dark:bg-white/10 rounded-lg text-[9px] font-bold text-slate-500">
+                                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 dark:bg-white/10 rounded-lg text-[9px] font-bold text-slate-500 ring-1 ring-inset ring-black/5 dark:ring-white/5">
                                             <Users size={10} /> {match.connectedCount || 1}
                                         </div>
                                     </div>
                                     
                                     <div className="flex items-center justify-between gap-4 mb-4">
                                         <div className="flex-1 text-right truncate font-black uppercase text-xs text-slate-700 dark:text-slate-200">{match.state.teamAName}</div>
-                                        <div className="flex items-center gap-2 px-3 py-1 bg-slate-900 rounded-lg text-white font-black text-sm tabular-nums shadow-lg">
+                                        <div className="flex items-center gap-2 px-3 py-1 bg-slate-900 rounded-lg text-white font-black text-sm tabular-nums shadow-lg ring-1 ring-inset ring-white/5">
                                             {match.state.scoreA} : {match.state.scoreB}
                                         </div>
                                         <div className="flex-1 text-left truncate font-black uppercase text-xs text-slate-700 dark:text-slate-200">{match.state.teamBName}</div>
@@ -160,7 +160,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({ onJoinMatc
 
                                     <button 
                                         onClick={() => onJoinMatch?.(match.id)}
-                                        className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 active:scale-95"
+                                        className="w-full py-3 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-indigo-500/30 ring-1 ring-inset ring-white/10 transition-all flex items-center justify-center gap-2 active:scale-95"
                                     >
                                         <PlayCircle size={16} /> Assistir Partida
                                     </button>

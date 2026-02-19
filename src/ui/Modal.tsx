@@ -170,17 +170,17 @@ export const Modal: React.FC<ModalProps> = ({
                   <button
                     onClick={onClose}
                     className={`
-                        p-2.5 rounded-full 
-                        bg-black/5 dark:bg-white/5
-                        text-slate-500 dark:text-slate-400
-                        hover:bg-black/10 dark:hover:bg-white/10
+                        w-10 h-10 rounded-full flex items-center justify-center
+                        bg-gradient-to-br from-red-500 to-red-600
+                        text-white
+                        hover:from-red-600 hover:to-red-700
                         active:scale-95 transition-all
-                        border border-black/5 dark:border-white/10 
-                        ring-1 ring-inset ring-black/5 dark:ring-white/5
+                        shadow-xl shadow-red-500/30
+                        group/close
                         ${isFullscreen ? 'mt-2' : ''}
                     `}
                   >
-                    <X size={18} strokeWidth={2.5} />
+                    <X size={18} strokeWidth={3} className="group-hover/close:rotate-90 transition-transform duration-300" />
                   </button>
                 )}
               </div>

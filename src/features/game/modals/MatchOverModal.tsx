@@ -191,9 +191,9 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                 document.body
             )}
 
-            <Modal isOpen={isOpen} onClose={() => { }} title="" showCloseButton={false} persistent={true} variant="immersive">
+            <Modal isOpen={isOpen} onClose={() => { }} title="" showCloseButton={false} persistent={true} variant="immersive" zIndex="z-[100]">
                 {/* Background Dinâmico - Darker for contrast */}
-                <div className="absolute inset-0 bg-[#0f1025] pointer-events-none z-0">
+                <div className="fixed inset-0 bg-[#0f1025] pointer-events-none z-0">
                     <div className="absolute inset-0 bg-gradient-to-b from-indigo-900/10 to-[#0b0c15] opacity-80" />
                 </div>
 
@@ -259,9 +259,9 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                         {transferAnalysis ? (
                                             <div className="flex items-center gap-1.5 px-1">
                                                 {/* LEAVING CARD (Ultra Compact) */}
-                                                <div className="flex-1 bg-white/5 border border-white/10 rounded-lg p-2 flex flex-col items-center text-center relative overflow-hidden group">
+                                                <div className="flex-1 bg-white/[0.07] backdrop-blur-sm border border-white/15 rounded-xl p-2 flex flex-col items-center text-center relative overflow-hidden group ring-1 ring-inset ring-white/5 shadow-sm">
                                                     <div className="absolute inset-0 bg-gradient-to-b from-rose-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                    <div className="mb-0.5 p-1 rounded-full bg-rose-500/20 text-rose-300">
+                                                    <div className="mb-0.5 p-1 rounded-full bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-sm shadow-rose-500/30">
                                                         <LogOut size={12} />
                                                     </div>
                                                     <span className="text-[8px] font-bold text-rose-400 uppercase tracking-wider mb-0.5 leading-none">
@@ -286,9 +286,9 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                                 </div>
 
                                                 {/* ENTERING CARD (Ultra Compact) */}
-                                                <div className="flex-1 bg-white/5 border border-white/10 rounded-lg p-2 flex flex-col items-center text-center relative overflow-hidden group">
+                                                <div className="flex-1 bg-white/[0.07] backdrop-blur-sm border border-white/15 rounded-xl p-2 flex flex-col items-center text-center relative overflow-hidden group ring-1 ring-inset ring-white/5 shadow-sm">
                                                     <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                    <div className="mb-0.5 p-1 rounded-full bg-emerald-500/20 text-emerald-300">
+                                                    <div className="mb-0.5 p-1 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-sm shadow-emerald-500/30">
                                                         <LogIn size={12} />
                                                     </div>
                                                     <span className="text-[8px] font-bold text-emerald-400 uppercase tracking-wider mb-0.5 leading-none">
@@ -306,7 +306,7 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="flex flex-col items-center justify-center py-8 border border-dashed border-white/10 rounded-2xl bg-white/5 mx-2">
+                                            <div className="flex flex-col items-center justify-center py-8 border border-dashed border-white/15 rounded-2xl bg-white/[0.05] backdrop-blur-sm mx-2 ring-1 ring-inset ring-white/5">
                                                 <RotateCcw size={24} className="text-white/20 mb-2" />
                                                 <span className="text-xs font-bold text-white/40 uppercase tracking-wider">{t('matchOver.rotationReport.noData')}</span>
                                                 <p className="text-[9px] text-white/30 text-center px-4 mt-1">
@@ -386,7 +386,7 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                     <Button
                                         onClick={handleRotateWrapper}
                                         disabled={!canInteract || isSpectator}
-                                        className="w-full h-16 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-lg uppercase tracking-widest shadow-xl shadow-indigo-500/20 border-0 flex items-center justify-center gap-3 relative overflow-hidden group"
+                                        className="w-full h-16 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-lg uppercase tracking-widest shadow-xl shadow-indigo-500/30 border-0 flex items-center justify-center gap-3 relative overflow-hidden group ring-1 ring-inset ring-white/10"
                                     >
                                         <span>{t('matchOver.nextGameButton')}</span>
                                         <MoveRight size={20} className="stroke-[3]" />
@@ -397,7 +397,7 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                         <Button
                                             onClick={() => handleShareAction('share')}
                                             disabled={isSharing || !!generatingAction || !canInteract}
-                                            className="h-12 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 text-white/80 hover:text-white font-bold uppercase tracking-wider text-[10px] border border-white/10 backdrop-blur-md flex items-center justify-center gap-2 transition-all"
+                                            className="h-12 rounded-xl bg-white/10 hover:bg-white/15 active:bg-white/20 text-white/80 hover:text-white font-bold uppercase tracking-wider text-[10px] border border-white/15 backdrop-blur-md flex items-center justify-center gap-2 transition-all ring-1 ring-inset ring-white/10 shadow-sm"
                                         >
                                             {(isSharing || generatingAction === 'share') ? <Loader2 size={16} className="animate-spin" /> : <Share2 size={16} />}
                                             {t('matchOver.share')}
@@ -406,7 +406,7 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                         <Button
                                             onClick={() => handleShareAction('download')}
                                             disabled={isSharing || !!generatingAction || !canInteract}
-                                            className="h-12 rounded-xl bg-white/5 hover:bg-white/10 active:bg-white/15 text-white/80 hover:text-white font-bold uppercase tracking-wider text-[10px] border border-white/10 backdrop-blur-md flex items-center justify-center gap-2 transition-all"
+                                            className="h-12 rounded-xl bg-white/10 hover:bg-white/15 active:bg-white/20 text-white/80 hover:text-white font-bold uppercase tracking-wider text-[10px] border border-white/15 backdrop-blur-md flex items-center justify-center gap-2 transition-all ring-1 ring-inset ring-white/10 shadow-sm"
                                         >
                                             {generatingAction === 'download' ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                                             {t('matchOver.download')}
@@ -449,7 +449,7 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                 </Suspense>
 
                                 <div className="pb-20">
-                                    <Button onClick={() => setView('summary')} className="w-full bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white rounded-2xl h-14 font-black uppercase text-xs tracking-widest">
+                                    <Button onClick={() => setView('summary')} className="w-full bg-white/10 backdrop-blur-sm text-white/70 hover:text-white rounded-2xl h-14 font-black uppercase text-xs tracking-widest border border-white/15 ring-1 ring-inset ring-white/10 shadow-sm">
                                         {t('common.back')}
                                     </Button>
                                 </div>

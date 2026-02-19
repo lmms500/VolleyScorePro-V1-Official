@@ -37,19 +37,19 @@ const MenuButton = memo(({
       bg: 'bg-indigo-500/10',
       text: 'text-indigo-600 dark:text-indigo-400',
       border: 'hover:border-indigo-500/30',
-      iconBg: 'bg-indigo-500 text-white shadow-indigo-500/20'
+      iconBg: 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-xl shadow-indigo-500/30 ring-1 ring-inset ring-white/10'
     },
     cyan: {
       bg: 'bg-cyan-500/10',
       text: 'text-cyan-600 dark:text-cyan-400',
       border: 'hover:border-cyan-500/30',
-      iconBg: 'bg-cyan-500 text-white shadow-cyan-500/20'
+      iconBg: 'bg-gradient-to-br from-cyan-500 to-cyan-600 text-white shadow-xl shadow-cyan-500/30 ring-1 ring-inset ring-white/10'
     },
     amber: {
       bg: 'bg-amber-500/10',
       text: 'text-amber-600 dark:text-amber-400',
       border: 'hover:border-amber-500/30',
-      iconBg: 'bg-amber-500 text-white shadow-amber-500/20'
+      iconBg: 'bg-gradient-to-br from-amber-500 to-amber-600 text-white shadow-xl shadow-amber-500/30 ring-1 ring-inset ring-white/10'
     }
   };
 
@@ -71,9 +71,11 @@ const MenuButton = memo(({
       className={`
         group w-full flex items-center gap-3 sm:gap-4 p-3 sm:p-5 rounded-[1.25rem] sm:rounded-[1.5rem] relative overflow-hidden
         bg-white/60 dark:bg-white/[0.03]
-        border border-white/40 dark:border-white/5
+        border border-white/60 dark:border-white/5
+        ring-1 ring-inset ring-white/10 dark:ring-white/5
+        shadow-[0_1px_2px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)]
         ${theme.border}
-        backdrop-blur-xl shadow-sm hover:shadow-lg
+        backdrop-blur-xl hover:shadow-lg hover:scale-[1.01]
         active:scale-[0.98]
         transition-all duration-300
         text-left
@@ -100,6 +102,8 @@ const MenuButton = memo(({
       <div className="relative z-10 text-slate-300 dark:text-slate-600 group-hover:text-slate-400 dark:group-hover:text-slate-400 transition-colors duration-300 group-hover:translate-x-1">
           <ChevronRight size={18} className="sm:w-5 sm:h-5" />
       </div>
+      {/* Shimmer sweep */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700 skew-x-12 pointer-events-none" />
     </motion.button>
   );
 });
@@ -213,9 +217,9 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = memo(({
               <button
                 onClick={handleCloseClick}
                 style={{ touchAction: 'manipulation' }}
-                className="p-2 sm:p-3 rounded-full bg-white/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 text-slate-400 hover:text-slate-800 dark:hover:text-white transition-all active:scale-95 border border-transparent hover:border-slate-200 dark:hover:border-white/10"
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center bg-gradient-to-br from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 active:scale-95 transition-all shadow-xl shadow-red-500/30 ring-1 ring-inset ring-white/10 group/close"
               >
-                <X className="w-5 h-5 sm:w-[22px] sm:h-[22px]" strokeWidth={2.5} />
+                <X className="w-4 h-4 sm:w-5 sm:h-5 group-hover/close:rotate-90 transition-transform duration-300" strokeWidth={3} />
               </button>
             </div>
 
@@ -263,18 +267,18 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = memo(({
                     {/* Theme Toggle Group */}
                     <div className="flex flex-col gap-2 sm:gap-3 w-full landscape:flex-1">
                         <span className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1 hidden sm:block landscape:hidden">Appearance</span>
-                        <div className="flex bg-white/50 dark:bg-white/5 p-1 rounded-[1.2rem] sm:rounded-3xl border border-black/5 dark:border-white/5 h-12 sm:h-auto">
+                        <div className="flex bg-white/40 dark:bg-white/5 backdrop-blur-xl p-1 rounded-2xl border border-white/50 dark:border-white/5 ring-1 ring-inset ring-white/10 dark:ring-white/5 h-12 sm:h-auto">
                             <button
                                 onClick={handleLightTheme}
                                 style={{ touchAction: 'manipulation' }}
-                                className={`flex-1 flex items-center justify-center gap-2 py-2 sm:py-3 rounded-2xl text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all ${theme === 'light' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}`}
+                                className={`flex-1 flex items-center justify-center gap-2 py-2 sm:py-3 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all ${theme === 'light' ? 'bg-gradient-to-br from-amber-400 to-amber-500 text-white shadow-lg shadow-amber-500/30 ring-1 ring-inset ring-white/10' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}`}
                             >
                                 <Sun size={14} className="sm:w-4 sm:h-4" strokeWidth={2.5} /> <span className="hidden sm:inline">Light</span>
                             </button>
                             <button
                                 onClick={handleDarkTheme}
                                 style={{ touchAction: 'manipulation' }}
-                                className={`flex-1 flex items-center justify-center gap-2 py-2 sm:py-3 rounded-2xl text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all ${theme === 'dark' ? 'bg-slate-700 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}`}
+                                className={`flex-1 flex items-center justify-center gap-2 py-2 sm:py-3 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider transition-all ${theme === 'dark' ? 'bg-gradient-to-br from-indigo-600 to-purple-700 text-white shadow-lg shadow-indigo-500/30 ring-1 ring-inset ring-white/10' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'}`}
                             >
                                 <Moon size={14} className="sm:w-4 sm:h-4" strokeWidth={2.5} /> <span className="hidden sm:inline">Dark</span>
                             </button>
@@ -286,16 +290,19 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = memo(({
                         onClick={handleExitClick}
                         style={{ touchAction: 'manipulation' }}
                         className="
+                        relative overflow-hidden group/exit
                         w-full landscape:flex-1 flex items-center justify-center gap-3 p-4 sm:p-5 landscape:p-3 rounded-[1.25rem] sm:rounded-[1.5rem]
-                        bg-rose-500/10 hover:bg-rose-500/20
-                        text-rose-600 dark:text-rose-400
-                        border border-rose-500/20
-                        transition-all font-bold uppercase tracking-widest text-[10px] sm:text-xs shadow-sm active:scale-[0.98]
+                        bg-gradient-to-br from-rose-500 to-rose-600 hover:from-rose-400 hover:to-rose-500
+                        text-white
+                        border border-rose-400/20
+                        ring-1 ring-inset ring-white/10
+                        transition-all font-black uppercase tracking-widest text-[10px] sm:text-xs shadow-xl shadow-rose-500/30 active:scale-[0.98]
                         h-14 sm:h-[64px] landscape:h-auto
                         "
                     >
-                        <LogOut size={16} className="sm:w-[18px] sm:h-[18px]" strokeWidth={2.5} />
-                        {t('controls.exitFullscreen')}
+                        <LogOut size={16} className="sm:w-[18px] sm:h-[18px] relative z-10" strokeWidth={2.5} />
+                        <span className="relative z-10">{t('controls.exitFullscreen')}</span>
+                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover/exit:translate-x-[200%] transition-transform duration-700 skew-x-12 pointer-events-none" />
                     </button>
                  </div>
             </div>

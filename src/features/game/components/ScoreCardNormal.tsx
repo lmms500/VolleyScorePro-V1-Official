@@ -159,7 +159,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                                 <motion.div
                                     variants={stampVariants}
                                     initial="hidden" animate="visible" exit="exit"
-                                    className={`px-3 py-1 rounded-full border backdrop-blur-md font-black uppercase tracking-widest text-[8px] flex items-center gap-1.5 shadow-md ${badgeConfig.className}`}
+                                    className={`px-3 py-1 rounded-full border backdrop-blur-md font-black uppercase tracking-widest text-[8px] flex items-center gap-1.5 shadow-md ring-1 ring-inset ring-white/10 ${badgeConfig.className}`}
                                 >
                                     <badgeConfig.icon size={10} strokeWidth={3} />
                                     {badgeConfig.text}
@@ -238,7 +238,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                         disabled={timeoutsExhausted}
                         className={`
                 flex items-center justify-center gap-3 px-6 h-12 rounded-full transition-all
-                bg-gradient-to-br from-white/10 to-transparent border border-white/10 backdrop-blur-md shadow-lg
+                bg-gradient-to-br from-white/10 to-transparent border border-white/10 backdrop-blur-md shadow-lg ring-1 ring-inset ring-white/5
                 ${timeoutsExhausted ? 'opacity-40 grayscale cursor-not-allowed' : 'active:scale-95 hover:from-white/20 hover:to-white/5 hover:border-white/20 hover:shadow-xl'}
              `}
                     >

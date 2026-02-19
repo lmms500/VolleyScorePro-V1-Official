@@ -143,7 +143,7 @@ export const SkillSlider: React.FC<SkillSliderProps> = memo(({ level, onChange, 
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.8, y: 5 }}
                             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                            className="flex items-center gap-3 bg-white dark:bg-slate-800 rounded-full px-5 py-3 shadow-2xl border border-black/10 dark:border-white/10 ring-1 ring-black/5"
+                            className="flex items-center gap-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-full px-5 py-3 border border-white/50 dark:border-white/10 ring-1 ring-inset ring-white/10 dark:ring-white/5 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25),inset_0_1px_0_0_rgba(255,255,255,0.15)]"
                             style={{ minWidth: '220px' }}
                             // Capture all pointer events here to prevent leakage
                             onPointerDown={stopPropagation}

@@ -61,8 +61,8 @@ export const MatchStatistics: React.FC<MatchStatisticsProps> = ({ match }) => {
     const HighlightCard = ({ title, player, icon: Icon, valueStr }: { title: string, player?: PlayerStat, icon: any, valueStr?: string }) => {
         if (!player || player.points === 0) return null;
         return (
-            <div className="bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-2xl p-3 flex items-center gap-3 shadow-sm min-w-[140px] flex-1">
-                <div className="p-2 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-300">
+            <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/60 dark:border-white/10 ring-1 ring-inset ring-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)] rounded-2xl p-3 flex items-center gap-3 min-w-[140px] flex-1">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-sm shadow-indigo-500/30">
                     <Icon size={16} />
                 </div>
                 <div className="flex flex-col">
@@ -106,9 +106,9 @@ export const MatchStatistics: React.FC<MatchStatisticsProps> = ({ match }) => {
             </div>
 
             {/* FUNDAMENTALS BREAKDOWN */}
-            <div className="bg-white dark:bg-white/5 rounded-3xl p-5 border border-black/5 dark:border-white/10 shadow-sm">
+            <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-3xl p-5 border border-white/60 dark:border-white/10 ring-1 ring-inset ring-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                 <div className="flex items-center gap-2 mb-4 pb-2 border-b border-black/5 dark:border-white/5">
-                    <BarChart2 size={16} className="text-indigo-500" />
+                    <div className="p-1.5 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-sm shadow-indigo-500/30"><BarChart2 size={14} /></div>
                     <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Match Fundamentals</h3>
                 </div>
 

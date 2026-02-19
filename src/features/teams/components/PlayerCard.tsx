@@ -95,10 +95,10 @@ export const PlayerCard = memo((props: PlayerCardProps) => {
       backdrop-blur-md
       border border-white/40 dark:border-white/10
       ring-1 ring-inset ring-white/20 dark:ring-white/5
-      shadow-sm hover:shadow-md
+      shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:shadow-md
       transition-all duration-200 active:scale-[0.98]
   `;
-  if (props.forceDragStyle) containerClass = `bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border-2 border-indigo-500 shadow-2xl shadow-indigo-500/20 z-50 ring-1 ring-indigo-500/50`;
+  if (props.forceDragStyle) containerClass = `bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl border border-indigo-400/50 shadow-[0_25px_50px_-12px_rgba(99,102,241,0.3),inset_0_1px_0_0_rgba(255,255,255,0.15)] z-50 ring-2 ring-indigo-500/20`;
   else if (props.locationId.includes('_Reserves')) containerClass = 'border-dashed border-slate-300 dark:border-white/10 bg-slate-50/50 dark:bg-black/20';
   else if (props.player.isFixed) containerClass = 'bg-amber-500/5 border-amber-500/20';
   else if (roleStyleClass) containerClass = roleStyleClass;

@@ -30,15 +30,15 @@ export const Badge: React.FC<BadgeProps> = ({
         dot: "w-2 h-2 rounded-full shadow-sm border"
     };
 
-    // Cores (Light/Dark mode)
+    // Cores (Light/Dark mode) - Premium gradients with colored shadows
     const colorClasses = {
-        neutral: "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700",
-        indigo: "bg-indigo-500 dark:bg-indigo-600 text-white border-indigo-400 dark:border-indigo-500",
-        rose: "bg-rose-500 dark:bg-rose-600 text-white border-rose-400 dark:border-rose-500",
-        emerald: "bg-emerald-500 dark:bg-emerald-600 text-white border-emerald-400 dark:border-emerald-500",
-        amber: "bg-amber-500 dark:bg-amber-600 text-white border-amber-400 dark:border-amber-500",
-        red: "bg-red-600 dark:bg-red-700 text-white border-red-500 dark:border-red-600",
-        slate: "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600"
+        neutral: "bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 text-slate-700 dark:text-slate-200 border-slate-200/50 dark:border-white/10 ring-1 ring-inset ring-white/10 dark:ring-white/5",
+        indigo: "bg-gradient-to-br from-indigo-500 to-indigo-600 text-white border-indigo-400/20 shadow-lg shadow-indigo-500/20 ring-1 ring-inset ring-white/10",
+        rose: "bg-gradient-to-br from-rose-500 to-rose-600 text-white border-rose-400/20 shadow-lg shadow-rose-500/20 ring-1 ring-inset ring-white/10",
+        emerald: "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-emerald-400/20 shadow-lg shadow-emerald-500/20 ring-1 ring-inset ring-white/10",
+        amber: "bg-gradient-to-br from-amber-500 to-amber-600 text-white border-amber-400/20 shadow-lg shadow-amber-500/20 ring-1 ring-inset ring-white/10",
+        red: "bg-gradient-to-br from-red-500 to-red-600 text-white border-red-400/20 shadow-lg shadow-red-500/20 ring-1 ring-inset ring-white/10",
+        slate: "bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-600 dark:to-slate-700 text-slate-600 dark:text-slate-300 border-slate-200/50 dark:border-white/10 ring-1 ring-inset ring-white/10 dark:ring-white/5"
     };
 
     // Tamanhos (apenas para variantes que não sejam 'dot')
@@ -51,7 +51,7 @@ export const Badge: React.FC<BadgeProps> = ({
     // Efeitos opcionais
     const pulseClass = pulse ? "animate-pulse" : "";
     const glowClass = glow ? "shadow-lg shadow-current/50" : "";
-    const glassClass = glass ? "backdrop-blur-md bg-opacity-90 dark:bg-opacity-90" : "";
+    const glassClass = glass ? "backdrop-blur-xl bg-opacity-80 dark:bg-opacity-80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]" : "";
 
     const Component = pulse ? motion.div : 'div';
     const animationProps = pulse ? {

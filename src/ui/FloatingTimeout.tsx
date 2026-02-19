@@ -155,7 +155,8 @@ export const FloatingTimeout: React.FC<FloatingTimeoutProps> = ({ secondsLeft, c
                 rounded-full 
                 bg-slate-900/90 backdrop-blur-xl 
                 border-2 ${theme.border}
-                shadow-2xl shadow-black/50
+                shadow-[0_20px_40px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)]
+                ring-1 ring-inset ring-white/10
                 flex items-center justify-center
                 cursor-grab active:cursor-grabbing touch-none
                 group

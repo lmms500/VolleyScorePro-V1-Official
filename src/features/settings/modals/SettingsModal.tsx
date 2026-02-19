@@ -42,9 +42,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = memo(({
         // Bounce protection (iOS)
         if (currentY < 0) return;
 
-        if (diff > 10 && showHeader && currentY > 50) { // Scroll Down & not at top
+        if (diff > 10 && showHeader && currentY > 50) {
             setShowHeader(false);
-        } else if (diff < -5 && !showHeader) { // Scroll Up
+        } else if (diff < -5 && !showHeader) {
             setShowHeader(true);
         }
         lastScrollY.current = currentY;
@@ -77,59 +77,105 @@ export const SettingsModal: React.FC<SettingsModalProps> = memo(({
         else setActiveTab(tab);
     };
 
+    const tabConfig = [
+        { id: 'match' as SettingsTab, icon: Trophy, label: t('settings.rules.title'), from: 'from-amber-500', to: 'to-amber-600', shadow: 'shadow-amber-500/30' },
+        { id: 'app' as SettingsTab, icon: Layers, label: t('settings.appearance.title'), from: 'from-indigo-500', to: 'to-indigo-600', shadow: 'shadow-indigo-500/30' },
+        { id: 'system' as SettingsTab, icon: Cpu, label: t('settings.sections.install'), from: 'from-emerald-500', to: 'to-emerald-600', shadow: 'shadow-emerald-500/30' },
+    ];
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="" showCloseButton={false} variant="immersive" zIndex={zIndex}>
             <div ref={scrollRef} onScroll={onScroll} className="flex flex-col h-full render-crisp relative overflow-y-auto custom-scrollbar">
 
-                {/* SMART NAVIGATION BAR (Collapsible) - Otimizado */}
-                <div className="sticky top-0 z-50 pt-safe-top px-1 pointer-events-none">
+                {/* SMART NAVIGATION BAR (Collapsible) */}
+                <div className="sticky top-0 z-50 pt-safe-top px-2 pointer-events-none">
                     <motion.div
                         initial={{ y: 0 }}
                         animate={{ y: showHeader ? 0 : -100, opacity: showHeader ? 1 : 0 }}
                         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        className="bg-slate-50/95 dark:bg-[#020617]/95 backdrop-blur-xl border-b border-white/20 dark:border-white/10 shadow-md rounded-b-2xl pb-2 pt-2 px-2 pointer-events-auto relative z-50"
+                        className="bg-transparent pb-2 pt-2 px-2 pointer-events-auto relative z-50"
                     >
                         <div className="flex gap-2">
-                            <div className="flex flex-1 bg-black/5 dark:bg-black/20 backdrop-blur-md rounded-full p-1 gap-1 border border-black/5 dark:border-white/5 shadow-inner">
-                                {(['match', 'app', 'system'] as const).map(tab => (
-                                    <button key={tab} onClick={() => handleTabSwitch(tab)} disabled={pendingRestart && tab !== 'system'} className={`flex-1 px-3 py-2.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-all relative z-10 ${activeTab === tab ? 'bg-white/10 text-slate-800 dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 hover:bg-black/5 dark:hover:bg-white/5'} ${pendingRestart && tab !== 'system' ? 'opacity-30 cursor-not-allowed' : ''}`}>
-                                        {tab === 'match' && <Trophy size={14} className="flex-shrink-0" strokeWidth={2.5} />}
-                                        {tab === 'app' && <Layers size={14} className="flex-shrink-0" strokeWidth={2.5} />}
-                                        {tab === 'system' && <Cpu size={14} className="flex-shrink-0" strokeWidth={2.5} />}
-                                        <span className="truncate hidden sm:inline">{tab === 'match' ? t('settings.rules.title') : tab === 'app' ? t('settings.appearance.title') : t('settings.sections.install')}</span>
-                                        <span className="truncate inline sm:hidden">{tab === 'match' ? t('settings.rules.title') : tab === 'app' ? t('settings.appearance.title') : t('settings.sections.install')}</span>
+                            {/* PREMIUM GLASS TAB CONTAINER */}
+                            <div className="flex flex-1 bg-white/40 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-1 gap-1 border border-white/50 dark:border-white/5 ring-1 ring-inset ring-white/10 dark:ring-white/5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]">
+                                {tabConfig.map(tab => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => handleTabSwitch(tab.id)}
+                                        disabled={pendingRestart && tab.id !== 'system'}
+                                        className={`
+                                            flex-1 px-3 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider
+                                            flex items-center justify-center gap-2 transition-all relative overflow-hidden group
+                                            ${activeTab === tab.id
+                                                ? `bg-gradient-to-br ${tab.from} ${tab.to} text-white shadow-lg ${tab.shadow} ring-1 ring-inset ring-white/10`
+                                                : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 hover:bg-white/40 dark:hover:bg-white/5'
+                                            }
+                                            ${pendingRestart && tab.id !== 'system' ? 'opacity-30 cursor-not-allowed' : ''}
+                                        `}
+                                    >
+                                        {/* Icon box for active tab */}
+                                        {activeTab === tab.id ? (
+                                            <div className="w-5 h-5 rounded-md bg-white/20 flex items-center justify-center flex-shrink-0">
+                                                <tab.icon size={12} strokeWidth={2.5} />
+                                            </div>
+                                        ) : (
+                                            <tab.icon size={14} className="flex-shrink-0" strokeWidth={2.5} />
+                                        )}
+                                        <span className="truncate">{tab.label}</span>
+                                        {/* Shimmer on active */}
+                                        {activeTab === tab.id && (
+                                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700 skew-x-12 pointer-events-none" />
+                                        )}
                                     </button>
                                 ))}
                             </div>
 
-                            {/* INTEGRATED CLOSE BUTTON */}
+                            {/* SCOUT MODAL CLOSE BUTTON */}
                             <button
                                 onClick={onClose}
-                                className="w-12 flex items-center justify-center bg-slate-100 dark:bg-black/20 hover:bg-slate-200 dark:hover:bg-white/10 rounded-[1.2rem] text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors active:scale-90 border border-black/5 dark:border-white/5 shadow-sm"
+                                className="w-12 flex items-center justify-center bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-2xl transition-all active:scale-95 shadow-xl shadow-red-500/30 ring-1 ring-inset ring-white/10 group/close"
                             >
-                                <X size={20} strokeWidth={2.5} />
+                                <X size={18} strokeWidth={3} className="group-hover/close:rotate-90 transition-transform duration-300" />
                             </button>
                         </div>
                     </motion.div>
                 </div>
 
-                {/* CONTENT - Gap mínimo do header */}
+                {/* CONTENT */}
                 <div className="flex-1 px-1 pb-32 pt-1">
                     <AnimatePresence mode="wait">
                         {activeTab === 'match' && (
-                            <motion.div key="match" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} transition={{ duration: 0.2 }}>
+                            <motion.div
+                                key="match"
+                                initial={{ opacity: 0, x: -12, scale: 0.98 }}
+                                animate={{ opacity: 1, x: 0, scale: 1 }}
+                                exit={{ opacity: 0, x: 12, scale: 0.98 }}
+                                transition={{ type: "spring", damping: 25, stiffness: 300, mass: 0.8 }}
+                            >
                                 <MatchTab localConfig={localConfig} setLocalConfig={setLocalConfig} onClose={onClose} setPendingRestart={setPendingRestart} />
                             </motion.div>
                         )}
 
                         {activeTab === 'app' && (
-                            <motion.div key="app" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} transition={{ duration: 0.2 }}>
+                            <motion.div
+                                key="app"
+                                initial={{ opacity: 0, x: -12, scale: 0.98 }}
+                                animate={{ opacity: 1, x: 0, scale: 1 }}
+                                exit={{ opacity: 0, x: 12, scale: 0.98 }}
+                                transition={{ type: "spring", damping: 25, stiffness: 300, mass: 0.8 }}
+                            >
                                 <AppTab localConfig={localConfig} setLocalConfig={setLocalConfig} />
                             </motion.div>
                         )}
 
                         {activeTab === 'system' && (
-                            <motion.div key="system" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} transition={{ duration: 0.2 }}>
+                            <motion.div
+                                key="system"
+                                initial={{ opacity: 0, x: -12, scale: 0.98 }}
+                                animate={{ opacity: 1, x: 0, scale: 1 }}
+                                exit={{ opacity: 0, x: 12, scale: 0.98 }}
+                                transition={{ type: "spring", damping: 25, stiffness: 300, mass: 0.8 }}
+                            >
                                 <SystemTab localConfig={localConfig} setLocalConfig={setLocalConfig} setPendingRestart={setPendingRestart} pendingRestart={pendingRestart} />
                             </motion.div>
                         )}
@@ -138,14 +184,39 @@ export const SettingsModal: React.FC<SettingsModalProps> = memo(({
 
                 {/* FOOTER */}
                 <div className="fixed bottom-0 left-0 right-0 z-30 flex justify-center pointer-events-none pb-safe-bottom">
-                    <div className="absolute bottom-0 w-full h-20 bg-gradient-to-t from-white dark:from-[#020617] to-transparent pointer-events-none" />
+                    <div className="absolute bottom-0 w-full h-24 bg-gradient-to-t from-white dark:from-[#020617] to-transparent pointer-events-none" />
                     <div className="mb-4 relative z-40">
                         {requiresReset && !pendingRestart && (
-                            <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900/80 text-white px-3 py-1 rounded-full flex items-center gap-2 mb-3 animate-pulse pointer-events-auto whitespace-nowrap"><AlertTriangle size={12} className="text-rose-400" /><span className="text-[10px] font-bold uppercase tracking-wide">{t('settings.resetWarning')}</span></div>
+                            <motion.div
+                                initial={{ opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="absolute -top-12 left-1/2 -translate-x-1/2 bg-rose-600 text-white px-4 py-1.5 rounded-full flex items-center gap-2 mb-3 shadow-lg shadow-rose-500/30 ring-1 ring-inset ring-white/10 pointer-events-auto whitespace-nowrap"
+                            >
+                                <AlertTriangle size={12} className="text-rose-200 animate-pulse" />
+                                <span className="text-[10px] font-black uppercase tracking-wide">{t('settings.resetWarning')}</span>
+                            </motion.div>
                         )}
-                        <button onClick={handleSave} disabled={pendingRestart} className={`pointer-events-auto flex items-center gap-2 px-6 py-3 rounded-full shadow-2xl transition-all active:scale-95 ${pendingRestart ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed' : (requiresReset ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-500/30' : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-indigo-500/30')}`}>
+                        <button
+                            onClick={handleSave}
+                            disabled={pendingRestart}
+                            className={`
+                                pointer-events-auto relative overflow-hidden flex items-center gap-2.5 px-8 py-3.5 rounded-full
+                                shadow-2xl transition-all active:scale-95 font-black text-xs uppercase tracking-widest
+                                ring-1 ring-inset ring-white/10 group
+                                ${pendingRestart
+                                    ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed'
+                                    : requiresReset
+                                        ? 'bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-rose-500/30 hover:from-rose-400 hover:to-rose-500'
+                                        : 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-indigo-500/30 hover:from-indigo-400 hover:to-indigo-500'
+                                }
+                            `}
+                        >
                             <Check size={14} strokeWidth={3} />
-                            <span className="text-xs font-black uppercase tracking-widest">{pendingRestart ? t('settings.backup.restartBtn') : (requiresReset ? t('settings.applyAndReset') : t('settings.applyChanges'))}</span>
+                            <span>{pendingRestart ? t('settings.backup.restartBtn') : (requiresReset ? t('settings.applyAndReset') : t('settings.applyChanges'))}</span>
+                            {/* Shimmer sweep */}
+                            {!pendingRestart && (
+                                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700 skew-x-12 pointer-events-none" />
+                            )}
                         </button>
                     </div>
                 </div>

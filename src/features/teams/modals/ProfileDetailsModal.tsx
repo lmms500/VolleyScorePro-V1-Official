@@ -17,12 +17,12 @@ interface ProfileDetailsModalProps {
 
 const StatGlassBox = ({ label, value, icon: Icon, colorClass }: any) => (
     <div
-        className="group relative flex flex-col items-center justify-center p-3 rounded-2xl bg-white/40 dark:bg-white/5 border border-white/50 dark:border-white/5 shadow-sm hover:shadow-md transition-all overflow-hidden"
+        className="group relative flex flex-col items-center justify-center p-3 rounded-2xl bg-white/40 dark:bg-white/5 backdrop-blur-sm border border-white/50 dark:border-white/5 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:shadow-md transition-all overflow-hidden ring-1 ring-inset ring-white/10 dark:ring-white/5"
     >
         <div className={`absolute inset-0 opacity-0 group-hover:opacity-5 transition-opacity bg-gradient-to-br ${colorClass}`} />
 
-        <div className={`p-2 rounded-full mb-1 bg-opacity-10 ${colorClass.split(' ')[0].replace('from-', 'bg-')}`}>
-            <Icon size={14} className={colorClass.split(' ')[1].replace('to-', 'text-')} strokeWidth={2.5} />
+        <div className={`p-2 rounded-xl mb-1 bg-gradient-to-br shadow-sm ${colorClass}`}>
+            <Icon size={14} className="text-white" strokeWidth={2.5} />
         </div>
 
         <span className="text-xl font-black text-slate-800 dark:text-white leading-none tabular-nums tracking-tighter mt-1">{value}</span>
@@ -95,7 +95,7 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
 
                         {/* 1. HERO CARD (Left Column) */}
                         <div className="w-full landscape:w-[40%] flex flex-col items-center landscape:sticky landscape:top-6 self-start">
-                            <div className={`w-full relative rounded-[2.5rem] overflow-hidden bg-gradient-to-br ${roleColor} shadow-2xl p-8 text-white flex flex-col items-center ring-1 ring-white/10`}>
+                            <div className={`w-full relative rounded-[2.5rem] overflow-hidden bg-gradient-to-br ${roleColor} shadow-[0_25px_60px_-12px_rgba(0,0,0,0.3),inset_0_1px_0_0_rgba(255,255,255,0.2)] p-8 text-white flex flex-col items-center ring-1 ring-white/10`}>
                                 {/* Background Pattern */}
                                 <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4yKSIvPjwvc3ZnPg==')] [mask-image:linear-gradient(to_bottom,black,transparent)]" />
 
@@ -136,9 +136,11 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
 
                         {/* 2. STATS GRID (Right Column) */}
                         <div className="flex-1 w-full flex flex-col gap-6 min-w-0">
-                            <div className="flex items-center gap-2 text-slate-400 px-1">
-                                <Activity size={18} />
-                                <span className="text-xs font-black uppercase tracking-[0.2em]">{t('profile.details.analytics')}</span>
+                            <div className="flex items-center gap-3 px-1">
+                                <div className="p-1.5 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-sm shadow-indigo-500/30">
+                                    <Activity size={14} strokeWidth={2.5} />
+                                </div>
+                                <span className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">{t('profile.details.analytics')}</span>
                             </div>
 
                             <div className="grid grid-cols-3 gap-3 sm:gap-4">
@@ -152,7 +154,7 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
                             </div>
 
                             {/* EFFICIENCY CARD (Dynamic) */}
-                            <div className="bg-white/80 dark:bg-white/5 rounded-3xl p-6 border border-white/60 dark:border-white/5 shadow-sm relative overflow-hidden">
+                            <div className="bg-white/80 dark:bg-white/[0.03] backdrop-blur-sm rounded-3xl p-6 border border-white/60 dark:border-white/5 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)] relative overflow-hidden ring-1 ring-inset ring-white/10 dark:ring-white/5">
                                 <div className={`absolute top-0 right-0 p-32 rounded-full blur-[80px] opacity-20 pointer-events-none ${efficiencyData.bg}`} />
 
                                 <div className="relative z-10">
@@ -201,11 +203,11 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
                     </div>
                 </div>
 
-                <div className="shrink-0 pt-4 border-t border-slate-200 dark:border-white/5 flex gap-3 px-6 sm:px-8 pb-6 sm:pb-8 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md z-30 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-                    <Button variant="ghost" onClick={onClose} className="flex-1 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 h-14 rounded-2xl hover:bg-slate-200 dark:hover:bg-white/10">
+                <div className="shrink-0 pt-4 border-t border-white/30 dark:border-white/5 flex gap-3 px-6 sm:px-8 pb-6 sm:pb-8 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md z-30 shadow-[0_-10px_40px_rgba(0,0,0,0.06),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
+                    <Button variant="ghost" onClick={onClose} className="flex-1 bg-white/60 dark:bg-white/5 text-slate-500 dark:text-slate-400 h-14 rounded-2xl hover:bg-white/80 dark:hover:bg-white/10 border border-white/60 dark:border-white/10 ring-1 ring-inset ring-white/10 shadow-sm">
                         {t('common.back')}
                     </Button>
-                    <Button onClick={onEdit} className="flex-[2] bg-indigo-600 hover:bg-indigo-500 text-white shadow-xl shadow-indigo-500/20 h-14 rounded-2xl text-sm font-black uppercase tracking-widest ring-1 ring-white/20">
+                    <Button onClick={onEdit} className="flex-[2] bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white shadow-xl shadow-indigo-500/30 h-14 rounded-2xl text-sm font-black uppercase tracking-widest ring-1 ring-inset ring-white/20">
                         <Edit2 size={18} className="mr-2" strokeWidth={2.5} /> {t('profile.editTitle')}
                     </Button>
                 </div>

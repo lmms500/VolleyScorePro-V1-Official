@@ -13,10 +13,10 @@ export const GlobalLoader = () => (
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
         className="
           flex flex-col items-center gap-4 px-8 py-6 
-          bg-white/80 dark:bg-black/80 backdrop-blur-2xl 
-          rounded-[2rem] shadow-2xl shadow-black/20 
+          bg-white/80 dark:bg-black/80 backdrop-blur-2xl
+          rounded-[2rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.2),inset_0_1px_0_0_rgba(255,255,255,0.15)]
           border border-white/40 dark:border-white/10
-          ring-1 ring-black/5 dark:ring-white/5
+          ring-1 ring-inset ring-white/10 dark:ring-white/5
         "
       >
         <div className="relative">

@@ -74,10 +74,8 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className={`
                 sticky top-0 z-50 w-full
-                bg-slate-50/70 dark:bg-[#020617]/70
-                backdrop-blur-xl
+                bg-transparent
                 transition-all duration-300
-                ${showDivider ? 'border-b border-black/5 dark:border-white/5' : ''}
                 ${className}
             `}
             style={{ paddingTop: `${top}px` }}
@@ -91,12 +89,12 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
                         {leftAction ? leftAction : (
                             <div className="flex items-center gap-2">
                                 {onBack && (
-                                    <button onClick={onBack} className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors active:scale-90">
+                                    <button onClick={onBack} className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/50 dark:bg-white/5 hover:bg-white/70 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all active:scale-90 border border-white/50 dark:border-white/10 ring-1 ring-inset ring-white/10 dark:ring-white/5 shadow-sm">
                                         <ChevronLeft size={20} strokeWidth={2.5} />
                                     </button>
                                 )}
                                 <div className="flex flex-col min-w-0">
-                                    <h2 className="text-sm font-bold text-slate-800 dark:text-white leading-tight truncate uppercase tracking-wider">
+                                    <h2 className="text-sm font-black text-slate-800 dark:text-white leading-tight truncate uppercase tracking-[0.2em]">
                                         {title}
                                     </h2>
                                     {subtitle && (
@@ -121,9 +119,9 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
                         {rightAction}
                         <button
                             onClick={onClose}
-                            className="w-10 h-10 flex items-center justify-center bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors active:scale-90 border border-black/5 dark:border-white/5"
+                            className="w-10 h-10 rounded-full flex items-center justify-center bg-gradient-to-br from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 active:scale-95 transition-all shadow-xl shadow-red-500/30 group/close"
                         >
-                            <X size={20} strokeWidth={2.5} />
+                            <X size={18} strokeWidth={3} className="group-hover/close:rotate-90 transition-transform duration-300" />
                         </button>
                     </div>
                 </div>

@@ -59,8 +59,8 @@ const ControlButton = memo(({ onClick, disabled, icon: Icon, active, title, badg
                     transition-all duration-300
                     focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50
                     ${active
-                        ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                        : 'text-slate-300 hover:text-white hover:bg-white/5 hover:shadow-md'
+                        ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/30 ring-1 ring-inset ring-white/10'
+                        : 'text-slate-300 hover:text-white hover:bg-white/10 hover:shadow-md hover:ring-1 hover:ring-inset hover:ring-white/10'
                     }
                     ${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
                 `}
@@ -120,7 +120,7 @@ export const Controls: React.FC<ControlsProps> = memo(({
                     ring-1 ring-inset ring-white/20
                     
                     /* Sombras multicamadas para profundidade premium */
-                    shadow-[0_8px_32px_rgba(0,0,0,0.3),0_2px_8px_rgba(0,0,0,0.2)]
+                    shadow-[0_8px_32px_rgba(0,0,0,0.3),0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_0_rgba(255,255,255,0.1)]
                     
                     /* Floating Look */
                     rounded-2xl

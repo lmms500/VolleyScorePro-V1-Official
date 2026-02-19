@@ -50,7 +50,7 @@ export const RosterColumn = memo(({
     // Hooks
     const {
         updateTeamName, updateTeamColor, updateTeamLogo, addPlayer,
-        toggleTeamBench, substitutePlayers, deletePlayer
+        toggleTeamBench, substitutePlayers, deletePlayer, onRestorePlayer
     } = useActions();
     const { showNotification } = useNotification();
 
@@ -133,18 +133,33 @@ export const RosterColumn = memo(({
                         <button onClick={(e) => { e.stopPropagation(); toggleTeamBench(id); }} className={`p-1.5 rounded-lg border border-transparent transition-all active:scale-95 ${team.hasActiveBench ? 'bg-emerald-500 text-white shadow-sm shadow-emerald-500/20' : 'bg-slate-100 dark:bg-white/10 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`} title={team.hasActiveBench ? t('teamManager.benchLabel') : t('teamManager.activateBenchTitle')}><Armchair size={14} fill={team.hasActiveBench ? 'currentColor' : 'none'} /></button>
                         <div className="relative">
                             <button onClick={() => setShowSortMenu(!showSortMenu)} className={`p-1.5 rounded-lg border border-transparent hover:bg-slate-100 dark:hover:bg-white/10 transition-colors active:scale-95 ${showSortMenu ? 'bg-slate-100 dark:bg-white/10' : ''}`}><ListFilter size={14} /></button>
-                            <AnimatePresence>{showSortMenu && (<motion.div initial={{ opacity: 0, y: 8, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.95 }} className="absolute right-0 top-full mt-2 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-xl shadow-2xl border border-black/5 dark:border-white/10 p-1 flex flex-col min-w-[140px]"><button onClick={() => applySort('name')} className="flex items-center gap-2 px-2 py-2 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-left w-full"><ArrowDownAZ size={12} /> {t('teamManager.sort.name')}</button><button onClick={() => applySort('number')} className="flex items-center gap-2 px-2 py-2 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-left w-full"><ArrowDown01 size={12} /> {t('teamManager.sort.number')}</button><button onClick={() => applySort('skill')} className="flex items-center gap-2 px-2 py-2 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-left w-full"><ArrowUpWideNarrow size={12} /> {t('teamManager.sort.skill')}</button><div className="h-px bg-black/5 dark:bg-white/5 my-1" /><button onClick={() => applySort('original')} className="flex items-center gap-2 px-2 py-2 text-[10px] font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg text-left w-full"><RefreshCcw size={12} /> {t('teamManager.sort.reset')}</button></motion.div>)}</AnimatePresence>
+                            <AnimatePresence>{showSortMenu && (<motion.div initial={{ opacity: 0, y: 8, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.95 }} className="absolute right-0 top-full mt-2 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.2),inset_0_1px_0_0_rgba(255,255,255,0.15)] border border-black/5 dark:border-white/10 ring-1 ring-inset ring-white/10 p-1 flex flex-col min-w-[140px]"><button onClick={() => applySort('name')} className="flex items-center gap-2 px-2 py-2 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-left w-full"><ArrowDownAZ size={12} /> {t('teamManager.sort.name')}</button><button onClick={() => applySort('number')} className="flex items-center gap-2 px-2 py-2 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-left w-full"><ArrowDown01 size={12} /> {t('teamManager.sort.number')}</button><button onClick={() => applySort('skill')} className="flex items-center gap-2 px-2 py-2 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg text-left w-full"><ArrowUpWideNarrow size={12} /> {t('teamManager.sort.skill')}</button><div className="h-px bg-black/5 dark:bg-white/5 my-1" /><button onClick={() => applySort('original')} className="flex items-center gap-2 px-2 py-2 text-[10px] font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg text-left w-full"><RefreshCcw size={12} /> {t('teamManager.sort.reset')}</button></motion.div>)}</AnimatePresence>
                         </div>
                         {/* Reset Team Button - Clears logo AND removes all players */}
                         <button
                             onClick={() => {
-                                // 1. Clear logo
+                                // 1. Snapshot for Undo
+                                const backupLogo = team.logo;
+                                const backupPlayers = [...team.players];
+                                const backupReserves = [...(team.reserves || [])];
+
+                                // 2. Clear logo
                                 updateTeamLogo(id, '');
-                                // 2. Delete all players from main roster
+                                // 3. Delete all players from main roster
                                 team.players.forEach(p => deletePlayer(p.id));
-                                // 3. Delete all players from reserves
+                                // 4. Delete all players from reserves
                                 (team.reserves || []).forEach(p => deletePlayer(p.id));
-                                showNotification({ mainText: t('teamManager.teamReset') || 'Team Reset', type: 'info' });
+
+                                showNotification({
+                                    mainText: t('teamManager.teamReset') || 'Team Reset',
+                                    type: 'info',
+                                    onUndo: () => {
+                                        if (backupLogo) updateTeamLogo(id, backupLogo);
+                                        // Restore players in order
+                                        backupPlayers.forEach(p => onRestorePlayer(p, id));
+                                        backupReserves.forEach(p => onRestorePlayer(p, `${id}_Reserves`));
+                                    }
+                                });
                             }}
                             className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 hover:bg-amber-100 transition-colors active:scale-95"
                             title={t('teamManager.resetTeam') || 'Reset Team'}

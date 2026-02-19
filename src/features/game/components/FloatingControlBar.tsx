@@ -65,7 +65,7 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({
     return () => clearTimeout(timer);
   }, [isMinimized, isHovering, lastActivity]);
 
-  const glassContainer = "bg-white/90 dark:bg-slate-900/80 backdrop-blur-2xl border border-white/20 dark:border-white/10 shadow-2xl shadow-black/20 dark:shadow-black/40 ring-1 ring-black/5 dark:ring-white/10";
+  const glassContainer = "bg-white/90 dark:bg-slate-900/80 backdrop-blur-2xl border border-white/50 dark:border-white/10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15),inset_0_1px_0_0_rgba(255,255,255,0.15)] ring-1 ring-inset ring-white/10 dark:ring-white/10";
   // const buttonBase = "rounded-full transition-all duration-300 active:scale-90 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-transparent hover:bg-black/5 dark:hover:bg-white/10";
   // const pClass = 'p-3';
   const iconSize = 20;

@@ -267,3 +267,107 @@ export const listItemVariants: Variants = {
   visible: { opacity: 1, scale: 1, x: 0, transition: isReducedMotion ? { duration: 0 } : liquidSpring },
   exit: { opacity: 0, scale: 0.9, transition: { duration: 0.2 } }
 };
+
+// --- SCOUT MODAL DESIGN LANGUAGE ---
+
+// 12. Scout Spring: The canonical spring for Scout Modal design language
+export const scoutSpring: Transition = {
+  type: "spring",
+  damping: 25,
+  stiffness: 300,
+  mass: 0.8
+};
+
+// 13. Scout Slide Variants (multi-step navigation)
+export const scoutSlideVariants: Variants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? "20%" : "-20%",
+    opacity: 0,
+    scale: 0.98
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+    scale: 1,
+    transition: isReducedMotion ? { duration: 0.1 } : {
+      type: "spring",
+      damping: 25,
+      stiffness: 300,
+      mass: 0.8,
+      delay: 0.05
+    }
+  },
+  exit: (direction: number) => ({
+    x: direction < 0 ? "20%" : "-20%",
+    opacity: 0,
+    scale: 0.98,
+    transition: { duration: 0.15, ease: "easeIn" as const }
+  })
+};
+
+// 14. Blur-to-Focus Entry (Premium modal entrance)
+export const blurFocusVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    scale: 0.92,
+    filter: isReducedMotion ? "none" : "blur(8px)"
+  },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    filter: "blur(0px)",
+    transition: isReducedMotion ? { duration: 0.1 } : {
+      type: "spring",
+      damping: 25,
+      stiffness: 300,
+      mass: 0.8
+    }
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.96,
+    filter: isReducedMotion ? "none" : "blur(4px)",
+    transition: { duration: 0.15, ease: "easeIn" as const }
+  }
+};
+
+// 15. Stagger Container (Scout-style stagger)
+export const scoutStaggerContainer: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: isReducedMotion ? 0 : 0.04,
+      delayChildren: isReducedMotion ? 0 : 0.05
+    }
+  },
+  exit: {
+    opacity: 0,
+    transition: { staggerChildren: isReducedMotion ? 0 : 0.02, staggerDirection: -1 }
+  }
+};
+
+// 16. Stagger Item (Scout-style)
+export const scoutStaggerItem: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 12,
+    scale: 0.96
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: isReducedMotion ? { duration: 0 } : {
+      type: "spring",
+      damping: 25,
+      stiffness: 300,
+      mass: 0.8
+    }
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    transition: { duration: 0.12 }
+  }
+};

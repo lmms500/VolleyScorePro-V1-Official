@@ -50,16 +50,16 @@ export const MatchDetail: React.FC<MatchDetailProps> = ({ match, onBack }) => {
                 </button>
 
                 {isFeatureEnabled('PLAYER_ANALYSIS_ENABLED') && (
-                    <div className="flex bg-slate-200 dark:bg-white/5 p-1 rounded-2xl border border-black/5 dark:border-white/10">
+                    <div className="flex bg-white/40 dark:bg-white/5 backdrop-blur-sm p-1 rounded-2xl border border-white/50 dark:border-white/10 ring-1 ring-inset ring-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                         <button
                             onClick={() => setView('stats')}
-                            className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${view === 'stats' ? 'bg-white dark:bg-slate-800 text-indigo-500 shadow-sm' : 'text-slate-400'}`}
+                            className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all ${view === 'stats' ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/30 ring-1 ring-inset ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
                         >
                             {t('common.summary')}
                         </button>
                         <button
                             onClick={() => setView('analysis')}
-                            className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 ${view === 'analysis' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400'}`}
+                            className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 ${view === 'analysis' ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/30 ring-1 ring-inset ring-white/10' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
                         >
                             <Sparkles size={12} /> Pro Analysis
                         </button>
@@ -83,7 +83,7 @@ export const MatchDetail: React.FC<MatchDetailProps> = ({ match, onBack }) => {
                             <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 w-full relative z-10">
                                 <TeamHero name={match.teamAName} winner={isWinnerA} theme={themeA} />
 
-                                <div className="flex flex-col items-center justify-center px-6 py-2 border-x border-black/5 dark:border-white/5 bg-black/5 dark:bg-white/5 rounded-2xl mx-2">
+                                <div className="flex flex-col items-center justify-center px-6 py-2 border-x border-white/50 dark:border-white/10 bg-white/40 dark:bg-white/5 backdrop-blur-sm rounded-2xl mx-2 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Final</span>
                                     <div className="text-4xl sm:text-5xl font-black tabular-nums tracking-tighter text-slate-800 dark:text-white flex items-center gap-3">
                                         <span className={isWinnerA ? `${themeA.text} ${themeA.textDark}` : ''}>{match.setsA}</span>

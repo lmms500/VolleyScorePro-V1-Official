@@ -160,8 +160,8 @@ export const VoiceToast: React.FC<VoiceToastProps> = ({
       rounded-2xl
       bg-white/95 dark:bg-[#020617]/95 backdrop-blur-md
       border border-black/5 dark:border-white/10
-      shadow-lg shadow-black/10 dark:shadow-black/40
-      ring-1 ring-black/5 dark:ring-white/5
+      shadow-[0_8px_30px_rgba(0,0,0,0.08),inset_0_1px_0_0_rgba(255,255,255,0.15)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.05)]
+      ring-1 ring-inset ring-white/10 dark:ring-white/5
       min-w-[160px] w-auto max-w-sm h-auto
       cursor-pointer active:scale-95 transition-transform
   `;

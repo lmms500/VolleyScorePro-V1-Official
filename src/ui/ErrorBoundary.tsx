@@ -18,7 +18,7 @@ const ErrorContent: React.FC<{ error: Error | null, onReload: () => void }> = ({
     const { t } = useTranslation();
     return (
         <div className="h-screen w-full flex flex-col items-center justify-center bg-slate-100 dark:bg-[#020617] text-slate-900 dark:text-slate-100 p-6 text-center">
-          <div className="p-4 bg-rose-500/10 rounded-full text-rose-500 mb-4 border border-rose-500/20 shadow-xl shadow-rose-500/10 backdrop-blur-3xl">
+          <div className="p-4 bg-gradient-to-br from-rose-500/15 to-rose-500/5 rounded-full text-rose-500 mb-4 border border-rose-500/20 ring-1 ring-inset ring-rose-500/10 shadow-[0_0_20px_-5px_rgba(244,63,94,0.4),inset_0_1px_0_0_rgba(255,255,255,0.1)]">
             <AlertTriangle size={48} strokeWidth={1.5} />
           </div>
           <h1 className="text-2xl font-black uppercase tracking-tight mb-2">{t('errors.genericTitle')}</h1>

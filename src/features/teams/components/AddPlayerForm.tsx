@@ -62,7 +62,7 @@ export const AddPlayerForm = memo(({ onAdd, disabled, customLabel }: AddPlayerFo
 
     if (isOpen && !disabled) {
         return (
-            <div ref={containerRef} className="flex flex-col mt-4 animate-in fade-in slide-in-from-top-1 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-4 rounded-2xl border border-indigo-500/30 shadow-2xl shadow-indigo-500/10 ring-1 ring-indigo-500/20">
+            <div ref={containerRef} className="flex flex-col mt-4 animate-in fade-in slide-in-from-top-1 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-4 rounded-2xl border border-indigo-500/30 shadow-[0_10px_30px_-5px_rgba(99,102,241,0.2),inset_0_1px_0_0_rgba(255,255,255,0.15)] ring-1 ring-inset ring-indigo-500/20">
                 <input
                     ref={inputRef}
                     autoFocus
@@ -89,7 +89,7 @@ export const AddPlayerForm = memo(({ onAdd, disabled, customLabel }: AddPlayerFo
                     </div>
                     <button
                         onClick={submit}
-                        className="p-3 bg-indigo-500 rounded-xl hover:bg-indigo-400 text-white shadow-lg shadow-indigo-500/30 active:scale-95 transition-all"
+                        className="p-3 bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 rounded-xl text-white shadow-lg shadow-indigo-500/30 ring-1 ring-inset ring-white/10 active:scale-95 transition-all"
                     >
                         <Plus size={20} />
                     </button>

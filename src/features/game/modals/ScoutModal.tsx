@@ -285,7 +285,7 @@ export const ScoutModal: React.FC<ScoutModalProps> = ({
 
                                 {/* Player Info Card - Compact */}
                                 <div className="flex items-center gap-4 p-4 rounded-3xl bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 shadow-xl border-2 border-slate-200 dark:border-slate-700 mb-6 landscape:mb-0 landscape:w-full">
-                                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl font-black ${theme.bg} ${theme.text} ${theme.textDark} shadow-2xl`}>
+                                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl font-black ${theme.bg} ${theme.text} ${theme.textDark} shadow-2xl ring-1 ring-inset ring-white/10`}>
                                         {selectedPlayer?.number || "?"}
                                     </div>
                                     <div className="flex-1">

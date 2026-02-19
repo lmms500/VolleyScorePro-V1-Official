@@ -42,6 +42,51 @@ export const rosterReducer = (state: GameState, action: GameAction): GameState =
 
         case 'ROSTER_REMOVE_PLAYER': { const { courtA, courtB, queue } = handleRemovePlayer(state.teamARoster, state.teamBRoster, state.queue, action.playerId, courtLimit); return { ...state, teamARoster: courtA, teamBRoster: courtB, queue }; }
 
+        case 'ROSTER_UNDO_REMOVE': {
+            const history = [...state.deletedPlayerHistory];
+            if (history.length === 0) return state;
+
+            const { player, originId } = history.pop()!;
+
+            let newA = { ...state.teamARoster }, newB = { ...state.teamBRoster }, newQ = [...state.queue];
+
+            const insert = (list: Player[]) => {
+                const copy = [...list];
+                // Try to respect displayOrder if reasonable, otherwise push
+                if (player.displayOrder !== undefined && player.displayOrder >= 0 && player.displayOrder <= copy.length) {
+                    copy.splice(player.displayOrder, 0, player);
+                } else {
+                    copy.push(player);
+                }
+                return copy;
+            };
+
+            if (originId === 'A' || originId === state.teamARoster.id) newA.players = insert(newA.players);
+            else if (originId === 'A_Reserves') newA.reserves = insert(newA.reserves || []);
+            else if (originId === 'B' || originId === state.teamBRoster.id) newB.players = insert(newB.players);
+            else if (originId === 'B_Reserves') newB.reserves = insert(newB.reserves || []);
+            else {
+                const cleanId = originId.includes('_Reserves') ? originId.split('_Reserves')[0] : originId;
+                const qIdx = newQ.findIndex(t => t.id === cleanId);
+                if (qIdx !== -1) {
+                    const team = { ...newQ[qIdx] };
+                    if (originId.includes('_Reserves')) {
+                        team.reserves = insert(team.reserves || []);
+                        team.hasActiveBench = true;
+                    } else {
+                        team.players = insert(team.players);
+                    }
+                    newQ[qIdx] = team;
+                } else {
+                    // Fallback to Queue if original team missing
+                    const res = handleAddPlayer(newA, newB, newQ, player, 'Queue', state.config);
+                    return { ...state, ...res, deletedPlayerHistory: history };
+                }
+            }
+
+            return { ...state, teamARoster: newA, teamBRoster: newB, queue: newQ, deletedPlayerHistory: history };
+        }
+
         case 'ROSTER_DELETE_PLAYER': { const { courtA, courtB, queue, record } = handleDeletePlayer(state.teamARoster, state.teamBRoster, state.queue, action.playerId); return { ...state, teamARoster: courtA, teamBRoster: courtB, queue, deletedPlayerHistory: record ? [...state.deletedPlayerHistory, record] : state.deletedPlayerHistory }; }
 
         case 'ROSTER_MOVE_PLAYER': {
@@ -230,7 +275,7 @@ export const rosterReducer = (state: GameState, action: GameAction): GameState =
             let c = false, na = state.teamARoster, nb = state.teamBRoster;
             if (!state.teamARoster.id || state.teamARoster.id === 'A') { na = { ...state.teamARoster, id: uuidv4() }; c = true; }
             if (!state.teamBRoster.id || state.teamBRoster.id === 'B') { nb = { ...state.teamBRoster, id: uuidv4() }; c = true; }
-            
+
             let nq = state.queue;
             const fixedQueue = state.queue.map(t => {
                 if (!t.id || t.id.trim() === '') {

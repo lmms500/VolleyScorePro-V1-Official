@@ -35,7 +35,8 @@
         "undo": "Undo",
         "summary": "Summary",
         "continue": "Continue?",
-        "players": "players"
+        "players": "players",
+        "confirm": "Confirm"
     },
     "controls": {
         "undo": "Undo",
@@ -427,7 +428,7 @@
         "inBench": "In",
         "emptyCourt": "Empty",
         "emptyBench": "Empty",
-        "confirm": "Confirm {count}",
+        "confirm": "Confirm ({count})",
         "select": "Select"
     },
     "scout": {
