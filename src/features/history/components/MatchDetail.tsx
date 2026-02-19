@@ -1,16 +1,18 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Match } from '../store/historyStore';
 import { useTranslation } from '@contexts/LanguageContext';
 import { ArrowLeft, Crown, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { resolveTheme } from '@lib/utils/colors';
 import { MatchTimeline } from './MatchTimeline';
-import { MomentumGraph } from './MomentumGraph';
 import { GlassSurface } from '@ui/GlassSurface';
-// DISABLED FOR PLAY STORE v1: Pro Analysis
-// import { ProAnalysis } from './ProAnalysis';
 import { MatchStatistics } from './MatchStatistics';
+import { MatchInfo } from './MatchInfo';
+import { MatchSequences } from './MatchSequences';
+import { MatchTimeouts } from './MatchTimeouts';
+import { SkillDistribution } from './SkillDistribution';
+import { calculateMatchStats } from '../utils/statsAggregator';
 import { isFeatureEnabled } from '@config/featureFlags';
 
 interface MatchDetailProps {
@@ -40,6 +42,8 @@ export const MatchDetail: React.FC<MatchDetailProps> = ({ match, onBack }) => {
     const themeB = resolveTheme(match.teamBRoster?.color || 'rose');
 
     const isWinnerA = match.winner === 'A';
+
+    const stats = useMemo(() => calculateMatchStats(match), [match]);
 
     return (
         <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900 overflow-hidden relative w-full pt-safe-top pl-safe-left pr-safe-right">
@@ -74,8 +78,7 @@ export const MatchDetail: React.FC<MatchDetailProps> = ({ match, onBack }) => {
                 animate={{ opacity: 1, x: 0 }}
             >
                 {view === 'stats' ? (
-                    <div className="space-y-6 pt-2 pb-20 max-w-3xl mx-auto">
-                        {/* HERO SCORE CARD */}
+                    <div className="space-y-5 pt-2 pb-20 max-w-3xl mx-auto">
                         <GlassSurface
                             intensity="high"
                             className="rounded-3xl p-6 relative overflow-hidden"
@@ -96,18 +99,20 @@ export const MatchDetail: React.FC<MatchDetailProps> = ({ match, onBack }) => {
                             </div>
                         </GlassSurface>
 
-                        {/* MATCH STATISTICS */}
+                        <MatchInfo match={match} />
+
                         <MatchStatistics match={match} />
 
-                        {/* MOMENTUM GRAPH - New */}
-                        <MomentumGraph match={match} />
+                        <SkillDistribution match={match} teamStats={stats.teamStats} distribution={stats.skillDistribution} />
 
-                        {/* TIMELINE */}
+                        <MatchSequences match={match} sequences={stats.sequences} />
+
+                        <MatchTimeouts match={match} timeouts={stats.timeouts} />
+
                         <MatchTimeline match={match} />
                     </div>
                 ) : isFeatureEnabled('PLAYER_ANALYSIS_ENABLED') ? (
                     <div className="pt-4 max-w-3xl mx-auto">
-                        {/* <ProAnalysis match={match} /> */}
                         <div className="p-8 text-center text-slate-400 text-sm">
                             Detailed analysis coming in Pro version
                         </div>

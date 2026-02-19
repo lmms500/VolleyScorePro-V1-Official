@@ -29,7 +29,7 @@ const premiumSpring = {
     damping: 30
 };
 
-const ControlButton = memo(({ onClick, disabled, icon: Icon, active, title, badge, badgeColor = 'emerald' }: {
+const ControlButton = memo(({ onClick, disabled, icon: Icon, active = false, title, badge, badgeColor = 'emerald' }: {
     onClick?: () => void;
     disabled?: boolean;
     icon: any;
@@ -43,31 +43,32 @@ const ControlButton = memo(({ onClick, disabled, icon: Icon, active, title, badg
             <motion.button
                 onClick={onClick}
                 disabled={disabled}
-                whileHover={{
+                whileHover={disabled ? undefined : {
                     scale: 1.05,
                     transition: premiumSpring
                 }}
-                whileTap={{
+                whileTap={disabled ? undefined : {
                     scale: 0.95,
                     transition: premiumSpring
                 }}
+                style={{ WebkitTapHighlightColor: 'transparent' }}
                 className={`
                     relative
-                    flex items-center justify-center 
-                    w-10 h-10 sm:w-11 sm:h-11
+                    flex items-center justify-center
+                    w-9 h-9 sm:w-10 sm:h-10
                     rounded-xl
-                    transition-all duration-300
-                    focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50
+                    transition-colors duration-300
+                    focus:outline-none focus-visible:ring-0
                     ${active
                         ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/30 ring-1 ring-inset ring-white/10'
-                        : 'text-slate-300 hover:text-white hover:bg-white/10 hover:shadow-md hover:ring-1 hover:ring-inset hover:ring-white/10'
+                        : 'text-slate-300 active:bg-white/10 active:text-white'
                     }
                     ${disabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
                 `}
                 aria-label={title || ''}
                 title={title}
             >
-                <Icon size={20} strokeWidth={1.75} />
+                <Icon size={18} strokeWidth={1.75} />
             </motion.button>
             {badge && (
                 <motion.div
@@ -84,7 +85,7 @@ const ControlButton = memo(({ onClick, disabled, icon: Icon, active, title, badg
 });
 
 const Divider = memo(() => (
-    <div className="w-px h-6 bg-gradient-to-b from-transparent via-white/20 to-transparent mx-0.5 flex-shrink-0"></div>
+    <div className="w-px h-5 bg-gradient-to-b from-transparent via-white/20 to-transparent flex-shrink-0"></div>
 ));
 
 export const Controls: React.FC<ControlsProps> = memo(({
@@ -110,7 +111,7 @@ export const Controls: React.FC<ControlsProps> = memo(({
                 ref={controlsRef}
                 className="
                     pointer-events-auto
-                    flex items-center justify-center gap-1
+                    flex items-center justify-center gap-0.5
                     
                     /* Neo-Glass Background */
                     bg-gradient-to-br from-slate-900/80 via-slate-800/70 to-slate-900/80
@@ -133,7 +134,7 @@ export const Controls: React.FC<ControlsProps> = memo(({
                 "
             >
                 {/* Grupo 1: Undo e Swap */}
-                <div className="flex items-center gap-0.5">
+                <div className="flex items-center gap-0">
                     <ControlButton onClick={onUndo} disabled={!canUndo} icon={Undo2} title={t('controls.undo')} />
                     <ControlButton onClick={onSwap} icon={ArrowLeftRight} title={t('controls.swap')} />
                 </div>
@@ -141,7 +142,7 @@ export const Controls: React.FC<ControlsProps> = memo(({
                 <Divider />
 
                 {/* Grupo Smart Features: Live Sync e Voice */}
-                <div className="flex items-center gap-0.5">
+                <div className="flex items-center gap-0">
                     <ControlButton
                         onClick={onLiveSync}
                         icon={Radio}
@@ -152,7 +153,10 @@ export const Controls: React.FC<ControlsProps> = memo(({
                     />
                     {voiceEnabled && (
                         <ControlButton
-                            onClick={onToggleListening}
+                            onClick={() => {
+                                console.log('[Controls] Button clicked, calling onToggleListening');
+                                onToggleListening();
+                            }}
                             icon={isListening ? Mic : MicOff}
                             active={isListening}
                             title={t('controls.voiceControl')}
@@ -165,15 +169,15 @@ export const Controls: React.FC<ControlsProps> = memo(({
                 <Divider />
 
                 {/* Grupo 2: Roster e History */}
-                <div className="flex items-center gap-0.5">
-                    <ControlButton onClick={onRoster} icon={Users} title={t('controls.teams')} />
+                <div className="flex items-center gap-0">
+                    <ControlButton onClick={onRoster} icon={Users} active={false} title={t('controls.teams')} />
                     <ControlButton onClick={onHistory} icon={History} title={t('controls.history')} />
                 </div>
 
                 <Divider />
 
                 {/* Grupo 3: Settings, Fullscreen e Reset */}
-                <div className="flex items-center gap-0.5">
+                <div className="flex items-center gap-0">
                     <ControlButton onClick={onSettings} icon={Settings} title={t('controls.settings')} />
                     <ControlButton onClick={onToggleFullscreen} icon={Maximize2} title={t('controls.fullscreen')} />
                     <ControlButton onClick={onReset} icon={RotateCcw} title={t('controls.reset')} />

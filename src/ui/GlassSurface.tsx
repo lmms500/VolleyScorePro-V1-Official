@@ -108,7 +108,7 @@ export const GlassSurface: React.FC<GlassSurfaceProps> = ({
         />
       )}
 
-      <div className={`relative z-10 w-full min-h-0 ${className.includes('flex') ? 'flex flex-col' : 'block'}`}>
+      <div className={`relative z-10 w-full min-h-0 flex-1 ${className.includes('flex') ? 'flex flex-col' : 'block'}`}>
         {children}
       </div>
     </motion.div>

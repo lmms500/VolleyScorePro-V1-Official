@@ -11,7 +11,8 @@
     ],
     "skipLibCheck": true,
     "types": [
-      "node"
+      "node",
+      "vitest/globals"
     ],
     "moduleResolution": "bundler",
     "isolatedModules": true,
@@ -19,7 +20,6 @@
     "allowJs": true,
     "jsx": "react-jsx",
     "esModuleInterop": true,
-    // ========== PATH ALIASES (NOVO) ==========
     "baseUrl": ".",
     "paths": {
       "@/*": [
@@ -56,7 +56,6 @@
         "./src/hooks/*"
       ]
     },
-    // ========================================
     "allowImportingTsExtensions": true,
     "noEmit": true
   }

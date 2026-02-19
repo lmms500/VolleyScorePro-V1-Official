@@ -212,7 +212,7 @@ export interface MatchAnalysis {
 }
 
 export interface VoiceCommandIntent {
-  type: 'point' | 'timeout' | 'server' | 'undo' | 'unknown';
+  type: 'point' | 'timeout' | 'server' | 'swap' | 'undo' | 'unknown';
   team?: TeamId;
   player?: { id: string; name: string };
   skill?: SkillType;

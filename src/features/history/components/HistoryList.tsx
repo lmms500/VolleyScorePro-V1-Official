@@ -342,7 +342,7 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
                         </motion.div>
                     </div>
 
-                    <div className="flex-1 min-w-0 bg-transparent px-1 pb-safe-bottom pt-1 h-full min-h-0 flex flex-col">
+                    <div className="flex-1 min-w-0 bg-transparent px-1 pb-safe-bottom pt-1 min-h-0 flex flex-col">
                         {/* LOCAL HISTORY ONLY */}
                         {filteredMatches.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-64 text-slate-400 opacity-60"><div className="p-4 bg-slate-100 dark:bg-white/5 rounded-full mb-3 border border-slate-200"><FolderOpen size={32} strokeWidth={1} /></div><h3 className="text-xs font-black uppercase tracking-widest">{t('historyList.empty')}</h3></div>

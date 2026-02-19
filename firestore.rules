@@ -70,6 +70,14 @@ service cloud.firestore {
       // DELETE: Apenas o Host pode deletar (ao encerrar sessão)
       allow delete: if isAuthenticated() && 
                     resource.data.hostUid == request.auth.uid;
+      
+      // Subcoleção de Spectators - para contagem precisa de espectadores
+      // Cada espectador cria/deleta seu próprio documento
+      match /spectators/{spectatorId} {
+        allow read: if true;  // Público: todos podem ler
+        allow create: if isAuthenticated() && spectatorId == request.auth.uid;
+        allow delete: if isAuthenticated() && spectatorId == request.auth.uid;
+      }
     }
   }
 }

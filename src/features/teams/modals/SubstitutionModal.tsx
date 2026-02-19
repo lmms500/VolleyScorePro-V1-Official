@@ -136,8 +136,6 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
     const courtPlayers = team.players || [];
     const benchPlayers = team.reserves || [];
     const theme = resolveTheme(team.color || 'slate');
-    const pendingOutPlayer = pendingOutId ? courtPlayers.find(p => p.id === pendingOutId) : null;
-
     const getPairIndex = (id: string) => {
         const idx = pairs.findIndex(p => p.outId === id || p.inId === id);
         return idx === -1 ? null : idx;
@@ -240,28 +238,6 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
                     </p>
                 </div>
             </div>
-
-            {/* ── Pending Hint Banner ── */}
-            <AnimatePresence>
-                {pendingOutPlayer && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -6, scale: 0.97 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -6, scale: 0.97 }}
-                        transition={{ type: "spring", damping: 25, stiffness: 350 }}
-                        className="mb-3 flex items-center gap-2.5 px-3 py-2 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/[0.08] border border-emerald-500/20 dark:border-emerald-500/15 ring-1 ring-inset ring-emerald-500/10"
-                    >
-                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
-                        <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider truncate">
-                            {pendingOutPlayer.name}
-                        </span>
-                        <ArrowRight size={10} className="text-emerald-500/60 flex-shrink-0" />
-                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-500 uppercase tracking-wider truncate opacity-70">
-                            {t('substitution.inBench')}
-                        </span>
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
             {/* ── Two-Column Player Selection ── */}
             <div className="grid grid-cols-2 gap-3">

@@ -152,7 +152,12 @@ export const GameScreen: React.FC = () => {
         teamBName: rosterState.teamBName,
         playersA: teamARoster.players,
         playersB: teamBRoster.players,
-        servingTeam: scoreState.servingTeam
+        servingTeam: scoreState.servingTeam,
+        lastScorerTeam: scoreState.lastScorerTeam,
+        scoreA: scoreState.scoreA,
+        scoreB: scoreState.scoreB,
+        currentSet: scoreState.currentSet,
+        isMatchOver: scoreState.isMatchOver,
     });
 
     // Stable callbacks for fullscreen toggle (prevent layout re-renders)

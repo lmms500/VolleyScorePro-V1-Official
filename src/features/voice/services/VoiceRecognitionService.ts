@@ -126,6 +126,7 @@ export class VoiceRecognitionService {
   }
 
   public async stop() {
+    console.log('[VoiceService] stop() called, intendedState was:', this.intendedState);
     this.intendedState = false;
     if (this.restartTimer) clearTimeout(this.restartTimer);
 
@@ -135,6 +136,7 @@ export class VoiceRecognitionService {
         try { this.webRecognition.stop(); } catch {}
     }
     
+    console.log('[VoiceService] Calling updateStatus(false)');
     this.updateStatus(false);
   }
 
@@ -167,8 +169,10 @@ export class VoiceRecognitionService {
     };
 
     this.webRecognition.onend = () => {
+        console.log('[VoiceService] onend triggered, intendedState:', this.intendedState);
         this.updateStatus(false);
         if (this.intendedState) {
+            console.log('[VoiceService] Restarting web recognition...');
             this.internalStartWeb(this.webRecognition.lang);
         }
     };
@@ -183,8 +187,10 @@ export class VoiceRecognitionService {
   }
 
   private updateStatus(listening: boolean) {
+    console.log('[VoiceService] updateStatus:', listening, 'isActualState:', this.isActualState);
     if (this.isActualState !== listening) {
         this.isActualState = listening;
+        console.log('[VoiceService] Calling onStatusChange callback, exists:', !!this.onStatusChange);
         if (this.onStatusChange) this.onStatusChange(listening);
     }
   }

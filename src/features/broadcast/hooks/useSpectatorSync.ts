@@ -4,7 +4,9 @@ import { SyncEngine } from '@features/broadcast/services/SyncEngine';
 
 interface UseSpectatorSyncProps {
     sessionId: string;
+    userId: string | undefined;
     onStateUpdate: (state: GameState) => void;
+    onSessionEnded?: () => void;
     enabled?: boolean;
 }
 
@@ -16,13 +18,11 @@ interface SpectatorSyncStatus {
     error: string | null;
 }
 
-/**
- * Hook para gerenciar sincronização de espectador com reconexão automática.
- * Monitora latência e status da conexão em tempo real.
- */
 export const useSpectatorSync = ({
     sessionId,
+    userId,
     onStateUpdate,
+    onSessionEnded,
     enabled = true
 }: UseSpectatorSyncProps) => {
     const [status, setStatus] = useState<SpectatorSyncStatus>({
@@ -35,6 +35,7 @@ export const useSpectatorSync = ({
 
     const unsubscribeRef = useRef<(() => void) | null>(null);
     const lastUpdateTimeRef = useRef<number>(Date.now());
+    const currentSessionRef = useRef<string | null>(null);
 
     const handleReconnecting = useCallback((attempt: number) => {
         setStatus(prev => ({
@@ -51,6 +52,18 @@ export const useSpectatorSync = ({
             error: error.message
         }));
     }, []);
+
+    const handleSessionEnded = useCallback(() => {
+        setStatus(prev => ({
+            ...prev,
+            isConnected: false,
+            error: null
+        }));
+        
+        if (onSessionEnded) {
+            onSessionEnded();
+        }
+    }, [onSessionEnded]);
 
     useEffect(() => {
         if (!enabled || !sessionId) return;
@@ -74,19 +87,33 @@ export const useSpectatorSync = ({
             onStateUpdate(state);
         };
 
+        currentSessionRef.current = sessionId;
+
+        if (userId) {
+            syncEngine.joinAsSpectator(sessionId, userId);
+        }
+
         unsubscribeRef.current = syncEngine.subscribeToMatch(
             sessionId,
             handleStateUpdate,
             handleError,
-            handleReconnecting
+            handleReconnecting,
+            handleSessionEnded
         );
 
         return () => {
             if (unsubscribeRef.current) {
                 unsubscribeRef.current();
+                unsubscribeRef.current = null;
             }
+            
+            if (userId && currentSessionRef.current === sessionId) {
+                syncEngine.leaveSpectator(sessionId, userId);
+            }
+            
+            currentSessionRef.current = null;
         };
-    }, [sessionId, enabled, onStateUpdate]);
+    }, [sessionId, userId, enabled, onStateUpdate, handleReconnecting, handleError, handleSessionEnded]);
 
     return status;
 };

@@ -13,106 +13,44 @@ export const HaloPortal: React.FC<HaloPortalProps> = ({ anchorRef, swapTrigger, 
     const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
     const lastPosRef = useRef({ x: 0, y: 0 });
     const rafRef = useRef<number | null>(null);
-    const rafStopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     /** 
-     * Calculates position based on layout offsets relative to a container, 
-     * bypassing transform animations on the anchor itself.
+     * Calculates position using getBoundingClientRect which includes all CSS transforms.
+     * This ensures Halo follows the anchor correctly during horizontal swipe animations.
      */
     const getLayoutPosition = useCallback(() => {
         const anchor = anchorRef.current;
-        const container = layoutContainerRef?.current;
 
-        if (!anchor || !container) return null;
+        if (!anchor) return null;
 
-        // 1. Get container's global position (including Swipe transform, but stable during Swap)
-        const containerRect = container.getBoundingClientRect();
-
-        // 2. Sum offsets from anchor up to container
-        let x = 0;
-        let y = 0;
-        let curr = anchor as HTMLElement | null;
-
-        // Safety break counter
-        let depth = 0;
-        while (curr && curr !== container && depth < 50) {
-            x += curr.offsetLeft;
-            y += curr.offsetTop;
-            curr = curr.offsetParent as HTMLElement;
-            depth++;
-        }
-
-        // If we didn't find the container in offsetParent chain, fallback to getBoundingClientRect
-        if (curr !== container) return null;
-
-        // 3. Add anchor center
-        const centerX = containerRect.left + x + anchor.offsetWidth / 2;
-        const centerY = containerRect.top + y + anchor.offsetHeight / 2;
+        // getBoundingClientRect returns the visual position including all transforms
+        // (like translateX from horizontal page swipe)
+        const anchorRect = anchor.getBoundingClientRect();
+        const centerX = anchorRect.left + anchorRect.width / 2;
+        const centerY = anchorRect.top + anchorRect.height / 2;
 
         return { x: centerX, y: centerY };
-    }, [anchorRef, layoutContainerRef]);
+    }, [anchorRef]);
 
     /** Read position and update state only if it actually moved */
     const measure = useCallback(() => {
-        // Try layout position first if container ref is provided (SYNC FIX)
-        if (layoutContainerRef?.current) {
-            const layoutPos = getLayoutPosition();
-            if (layoutPos) {
-                const dx = Math.abs(layoutPos.x - lastPosRef.current.x);
-                const dy = Math.abs(layoutPos.y - lastPosRef.current.y);
+        const pos = getLayoutPosition();
+        if (!pos) return false;
 
-                if (dx > 0.5 || dy > 0.5) {
-                    lastPosRef.current = layoutPos;
-                    setPosition({ top: layoutPos.y, left: layoutPos.x });
-                    return true;
-                }
-                return false;
-            }
-        }
+        const dx = Math.abs(pos.x - lastPosRef.current.x);
+        const dy = Math.abs(pos.y - lastPosRef.current.y);
 
-        // Fallback to visual position (getBoundingClientRect)
-        const el = anchorRef.current;
-        if (!el) return false;
-        const rect = el.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        const dx = Math.abs(cx - lastPosRef.current.x);
-        const dy = Math.abs(cy - lastPosRef.current.y);
-
-        if (dx > 0.5 || dy > 0.5) {
-            lastPosRef.current = { x: cx, y: cy };
-            setPosition({ top: cy, left: cx });
-            return true; // moved
+        // Lower threshold for smoother tracking
+        if (dx > 0.1 || dy > 0.1) {
+            lastPosRef.current = pos;
+            setPosition({ top: pos.y, left: pos.x });
+            return true;
         }
         return false;
-    }, [anchorRef, layoutContainerRef, getLayoutPosition]);
+    }, [getLayoutPosition]);
 
-    /** Start (or restart) RAF tracking for smooth animation following (auto-stops after 1.5s) */
-    const startSmooth = useCallback(() => {
-        // Always restart fresh — the old early-return guard caused the halo to
-        // keep reading stale positions when a new swap/score trigger arrived
-        // while a previous RAF loop was still winding down.
-        if (rafRef.current !== null) {
-            cancelAnimationFrame(rafRef.current);
-            rafRef.current = null;
-        }
-
-        const loop = () => {
-            measure();
-            rafRef.current = requestAnimationFrame(loop);
-        };
-        rafRef.current = requestAnimationFrame(loop);
-
-        // Auto-stop after 1.5s (swap animation is ~800ms)
-        if (rafStopRef.current) clearTimeout(rafStopRef.current);
-        rafStopRef.current = setTimeout(() => {
-            if (rafRef.current !== null) {
-                cancelAnimationFrame(rafRef.current);
-                rafRef.current = null;
-            }
-        }, 1500);
-    }, [measure]);
-
+    // Continuous RAF loop - always running while mounted
+    // This ensures Halo follows anchor during any animation (swipe, swap, etc.)
     useEffect(() => {
         const el = anchorRef.current;
         if (!el) return;
@@ -120,35 +58,25 @@ export const HaloPortal: React.FC<HaloPortalProps> = ({ anchorRef, swapTrigger, 
         // Initial measurement
         measure();
 
-        // Trigger smooth tracking on swap OR score change (which might shift layout)
-        if (swapTrigger !== undefined || props.score !== undefined) {
-            startSmooth();
-        }
-
-        // REMOVED: Low-frequency polling (was causing 5 getBoundingClientRect/s per card)
-        // Now relying exclusively on ResizeObserver + window resize events
-
-        // ResizeObserver for size changes
-        const ro = new ResizeObserver(() => {
+        // Continuous RAF loop for tracking position during animations
+        const loop = () => {
             measure();
-            startSmooth();
-        });
-        ro.observe(el);
+            rafRef.current = requestAnimationFrame(loop);
+        };
+        rafRef.current = requestAnimationFrame(loop);
 
         // Window resize/orientation
-        const onResize = () => {
-            measure();
-            startSmooth();
-        };
+        const onResize = () => measure();
         window.addEventListener('resize', onResize);
 
         return () => {
-            if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-            if (rafStopRef.current) clearTimeout(rafStopRef.current);
-            ro.disconnect();
+            if (rafRef.current !== null) {
+                cancelAnimationFrame(rafRef.current);
+                rafRef.current = null;
+            }
             window.removeEventListener('resize', onResize);
         };
-    }, [anchorRef, measure, startSmooth, swapTrigger, props.score]);
+    }, [anchorRef, measure]);
 
     if (!position) return null;
 
@@ -169,7 +97,7 @@ export const HaloPortal: React.FC<HaloPortalProps> = ({ anchorRef, swapTrigger, 
                     top: position.top,
                     left: position.left
                 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                transition={{ duration: 0.08, ease: "easeOut" }}
                 style={{
                     transform: 'translate(-50%, -50%)',
                     width: 0,

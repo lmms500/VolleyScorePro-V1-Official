@@ -35,18 +35,19 @@ const containerVariants = {
     visible: {
         opacity: 1,
         transition: {
-            staggerChildren: 0.1,
-            delayChildren: 0.2
+            staggerChildren: 0.08,
+            delayChildren: 0.15,
+            when: "beforeChildren"
         }
     }
 };
 
 const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 15 },
     visible: {
         opacity: 1,
         y: 0,
-        transition: { type: 'spring', stiffness: 300, damping: 24 }
+        transition: { type: 'spring', stiffness: 400, damping: 30 }
     }
 };
 
@@ -56,6 +57,7 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
     const [renderShareCard, setRenderShareCard] = useState(false);
     const [canInteract, setCanInteract] = useState(false);
     const [generatingAction, setGeneratingAction] = useState<'share' | 'download' | null>(null);
+    const [showConfetti, setShowConfetti] = useState(false);
     const { showNotification } = useNotification();
     const { isSharing, shareMatch, downloadMatch } = useSocialShare();
     const haptics = useHaptics();
@@ -110,11 +112,22 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
             console.log('[MatchOver] Props Check:', { onRotate: !!onRotate, onReset: !!onReset });
             setCanInteract(false);
             setView('summary');
-            const timer = setTimeout(() => {
+            
+            // Confetti burst: show for 3 seconds then stop (performance optimization)
+            setShowConfetti(true);
+            const confettiTimer = setTimeout(() => setShowConfetti(false), 3000);
+            
+            const interactionTimer = setTimeout(() => {
                 console.log('[MatchOver] Timer fired. Setting canInteract = TRUE');
                 setCanInteract(true);
             }, 1000);
-            return () => clearTimeout(timer);
+            
+            return () => {
+                clearTimeout(confettiTimer);
+                clearTimeout(interactionTimer);
+            };
+        } else {
+            setShowConfetti(false);
         }
     }, [isOpen]);
 
@@ -192,22 +205,27 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
             )}
 
             <Modal isOpen={isOpen} onClose={() => { }} title="" showCloseButton={false} persistent={true} variant="immersive" zIndex="z-[100]">
-                {/* Background Dinâmico - Darker for contrast */}
-                <div className="fixed inset-0 bg-[#0f1025] pointer-events-none z-0">
+                {/* Background Dinâmico - Optimized with CSS containment */}
+                <div 
+                    className="fixed inset-0 bg-[#0f1025] pointer-events-none z-0"
+                    style={{ contain: 'strict' }}
+                >
                     <div className="absolute inset-0 bg-gradient-to-b from-indigo-900/10 to-[#0b0c15] opacity-80" />
                 </div>
 
-                {/* CONFETTI - Disabled in Low Graphics */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-40">
-                    <Confetti
-                        colors={[winnerColorKey, winnerColorKey]}
-                        intensity="high"
-                        physicsVariant="ambient"
-                        enabled
-                    />
-                </div>
+                {/* CONFETTI - Burst effect only (3 seconds), then stops for performance */}
+                {showConfetti && (
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-40">
+                        <Confetti
+                            colors={[winnerColorKey, winnerColorKey]}
+                            intensity="high"
+                            physicsVariant="ambient"
+                            enabled={showConfetti}
+                        />
+                    </div>
+                )}
 
-                <div className="relative z-10 flex flex-col h-full w-full pt-safe-top pb-safe-bottom">
+                <div className="relative z-10 flex flex-col h-full w-full pt-safe-top">
 
 
 
@@ -218,10 +236,10 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                 initial="hidden"
                                 animate="visible"
                                 exit="hidden"
-                                className="flex-1 flex flex-col h-full overflow-hidden"
+                                className="flex-1 flex flex-col landscape:flex-row h-full overflow-hidden"
                             >
                                 {/* 1. HEADER SECTION */}
-                                <motion.div variants={itemVariants} className="flex flex-col items-center justify-center p-6 shrink-0 relative">
+                                <motion.div variants={itemVariants} className="flex flex-col items-center justify-center p-6 landscape:p-4 shrink-0 landscape:w-[42%] landscape:h-full landscape:border-r landscape:border-white/10 relative">
                                     {/* Glow effect atrás do troféu */}
                                     <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-${winnerColorKey}-500/20 blur-[50px] rounded-full`} />
 
@@ -231,16 +249,19 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                         strokeWidth={1.5}
                                     />
 
-                                    <h2 className="text-3xl font-black text-white mt-6 uppercase tracking-tighter leading-none text-center relative z-10">
+                                    <h2 className="text-3xl landscape:text-xl font-black text-white mt-6 landscape:mt-2 uppercase tracking-tighter leading-none text-center relative z-10">
                                         {winnerName}
                                     </h2>
 
-                                    <div className="flex items-center gap-4 text-6xl font-black mt-2 relative z-10">
+                                    <div className="flex items-center gap-4 text-6xl landscape:text-4xl font-black mt-2 landscape:mt-1 relative z-10">
                                         <span className={`text-${isA ? colorA : 'slate'}-400 drop-shadow-lg`}>{state.setsA}</span>
-                                        <span className="text-white/10 font-thin text-4xl">/</span>
+                                        <span className="text-white/10 font-thin text-4xl landscape:text-2xl">/</span>
                                         <span className={`text-${!isA ? colorB : 'slate'}-400 drop-shadow-lg`}>{state.setsB}</span>
                                     </div>
                                 </motion.div>
+
+                                {/* RIGHT PANEL: Scrollable Content + Footer */}
+                                <div className="flex-1 flex flex-col landscape:h-full overflow-hidden">
 
                                 {/* SCROLLABLE CONTENT AREA */}
                                 <div className="flex-1 overflow-y-auto custom-scrollbar px-4 pb-4 space-y-6">
@@ -380,13 +401,13 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                 </div>
 
                                 {/* 4. FOOTER ACTIONS (3 LEVELS) */}
-                                <motion.div variants={itemVariants} className="p-6 pt-4 bg-gradient-to-t from-[#020617] via-[#020617] to-transparent space-y-4 relative z-50 pointer-events-auto">
+                                <motion.div variants={itemVariants} className="px-6 landscape:px-4 pt-4 landscape:pt-2 bg-gradient-to-t from-[#020617] via-[#020617] to-transparent space-y-3 landscape:space-y-2 relative z-50 pointer-events-auto" style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}>
 
                                     {/* Level 1: Primary Action */}
                                     <Button
                                         onClick={handleRotateWrapper}
                                         disabled={!canInteract || isSpectator}
-                                        className="w-full h-16 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-lg uppercase tracking-widest shadow-xl shadow-indigo-500/30 border-0 flex items-center justify-center gap-3 relative overflow-hidden group ring-1 ring-inset ring-white/10"
+                                        className="w-full h-16 landscape:h-11 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-black text-lg landscape:text-base uppercase tracking-widest shadow-xl shadow-indigo-500/30 border-0 flex items-center justify-center gap-3 relative overflow-hidden group ring-1 ring-inset ring-white/10"
                                     >
                                         <span>{t('matchOver.nextGameButton')}</span>
                                         <MoveRight size={20} className="stroke-[3]" />
@@ -397,7 +418,7 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                         <Button
                                             onClick={() => handleShareAction('share')}
                                             disabled={isSharing || !!generatingAction || !canInteract}
-                                            className="h-12 rounded-xl bg-white/10 hover:bg-white/15 active:bg-white/20 text-white/80 hover:text-white font-bold uppercase tracking-wider text-[10px] border border-white/15 backdrop-blur-md flex items-center justify-center gap-2 transition-all ring-1 ring-inset ring-white/10 shadow-sm"
+                                            className="h-12 landscape:h-9 rounded-xl bg-white/10 hover:bg-white/15 active:bg-white/20 text-white/80 hover:text-white font-bold uppercase tracking-wider text-[10px] border border-white/15 backdrop-blur-md flex items-center justify-center gap-2 transition-all ring-1 ring-inset ring-white/10 shadow-sm"
                                         >
                                             {(isSharing || generatingAction === 'share') ? <Loader2 size={16} className="animate-spin" /> : <Share2 size={16} />}
                                             {t('matchOver.share')}
@@ -406,7 +427,7 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                         <Button
                                             onClick={() => handleShareAction('download')}
                                             disabled={isSharing || !!generatingAction || !canInteract}
-                                            className="h-12 rounded-xl bg-white/10 hover:bg-white/15 active:bg-white/20 text-white/80 hover:text-white font-bold uppercase tracking-wider text-[10px] border border-white/15 backdrop-blur-md flex items-center justify-center gap-2 transition-all ring-1 ring-inset ring-white/10 shadow-sm"
+                                            className="h-12 landscape:h-9 rounded-xl bg-white/10 hover:bg-white/15 active:bg-white/20 text-white/80 hover:text-white font-bold uppercase tracking-wider text-[10px] border border-white/15 backdrop-blur-md flex items-center justify-center gap-2 transition-all ring-1 ring-inset ring-white/10 shadow-sm"
                                         >
                                             {generatingAction === 'download' ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                                             {t('matchOver.download')}
@@ -416,7 +437,7 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                             onClick={onUndo}
                                             variant="ghost"
                                             disabled={!canInteract || isSpectator}
-                                            className="h-12 rounded-xl text-slate-500 hover:text-indigo-300 hover:bg-indigo-500/10 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-colors border border-transparent hover:border-indigo-500/20"
+                                            className="h-12 landscape:h-9 rounded-xl text-slate-500 hover:text-indigo-300 hover:bg-indigo-500/10 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-colors border border-transparent hover:border-indigo-500/20"
                                         >
                                             <Undo size={16} /> {t('controls.undo')}
                                         </Button>
@@ -425,13 +446,14 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
                                             onClick={handleResetWrapper}
                                             variant="ghost"
                                             disabled={!canInteract || isSpectator}
-                                            className="h-12 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-colors border border-transparent hover:border-rose-500/20"
+                                            className="h-12 landscape:h-9 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-colors border border-transparent hover:border-rose-500/20"
                                         >
                                             <RotateCcw size={16} /> {t('controls.reset')}
                                         </Button>
                                     </div>
 
                                 </motion.div>
+                                </div>{/* /RIGHT PANEL */}
                             </motion.div>
                         ) : (
                             <motion.div

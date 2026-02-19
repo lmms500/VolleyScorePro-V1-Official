@@ -1,5 +1,5 @@
 
-import { doc, onSnapshot, setDoc, updateDoc, increment, serverTimestamp, DocumentSnapshot, FirestoreError, Unsubscribe } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, serverTimestamp, DocumentSnapshot, FirestoreError, Unsubscribe, collection, deleteDoc, onSnapshot as onSnapshotQuery } from 'firebase/firestore';
 import { db, isFirebaseInitialized } from '@lib/firebase';
 import { GameState } from '@types';
 import { SecureStorage } from '@lib/storage/SecureStorage';
@@ -11,7 +11,12 @@ interface SyncSessionSchema {
     connectedCount: number;
     lastUpdate: any;
     state: GameState;
-    syncLatencyMs?: number;  // Host→Firestore→Spectator latency
+    syncLatencyMs?: number;
+}
+
+interface SpectatorDoc {
+    joinedAt: any;
+    uid: string;
 }
 
 const SYNC_QUEUE_KEY = 'sync_pending_queue';
@@ -168,12 +173,15 @@ export class SyncEngine {
      * Subscribes to a match session (Spectator).
      * Returns a cleanup function.
      * Auto-reconnect with exponential backoff if subscription fails.
+     * 
+     * Novo: monitora status 'finished' e chama onSessionEnded.
      */
     public subscribeToMatch(
         sessionId: string,
         onUpdate: (state: GameState) => void,
         onError?: (error: Error) => void,
-        onReconnecting?: (attempt: number) => void
+        onReconnecting?: (attempt: number) => void,
+        onSessionEnded?: () => void
     ): () => void {
         if (!isFirebaseInitialized || !db) {
             if (onError) onError(new Error("Firebase not initialized"));
@@ -187,9 +195,6 @@ export class SyncEngine {
 
         const sessionRef = doc(db, 'live_matches', sessionId);
 
-        updateDoc(sessionRef, { connectedCount: increment(1) }).catch(e => logger.warn("Failed to inc stats", e));
-
-        // Reset reconnect counter on successful subscription
         this.reconnectAttempts = 0;
         this.reconnectDelay = 1000;
 
@@ -198,13 +203,22 @@ export class SyncEngine {
             (snapshot: DocumentSnapshot) => {
                 if (snapshot.exists()) {
                     const data = snapshot.data() as SyncSessionSchema;
+                    
+                    if (data.status === 'finished') {
+                        logger.log('[SyncEngine] Session ended by host');
+                        if (onSessionEnded) {
+                            onSessionEnded();
+                        }
+                        return;
+                    }
+                    
                     if (data && data.state) {
                         onUpdate(data.state);
                     }
                 } else {
                     this.handleSubscriptionError(
                         new Error("Session not found"),
-                        sessionId, onUpdate, onError, onReconnecting
+                        sessionId, onUpdate, onError, onReconnecting, onSessionEnded
                     );
                 }
             },
@@ -212,7 +226,7 @@ export class SyncEngine {
                 logger.error("[SyncEngine] Subscription error:", error);
                 this.handleSubscriptionError(
                     error,
-                    sessionId, onUpdate, onError, onReconnecting
+                    sessionId, onUpdate, onError, onReconnecting, onSessionEnded
                 );
             }
         );
@@ -222,7 +236,6 @@ export class SyncEngine {
                 this.activeUnsubscribe();
                 this.activeUnsubscribe = null;
             }
-            updateDoc(sessionRef, { connectedCount: increment(-1) }).catch(() => { });
         };
     }
 
@@ -231,7 +244,8 @@ export class SyncEngine {
         sessionId: string,
         onUpdate: (state: GameState) => void,
         onError?: (error: Error) => void,
-        onReconnecting?: (attempt: number) => void
+        onReconnecting?: (attempt: number) => void,
+        onSessionEnded?: () => void
     ) {
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
             if (onError) onError(error);
@@ -249,7 +263,7 @@ export class SyncEngine {
 
         setTimeout(() => {
             if (this.isOnline) {
-                this.subscribeToMatch(sessionId, onUpdate, onError, onReconnecting);
+                this.subscribeToMatch(sessionId, onUpdate, onError, onReconnecting, onSessionEnded);
             }
         }, delay);
     }
@@ -263,9 +277,7 @@ export class SyncEngine {
     }
 
     public generateCode(): string {
-        // Format: AAA-00 (3 letters + 2 digits)
-        // More memorable and harder to mistype than 6 random digits
-        const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';  // Exclude I, O (confusing)
+        const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
         let code = '';
 
         for (let i = 0; i < 3; i++) {
@@ -273,7 +285,79 @@ export class SyncEngine {
         }
 
         code += String(Math.floor(Math.random() * 100)).padStart(2, '0');
-        return code;  // e.g., "ABC-12"
+        return code;
+    }
+
+    /**
+     * Registra espectador na subcoleção para contagem precisa.
+     * Deve ser chamado quando um espectador se conecta.
+     */
+    public async joinAsSpectator(sessionId: string, userId: string): Promise<void> {
+        if (!isFirebaseInitialized || !db) {
+            logger.warn('[SyncEngine] Firebase not initialized');
+            return;
+        }
+
+        const spectatorRef = doc(db, 'live_matches', sessionId, 'spectators', userId);
+        const spectatorDoc: SpectatorDoc = {
+            joinedAt: serverTimestamp(),
+            uid: userId
+        };
+
+        try {
+            await setDoc(spectatorRef, spectatorDoc);
+            logger.log('[SyncEngine] Spectator joined:', userId);
+        } catch (e) {
+            logger.error('[SyncEngine] Failed to join as spectator:', e);
+        }
+    }
+
+    /**
+     * Remove espectador da subcoleção.
+     * Deve ser chamado quando um espectador se desconecta.
+     */
+    public async leaveSpectator(sessionId: string, userId: string): Promise<void> {
+        if (!isFirebaseInitialized || !db) {
+            return;
+        }
+
+        const spectatorRef = doc(db, 'live_matches', sessionId, 'spectators', userId);
+
+        try {
+            await deleteDoc(spectatorRef);
+            logger.log('[SyncEngine] Spectator left:', userId);
+        } catch (e) {
+            logger.warn('[SyncEngine] Failed to leave spectator:', e);
+        }
+    }
+
+    /**
+     * Subscreve a atualizações de contagem de espectadores.
+     * Usa onSnapshot na subcoleção para contagem em tempo real.
+     */
+    public subscribeToSpectatorCount(
+        sessionId: string,
+        onUpdate: (count: number) => void
+    ): () => void {
+        if (!isFirebaseInitialized || !db) {
+            onUpdate(0);
+            return () => {};
+        }
+
+        const spectatorsCol = collection(db, 'live_matches', sessionId, 'spectators');
+
+        const unsubscribe = onSnapshotQuery(
+            spectatorsCol,
+            (snapshot) => {
+                onUpdate(snapshot.size);
+            },
+            (error) => {
+                logger.error('[SyncEngine] Spectator count subscription error:', error);
+                onUpdate(0);
+            }
+        );
+
+        return unsubscribe;
     }
 
     /**

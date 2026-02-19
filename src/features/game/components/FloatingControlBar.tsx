@@ -42,7 +42,11 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({
   const handleReset = useCallback(() => { onReset(); setIsHovering(false); }, [onReset]);
   const handleMenu = useCallback(() => { onMenu(); setIsHovering(false); }, [onMenu]);
   const handleCourt = useCallback(() => { onCourt(); setIsHovering(false); }, [onCourt]);
-  const handleToggleListening = useCallback(() => { onToggleListening(); setIsHovering(false); }, [onToggleListening]);
+  const handleToggleListening = useCallback(() => { 
+    console.log('[FloatingControlBar] handleToggleListening called');
+    onToggleListening(); 
+    setIsHovering(false); 
+  }, [onToggleListening]);
   const { ref, width, height } = useElementSize<HTMLDivElement>();
 
   // Reset timer on any click
@@ -110,7 +114,11 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({
             {voiceEnabled && (
               <IconButton
                 icon={isListening ? <Mic size={iconSize} strokeWidth={1.5} /> : <MicOff size={iconSize} strokeWidth={1.5} />}
-                onClick={() => { handleToggleListening(); handleUserActivity(); }}
+                onClick={() => { 
+                  console.log('[FloatingControlBar] Button clicked, calling handleToggleListening');
+                  handleToggleListening(); 
+                  handleUserActivity(); 
+                }}
                 variant={isListening ? "filled" : "ghost"}
                 size="lg"
                 isActive={isListening}

@@ -188,7 +188,7 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
                 */}
                 <div
                     ref={captureRef}
-                    className="flex items-center relative py-12"
+                    className="flex items-center relative py-20"
                     style={{
                         minWidth: `${Math.max(MIN_CONTAINER_WIDTH, 600)}px`,
                         paddingLeft: 40,
@@ -221,7 +221,7 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
                                     >
                                         {/* Vertical Line */}
                                         {(isSetEnd || isSD) && (
-                                            <div className={`absolute top-1/2 -translate-y-1/2 h-48 w-px border-l-2 border-dashed ${isSD ? 'border-red-500/50' : 'border-slate-300 dark:border-white/20'}`} />
+                                            <div className={`absolute top-1/2 -translate-y-1/2 h-64 w-px border-l-2 border-dashed ${isSD ? 'border-red-500/50' : 'border-slate-300 dark:border-white/20'}`} />
                                         )}
 
                                         <div className={`
@@ -249,8 +249,8 @@ export const MatchTimeline: React.FC<MatchTimelineProps> = ({ match }) => {
                             const theme = node.team === 'A' ? themeA : themeB;
 
                             // Staggering Logic (Vertical Offset)
-                            const baseOffset = 45;
-                            const staggerAmount = 35 * node.staggerLevel;
+                            const baseOffset = 60;
+                            const staggerAmount = 40 * node.staggerLevel;
                             const totalOffset = baseOffset + staggerAmount;
                             const yOffset = node.isTop ? -totalOffset : totalOffset;
 

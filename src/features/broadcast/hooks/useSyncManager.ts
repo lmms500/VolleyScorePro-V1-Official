@@ -5,7 +5,7 @@
  * AGORA CONSOME CONTEXTS INTERNAMENTE - sem parâmetros.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { FEATURE_FLAGS } from '@config/constants';
 import { SyncEngine } from '@features/broadcast/services/SyncEngine';
 import { useTimeoutSync } from './useTimeoutSync';
@@ -15,8 +15,8 @@ import { useAuth } from '@contexts/AuthContext';
 import { useTranslation } from '@contexts/LanguageContext';
 import { useNotification } from '@contexts/NotificationContext';
 import { useModals } from '@contexts/ModalContext';
-import { useTimeoutContext } from '@contexts/TimeoutContext'; // NOVO
-import { useCombinedGameState } from '@features/game/hooks/useCombinedGameState'; // NOVO
+import { useTimeoutContext } from '@contexts/TimeoutContext';
+import { useCombinedGameState } from '@features/game/hooks/useCombinedGameState';
 
 export interface SyncManagerReturn {
     isBroadcastMode: boolean;
@@ -28,17 +28,7 @@ export interface SyncManagerReturn {
     handleLeaveSession: () => void;
 }
 
-/**
- * useSyncManager - Encapsula toda lógica de VolleyLink Live Sync.
- *
- * Mudanças na refatoração:
- * - Consome 9 contexts internamente
- * - Usa useCombinedGameState() para type safety
- * - Usa useTimeout() para estado de timeout (evita dependência circular)
- * - Removida interface SyncManagerDeps (sem parâmetros)
- */
 export function useSyncManager(): SyncManagerReturn {
-    // --- CONTEXT CONSUMPTION (NOVO) ---
     const combinedState = useCombinedGameState();
     const { setState } = useActions();
     const { isMatchOver } = useScore();
@@ -48,7 +38,6 @@ export function useSyncManager(): SyncManagerReturn {
     const { showNotification } = useNotification();
     const { activeModal, openModal } = useModals();
 
-    // Timeout state via novo TimeoutContext
     const {
         activeTimeoutTeam,
         timeoutSeconds,
@@ -59,13 +48,30 @@ export function useSyncManager(): SyncManagerReturn {
         maximizeTimeout
     } = useTimeoutContext();
 
-    // --- STATE (INALTERADO) ---
     const [isBroadcastMode, setIsBroadcastMode] = useState(false);
+    const currentSessionRef = useRef<string | null>(null);
+    const unsubscribeRef = useRef<(() => void) | null>(null);
 
     const isHost = syncRole === 'host';
     const isSpectator = syncRole === 'spectator';
 
-    // --- URL DETECTION (INALTERADO) ---
+    const handleSessionEnded = useCallback(() => {
+        if (unsubscribeRef.current) {
+            unsubscribeRef.current();
+            unsubscribeRef.current = null;
+        }
+        
+        setState({ type: 'RESET_MATCH', gameId: Date.now().toString() });
+        setState({ type: 'DISCONNECT_SYNC' });
+        
+        showNotification({
+            mainText: t('liveSync.sessionEnded'),
+            type: 'info',
+            subText: t('liveSync.sessionEndedSub'),
+            systemIcon: 'mic'
+        });
+    }, [setState, showNotification, t]);
+
     useEffect(() => {
         if (!FEATURE_FLAGS.ENABLE_LIVE_SYNC) return;
 
@@ -73,18 +79,37 @@ export function useSyncManager(): SyncManagerReturn {
         if (params.get('mode') === 'broadcast') {
             setIsBroadcastMode(true);
             const sessionCode = params.get('code');
-            if (sessionCode) {
-                SyncEngine.getInstance().subscribeToMatch(sessionCode, (remoteState) => {
-                    setState({
-                        type: 'LOAD_STATE',
-                        payload: { ...remoteState, syncRole: 'spectator', sessionId: sessionCode }
-                    });
-                });
+            if (sessionCode && user?.uid) {
+                currentSessionRef.current = sessionCode;
+                const syncEngine = SyncEngine.getInstance();
+                
+                syncEngine.joinAsSpectator(sessionCode, user.uid);
+                
+                unsubscribeRef.current = syncEngine.subscribeToMatch(
+                    sessionCode,
+                    (remoteState) => {
+                        setState({
+                            type: 'LOAD_STATE',
+                            payload: { ...remoteState, syncRole: 'spectator', sessionId: sessionCode }
+                        });
+                    },
+                    undefined,
+                    undefined,
+                    handleSessionEnded
+                );
             }
         }
-    }, [setState]);
+        
+        return () => {
+            if (unsubscribeRef.current) {
+                unsubscribeRef.current();
+            }
+            if (currentSessionRef.current && user?.uid) {
+                SyncEngine.getInstance().leaveSpectator(currentSessionRef.current, user.uid);
+            }
+        };
+    }, [setState, user?.uid, handleSessionEnded]);
 
-    // --- HANDLERS (INALTERADOS, apenas removem params externos) ---
     const handleHostSession = useCallback(async (code: string) => {
         if (!FEATURE_FLAGS.ENABLE_LIVE_SYNC || !user) return;
 
@@ -100,21 +125,44 @@ export function useSyncManager(): SyncManagerReturn {
 
     const handleJoinSession = useCallback((code: string) => {
         if (!FEATURE_FLAGS.ENABLE_LIVE_SYNC) return;
-
-        SyncEngine.getInstance().subscribeToMatch(code, (remoteState) => {
-            setState({
-                type: 'LOAD_STATE',
-                payload: { ...remoteState, syncRole: 'spectator', sessionId: code }
+        
+        if (!user?.uid) {
+            showNotification({
+                mainText: t('liveSync.authRequired'),
+                type: 'error',
+                subText: t('liveSync.authRequiredSub'),
+                systemIcon: 'mic'
             });
-        });
+            return;
+        }
 
+        currentSessionRef.current = code;
+        const syncEngine = SyncEngine.getInstance();
+        
+        syncEngine.joinAsSpectator(code, user.uid);
+
+        unsubscribeRef.current = syncEngine.subscribeToMatch(
+            code,
+            (remoteState) => {
+                setState({
+                    type: 'LOAD_STATE',
+                    payload: { ...remoteState, syncRole: 'spectator', sessionId: code }
+                });
+            },
+            undefined,
+            undefined,
+            handleSessionEnded
+        );
+
+        setState({ type: 'SET_SYNC_ROLE', role: 'spectator', sessionId: code });
+        
         showNotification({
             mainText: t('liveSync.joined', { code }),
             type: 'success',
             subText: t('liveSync.joinedSub'),
             systemIcon: 'mic'
         });
-    }, [setState, showNotification, t]);
+    }, [user?.uid, setState, showNotification, t, handleSessionEnded]);
 
     const handleStopBroadcast = useCallback(async () => {
         if (!sessionId) return;
@@ -132,15 +180,24 @@ export function useSyncManager(): SyncManagerReturn {
     }, [sessionId, setState, showNotification, t]);
 
     const handleLeaveSession = useCallback(() => {
+        if (currentSessionRef.current && user?.uid) {
+            SyncEngine.getInstance().leaveSpectator(currentSessionRef.current, user.uid);
+        }
+        
+        if (unsubscribeRef.current) {
+            unsubscribeRef.current();
+            unsubscribeRef.current = null;
+        }
+        
+        currentSessionRef.current = null;
         setState({ type: 'DISCONNECT_SYNC' });
         showNotification({
             mainText: t('liveSync.left'),
             type: 'info',
             systemIcon: 'mic'
         });
-    }, [setState, showNotification, t]);
+    }, [user?.uid, setState, showNotification, t]);
 
-    // --- TIMEOUT SYNC HOOKS (INALTERADOS) ---
     useTimeoutSync(
         sessionId,
         activeTimeoutTeam,
@@ -168,14 +225,12 @@ export function useSyncManager(): SyncManagerReturn {
         }
     );
 
-    // --- SPECTATOR AUTO-OPEN MATCH OVER (INALTERADO) ---
     useEffect(() => {
         if (isSpectator && isMatchOver && activeModal === 'none') {
             openModal('match_over');
         }
     }, [isSpectator, isMatchOver, activeModal, openModal]);
 
-    // --- BROADCAST STATE SYNC (INALTERADO) ---
     useEffect(() => {
         if (isHost && sessionId) {
             SyncEngine.getInstance().broadcastState(sessionId, combinedState);

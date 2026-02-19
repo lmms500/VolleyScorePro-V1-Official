@@ -45,6 +45,11 @@ export const ModalManager: React.FC<ModalManagerProps> = memo(({
   const { activeModal, closeModal, openModal } = useModals();
   const { t } = useTranslation();
 
+  // Prefetch MatchOverModal to avoid flickering when match ends
+  useEffect(() => {
+    import('./MatchOverModal');
+  }, []);
+
   // --- REFACTORED: Use split contexts ---
   const { applySettings, manualRotate, swapPositions, addPoint, subtractPoint, useTimeout, substitutePlayers, undo } = useActions();
   const { showNotification } = useNotification();
