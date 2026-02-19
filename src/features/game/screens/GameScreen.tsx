@@ -67,7 +67,7 @@ export const GameScreen: React.FC = () => {
     const scoreState = useScore();
     const rosterState = useRoster();
 
-    const { subtractPoint, setServer, useTimeout } = actions;
+    const { subtractPoint, setServer, useTimeout, toggleSides } = actions;
     const { isMatchActive, inSuddenDeath, isMatchOver, swappedSides } = scoreState;
     const { teamARoster, teamBRoster, config, syncRole } = rosterState;
 
@@ -144,9 +144,10 @@ export const GameScreen: React.FC = () => {
             subtractPoint(team);
         },
         onUndo: handlers.handleUndo,
-        onThinkingState: () => {},
+        onThinkingState: () => { },
         onTimeout: (team) => useTimeout(team),
         onSetServer: (team) => setServer(team),
+        onSwapSides: () => toggleSides(),
         language,
         teamAName: rosterState.teamAName,
         teamBName: rosterState.teamBName,

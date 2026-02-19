@@ -42,9 +42,6 @@ const PHONETIC_SYNONYMS_PT: Record<string, string> = {
   'eis': 'ace',
   'ops ': 'desfazer ',
   'opss ': 'desfazer ',
-  'trocá': 'trocar',
-  'invertê': 'inverter',
-  'troca': 'trocar',
 };
 
 const PHONETIC_SYNONYMS_EN: Record<string, string> = {

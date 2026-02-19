@@ -36,6 +36,10 @@ const makeContext = (overrides: Partial<VoiceContext> = {}): VoiceContext => ({
 const parse = (text: string, context?: Partial<VoiceContext>, lang = 'pt') =>
   VoiceCommandParser.parse(text, lang, makeContext(context));
 
+// -------------------------------------------------------------------------
+// COMANDOS BÁSICOS
+// -------------------------------------------------------------------------
+
 describe('VoiceCommandParser — Comandos Básicos', () => {
 
   it('deve reconhecer "desfazer" como undo', () => {
@@ -81,6 +85,74 @@ describe('VoiceCommandParser — Comandos Básicos', () => {
 
 });
 
+// -------------------------------------------------------------------------
+// NOMES DE TIME DINÂMICOS (extraídos da frase)
+// -------------------------------------------------------------------------
+
+describe('VoiceCommandParser — Team Name Dinâmico', () => {
+
+  it('deve reconhecer "ponto Time 3" com time chamado "Time 3"', () => {
+    const result = parse('ponto Time 3', { teamAName: 'Time 3', teamBName: 'Time 7' });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+  });
+
+  it('deve reconhecer "ponto do Time 7" com time chamado "Time 7"', () => {
+    const result = parse('ponto do Time 7', { teamAName: 'Time 3', teamBName: 'Time 7' });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('B');
+  });
+
+  it('deve reconhecer "ponto para o Time 3" com preposições', () => {
+    const result = parse('ponto para o Time 3', { teamAName: 'Time 3', teamBName: 'Time 5' });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+  });
+
+  it('deve reconhecer "bloqueio Time 3" como ponto + skill + team', () => {
+    const result = parse('bloqueio Time 3', { teamAName: 'Time 3', teamBName: 'Time 5', statsEnabled: false });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+    expect(result.skill).toBe('block');
+  });
+
+  it('deve reconhecer "ponto de bloqueio Time 3" como ponto + skill + team', () => {
+    const result = parse('ponto de bloqueio Time 3', { teamAName: 'Time 3', teamBName: 'Time 5', statsEnabled: false });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+    expect(result.skill).toBe('block');
+  });
+
+  it('deve reconhecer time com nome longo "Escola de Vôlei Santos"', () => {
+    const result = parse('ponto Escola de Vôlei Santos', { teamAName: 'Escola de Vôlei Santos', teamBName: 'Club Praia' });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+  });
+
+  it('deve reconhecer time com erro de transcrição (fuzzy)', () => {
+    const result = parse('ponto do Flamengoo', { statsEnabled: false });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+  });
+
+  it('deve reconhecer time numérico em timeout', () => {
+    const result = parse('timeout Time 3', { teamAName: 'Time 3', teamBName: 'Time 7' });
+    expect(result.type).toBe('timeout');
+    expect(result.team).toBe('A');
+  });
+
+  it('deve reconhecer time numérico em timeout (time B)', () => {
+    const result = parse('timeout Time 7', { teamAName: 'Time 3', teamBName: 'Time 7' });
+    expect(result.type).toBe('timeout');
+    expect(result.team).toBe('B');
+  });
+
+});
+
+// -------------------------------------------------------------------------
+// LADOS (Esquerda/Direita)
+// -------------------------------------------------------------------------
+
 describe('VoiceCommandParser — Lados (Esquerda/Direita)', () => {
 
   it('deve reconhecer "esquerda" como Time A', () => {
@@ -108,6 +180,59 @@ describe('VoiceCommandParser — Lados (Esquerda/Direita)', () => {
   });
 
 });
+
+// -------------------------------------------------------------------------
+// SWAP / TROCA DE LADOS
+// -------------------------------------------------------------------------
+
+describe('VoiceCommandParser — Swap de Lados', () => {
+
+  it('deve reconhecer "trocar lados"', () => {
+    const result = parse('trocar lados');
+    expect(result.type).toBe('swap');
+    expect(result.confidence).toBe(1);
+  });
+
+  it('deve reconhecer "trocar de lado"', () => {
+    const result = parse('trocar de lado');
+    expect(result.type).toBe('swap');
+  });
+
+  it('deve reconhecer "inverter"', () => {
+    const result = parse('inverter');
+    expect(result.type).toBe('swap');
+  });
+
+  it('deve reconhecer "mudar lados"', () => {
+    const result = parse('mudar lados');
+    expect(result.type).toBe('swap');
+  });
+
+  it('deve reconhecer "virar lado"', () => {
+    const result = parse('virar lado');
+    expect(result.type).toBe('swap');
+  });
+
+  it('deve reconhecer "swap sides" em inglês', () => {
+    const result = parse('swap sides', {}, 'en');
+    expect(result.type).toBe('swap');
+  });
+
+  it('deve reconhecer "switch sides" em inglês', () => {
+    const result = parse('switch sides', {}, 'en');
+    expect(result.type).toBe('swap');
+  });
+
+  it('deve reconhecer "cambiar lados" em espanhol', () => {
+    const result = parse('cambiar lados', {}, 'es');
+    expect(result.type).toBe('swap');
+  });
+
+});
+
+// -------------------------------------------------------------------------
+// INFERÊNCIA CONTEXTUAL
+// -------------------------------------------------------------------------
 
 describe('VoiceCommandParser — Inferência Contextual', () => {
 
@@ -151,6 +276,10 @@ describe('VoiceCommandParser — Inferência Contextual', () => {
 
 });
 
+// -------------------------------------------------------------------------
+// JOGADOR + SKILL
+// -------------------------------------------------------------------------
+
 describe('VoiceCommandParser — Jogador + Skill', () => {
 
   it('deve reconhecer "João ataque" — jogador + skill', () => {
@@ -186,6 +315,10 @@ describe('VoiceCommandParser — Jogador + Skill', () => {
   });
 
 });
+
+// -------------------------------------------------------------------------
+// TIME + SKILL
+// -------------------------------------------------------------------------
 
 describe('VoiceCommandParser — Time + Skill', () => {
 
@@ -231,7 +364,75 @@ describe('VoiceCommandParser — Time + Skill', () => {
     expect(result.skill).toBe('block');
   });
 
+  it('deve reconhecer "ponto de bloqueio Flamengo"', () => {
+    const result = parse('ponto de bloqueio Flamengo', { statsEnabled: false });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+    expect(result.skill).toBe('block');
+  });
+
+  it('deve reconhecer "ponto de ataque Botafogo"', () => {
+    const result = parse('ponto de ataque Botafogo', { statsEnabled: false });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('B');
+    expect(result.skill).toBe('attack');
+  });
+
 });
+
+// -------------------------------------------------------------------------
+// TIMEOUT
+// -------------------------------------------------------------------------
+
+describe('VoiceCommandParser — Timeout', () => {
+
+  it('deve reconhecer "timeout Flamengo"', () => {
+    const result = parse('timeout Flamengo');
+    expect(result.type).toBe('timeout');
+    expect(result.team).toBe('A');
+  });
+
+  it('deve reconhecer "timeout Botafogo"', () => {
+    const result = parse('timeout Botafogo');
+    expect(result.type).toBe('timeout');
+    expect(result.team).toBe('B');
+  });
+
+  it('deve reconhecer "pausa time A"', () => {
+    const result = parse('pausa time A');
+    expect(result.type).toBe('timeout');
+    expect(result.team).toBe('A');
+  });
+
+  it('deve reconhecer "timeout time B"', () => {
+    const result = parse('timeout time B');
+    expect(result.type).toBe('timeout');
+    expect(result.team).toBe('B');
+  });
+
+  it('deve reconhecer timeout com variante fonética', () => {
+    const result = parse('taimaute do Flamengo');
+    expect(result.type).toBe('timeout');
+    expect(result.team).toBe('A');
+  });
+
+  it('deve reconhecer "pedido de tempo Botafogo"', () => {
+    const result = parse('pedido de tempo Botafogo');
+    expect(result.type).toBe('timeout');
+    expect(result.team).toBe('B');
+  });
+
+  it('deve reconhecer "timeout" em inglês com time', () => {
+    const result = parse('timeout team a', {}, 'en');
+    expect(result.type).toBe('timeout');
+    expect(result.team).toBe('A');
+  });
+
+});
+
+// -------------------------------------------------------------------------
+// FUZZY MATCHING
+// -------------------------------------------------------------------------
 
 describe('VoiceCommandParser — Fuzzy Matching', () => {
 
@@ -269,6 +470,10 @@ describe('VoiceCommandParser — Fuzzy Matching', () => {
 
 });
 
+// -------------------------------------------------------------------------
+// DESAMBIGUAÇÃO SAQUE VS ACE
+// -------------------------------------------------------------------------
+
 describe('VoiceCommandParser — Desambiguação Saque vs Ace', () => {
 
   it('"saque" isolado → troca de server, não ace', () => {
@@ -292,6 +497,10 @@ describe('VoiceCommandParser — Desambiguação Saque vs Ace', () => {
 
 });
 
+// -------------------------------------------------------------------------
+// NORMALIZAÇÃO
+// -------------------------------------------------------------------------
+
 describe('VoiceCommandParser — Normalização', () => {
 
   it('deve tolerar texto em maiúsculas', () => {
@@ -311,13 +520,17 @@ describe('VoiceCommandParser — Normalização', () => {
     expect(result.skill).toBe('block');
   });
 
-  it('deve reconhecer timeout com variante fonética', () => {
-    const result = parse('taimaute do Flamengo');
-    expect(result.type).toBe('timeout');
-    expect(result.team).toBe('A');
+  it('deve converter números por extenso', () => {
+    const result = parse('ponto camisa três', { statsEnabled: false });
+    expect(result.type).toBe('point');
+    expect(result.player?.name).toBe('Ana Paula');
   });
 
 });
+
+// -------------------------------------------------------------------------
+// INGLÊS
+// -------------------------------------------------------------------------
 
 describe('VoiceCommandParser — EN', () => {
 
@@ -352,7 +565,17 @@ describe('VoiceCommandParser — EN', () => {
     expect(result.skill).toBe('block');
   });
 
+  it('deve reconhecer "point Flamengo" com nome do time em inglês', () => {
+    const result = parse('point Flamengo', { statsEnabled: false }, 'en');
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+  });
+
 });
+
+// -------------------------------------------------------------------------
+// CASOS COMPLEXOS
+// -------------------------------------------------------------------------
 
 describe('VoiceCommandParser — Casos Complexos', () => {
 
@@ -376,6 +599,33 @@ describe('VoiceCommandParser — Casos Complexos', () => {
     expect(result.type).toBe('point');
     expect(result.team).toBe('B');
     expect(result.skill).toBe('opponent_error');
+  });
+
+  it('deve reconhecer "ponto de bloqueio do Time 3" com time numérico', () => {
+    const result = parse('ponto de bloqueio do Time 3', { teamAName: 'Time 3', teamBName: 'Time 5', statsEnabled: false });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+    expect(result.skill).toBe('block');
+  });
+
+  it('deve reconhecer "ace do Time 7"', () => {
+    const result = parse('ace do Time 7', { teamAName: 'Time 3', teamBName: 'Time 7', statsEnabled: false });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('B');
+    expect(result.skill).toBe('ace');
+  });
+
+  it('deve reconhecer "ponto de ataque do Time 5"', () => {
+    const result = parse('ponto de ataque do Time 5', { teamAName: 'Time 3', teamBName: 'Time 5', statsEnabled: false });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('B');
+    expect(result.skill).toBe('attack');
+  });
+
+  it('deve reconhecer "mais um ponto para o Flamengo"', () => {
+    const result = parse('mais um ponto para o Flamengo');
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
   });
 
 });
