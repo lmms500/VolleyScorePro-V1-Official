@@ -101,7 +101,7 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ state }) => 
                         <AnimatePresence mode="wait">
                             {state.servingTeam === 'A' && (
                                 <motion.div initial={{ x: 10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 10, opacity: 0 }}>
-                                    <ChevronLeft size={16} className="text-amber-400" strokeWidth={4} />
+                                    <ChevronLeft size={16} className="text-cyan-400" strokeWidth={4} />
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -109,14 +109,15 @@ export const BroadcastOverlay: React.FC<BroadcastOverlayProps> = ({ state }) => 
                         <motion.div 
                             animate={state.servingTeam ? { rotate: 360 } : {}}
                             transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                            className={state.servingTeam ? "drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]" : ""}
                         >
-                            <Volleyball size={18} className={state.servingTeam ? "text-amber-400" : "text-slate-800"} />
+                            <Volleyball size={18} className={state.servingTeam ? "text-cyan-400" : "text-slate-800"} />
                         </motion.div>
 
                         <AnimatePresence mode="wait">
                             {state.servingTeam === 'B' && (
                                 <motion.div initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -10, opacity: 0 }}>
-                                    <ChevronRight size={16} className="text-amber-400" strokeWidth={4} />
+                                    <ChevronRight size={16} className="text-cyan-400" strokeWidth={4} />
                                 </motion.div>
                             )}
                         </AnimatePresence>

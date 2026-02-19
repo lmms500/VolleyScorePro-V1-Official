@@ -11,6 +11,7 @@ import { SubstitutionModal } from '@features/teams/modals/SubstitutionModal';
 import { ScoutModal } from '@features/game/modals/ScoutModal';
 import { CourtHeader } from '@features/court/components/CourtHeader';
 import { CourtFooter } from '@features/court/components/CourtFooter';
+import BeachSandTexture from '@features/court/components/BeachSandTexture';
 import { useElementSize } from '@features/game/hooks/useElementSize';
 
 interface CourtLayoutProps {
@@ -192,9 +193,7 @@ export const CourtLayout: React.FC<CourtLayoutProps> = ({
         `}>
             <div className="absolute inset-0 z-0 rounded-3xl overflow-hidden">
                 {isBeach ? (
-                    <div className="absolute inset-0 bg-[#e3cba5] mix-blend-normal">
-                        <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/sand.png')] mix-blend-multiply" />
-                    </div>
+                    <BeachSandTexture />
                 ) : (
                     <>
                         <div className="absolute inset-0 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 dark:from-orange-500/20 dark:via-orange-600/10 dark:to-slate-900/60 mix-blend-normal dark:mix-blend-overlay" />

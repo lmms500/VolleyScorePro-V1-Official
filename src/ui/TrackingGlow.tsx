@@ -105,7 +105,11 @@ export const TrackingGlow: React.FC<TrackingGlowProps> = memo(({
   }, []);
 
   const theme = resolveTheme(colorTheme);
-  const haloColorClass = isMatchPoint ? 'bg-amber-500 saturate-150' : theme.halo;
+  const haloColorClass = isMatchPoint 
+    ? 'bg-amber-500 saturate-150' 
+    : isServing 
+      ? 'bg-cyan-400' 
+      : theme.halo;
 
   return (
     <motion.div

@@ -115,6 +115,9 @@ export const HaloBackground: React.FC<HaloBackgroundProps> = memo(({
         if (haloDisabled) return '#00000000'; // Return transparent if disabled
 
         if (mode === 'critical') return hexColorMap['amber'];
+        
+        // Serving indicator uses cyan for maximum visibility on all surfaces
+        if (mode === 'serving') return hexColorMap['cyan'];
 
         // 1. Check mapped themes
         if (hexColorMap[colorTheme]) return hexColorMap[colorTheme];

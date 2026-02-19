@@ -19,7 +19,7 @@ interface VolleyballCourtProps {
     /** Rotation angle for player name labels (e.g., -90 for inline portrait mode) */
     nameRotation?: number;
     /** Where to place the name label relative to the player badge */
-    namePlacement?: 'auto' | 'right';
+    namePlacement?: 'auto' | 'right' | 'left';
     /** Orientation of the court (landscape is default) */
     orientation?: 'landscape' | 'portrait';
 }
@@ -45,7 +45,7 @@ const ZoneMarker = memo(({ index, visualZone, teamId }: { index: number, visualZ
 });
 
 // --- 2. THE PLAYER TOKEN (Ultraglass Jewel) ---
-const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActivate, isMVP, isGlobalDragging, nameRotation, namePlacement = 'auto' }: { player: Player, index: number, teamId: string, theme: any, isServer: boolean, onActivate?: (player: Player) => void, isMVP: boolean, isGlobalDragging: boolean, nameRotation?: number, namePlacement?: 'auto' | 'right' }) => {
+const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActivate, isMVP, isGlobalDragging, nameRotation, namePlacement = 'auto' }: { player: Player, index: number, teamId: string, theme: any, isServer: boolean, onActivate?: (player: Player) => void, isMVP: boolean, isGlobalDragging: boolean, nameRotation?: number, namePlacement?: 'auto' | 'right' | 'left' }) => {
     // Draggable Logic Only (Collision handled by ZoneMarker underneath)
     const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
         id: player.id,
@@ -65,22 +65,26 @@ const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActiva
     const isRotatedRight = nameRotation === 90;
 
     const positionClass = namePlacement === 'right'
-        ? 'left-[100%] top-1/2 ml-0.5' // Right of badge, vertically centered, very close
-        : isRotatedLeft
-            ? 'left-0 top-1/2' // Anchor to left edge, centered vertically
-            : isRotatedRight
-                ? 'right-0 top-1/2' // Anchor to right edge, centered vertically
-                : '-top-5 left-1/2';
+        ? 'left-[100%] top-1/2 ml-0.5'
+        : namePlacement === 'left'
+            ? 'right-[100%] top-1/2 mr-0.5'
+            : isRotatedLeft
+                ? 'left-0 top-1/2'
+                : isRotatedRight
+                    ? 'right-0 top-1/2'
+                    : '-top-5 left-1/2';
 
     const transformStyle = namePlacement === 'right'
-        ? `translate(0, -50%)` // Vertically center
-        : isRotatedLeft
-            ? `translate(-50%, -50%) rotate(${nameRotation}deg) translateY(-140%)` // Center on left edge, rotate, push up
-            : isRotatedRight
-                ? `translate(50%, -50%) rotate(${nameRotation}deg) translateY(-140%)` // Center on right edge, rotate, push up
-                : nameRotation
-                    ? `translateX(-50%) rotate(${nameRotation}deg)`
-                    : 'translateX(-50%)';
+        ? `translate(0, -50%)`
+        : namePlacement === 'left'
+            ? `translate(0, -50%)`
+            : isRotatedLeft
+                ? `translate(-50%, -50%) rotate(${nameRotation}deg) translateY(-140%)`
+                : isRotatedRight
+                    ? `translate(50%, -50%) rotate(${nameRotation}deg) translateY(-140%)`
+                    : nameRotation
+                        ? `translateX(-50%) rotate(${nameRotation}deg)`
+                        : 'translateX(-50%)';
 
     return (
         <motion.div
@@ -101,33 +105,45 @@ const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActiva
                 touchAction: 'none'
             }}
         >
-            {/* Server Indicator Ring */}
+            {/* Server Indicator Ring - Ciano para máximo contraste em areia e quadra */}
             {isServer && (
                 <motion.div
                     layoutId={nameRotation ? undefined : `serve-ring-${teamId}`}
-                    className="absolute -inset-2 rounded-full border-[3px] border-dashed border-amber-400/90 animate-[spin_8s_linear_infinite]"
+                    className="absolute -inset-2.5 rounded-full border-[4px] border-dashed border-cyan-400 animate-[spin_6s_linear_infinite]"
+                    style={{
+                        boxShadow: '0 0 20px rgba(34, 211, 238, 0.7), 0 0 40px rgba(34, 211, 238, 0.4)'
+                    }}
                     transition={{ type: "spring", stiffness: 220, damping: 24, mass: 0.9 }}
                 />
             )}
 
-            {/* MVP Glow */}
+            {/* MVP Glow - Branco com dourado interno para visibilidade universal */}
             {isMVP && (
-                <div className="absolute inset-0 rounded-full shadow-[0_0_30px_rgba(251,191,36,0.6)] ring-2 ring-amber-400/80 animate-pulse z-0" />
+                <>
+                    <div 
+                        className="absolute -inset-1 rounded-full animate-pulse z-0"
+                        style={{
+                            boxShadow: '0 0 25px rgba(255, 255, 255, 0.8), 0 0 50px rgba(251, 191, 36, 0.5), inset 0 0 15px rgba(251, 191, 36, 0.3)'
+                        }}
+                    />
+                    <div className="absolute inset-0 rounded-full ring-4 ring-white/90 z-0" />
+                    <div className="absolute inset-0 rounded-full ring-2 ring-inset ring-amber-400 z-0" />
+                </>
             )}
 
             {/* Main Token Body */}
             <div className={`
                 w-full h-full rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.3)] flex items-center justify-center relative overflow-hidden z-10 transition-transform duration-200 group-hover:scale-110
                 bg-gradient-to-br ${theme.gradient.replace('/15', '').replace('to-transparent', 'to-gray-900/40')}
-                border border-white/40
+                border ${isMVP ? 'border-amber-400' : 'border-white/40'}
                 ring-1 ring-black/10 dark:ring-white/10
-                ${isMVP ? 'border-amber-400/50 shadow-amber-500/20' : ''}
+                ${isMVP ? 'shadow-[0_0_20px_rgba(255,255,255,0.5)]' : ''}
             `}>
                 {/* Glossy Reflection */}
                 <div className="absolute inset-x-0 top-0 h-[45%] bg-gradient-to-b from-white/60 to-transparent pointer-events-none rounded-t-full" />
 
                 <span
-                    className={`text-lg sm:text-xl font-black ${isMVP ? 'text-amber-50' : 'text-white'} drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)] z-10 font-mono tracking-tighter`}
+                    className={`text-lg sm:text-xl font-black ${isMVP ? 'text-white' : 'text-white'} drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)] z-10 font-mono tracking-tighter ${isMVP ? 'drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : ''}`}
                     style={nameRotation ? { transform: `rotate(${nameRotation}deg)`, display: 'inline-block' } : undefined}
                 >
                     {player.number || '#'}
@@ -136,13 +152,14 @@ const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActiva
 
             {/* Name Label */}
             <div
-                className={`absolute ${positionClass} bg-slate-900/90 backdrop-blur-md px-2.5 py-0.5 rounded-full border shadow-xl max-w-[200%] transition-opacity duration-200
-                         ${isMVP ? 'border-amber-500/50' : 'border-white/10'}
+                className={`absolute ${positionClass} backdrop-blur-md px-2.5 py-0.5 rounded-full border shadow-xl max-w-[200%] transition-opacity duration-200
+                         ${isMVP ? 'bg-amber-500/95 border-amber-300' : 'bg-slate-900/90 border-white/10'}
                          ${isGlobalDragging ? 'opacity-0' : 'opacity-100'}
+                         ${isMVP ? 'shadow-[0_0_15px_rgba(251,191,36,0.5)]' : ''}
                         `}
                 style={{ transform: transformStyle }}
             >
-                <span className={`text-[9px] font-bold uppercase tracking-wider block truncate text-center max-w-[80px] leading-tight ${isMVP ? 'text-amber-400' : 'text-slate-200'}`}>
+                <span className={`text-[9px] font-bold uppercase tracking-wider block truncate text-center max-w-[80px] leading-tight ${isMVP ? 'text-white' : 'text-slate-200'}`}>
                     {player.name}
                 </span>
             </div>
@@ -203,8 +220,12 @@ export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
             <div className={`
                 absolute ${isMinimal ? 'inset-0' : 'inset-4'} border-[4px] ${lineColor}
                 ${isPortrait
-                    ? (side === 'left' ? 'border-b-0' : 'border-t-0')
-                    : (side === 'left' ? 'border-r-0' : 'border-l-0')
+                    ? (side === 'left' 
+                        ? 'border-b-0 rounded-tl-3xl rounded-tr-3xl' 
+                        : 'border-t-0 rounded-bl-3xl rounded-br-3xl')
+                    : (side === 'left' 
+                        ? 'border-r-0 rounded-tl-3xl rounded-bl-3xl' 
+                        : 'border-l-0 rounded-tr-3xl rounded-br-3xl')
                 }
                 opacity-80
             `}>

@@ -110,6 +110,7 @@ export interface GameConfig {
   enablePlayerStats: boolean;
   enableSound: boolean;
   voiceControlEnabled: boolean;
+  pushToTalkMode: boolean;
   announceScore: boolean;
   voiceGender: 'male' | 'female';
   voiceRate: number;

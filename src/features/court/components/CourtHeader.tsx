@@ -31,8 +31,8 @@ interface CourtHeaderProps {
 }
 
 const MiniBadge = memo(({ icon: Icon, colorClass, text }: any) => (
-    <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider ${colorClass} shadow-sm border border-white/10 ring-1 ring-inset ring-white/10`}>
-        <Icon size={8} fill="currentColor" />
+    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${colorClass} shadow-lg border border-white/20 backdrop-blur-sm`}>
+        <Icon size={9} fill="currentColor" />
         <span>{text}</span>
     </div>
 ));
@@ -48,14 +48,14 @@ const TimeoutControl = memo(({ onTimeout, count = 0, theme }: { onTimeout?: () =
             className={`
                 flex flex-col items-center justify-center gap-1 p-1.5 rounded-xl border transition-all active:scale-95 h-10 w-10
                 ${isExhausted
-                    ? 'bg-slate-100 dark:bg-white/5 border-transparent opacity-50 cursor-not-allowed'
-                    : 'bg-white/60 dark:bg-black/20 backdrop-blur-sm border-white/60 dark:border-white/10 hover:border-indigo-500/50 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)] ring-1 ring-inset ring-white/10'}
+                    ? 'bg-slate-100/50 dark:bg-white/5 border-transparent opacity-40 cursor-not-allowed'
+                    : 'bg-white/50 dark:bg-black/20 backdrop-blur-md border-white/40 dark:border-white/10 hover:border-white/70 dark:hover:border-white/20 shadow-[0_4px_12px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] ring-1 ring-inset ring-white/20'}
             `}
         >
-            <Timer size={14} className={isExhausted ? "text-slate-400" : theme.text} />
+            <Timer size={14} className={isExhausted ? "text-slate-400" : theme.text} strokeWidth={2.5} />
             <div className="flex gap-0.5">
-                <div className={`w-1.5 h-1.5 rounded-full ${count >= 1 ? 'bg-slate-300 dark:bg-slate-600' : theme.bg.replace('/20', '')}`} />
-                <div className={`w-1.5 h-1.5 rounded-full ${count >= 2 ? 'bg-slate-300 dark:bg-slate-600' : theme.bg.replace('/20', '')}`} />
+                <div className={`w-1.5 h-1.5 rounded-full transition-all ${count >= 1 ? 'bg-slate-400 dark:bg-slate-500 opacity-40' : `${theme.led} ring-2 ring-white/30 shadow-[0_0_6px_rgba(255,255,255,0.5)]`}`} />
+                <div className={`w-1.5 h-1.5 rounded-full transition-all ${count >= 2 ? 'bg-slate-400 dark:bg-slate-500 opacity-40' : `${theme.led} ring-2 ring-white/30 shadow-[0_0_6px_rgba(255,255,255,0.5)]`}`} />
             </div>
         </button>
     );
@@ -79,11 +79,16 @@ export const CourtHeader: React.FC<CourtHeaderProps> = memo(({
     const themeB = resolveTheme(teamB.color);
 
     return (
-        <div className={`relative z-50 pt-safe-top pb-1 flex flex-col gap-1 shrink-0 min-h-fit bg-transparent pointer-events-none ${compact ? 'px-2 overflow-x-hidden' : 'px-4'}`}>
-            <div className="flex items-center justify-center gap-3 text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 opacity-80 pointer-events-auto">
-                <div className="flex items-center gap-1"><Timer size={10} /> {formatTime(seconds)}</div>
-                <div className="w-px h-3 bg-slate-300 dark:bg-white/20" />
-                <div className="uppercase tracking-widest text-slate-400 dark:text-slate-300">Set {currentSet}</div>
+        <div className={`relative z-50 pt-safe-top pb-1 flex flex-col gap-1 shrink-0 min-h-fit bg-transparent pointer-events-none landscape:mt-2 ${compact ? 'px-2 overflow-x-hidden landscape:px-6' : 'px-4 landscape:px-8'}`}>
+            <div className="flex items-center justify-center gap-3 pointer-events-auto">
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/40 dark:bg-white/10 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-sm">
+                    <Timer size={10} className="text-slate-500 dark:text-slate-400" />
+                    <span className="text-[10px] font-mono font-bold text-slate-600 dark:text-slate-300">{formatTime(seconds)}</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/40 dark:bg-white/10 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-sm">
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Set</span>
+                    <span className="text-[10px] font-black text-slate-700 dark:text-white">{currentSet}</span>
+                </div>
             </div>
 
             <div className={`flex items-center justify-between mx-auto pointer-events-auto ${compact ? 'w-full gap-1' : 'max-w-md w-full'}`}>
@@ -101,13 +106,13 @@ export const CourtHeader: React.FC<CourtHeaderProps> = memo(({
                             )}
 
                             <span className={`text-[10px] font-black uppercase tracking-wider ${themeA.text} ${themeA.textDark} truncate ${compact ? 'max-w-[50px]' : 'max-w-[80px]'}`}>{teamA.name}</span>
-                            {servingTeam === 'A' && <div className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400 shadow-[0_0_8px_currentColor] animate-pulse flex-shrink-0" />}
+                            {servingTeam === 'A' && <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] animate-pulse flex-shrink-0" />}
                         </div>
                         <div className={`flex items-center ${compact ? 'gap-1' : 'gap-2'}`}>
-                            <div className={`flex items-center bg-white/60 dark:bg-slate-800/50 rounded-xl p-1 border border-white/60 dark:border-white/5 backdrop-blur-sm shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.1)] ring-1 ring-inset ring-white/10 ${compact ? 'gap-1' : 'gap-2'}`}>
-                                <button onClick={() => onScore('A', -1)} className={`${compact ? 'w-7 h-7' : 'w-8 h-8'} rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 flex items-center justify-center text-slate-400 transition-colors`}><Minus size={compact ? 10 : 12} strokeWidth={3} /></button>
-                                <span className={`${compact ? 'text-2xl min-w-[24px]' : 'text-3xl min-w-[32px]'} font-black tabular-nums leading-none text-center text-slate-800 dark:text-white`}>{scoreA}</span>
-                                <button onClick={() => onScore('A', 1)} className={`${compact ? 'w-7 h-7' : 'w-8 h-8'} rounded-lg ${themeA.bg} hover:${themeA.bg.replace('/20', '/30')} flex items-center justify-center ${themeA.text} ${themeA.textDark}`}><Plus size={compact ? 10 : 12} strokeWidth={3} /></button>
+                            <div className={`flex items-center bg-white/50 dark:bg-slate-800/40 rounded-xl p-1 border border-white/40 dark:border-white/10 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] ring-1 ring-inset ring-white/20 ${compact ? 'gap-1' : 'gap-2'}`}>
+                                <button onClick={() => onScore('A', -1)} className={`${compact ? 'w-7 h-7' : 'w-8 h-8'} rounded-lg bg-slate-100/80 dark:bg-white/5 hover:bg-slate-200/80 dark:hover:bg-white/10 flex items-center justify-center text-slate-400 transition-colors`}><Minus size={compact ? 10 : 12} strokeWidth={3} /></button>
+                                <span className={`${compact ? 'text-2xl min-w-[24px]' : 'text-3xl min-w-[32px]'} font-black tabular-nums leading-none text-center bg-gradient-to-br from-slate-800 to-slate-600 dark:from-white dark:to-slate-200 bg-clip-text text-transparent`}>{scoreA}</span>
+                                <button onClick={() => onScore('A', 1)} className={`${compact ? 'w-7 h-7' : 'w-8 h-8'} rounded-lg ${themeA.bg} hover:${themeA.bg.replace('/20', '/35')} flex items-center justify-center ${themeA.text} ${themeA.textDark} border border-white/10 shadow-sm`}><Plus size={compact ? 10 : 12} strokeWidth={3} /></button>
                             </div>
                             <TimeoutControl onTimeout={onTimeoutA} count={timeoutsA} theme={themeA} />
                         </div>
@@ -116,11 +121,13 @@ export const CourtHeader: React.FC<CourtHeaderProps> = memo(({
 
                 {/* SETS */}
                 <div className={`flex flex-col items-center justify-center flex-shrink-0 ${compact ? 'px-1' : 'px-3'}`}>
-                    <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">Sets</span>
-                    <div className={`flex items-center font-black text-slate-400 dark:text-slate-300 ${compact ? 'gap-1 text-base' : 'gap-2 text-lg'}`}>
-                        <span className={setsA > setsB ? `${themeA.text} ${themeA.textDark}` : ''}>{setsA}</span>
-                        <span className="opacity-30 text-sm">:</span>
-                        <span className={setsB > setsA ? `${themeB.text} ${themeB.textDark}` : ''}>{setsB}</span>
+                    <div className={`flex flex-col items-center justify-center rounded-xl ${compact ? 'px-2 py-1' : 'px-3 py-1.5'} bg-white/40 dark:bg-white/10 backdrop-blur-md border border-white/30 dark:border-white/10 shadow-sm`}>
+                        <span className="text-[8px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Sets</span>
+                        <div className={`flex items-center font-black ${compact ? 'gap-1 text-base' : 'gap-2 text-lg'}`}>
+                            <span className={`transition-colors ${setsA > setsB ? `${themeA.text} ${themeA.textDark}` : 'text-slate-400 dark:text-slate-500'}`}>{setsA}</span>
+                            <span className="opacity-30 text-sm text-slate-400 dark:text-slate-500">:</span>
+                            <span className={`transition-colors ${setsB > setsA ? `${themeB.text} ${themeB.textDark}` : 'text-slate-400 dark:text-slate-500'}`}>{setsB}</span>
+                        </div>
                     </div>
                 </div>
 
@@ -139,13 +146,13 @@ export const CourtHeader: React.FC<CourtHeaderProps> = memo(({
                             )}
 
                             <span className={`text-[10px] font-black uppercase tracking-wider ${themeB.text} ${themeB.textDark} truncate ${compact ? 'max-w-[50px]' : 'max-w-[80px]'}`}>{teamB.name}</span>
-                            {servingTeam === 'B' && <div className="w-1.5 h-1.5 rounded-full bg-amber-500 dark:bg-amber-400 shadow-[0_0_8px_currentColor] animate-pulse flex-shrink-0" />}
+                            {servingTeam === 'B' && <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] animate-pulse flex-shrink-0" />}
                         </div>
                         <div className={`flex items-center flex-row-reverse ${compact ? 'gap-1' : 'gap-2'}`}>
-                            <div className={`flex items-center bg-white/60 dark:bg-slate-800/50 rounded-xl p-1 border border-slate-200 dark:border-white/5 flex-row-reverse backdrop-blur-sm shadow-sm ${compact ? 'gap-1' : 'gap-2'}`}>
-                                <button onClick={() => onScore('B', -1)} className={`${compact ? 'w-7 h-7' : 'w-8 h-8'} rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 flex items-center justify-center text-slate-400 transition-colors`}><Minus size={compact ? 10 : 12} strokeWidth={3} /></button>
-                                <span className={`${compact ? 'text-2xl min-w-[24px]' : 'text-3xl min-w-[32px]'} font-black tabular-nums leading-none text-center text-slate-800 dark:text-white`}>{scoreB}</span>
-                                <button onClick={() => onScore('B', 1)} className={`${compact ? 'w-7 h-7' : 'w-8 h-8'} rounded-lg ${themeB.bg} hover:${themeB.bg.replace('/20', '/30')} flex items-center justify-center ${themeB.text} ${themeB.textDark}`}><Plus size={compact ? 10 : 12} strokeWidth={3} /></button>
+                            <div className={`flex items-center bg-white/50 dark:bg-slate-800/40 rounded-xl p-1 border border-white/40 dark:border-white/10 flex-row-reverse backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] ring-1 ring-inset ring-white/20 ${compact ? 'gap-1' : 'gap-2'}`}>
+                                <button onClick={() => onScore('B', -1)} className={`${compact ? 'w-7 h-7' : 'w-8 h-8'} rounded-lg bg-slate-100/80 dark:bg-white/5 hover:bg-slate-200/80 dark:hover:bg-white/10 flex items-center justify-center text-slate-400 transition-colors`}><Minus size={compact ? 10 : 12} strokeWidth={3} /></button>
+                                <span className={`${compact ? 'text-2xl min-w-[24px]' : 'text-3xl min-w-[32px]'} font-black tabular-nums leading-none text-center bg-gradient-to-br from-slate-800 to-slate-600 dark:from-white dark:to-slate-200 bg-clip-text text-transparent`}>{scoreB}</span>
+                                <button onClick={() => onScore('B', 1)} className={`${compact ? 'w-7 h-7' : 'w-8 h-8'} rounded-lg ${themeB.bg} hover:${themeB.bg.replace('/20', '/35')} flex items-center justify-center ${themeB.text} ${themeB.textDark} border border-white/10 shadow-sm`}><Plus size={compact ? 10 : 12} strokeWidth={3} /></button>
                             </div>
                             <TimeoutControl onTimeout={onTimeoutB} count={timeoutsB} theme={themeB} />
                         </div>

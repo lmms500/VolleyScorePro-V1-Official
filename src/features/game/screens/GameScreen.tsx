@@ -135,8 +135,18 @@ export const GameScreen: React.FC = () => {
     } = useSyncManager();
 
     // --- VOICE CONTROL ---
-    const { isListening, toggleListening } = useVoiceControl({
+    const {
+        isListening,
+        toggleListening,
+        startListening,
+        stopListening,
+        pendingIntent,
+        confirmPendingIntent,
+        cancelPendingIntent,
+        commandHistory,
+    } = useVoiceControl({
         enabled: config.voiceControlEnabled && !isSpectator,
+        pushToTalkMode: config.pushToTalkMode ?? false,
         enablePlayerStats: config.enablePlayerStats,
         onAddPoint: handleAddPointGeneric,
         onSubtractPoint: (team) => {
@@ -166,7 +176,21 @@ export const GameScreen: React.FC = () => {
     const handleEnterFullscreen = useCallback(() => setIsFullscreen(true), []);
 
     // Voice state object (passed to layouts) - MEMOIZED to prevent re-renders
-    const voiceState = useMemo(() => ({ isListening, toggleListening }), [isListening, toggleListening]);
+    const voiceState = useMemo(() => ({
+        isListening,
+        toggleListening,
+        startListening,
+        stopListening,
+        pendingIntent,
+        confirmPendingIntent,
+        cancelPendingIntent,
+        commandHistory,
+        isPushToTalkMode: config.pushToTalkMode ?? false,
+    }), [
+        isListening, toggleListening, startListening, stopListening,
+        pendingIntent, confirmPendingIntent, cancelPendingIntent,
+        commandHistory, config.pushToTalkMode,
+    ]);
 
     // --- EARLY RETURN: Broadcast Mode ---
     if (isBroadcastMode) {

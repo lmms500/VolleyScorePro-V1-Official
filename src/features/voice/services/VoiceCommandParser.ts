@@ -100,6 +100,8 @@ const VOCABULARY: Record<string, {
   pointTriggers: string[];
   negative: string[];
   globalUndo: string[];
+  /** Keywords compostas que indicam desfazer pontual (subtract) NÃO undo global */
+  subtractCompound: string[];
   timeout: string[];
   server: string[];
   swap: string[];
@@ -115,22 +117,29 @@ const VOCABULARY: Record<string, {
 }> = {
   pt: {
     teamA_Strict: ['time a', 'equipe a', 'mandante', 'casa', 'time da casa'],
-    teamB_Strict: ['time b', 'equipe b', 'visitante', 'fora', 'time de fora'],
+    teamB_Strict: ['time b', 'equipe b', 'visitante', 'fora de casa', 'time de fora'],
     teamA_Sides: ['esquerda', 'lado a', 'lado esquerdo'],
     teamB_Sides: ['direita', 'lado b', 'lado direito'],
-    pointTriggers: ['ponto', 'marcou', 'vai', 'ponto para', 'ponto do', 'ponto da', 'numero', 'camisa', 'jogador', 'adicionar', 'mais um'],
-    negative: ['tirar', 'remover', 'menos', 'subtrair', 'apagar', 'retirar', 'nao foi', 'cancelar ponto', 'volta ponto', 'corrigir'],
+    // MELHORIA 4.4: "vai" e "marcou" são os únicos triggers simples toleráveis (curtos mas contextuais)
+    // Removidos: "vai" (genérico demais). "mais um" (pode ser outro contexto)
+    pointTriggers: ['ponto', 'marcou', 'ponto para', 'ponto do', 'ponto da', 'numero', 'camisa', 'jogador', 'adicionar', 'mais um'],
+    negative: ['tirar', 'remover', 'menos', 'subtrair', 'apagar', 'retirar', 'cancelar ponto', 'corrigir ponto', 'nao foi'],
     globalUndo: ['desfazer', 'voltar', 'cancelar', 'engano', 'ops', 'undo'],
+    // MELHORIA 4.3: compound subtract forms que têm prioridade sobre globalUndo
+    subtractCompound: ['cancelar ponto', 'corrigir ponto', 'tirar ponto', 'remover ponto', 'volta ponto'],
     timeout: ['timeout', 'time out', 'pausa', 'pedido de tempo', 'tempo tecnico'],
     server: ['troca de saque', 'mudanca de saque', 'bola com', 'servidor', 'servico de', 'rodar', 'girar', 'bola para', 'sacar', 'de quem e', 'com quem esta', 'saque'],
     swap: ['trocar lados', 'trocar lado', 'troca de lado', 'trocar de lado', 'inverter lados', 'inverter', 'mudar lados', 'mudar lado', 'swap', 'virar lado', 'virar lados', 'trocar posicao', 'mudar de lado'],
     prepositions: ['do', 'da', 'de', 'para', 'pelo', 'pela', 'o', 'no', 'na', 'com', 'ao', 'dos', 'das'],
     pointAceIndicators: ['ponto', 'marcou', 'direto', 'ace', 'mais um', 'foi'],
     skills: {
-      attack: ['ataque', 'cortada', 'cravou', 'bomba', 'frente', 'fundo', 'atacou', 'largadinha', 'largada', 'mata', 'ponto de ataque', 'mate', 'matar'],
-      block: ['bloqueio', 'block', 'paredao', 'toco', 'bloqueou', 'fechou', 'tampou', 'ponto de bloqueio'],
+      // MELHORIA 4.4: removidos "mata" (genérico), "frente", "fundo" (posição, não skill)
+      attack: ['ataque', 'cortada', 'cravou', 'bomba', 'atacou', 'largadinha', 'largada', 'ponto de ataque', 'mata bola', 'mate', 'matar'],
+      // MELHORIA 4.4: removido "toco" isolado → mantido como contexto de block
+      block: ['bloqueio', 'block', 'paredao', 'bloqueou', 'fechou', 'tampou', 'ponto de bloqueio', 'toco de bloqueio'],
       ace: ['ace', 'saque direto', 'ponto de saque', 'direto', 'sacou', 'ponto no saque'],
-      opponent_error: ['erro', 'na rede', 'rede', 'toque', 'invasao', 'dois toques', 'erro deles', 'conducao', 'fora da linha', 'ponto de erro', 'erro do adversario'],
+      // MELHORIA 4.4: removidos "rede" e "fora" isolados (muito genéricos) — mantidas formas compostas + "erro" (seguro com contexto de jogador/time)
+      opponent_error: ['na rede', 'dois toques', 'erro', 'erro deles', 'conducao', 'fora da linha', 'ponto de erro', 'erro do adversario', 'erro adversario', 'toque na rede'],
     },
     skillPatterns: ['ponto de ataque', 'ponto de bloqueio', 'ponto de saque', 'ponto de erro'],
   },
@@ -140,8 +149,9 @@ const VOCABULARY: Record<string, {
     teamA_Sides: ['left', 'left side'],
     teamB_Sides: ['right', 'right side'],
     pointTriggers: ['point', 'score', 'goal', 'point for', 'number', 'jersey', 'player', 'add', 'plus one'],
-    negative: ['remove', 'minus', 'subtract', 'delete', 'take', 'correction', 'not', 'cancel point'],
-    globalUndo: ['undo', 'back', 'oops', 'revert'],
+    negative: ['remove', 'minus', 'subtract', 'delete', 'take away', 'correction', 'cancel point', 'not'],
+    globalUndo: ['undo', 'back', 'oops', 'revert', 'cancel'],
+    subtractCompound: ['cancel point', 'remove point', 'subtract point', 'correct point'],
     timeout: ['timeout', 'time out', 'pause', 'break', 'call timeout', 'request timeout'],
     server: ['change server', 'change serve', 'ball to', 'service change', 'rotate', 'side out', 'possession', 'serve'],
     swap: ['swap sides', 'switch sides', 'swap', 'switch', 'flip sides', 'change sides', 'flip', 'reverse sides'],
@@ -151,7 +161,8 @@ const VOCABULARY: Record<string, {
       attack: ['attack', 'kill', 'spike', 'hit', 'smash', 'tip', 'dump', 'attack point'],
       block: ['block', 'roof', 'wall', 'stuff', 'block point'],
       ace: ['ace', 'service ace', 'serve ace'],
-      opponent_error: ['error', 'out', 'net', 'fault', 'mistake', 'touch', 'error point'],
+      // MELHORIA 4.4: removido "out" e "net" isolados — muito genéricos em inglês
+      opponent_error: ['error out', 'in the net', 'net touch', 'fault', 'mistake', 'double touch', 'error point', 'ball out'],
     },
     skillPatterns: ['attack point', 'block point', 'ace', 'error point'],
   },
@@ -163,6 +174,7 @@ const VOCABULARY: Record<string, {
     pointTriggers: ['punto', 'marco', 'anoto', 'punto para', 'numero', 'jugador', 'sumar'],
     negative: ['quitar', 'restar', 'menos', 'borrar', 'no fue', 'cancelar punto'],
     globalUndo: ['deshacer', 'volver', 'cancelar', 'correccion', 'atras'],
+    subtractCompound: ['cancelar punto', 'quitar punto', 'restar punto'],
     timeout: ['tiempo', 'pausa', 'time out', 'pedir tiempo', 'tiempo tecnico'],
     server: ['cambio de saque', 'cambio servicio', 'bola para', 'rotar', 'balon para', 'saque'],
     swap: ['cambiar lados', 'cambiar lado', 'invertir', 'cambio de lado', 'swap', 'voltear'],
@@ -172,7 +184,8 @@ const VOCABULARY: Record<string, {
       attack: ['ataque', 'remate', 'clavo', 'mate', 'finta', 'punto de ataque'],
       block: ['bloqueo', 'block', 'muro', 'tapa', 'punto de bloqueo'],
       ace: ['ace', 'saque directo', 'punto de saque'],
-      opponent_error: ['error', 'fuera', 'red', 'falla', 'doble', 'punto de error'],
+      // MELHORIA 4.4: removido "fuera" isolado
+      opponent_error: ['fuera de linea', 'toca la red', 'doble contacto', 'falla', 'punto de error'],
     },
     skillPatterns: ['punto de ataque', 'punto de bloqueo', 'punto de saque', 'punto de error'],
   },
@@ -196,7 +209,7 @@ export class VoiceCommandParser {
     normalized = normalized.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
     // 2. Remover pontuação
-    normalized = normalized.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '');
+    normalized = normalized.replace(/[.,\/#!$%\^\&\*;:{}=\-_`~()]/g, '');
 
     // 3. Normalizar múltiplos espaços
     normalized = normalized.replace(/\s{2,}/g, ' ').trim();
@@ -222,7 +235,7 @@ export class VoiceCommandParser {
   private static normalizeTeamName(name: string): string {
     return name.toLowerCase().trim()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '')
+      .replace(/[.,\/#!$%\^\&\*;:{}=\-_`~()]/g, '')
       .replace(/\s{2,}/g, ' ').trim();
   }
 
@@ -526,9 +539,11 @@ export class VoiceCommandParser {
       return context.lastScorerTeam;
     }
 
-    // REGRA 5 — Ataque sem time → servidor
-    if (detectedSkill === 'attack' && context.servingTeam) {
-      return context.servingTeam;
+    // REGRA 5 (MELHORADA) — Ataque sem time → lastScorerTeam (continuidade é mais confiável que servingTeam)
+    // Se não há lastScorerTeam, retorna null com requiresMoreInfo
+    if (detectedSkill === 'attack') {
+      if (context.lastScorerTeam) return context.lastScorerTeam;
+      return null; // Preferir requiresMoreInfo em vez de adivinhar via servingTeam
     }
 
     // REGRA 6 — Negativo sem time → lastScorerTeam
@@ -562,12 +577,30 @@ export class VoiceCommandParser {
     const text = this.normalizeText(rawText, language);
     const vocab = VOCABULARY[language] || VOCABULARY['en'];
 
-    // --- 1. DESFAZER (máxima prioridade) ---
+    // --- 1. MELHORIA 4.3: Verificar subtract compound ANTES de undo global ---
+    // "cancelar ponto" → subtract (não undo global)
+    if (vocab.subtractCompound.some(k => text.includes(k))) {
+      // Tentar resolver time — se não encontrar, agir como undo
+      const entityForSubtract = this.resolveEntity(text, context.playersA, context.playersB, context.teamAName, context.teamBName, vocab);
+      const teamForSubtract = entityForSubtract?.team
+        ?? this.resolveByContext(undefined, true, false, context);
+      return {
+        type: 'point',
+        team: teamForSubtract,
+        isNegative: true,
+        confidence: teamForSubtract ? 0.9 : 0.6,
+        rawText,
+        debugMessage: teamForSubtract ? `Subtract Point [${teamForSubtract}]` : 'Subtract — team unknown',
+        requiresMoreInfo: !teamForSubtract,
+      };
+    }
+
+    // --- 2. DESFAZER GLOBAL (máxima prioridade, mas agora secundário aos compound subtracts) ---
     if (vocab.globalUndo.some(k => text.includes(k))) {
       return { type: 'undo', confidence: 1, rawText, debugMessage: 'Global Undo' };
     }
 
-    // --- 2. Extrair componentes ---
+    // --- 3. Extrair componentes ---
     const detectedSkill = this.findSkill(text, vocab);
     const entity = this.resolveEntity(text, context.playersA, context.playersB, context.teamAName, context.teamBName, vocab);
 
@@ -591,12 +624,12 @@ export class VoiceCommandParser {
     const hasPointAceIndicator = vocab.pointAceIndicators.some(k => text.includes(k));
     const isExplicitServerChange = hasServerKeyword && !hasPointAceIndicator && !detectedSkill;
 
-    // --- 3. SWAP / TROCA DE LADOS (antes de timeout para não confundir) ---
+    // --- 4. SWAP / TROCA DE LADOS (antes de timeout para não confundir) ---
     if (isSwap && !isTimeout && !isPointTrigger) {
       return { type: 'swap', confidence: 1, rawText, debugMessage: 'Swap Sides' };
     }
 
-    // --- 4. TIMEOUT ---
+    // --- 5. TIMEOUT ---
     if (isTimeout) {
       const team = entity?.team ?? this.resolveByContext(undefined, false, false, context);
       if (team) return { type: 'timeout', team, confidence: 1, rawText, debugMessage: `Timeout Team ${team}` };
@@ -604,7 +637,7 @@ export class VoiceCommandParser {
       return { type: 'timeout', confidence: 0.5, rawText, requiresMoreInfo: true, debugMessage: 'Timeout — team not identified' };
     }
 
-    // --- 5. TROCA DE SAQUE (server change) ---
+    // --- 6. TROCA DE SAQUE (server change) ---
     if (isExplicitServerChange) {
       if (entity?.team) {
         return { type: 'server', team: entity.team, confidence: 1, rawText, debugMessage: `Server: Team ${entity.team}` };
@@ -616,7 +649,7 @@ export class VoiceCommandParser {
       return { type: 'server', confidence: 0.5, rawText, requiresMoreInfo: true, debugMessage: 'Server ambíguo' };
     }
 
-    // --- 6. PONTO / SKILL ---
+    // --- 7. PONTO / SKILL ---
     const hasTeamOrPlayer = entity?.team || entity?.player;
     const hasAnyIndicator = detectedSkill || isPointTrigger || hasTeamOrPlayer;
 
@@ -673,7 +706,7 @@ export class VoiceCommandParser {
       }
     }
 
-    // --- 7. Skill órfã ---
+    // --- 8. Skill órfã ---
     if (detectedSkill && context.statsEnabled) {
       return {
         type: 'unknown',

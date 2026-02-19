@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Sun, Moon, Globe, Sparkles, Volume2, Megaphone, User, User2, AlignJustify, BellRing, Gauge, AudioWaveform, Loader2, Play, Mic, HelpCircle, Activity } from 'lucide-react';
+import { Sun, Moon, Globe, Sparkles, Volume2, Megaphone, User, User2, AlignJustify, BellRing, Gauge, AudioWaveform, Loader2, Play, Mic, HelpCircle, Activity, Hand } from 'lucide-react';
 import { GameConfig } from '@types';
 import { SectionTitle, SettingItem } from './SettingsUI';
 import { useTranslation } from '@contexts/LanguageContext';
@@ -135,6 +135,17 @@ export const AppTab: React.FC<AppTabProps> = ({ localConfig, setLocalConfig }) =
                                 </button>
                             </div>
                         </SettingItem>
+                        <AnimatePresence>
+                            {localConfig.voiceControlEnabled && (
+                                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden pl-1">
+                                    <SettingItem label="Push-to-Talk" sub="Segurar para falar — elimina captações acidentais" icon={Hand} color={{ bg: 'bg-violet-500/10', text: 'text-violet-500' }}>
+                                        <button onClick={() => setLocalConfig(prev => ({ ...prev, pushToTalkMode: !prev.pushToTalkMode }))} className={`w-10 h-6 rounded-full p-1 transition-colors ${localConfig.pushToTalkMode ? 'bg-violet-500' : 'bg-slate-200 dark:bg-white/10'}`}>
+                                            <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${localConfig.pushToTalkMode ? 'translate-x-4' : ''}`} />
+                                        </button>
+                                    </SettingItem>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                         <SettingItem label={t('settings.game.scoutMode')} sub={t('settings.game.scoutModeSub')} icon={Activity} color={{ bg: 'bg-cyan-500/10', text: 'text-cyan-500' }}>
                             <button onClick={() => setLocalConfig(prev => ({ ...prev, enablePlayerStats: !prev.enablePlayerStats }))} className={`w-10 h-6 rounded-full p-1 transition-colors ${localConfig.enablePlayerStats ? 'bg-cyan-500' : 'bg-slate-200 dark:bg-white/10'}`}>
                                 <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${localConfig.enablePlayerStats ? 'translate-x-4' : ''}`} />

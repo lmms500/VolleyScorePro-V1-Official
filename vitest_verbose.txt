@@ -1,0 +1,235 @@
+
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/Dev/VolleyScore-Pro[39m
+
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.3: cancelar ponto nao vira undo global[2m > [22m"cancelar" isolado deve ser undo global[32m 2[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.3: cancelar ponto nao vira undo global[2m > [22m"desfazer" deve ser undo global[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.3: cancelar ponto nao vira undo global[2m > [22m"cancelar ponto time b" deve ser subtract, nao undo[32m 1[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.3: cancelar ponto nao vira undo global[2m > [22m"tirar ponto time a" deve ser subtract[32m 1[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.3: cancelar ponto nao vira undo global[2m > [22m"corrigir ponto Flamengo" deve ser subtract time A[32m 1[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.3: cancelar ponto nao vira undo global[2m > [22m"volta ponto botafogo" deve ser subtract time B[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.4: keywords curtas nao disparam acoes sozinhas[2m > [22m"fora" isolado NAO deve ser ponto de erro[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.4: keywords curtas nao disparam acoes sozinhas[2m > [22m"vai" isolado NAO deve ser ponto[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.4: keywords curtas nao disparam acoes sozinhas[2m > [22m"rede" isolada NAO deve ser ponto de erro[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.4: keywords curtas nao disparam acoes sozinhas[2m > [22m"toque" isolado NAO deve ser ponto de erro[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.4: keywords curtas nao disparam acoes sozinhas[2m > [22m"na rede" (composto) SIM deve ser ponto de erro adversario[32m 0[2mms[22m[39m
+ [31m├ù[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.4: keywords curtas nao disparam acoes sozinhas[2m > [22m"dois toques time b" (composto) SIM deve ser ponto de erro do time B[32m 8[2mms[22m[39m
+[31m   ÔåÆ expected undefined to be 'opponent_error' // Object.is equality[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.4: keywords curtas nao disparam acoes sozinhas[2m > [22m"mata bola time a" SIM deve ser ponto de ataque[32m 1[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.5: REGRA 5 ataque usa lastScorerTeam[2m > [22mataque sem time, lastScorerTeam=B, deve retornar B (nao A/serving)[32m 0[2mms[22m[39m
+ [31m├ù[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.5: REGRA 5 ataque usa lastScorerTeam[2m > [22mataque sem time E sem lastScorerTeam deve retornar requiresMoreInfo[32m 1[2mms[22m[39m
+[31m   ÔåÆ expected undefined to be true // Object.is equality[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.5: REGRA 5 ataque usa lastScorerTeam[2m > [22mataque com time explicito A funciona normalmente[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.6: requiresMoreInfo em comandos sem time[2m > [22mtimeout sem time identificado retorna requiresMoreInfo=true[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.6: requiresMoreInfo em comandos sem time[2m > [22mtimeout time b resolve normalmente sem requiresMoreInfo[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mFix 4.6: requiresMoreInfo em comandos sem time[2m > [22mponto com timeout time a resolve normalmente[32m 0[2mms[22m[39m
+ [31m├ù[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mAmbiguidade entre jogadores de times diferentes[2m > [22mnome que corresponde a jogadores de ambos os times retorna ambiguous ou unknown[32m 2[2mms[22m[39m
+[31m   ÔåÆ expected false to be true // Object.is equality[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mAmbiguidade entre jogadores de times diferentes[2m > [22mnome parcial unico resolve corretamente[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mAmbiguidade entre jogadores de times diferentes[2m > [22mnome de jogador unico + time explicito resolve corretamente[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mBloquear comandos com isMatchOver=true[2m > [22mqualquer comando com isMatchOver=true deve retornar unknown[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mBloquear comandos com isMatchOver=true[2m > [22mundo com isMatchOver=true deve retornar unknown[32m 0[2mms[22m[39m
+ [31m├ù[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mContinuidade por lastScorerTeam (REGRA 4)[2m > [22m"mais um" com lastScorerTeam=B deve marcar ponto B[32m 2[2mms[22m[39m
+[31m   ÔåÆ expected 'unknown' to be 'point' // Object.is equality[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts[2m > [22mContinuidade por lastScorerTeam (REGRA 4)[2m > [22m"ponto" com lastScorerTeam=A deve marcar ponto A[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Comandos B├ísicos[2m > [22mdeve reconhecer "desfazer" como undo[32m 2[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Comandos B├ísicos[2m > [22mdeve reconhecer "ops" como undo (sin├┤nimo fon├®tico)[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Comandos B├ísicos[2m > [22mdeve reconhecer ponto para time A por nome[32m 1[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Comandos B├ísicos[2m > [22mdeve reconhecer ponto para time B por nome[32m 1[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Comandos B├ísicos[2m > [22mdeve reconhecer "ponto do time a"[32m 1[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Comandos B├ísicos[2m > [22mdeve reconhecer "tirar ponto do time b" como negativo[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Comandos B├ísicos[2m > [22mdeve bloquear comandos quando isMatchOver = true[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Team Name Din├ómico[2m > [22mdeve reconhecer "ponto Time 3" com time chamado "Time 3"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Team Name Din├ómico[2m > [22mdeve reconhecer "ponto do Time 7" com time chamado "Time 7"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Team Name Din├ómico[2m > [22mdeve reconhecer "ponto para o Time 3" com preposi├º├Áes[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Team Name Din├ómico[2m > [22mdeve reconhecer "bloqueio Time 3" como ponto + skill + team[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Team Name Din├ómico[2m > [22mdeve reconhecer "ponto de bloqueio Time 3" como ponto + skill + team[32m 2[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Team Name Din├ómico[2m > [22mdeve reconhecer time com nome longo "Escola de V├┤lei Santos"[32m 1[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Team Name Din├ómico[2m > [22mdeve reconhecer time com erro de transcri├º├úo (fuzzy)[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Team Name Din├ómico[2m > [22mdeve reconhecer time num├®rico em timeout[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Team Name Din├ómico[2m > [22mdeve reconhecer time num├®rico em timeout (time B)[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Lados (Esquerda/Direita)[2m > [22mdeve reconhecer "esquerda" como Time A[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Lados (Esquerda/Direita)[2m > [22mdeve reconhecer "direita" como Time B[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Lados (Esquerda/Direita)[2m > [22mdeve reconhecer "lado esquerdo" como Time A[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Lados (Esquerda/Direita)[2m > [22mdeve reconhecer "lado direito" como Time B[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Swap de Lados[2m > [22mdeve reconhecer "trocar lados"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Swap de Lados[2m > [22mdeve reconhecer "trocar de lado"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Swap de Lados[2m > [22mdeve reconhecer "inverter"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Swap de Lados[2m > [22mdeve reconhecer "mudar lados"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Swap de Lados[2m > [22mdeve reconhecer "virar lado"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Swap de Lados[2m > [22mdeve reconhecer "swap sides" em ingl├¬s[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Swap de Lados[2m > [22mdeve reconhecer "switch sides" em ingl├¬s[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Swap de Lados[2m > [22mdeve reconhecer "cambiar lados" em espanhol[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Infer├¬ncia Contextual[2m > [22mREGRA 1 ÔÇö "Ace" sem time ÔåÆ servingTeam (A)[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Infer├¬ncia Contextual[2m > [22mREGRA 1 ÔÇö "Ace" sem time ÔåÆ servingTeam (B)[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Infer├¬ncia Contextual[2m > [22mREGRA 2 ÔÇö "Erro" sem time ÔåÆ oposto ao servidor (B pontuou)[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Infer├¬ncia Contextual[2m > [22mREGRA 3 ÔÇö "Bloqueio" sem time ÔåÆ oposto ao servidor[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Infer├¬ncia Contextual[2m > [22mREGRA 4 ÔÇö "Ponto!" sem time ÔåÆ lastScorerTeam[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Infer├¬ncia Contextual[2m > [22mdeve retornar unknown quando n├úo h├í contexto suficiente[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Jogador + Skill[2m > [22mdeve reconhecer "Jo├úo ataque" ÔÇö jogador + skill[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Jogador + Skill[2m > [22mdeve reconhecer "Ana Paula bloqueio" ÔÇö jogadora + skill[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Jogador + Skill[2m > [22mdeve reconhecer "Carlos ace" ÔÇö jogador + skill[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Jogador + Skill[2m > [22mdeve reconhecer "Beatriz erro" ÔÇö jogadora + skill[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Time + Skill[2m > [22mdeve reconhecer "time A ataque"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Time + Skill[2m > [22mdeve reconhecer "time B bloqueio"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Time + Skill[2m > [22mdeve reconhecer "ponto de ataque time A"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Time + Skill[2m > [22mdeve reconhecer "ponto de bloqueio time B"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Time + Skill[2m > [22mdeve reconhecer "esquerda ataque"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Time + Skill[2m > [22mdeve reconhecer "direita bloqueio"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Time + Skill[2m > [22mdeve reconhecer "ponto de bloqueio Flamengo"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Time + Skill[2m > [22mdeve reconhecer "ponto de ataque Botafogo"[32m 1[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Timeout[2m > [22mdeve reconhecer "timeout Flamengo"[32m 1[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Timeout[2m > [22mdeve reconhecer "timeout Botafogo"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Timeout[2m > [22mdeve reconhecer "pausa time A"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Timeout[2m > [22mdeve reconhecer "timeout time B"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Timeout[2m > [22mdeve reconhecer timeout com variante fon├®tica[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Timeout[2m > [22mdeve reconhecer "pedido de tempo Botafogo"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Timeout[2m > [22mdeve reconhecer "timeout" em ingl├¬s com time[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Fuzzy Matching[2m > [22mdeve casar "Joao" com jogador "Jo├úo Silva" (acento)[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Fuzzy Matching[2m > [22mdeve casar "carlos" com "Carlos Lima"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Fuzzy Matching[2m > [22mdeve casar jogador por n├║mero de camisa[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Fuzzy Matching[2m > [22mdeve tolerar "Joao Silv" (truncado) e casar com Jo├úo Silva[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Fuzzy Matching[2m > [22mdeve reconhecer nome de time com erro de transcri├º├úo[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Desambigua├º├úo Saque vs Ace[2m > [22m"saque" isolado ÔåÆ troca de server, n├úo ace[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Desambigua├º├úo Saque vs Ace[2m > [22m"saque direto" ÔåÆ ace, n├úo server change[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Desambigua├º├úo Saque vs Ace[2m > [22m"ponto no saque" ÔåÆ ace para servingTeam se sem time expl├¡cito[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Normaliza├º├úo[2m > [22mdeve tolerar texto em mai├║sculas[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Normaliza├º├úo[2m > [22mdeve tolerar "pont" (frase cortada) como "ponto"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Normaliza├º├úo[2m > [22mdeve converter "bloco" ÔåÆ "bloqueio"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Normaliza├º├úo[2m > [22mdeve converter n├║meros por extenso[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö EN[2m > [22mdeve reconhecer "point for team a" em ingl├¬s[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö EN[2m > [22mdeve reconhecer "undo" em ingl├¬s[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö EN[2m > [22mdeve casar "sack" como "serve" em ingl├¬s (fon├®tico)[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö EN[2m > [22mdeve reconhecer "left attack" como Time A + skill[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö EN[2m > [22mdeve reconhecer "right block" como Time B + skill[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö EN[2m > [22mdeve reconhecer "point Flamengo" com nome do time em ingl├¬s[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Casos Complexos[2m > [22mdeve reconhecer "Jo├úo ponto de ataque"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Casos Complexos[2m > [22mdeve reconhecer "time da casa bloqueio"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Casos Complexos[2m > [22mdeve reconhecer "visitante ponto de erro"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Casos Complexos[2m > [22mdeve reconhecer "ponto de bloqueio do Time 3" com time num├®rico[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Casos Complexos[2m > [22mdeve reconhecer "ace do Time 7"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Casos Complexos[2m > [22mdeve reconhecer "ponto de ataque do Time 5"[32m 0[2mms[22m[39m
+ [32mÔ£ô[39m src/features/voice/services/__tests__/VoiceCommandParser.test.ts[2m > [22mVoiceCommandParser ÔÇö Casos Complexos[2m > [22mdeve reconhecer "mais um ponto para o Flamengo"[32m 0[2mms[22m[39m
+[90mstdout[2m | src/features/game/reducers/__tests__/ghost_teams_repro.test.ts[2m > [22m[2mGhost Teams Reproduction - Large Roster Switching[2m > [22m[2mshould handle switching 6v6 -> 2v2 -> 5v5 without ghost teams
+[22m[39m--- Switching to 2v2 ---
+2v2 Queue Count: 8
+--- Switching to 5v5 ---
+5v5 Queue Count: 2
+
+ [32mÔ£ô[39m src/features/game/reducers/__tests__/ghost_teams_repro.test.ts[2m > [22mGhost Teams Reproduction - Large Roster Switching[2m > [22mshould handle switching 6v6 -> 2v2 -> 5v5 without ghost teams[32m 16[2mms[22m[39m
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ» Failed Suites 2 ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+
+ FAIL  e2e/smoke_test.spec.ts [ e2e/smoke_test.spec.ts ]
+Error: Playwright Test did not expect test.describe() to be called here.
+Most common reasons include:
+- You are calling test.describe() in a configuration file.
+- You are calling test.describe() in a file that is imported by the configuration file.
+- You have two different versions of @playwright/test. This usually happens
+  when one of the dependencies in your package.json depends on @playwright/test.
+ ÔØ» TestTypeImpl._currentSuite node_modules/playwright/lib/common/testType.js:75:13
+ ÔØ» TestTypeImpl._describe node_modules/playwright/lib/common/testType.js:115:24
+ ÔØ» Function.describe node_modules/playwright/lib/transform/transform.js:282:12
+ ÔØ» e2e/smoke_test.spec.ts:3:6
+      1| import { test, expect } from '@playwright/test';
+      2| 
+      3| test.describe('VolleyScore Pro Smoke Test', () => {
+       |      ^
+      4|     test.beforeEach(async ({ page }) => {
+      5|         await page.goto('/');
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[1/6]ÔÄ»
+
+ FAIL  src/features/history/utils/statsAggregator.test.ts [ src/features/history/utils/statsAggregator.test.ts ]
+ReferenceError: describe is not defined
+ ÔØ» src/features/history/utils/statsAggregator.test.ts:32:1
+     30| });
+     31| 
+     32| describe('statsAggregator', () => {
+       | ^
+     33|     it('should calculate team totals correctly', () => {
+     34|         const logs = [
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[2/6]ÔÄ»
+
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ» Failed Tests 4 ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»
+
+ FAIL  src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts > Fix 4.4: keywords curtas nao disparam acoes sozinhas > "dois toques time b" (composto) SIM deve ser ponto de erro do time B
+AssertionError: expected undefined to be 'opponent_error' // Object.is equality
+
+- Expected: 
+"opponent_error"
+
++ Received: 
+undefined
+
+ ÔØ» src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts:133:30
+    131|         const result = parse('dois toques time b', { statsEnabled: falÔÇª
+    132|         expect(result.type).toBe('point');
+    133|         expect(result.skill).toBe('opponent_error');
+       |                              ^
+    134|         expect(result.team).toBe('B');
+    135|     });
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[3/6]ÔÄ»
+
+ FAIL  src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts > Fix 4.5: REGRA 5 ataque usa lastScorerTeam > ataque sem time E sem lastScorerTeam deve retornar requiresMoreInfo
+AssertionError: expected undefined to be true // Object.is equality
+
+- Expected: 
+true
+
++ Received: 
+undefined
+
+ ÔØ» src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts:169:41
+    167|         });
+    168|         // Prefere pedir informacao em vez de adivinhar
+    169|         expect(result.requiresMoreInfo).toBe(true);
+       |                                         ^
+    170|     });
+    171| 
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[4/6]ÔÄ»
+
+ FAIL  src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts > Ambiguidade entre jogadores de times diferentes > nome que corresponde a jogadores de ambos os times retorna ambiguous ou unknown
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ÔØ» src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts:233:74
+    231|         // "Ana" casa como startsWith em Ana Costa (A) e Ana Lima (B)
+    232|         // Deve retornar ambiguous ou unknown, nunca executar silencioÔÇª
+    233|         expect(result.type === 'unknown' || result.isAmbiguous === truÔÇª
+       |                                                                          ^
+    234|     });
+    235| 
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[5/6]ÔÄ»
+
+ FAIL  src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts > Continuidade por lastScorerTeam (REGRA 4) > "mais um" com lastScorerTeam=B deve marcar ponto B
+AssertionError: expected 'unknown' to be 'point' // Object.is equality
+
+Expected: "point"
+Received: "unknown"
+
+ ÔØ» src/features/voice/services/__tests__/VoiceCommandParser.improvements.test.ts:286:29
+    284|             lastScorerTeam: 'B',
+    285|         });
+    286|         expect(result.type).toBe('point');
+       |                             ^
+    287|         expect(result.team).toBe('B');
+    288|     });
+
+ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»ÔÄ»[6/6]ÔÄ»
+
+
+[2m Test Files [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m2 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m101 passed[39m[22m[90m (105)[39m
+[2m   Start at [22m 17:18:10
+[2m   Duration [22m 3.73s[2m (transform 481ms, setup 0ms, import 808ms, tests 75ms, environment 1ms)[22m
+

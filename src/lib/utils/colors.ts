@@ -13,6 +13,7 @@ interface ColorTheme {
     ring: string;           // Focus rings
     gradient: string;       // Subtle gradient for cards
     solid: string;          // Solid color for pickers/dots
+    led: string;            // Bright LED indicator color (lighter shade for visibility)
 }
 
 // Helper to generate theme objects consistent with Tailwind classes
@@ -27,7 +28,8 @@ const createTheme = (color: string, baseIntensity: number = 500, textIntensity: 
     crown: `text-${color}-${baseIntensity}`,
     ring: `ring-${color}-${baseIntensity}`,
     gradient: `from-${color}-${baseIntensity}/15 to-transparent`,
-    solid: `bg-${color}-${baseIntensity}`
+    solid: `bg-${color}-${baseIntensity}`,
+    led: `bg-${color}-400`
 });
 
 export const TEAM_COLORS: Record<string, ColorTheme> = {
@@ -111,9 +113,9 @@ export const resolveTheme = (color: TeamColor | undefined): ColorTheme => {
             glow: `shadow-[0_0_15px_${primary}80]`,
             crown: `text-[${secondary}]`,
             ring: `ring-[${primary}]`,
-            // The magic happens here: Custom gradient
             gradient: `from-[${primary}]/20 to-[${secondary}]/20`, 
-            solid: `bg-[${primary}]`
+            solid: `bg-[${primary}]`,
+            led: `bg-[${primary}]`
         };
     }
 
@@ -130,7 +132,8 @@ export const resolveTheme = (color: TeamColor | undefined): ColorTheme => {
         crown: `text-[${safeColor}]`,
         ring: `ring-[${safeColor}]`,
         gradient: `from-[${safeColor}]/15 to-transparent`,
-        solid: `bg-[${safeColor}]`
+        solid: `bg-[${safeColor}]`,
+        led: `bg-[${safeColor}]`
     };
 };
 

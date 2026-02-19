@@ -145,7 +145,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                                     layout="position"
                                     initial={{ scale: 0, rotate: -90 }}
                                     animate={{ scale: 1, rotate: 0 }}
-                                    className="text-amber-500 dark:text-amber-400 shrink-0"
+                                    className="text-cyan-500 dark:text-cyan-400 shrink-0 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]"
                                 >
                                     <Volleyball size={18} strokeWidth={2.5} fill="currentColor" fillOpacity={0.1} />
                                 </motion.div>
@@ -244,18 +244,21 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                     >
                         <Timer size={18} className="text-slate-400 dark:text-slate-500" strokeWidth={2.5} />
                         <div className="flex gap-1.5">
-                            {[1, 2].map(t => (
-                                <div
-                                    key={t}
-                                    className={`
-                        w-4 h-1 rounded-full transition-all duration-300
-                        ${t > timeouts
-                                            ? `${theme.halo} shadow-[0_0_5px_currentColor]`
-                                            : 'bg-slate-300 dark:bg-slate-700'
-                                        }
-                      `}
-                                />
-                            ))}
+                            {[1, 2].map(t => {
+                                const isAvailable = t > timeouts;
+                                return (
+                                    <div
+                                        key={t}
+                                        className={`
+                                            w-4 h-1.5 rounded-full transition-all duration-300
+                                            ${isAvailable
+                                                ? `${theme.led} ring-2 ring-white/30 shadow-[0_0_6px_rgba(255,255,255,0.5)]`
+                                                : 'bg-slate-300 dark:bg-slate-700 opacity-40'
+                                            }
+                                        `}
+                                    />
+                                );
+                            })}
                         </div>
                     </button>
                 </div>

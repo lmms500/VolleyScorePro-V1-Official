@@ -11,7 +11,8 @@ export const CourtPage: React.FC<CourtPageProps> = ({ onDragActiveChange }) => {
     const {
         scoreA, scoreB, setsA, setsB, currentSet, servingTeam,
         timeoutsA, timeoutsB, inSuddenDeath, isDeuce,
-        isMatchPointA, isMatchPointB, isSetPointA, isSetPointB
+        isMatchPointA, isMatchPointB, isSetPointA, isSetPointB,
+        swappedSides
     } = useScore();
     const { matchLog } = useLog();
     const { teamARoster, teamBRoster, config } = useRoster();
@@ -54,6 +55,7 @@ export const CourtPage: React.FC<CourtPageProps> = ({ onDragActiveChange }) => {
                 onDragActiveChange={onDragActiveChange}
                 nameRotation={-90}
                 courtRotation={90}
+                swappedSides={swappedSides}
             />
         </div>
     );

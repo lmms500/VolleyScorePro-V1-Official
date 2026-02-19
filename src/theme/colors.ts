@@ -65,7 +65,10 @@ export const colors = {
 
   // === SURFACE COLORS (Novos) ===
   surface: {
-    beachCourt: '#e3cba5',  // Beach volleyball court sand color
+    beachCourtBase: '#c9a66b',     // Beach sand base (golden caramel)
+    beachCourtLight: '#d4b07a',    // Beach sand light
+    beachCourtDark: '#b8956a',     // Beach sand dark
+    beachCourtGrain: '#a88455',    // Beach sand grain accent
   },
 
   // === SKILL LEVEL COLORS (Novos) ===

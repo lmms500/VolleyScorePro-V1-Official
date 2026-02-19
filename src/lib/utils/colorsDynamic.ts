@@ -8,7 +8,6 @@ import { HEX_MAP, getHexFromColor } from './colors';
 export const resolveThemeDynamic = (color: TeamColor | undefined) => {
   if (!color) {
     return {
-      // Use default indigo classes
       text: 'text-indigo-800',
       textDark: 'dark:text-indigo-300',
       bg: 'bg-indigo-500/20',
@@ -19,13 +18,12 @@ export const resolveThemeDynamic = (color: TeamColor | undefined) => {
       ring: 'ring-indigo-500',
       gradient: 'from-indigo-500/15 to-transparent',
       solid: 'bg-indigo-500',
-      // CSS variables
+      led: 'bg-indigo-400',
       useVariables: false,
       cssVar: '',
     };
   }
 
-  // Se é cor predefinida, usa classes Tailwind diretamente
   if (HEX_MAP[color]) {
     const colorName = color;
     const intensity = colorName === 'indigo' ? 500 : colorName === 'rose' ? 500 : 500;
@@ -40,17 +38,16 @@ export const resolveThemeDynamic = (color: TeamColor | undefined) => {
       ring: `ring-${colorName}-${intensity}`,
       gradient: `from-${colorName}-${intensity}/15 to-transparent`,
       solid: `bg-${colorName}-${intensity}`,
+      led: `bg-${colorName}-400`,
       useVariables: false,
       cssVar: '',
     };
   }
 
-  // Para cores customizadas, usa CSS variables
   const hex = getHexFromColor(color);
   const [r, g, b] = hexToRgb(hex);
 
   return {
-    // Classes de fallback
     text: 'text-slate-900 dark:text-slate-100',
     textDark: 'dark:text-slate-100',
     bg: 'bg-slate-100/20',
@@ -61,7 +58,7 @@ export const resolveThemeDynamic = (color: TeamColor | undefined) => {
     ring: 'ring-slate-500',
     gradient: 'from-slate-500/15 to-transparent',
     solid: 'bg-slate-500',
-    // Sinalizadores para uso de CSS variables
+    led: 'bg-slate-400',
     useVariables: true,
     cssVar: `
       --dynamic-color: ${hex};

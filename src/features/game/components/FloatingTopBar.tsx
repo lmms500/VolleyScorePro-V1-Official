@@ -195,10 +195,10 @@ const TeamInfoSmart = memo<{
                 animate={{ scale: 1, rotate: 0 }}
                 exit={{ scale: 0, rotate: 180 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="absolute inset-0 flex items-center justify-center text-amber-500 dark:text-amber-400 drop-shadow-md"
+                className="absolute inset-0 flex items-center justify-center drop-shadow-[0_0_10px_rgba(34,211,238,0.6)]"
               >
-                <div className="bg-white dark:bg-slate-900 rounded-full p-0.5 shadow-lg border border-black/5 dark:border-white/10 flex items-center justify-center">
-                  <Volleyball size={18} className="text-amber-500 dark:text-amber-400" fill="currentColor" fillOpacity={0.2} />
+                <div className="bg-white dark:bg-slate-900 rounded-full p-0.5 shadow-lg border border-cyan-400/50 dark:border-cyan-400/30 flex items-center justify-center">
+                  <Volleyball size={18} className="text-cyan-500 dark:text-cyan-400" fill="currentColor" fillOpacity={0.2} />
                 </div>
               </motion.div>
             )}

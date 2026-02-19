@@ -14,6 +14,7 @@ import { SubstitutionModal } from '@features/teams/modals/SubstitutionModal';
 import { ScoutModal } from '@features/game/modals/ScoutModal';
 import { CourtHeader } from '@features/court/components/CourtHeader';
 import { CourtFooter } from '@features/court/components/CourtFooter';
+import BeachSandTexture from '@features/court/components/BeachSandTexture';
 
 interface CourtModalProps {
     isOpen: boolean;
@@ -184,22 +185,20 @@ export const CourtModal: React.FC<CourtModalProps> = ({
                             <div className={`relative w-full max-w-4xl max-h-[58vh] aspect-[1.8/1] flex shadow-[0_25px_50px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.15)] ring-1 ring-inset ring-white/10 rounded-3xl ${courtBgClass} dark:bg-slate-900/40 backdrop-blur-md border border-white/40 dark:border-white/10 p-0 mx-2 overflow-hidden`}>
                                 <div className="absolute inset-0 z-0 rounded-3xl overflow-hidden">
                                     {isBeach ? (
-                                        <div className="absolute inset-0 bg-[#e3cba5] mix-blend-normal">
-                                            <div className="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/sand.png')] mix-blend-multiply" />
-                                        </div>
+                                        <BeachSandTexture />
                                     ) : (
                                         <>
                                             <div className="absolute inset-0 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 dark:from-orange-500/20 dark:via-orange-600/10 dark:to-slate-900/60 mix-blend-normal dark:mix-blend-overlay" />
-                                            <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')] mix-blend-multiply" />
+                                            <div className="absolute inset-0 opacity-10 bg-[url('/assets/wood-pattern.png')] mix-blend-multiply" />
                                         </>
                                     )}
                                 </div>
                                 <div className="absolute top-0 bottom-0 left-1/2 w-1 -ml-0.5 z-30 shadow-[0_0_15px_rgba(0,0,0,0.1)] pointer-events-none bg-white/60 dark:bg-white/20 backdrop-blur-sm border-l border-white/50" />
                                 <div className="flex-1 h-full relative z-10">
-                                    <VolleyballCourt players={teamA.players} color={teamA.color} isServing={servingTeam === 'A'} side="left" teamId="A" variant="minimal" onPlayerClick={(p) => handlePlayerClick(p, 'A')} mvpId={currentMVPId} layoutConfig={getCourtLayoutFromConfig(config || { mode: 'indoor' } as any)} isDragActive={isDragging} />
+                                    <VolleyballCourt players={teamA.players} color={teamA.color} isServing={servingTeam === 'A'} side="left" teamId="A" variant="minimal" onPlayerClick={(p) => handlePlayerClick(p, 'A')} mvpId={currentMVPId} layoutConfig={getCourtLayoutFromConfig(config || { mode: 'indoor' } as any)} isDragActive={isDragging} namePlacement="right" />
                                 </div>
                                 <div className="flex-1 h-full relative z-10">
-                                    <VolleyballCourt players={teamB.players} color={teamB.color} isServing={servingTeam === 'B'} side="right" teamId="B" variant="minimal" onPlayerClick={(p) => handlePlayerClick(p, 'B')} mvpId={currentMVPId} layoutConfig={getCourtLayoutFromConfig(config || { mode: 'indoor' } as any)} isDragActive={isDragging} />
+                                    <VolleyballCourt players={teamB.players} color={teamB.color} isServing={servingTeam === 'B'} side="right" teamId="B" variant="minimal" onPlayerClick={(p) => handlePlayerClick(p, 'B')} mvpId={currentMVPId} layoutConfig={getCourtLayoutFromConfig(config || { mode: 'indoor' } as any)} isDragActive={isDragging} namePlacement="left" />
                                 </div>
                             </div>
                         </div>

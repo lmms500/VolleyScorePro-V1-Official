@@ -41,6 +41,16 @@ export const Badge: React.FC<BadgeProps> = ({
         slate: "bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-600 dark:to-slate-700 text-slate-600 dark:text-slate-300 border-slate-200/50 dark:border-white/10 ring-1 ring-inset ring-white/10 dark:ring-white/5"
     };
 
+    const dotColorClasses = {
+        neutral: "bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-400 dark:to-slate-500 border-white/40 ring-2 ring-white/30 shadow-[0_0_6px_rgba(255,255,255,0.4)]",
+        indigo: "bg-gradient-to-br from-indigo-300 to-indigo-400 dark:from-indigo-400 dark:to-indigo-500 border-indigo-200/40 ring-2 ring-white/30 shadow-[0_0_6px_rgba(255,255,255,0.5),0_0_8px_rgba(129,140,248,0.5)]",
+        rose: "bg-gradient-to-br from-rose-300 to-rose-400 dark:from-rose-400 dark:to-rose-500 border-rose-200/40 ring-2 ring-white/30 shadow-[0_0_6px_rgba(255,255,255,0.5),0_0_8px_rgba(251,113,133,0.5)]",
+        emerald: "bg-gradient-to-br from-emerald-300 to-emerald-400 dark:from-emerald-400 dark:to-emerald-500 border-emerald-200/40 ring-2 ring-white/30 shadow-[0_0_6px_rgba(255,255,255,0.5),0_0_8px_rgba(52,211,153,0.5)]",
+        amber: "bg-gradient-to-br from-amber-300 to-amber-400 dark:from-amber-400 dark:to-amber-500 border-amber-200/40 ring-2 ring-white/30 shadow-[0_0_6px_rgba(255,255,255,0.5),0_0_8px_rgba(251,191,36,0.5)]",
+        red: "bg-gradient-to-br from-red-300 to-red-400 dark:from-red-400 dark:to-red-500 border-red-200/40 ring-2 ring-white/30 shadow-[0_0_6px_rgba(255,255,255,0.5),0_0_8px_rgba(248,113,113,0.5)]",
+        slate: "bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-400 dark:to-slate-500 border-white/40 ring-2 ring-white/30 shadow-[0_0_6px_rgba(255,255,255,0.4)]"
+    };
+
     // Tamanhos (apenas para variantes que não sejam 'dot')
     const sizeClasses = variant !== 'dot' ? {
         xs: "text-[8px] px-1.5 py-0.5 border",
@@ -59,9 +69,11 @@ export const Badge: React.FC<BadgeProps> = ({
         transition: { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
     } : {};
 
+    const activeColorClasses = variant === 'dot' ? dotColorClasses[color] : colorClasses[color];
+
     return (
         <Component
-            className={`${variantClasses[variant]} ${colorClasses[color]} ${sizeClasses[size]} ${pulseClass} ${glowClass} ${glassClass} ${className}`}
+            className={`${variantClasses[variant]} ${activeColorClasses} ${sizeClasses[size]} ${pulseClass} ${glowClass} ${glassClass} ${className}`}
             {...animationProps}
         >
             {children}
