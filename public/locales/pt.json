@@ -739,6 +739,8 @@
         "left": "Você saiu da sessão",
         "sessionEnded": "Transmissão Encerrada",
         "sessionEndedSub": "O host encerrou a transmissão",
+        "sessionNotFound": "Sessão não encontrada",
+        "sessionNotFoundSub": "Verifique o código e tente novamente",
         "authRequired": "Login Necessário",
         "authRequiredSub": "Faça login para acompanhar transmissões",
         "broadcastStopped": "Transmissão Encerrada",

@@ -1,8 +1,8 @@
 
 import React, { memo } from 'react';
-import { Timer, Crown, Zap, TrendingUp, Skull, Plus, Minus } from 'lucide-react';
+import { Timer, Crown, Zap, TrendingUp, Skull, Plus, Minus, Volleyball } from 'lucide-react';
 import { Team, TeamId } from '@types';
-import { resolveTheme } from '@lib/utils/colors';
+import { resolveTheme, getHexFromColor } from '@lib/utils/colors';
 import { useTranslation } from '@contexts/LanguageContext';
 import { useTimerValue } from '@contexts/TimerContext';
 import { TeamLogo } from '@ui/TeamLogo';
@@ -37,9 +37,10 @@ const MiniBadge = memo(({ icon: Icon, colorClass, text }: any) => (
     </div>
 ));
 
-const TimeoutControl = memo(({ onTimeout, count = 0, theme }: { onTimeout?: () => void, count?: number, theme: any }) => {
+const TimeoutControl = memo(({ onTimeout, count = 0, theme, color }: { onTimeout?: () => void, count?: number, theme: any, color?: string }) => {
     if (!onTimeout) return null;
     const isExhausted = count >= 2;
+    const hexColor = getHexFromColor(color);
 
     return (
         <button
@@ -54,8 +55,14 @@ const TimeoutControl = memo(({ onTimeout, count = 0, theme }: { onTimeout?: () =
         >
             <Timer size={14} className={isExhausted ? "text-slate-400" : theme.text} strokeWidth={2.5} />
             <div className="flex gap-0.5">
-                <div className={`w-1.5 h-1.5 rounded-full transition-all ${count >= 1 ? 'bg-slate-400 dark:bg-slate-500 opacity-40' : `${theme.led} ring-2 ring-white/30 shadow-[0_0_6px_rgba(255,255,255,0.5)]`}`} />
-                <div className={`w-1.5 h-1.5 rounded-full transition-all ${count >= 2 ? 'bg-slate-400 dark:bg-slate-500 opacity-40' : `${theme.led} ring-2 ring-white/30 shadow-[0_0_6px_rgba(255,255,255,0.5)]`}`} />
+                <div
+                    className={`w-1.5 h-1.5 rounded-full transition-all ${count >= 1 ? 'bg-slate-400 dark:bg-slate-500 opacity-40' : 'ring-2 ring-white/30'}`}
+                    style={count < 1 ? { backgroundColor: hexColor, boxShadow: `0 0 6px rgba(255,255,255,0.5), 0 0 8px ${hexColor}80` } : {}}
+                />
+                <div
+                    className={`w-1.5 h-1.5 rounded-full transition-all ${count >= 2 ? 'bg-slate-400 dark:bg-slate-500 opacity-40' : 'ring-2 ring-white/30'}`}
+                    style={count < 2 ? { backgroundColor: hexColor, boxShadow: `0 0 6px rgba(255,255,255,0.5), 0 0 8px ${hexColor}80` } : {}}
+                />
             </div>
         </button>
     );
@@ -106,7 +113,14 @@ export const CourtHeader: React.FC<CourtHeaderProps> = memo(({
                             )}
 
                             <span className={`text-[10px] font-black uppercase tracking-wider ${themeA.text} ${themeA.textDark} truncate ${compact ? 'max-w-[50px]' : 'max-w-[80px]'}`}>{teamA.name}</span>
-                            {servingTeam === 'A' && <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] animate-pulse flex-shrink-0" />}
+                            {servingTeam === 'A' && (
+                                <div
+                                    className={`bg-white dark:bg-slate-900 rounded-full p-0.5 shadow-sm border ${themeA.border} flex items-center justify-center flex-shrink-0 animate-pulse`}
+                                    style={{ filter: `drop-shadow(0 0 6px ${getHexFromColor(teamA.color)}99)` }}
+                                >
+                                    <Volleyball size={compact ? 10 : 12} className={themeA.text} fill="currentColor" fillOpacity={0.2} />
+                                </div>
+                            )}
                         </div>
                         <div className={`flex items-center ${compact ? 'gap-1' : 'gap-2'}`}>
                             <div className={`flex items-center bg-white/50 dark:bg-slate-800/40 rounded-xl p-1 border border-white/40 dark:border-white/10 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] ring-1 ring-inset ring-white/20 ${compact ? 'gap-1' : 'gap-2'}`}>
@@ -114,7 +128,7 @@ export const CourtHeader: React.FC<CourtHeaderProps> = memo(({
                                 <span className={`${compact ? 'text-2xl min-w-[24px]' : 'text-3xl min-w-[32px]'} font-black tabular-nums leading-none text-center bg-gradient-to-br from-slate-800 to-slate-600 dark:from-white dark:to-slate-200 bg-clip-text text-transparent`}>{scoreA}</span>
                                 <button onClick={() => onScore('A', 1)} className={`${compact ? 'w-7 h-7' : 'w-8 h-8'} rounded-lg ${themeA.bg} hover:${themeA.bg.replace('/20', '/35')} flex items-center justify-center ${themeA.text} ${themeA.textDark} border border-white/10 shadow-sm`}><Plus size={compact ? 10 : 12} strokeWidth={3} /></button>
                             </div>
-                            <TimeoutControl onTimeout={onTimeoutA} count={timeoutsA} theme={themeA} />
+                            <TimeoutControl onTimeout={onTimeoutA} count={timeoutsA} theme={themeA} color={teamA.color} />
                         </div>
                     </div>
                 </div>
@@ -146,7 +160,14 @@ export const CourtHeader: React.FC<CourtHeaderProps> = memo(({
                             )}
 
                             <span className={`text-[10px] font-black uppercase tracking-wider ${themeB.text} ${themeB.textDark} truncate ${compact ? 'max-w-[50px]' : 'max-w-[80px]'}`}>{teamB.name}</span>
-                            {servingTeam === 'B' && <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)] animate-pulse flex-shrink-0" />}
+                            {servingTeam === 'B' && (
+                                <div
+                                    className={`bg-white dark:bg-slate-900 rounded-full p-0.5 shadow-sm border ${themeB.border} flex items-center justify-center flex-shrink-0 animate-pulse`}
+                                    style={{ filter: `drop-shadow(0 0 6px ${getHexFromColor(teamB.color)}99)` }}
+                                >
+                                    <Volleyball size={compact ? 10 : 12} className={themeB.text} fill="currentColor" fillOpacity={0.2} />
+                                </div>
+                            )}
                         </div>
                         <div className={`flex items-center flex-row-reverse ${compact ? 'gap-1' : 'gap-2'}`}>
                             <div className={`flex items-center bg-white/50 dark:bg-slate-800/40 rounded-xl p-1 border border-white/40 dark:border-white/10 flex-row-reverse backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] ring-1 ring-inset ring-white/20 ${compact ? 'gap-1' : 'gap-2'}`}>
@@ -154,7 +175,7 @@ export const CourtHeader: React.FC<CourtHeaderProps> = memo(({
                                 <span className={`${compact ? 'text-2xl min-w-[24px]' : 'text-3xl min-w-[32px]'} font-black tabular-nums leading-none text-center bg-gradient-to-br from-slate-800 to-slate-600 dark:from-white dark:to-slate-200 bg-clip-text text-transparent`}>{scoreB}</span>
                                 <button onClick={() => onScore('B', 1)} className={`${compact ? 'w-7 h-7' : 'w-8 h-8'} rounded-lg ${themeB.bg} hover:${themeB.bg.replace('/20', '/35')} flex items-center justify-center ${themeB.text} ${themeB.textDark} border border-white/10 shadow-sm`}><Plus size={compact ? 10 : 12} strokeWidth={3} /></button>
                             </div>
-                            <TimeoutControl onTimeout={onTimeoutB} count={timeoutsB} theme={themeB} />
+                            <TimeoutControl onTimeout={onTimeoutB} count={timeoutsB} theme={themeB} color={teamB.color} />
                         </div>
                     </div>
                 </div>

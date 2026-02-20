@@ -302,3 +302,72 @@ describe('Continuidade por lastScorerTeam (REGRA 4)', () => {
     });
 
 });
+
+// ---------------------------------------------------------------------------
+// Apelidos / Abreviações de Time (Substring/Prefix Match)
+// ---------------------------------------------------------------------------
+
+describe('Team Nickname / Abbreviation Resolution', () => {
+
+    it('"ponto do Flu" deve resolver como Fluminense (team A)', () => {
+        const result = parse('ponto do Flu', {
+            teamAName: 'Fluminense',
+            teamBName: 'Vasco',
+            statsEnabled: false,
+        });
+        expect(result.type).toBe('point');
+        expect(result.team).toBe('A');
+    });
+
+    it('"ponto do Fla" deve resolver como Flamengo (team A)', () => {
+        const result = parse('ponto do Fla', {
+            statsEnabled: false,
+        });
+        expect(result.type).toBe('point');
+        expect(result.team).toBe('A');
+    });
+
+    it('"ponto do Bota" deve resolver como Botafogo (team B)', () => {
+        const result = parse('ponto do Bota', {
+            statsEnabled: false,
+        });
+        expect(result.type).toBe('point');
+        expect(result.team).toBe('B');
+    });
+
+    it('"profundo" (Web Speech API merge de "pro Flu") deve resolver via sinônimo fonético', () => {
+        const result = parse('ponto de bloqueio profundo', {
+            teamAName: 'Fluminense',
+            teamBName: 'Vasco',
+            statsEnabled: false,
+        });
+        expect(result.type).toBe('point');
+        expect(result.team).toBe('A');
+        expect(result.skill).toBe('block');
+    });
+
+    it('"ponto de bloqueio Agnelo pro Flu" com Fluminense deve resolver team + skill', () => {
+        const result = parse('ponto de bloqueio Agnelo pro Flu', {
+            teamAName: 'Fluminense',
+            teamBName: 'Vasco',
+            playersA: [makePlayer('a1', 'Agnelo', '5')],
+            playersB: [],
+            statsEnabled: false,
+        });
+        expect(result.type).toBe('point');
+        expect(result.team).toBe('A');
+        expect(result.skill).toBe('block');
+        expect(result.player?.name).toBe('Agnelo');
+    });
+
+    it('abreviação muito curta (2 chars) NÃO deve casar com time', () => {
+        const result = parse('ponto do Bo', {
+            statsEnabled: false,
+            servingTeam: null,
+            lastScorerTeam: null,
+        });
+        // "Bo" tem apenas 2 chars, não atinge o mínimo de 3
+        expect(result.team).toBeUndefined();
+    });
+
+});

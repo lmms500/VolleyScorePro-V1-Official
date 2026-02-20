@@ -1,6 +1,6 @@
 import React, { memo, useCallback } from 'react';
 import { Player, TeamColor, CourtLayoutConfig } from '@types';
-import { resolveTheme } from '@lib/utils/colors';
+import { resolveTheme, getHexFromColor } from '@lib/utils/colors';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { motion } from 'framer-motion';
 import { isEmptySlot } from '@config/gameModes';
@@ -45,7 +45,7 @@ const ZoneMarker = memo(({ index, visualZone, teamId }: { index: number, visualZ
 });
 
 // --- 2. THE PLAYER TOKEN (Ultraglass Jewel) ---
-const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActivate, isMVP, isGlobalDragging, nameRotation, namePlacement = 'auto' }: { player: Player, index: number, teamId: string, theme: any, isServer: boolean, onActivate?: (player: Player) => void, isMVP: boolean, isGlobalDragging: boolean, nameRotation?: number, namePlacement?: 'auto' | 'right' | 'left' }) => {
+const DraggablePlayer = memo(({ player, index, teamId, side, teamColor, isServer, onActivate, isMVP, isGlobalDragging, nameRotation, namePlacement = 'auto' }: { player: Player, index: number, teamId: string, side: 'left' | 'right', teamColor: TeamColor, isServer: boolean, onActivate?: (player: Player) => void, isMVP: boolean, isGlobalDragging: boolean, nameRotation?: number, namePlacement?: 'auto' | 'right' | 'left' }) => {
     // Draggable Logic Only (Collision handled by ZoneMarker underneath)
     const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
         id: player.id,
@@ -120,7 +120,7 @@ const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActiva
             {/* MVP Glow - Branco com dourado interno para visibilidade universal */}
             {isMVP && (
                 <>
-                    <div 
+                    <div
                         className="absolute -inset-1 rounded-full animate-pulse z-0"
                         style={{
                             boxShadow: '0 0 25px rgba(255, 255, 255, 0.8), 0 0 50px rgba(251, 191, 36, 0.5), inset 0 0 15px rgba(251, 191, 36, 0.3)'
@@ -134,11 +134,13 @@ const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActiva
             {/* Main Token Body */}
             <div className={`
                 w-full h-full rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.3)] flex items-center justify-center relative overflow-hidden z-10 transition-transform duration-200 group-hover:scale-110
-                bg-gradient-to-br ${theme.gradient.replace('/15', '').replace('to-transparent', 'to-gray-900/40')}
                 border ${isMVP ? 'border-amber-400' : 'border-white/40'}
                 ring-1 ring-black/10 dark:ring-white/10
                 ${isMVP ? 'shadow-[0_0_20px_rgba(255,255,255,0.5)]' : ''}
-            `}>
+            `}
+                style={{
+                    background: `linear-gradient(135deg, ${getHexFromColor(teamColor)} 20%, rgba(17, 24, 39, 0.6) 100%)`
+                }}>
                 {/* Glossy Reflection */}
                 <div className="absolute inset-x-0 top-0 h-[45%] bg-gradient-to-b from-white/60 to-transparent pointer-events-none rounded-t-full" />
 
@@ -152,14 +154,17 @@ const DraggablePlayer = memo(({ player, index, teamId, theme, isServer, onActiva
 
             {/* Name Label */}
             <div
-                className={`absolute ${positionClass} backdrop-blur-md px-2.5 py-0.5 rounded-full border shadow-xl max-w-[200%] transition-opacity duration-200
-                         ${isMVP ? 'bg-amber-500/95 border-amber-300' : 'bg-slate-900/90 border-white/10'}
+                className={`absolute ${positionClass} backdrop-blur-md px-2.5 py-0.5 rounded-full border shadow-xl max-w-[200%] transition-opacity duration-200 bg-opacity-95 dark:bg-opacity-90
+                         ${isMVP ? 'bg-amber-500 border-amber-300' : `border-white/20`}
                          ${isGlobalDragging ? 'opacity-0' : 'opacity-100'}
                          ${isMVP ? 'shadow-[0_0_15px_rgba(251,191,36,0.5)]' : ''}
                         `}
-                style={{ transform: transformStyle }}
+                style={{
+                    transform: transformStyle,
+                    backgroundColor: isMVP ? undefined : getHexFromColor(teamColor)
+                }}
             >
-                <span className={`text-[9px] font-bold uppercase tracking-wider block truncate text-center max-w-[80px] leading-tight ${isMVP ? 'text-white' : 'text-slate-200'}`}>
+                <span className={`text-[9px] font-bold uppercase tracking-wider block truncate text-center max-w-[80px] leading-tight text-white`}>
                     {player.name}
                 </span>
             </div>
@@ -220,11 +225,11 @@ export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
             <div className={`
                 absolute ${isMinimal ? 'inset-0' : 'inset-4'} border-[4px] ${lineColor}
                 ${isPortrait
-                    ? (side === 'left' 
-                        ? 'border-b-0 rounded-tl-3xl rounded-tr-3xl' 
+                    ? (side === 'left'
+                        ? 'border-b-0 rounded-tl-3xl rounded-tr-3xl'
                         : 'border-t-0 rounded-bl-3xl rounded-br-3xl')
-                    : (side === 'left' 
-                        ? 'border-r-0 rounded-tl-3xl rounded-bl-3xl' 
+                    : (side === 'left'
+                        ? 'border-r-0 rounded-tl-3xl rounded-bl-3xl'
                         : 'border-l-0 rounded-tr-3xl rounded-br-3xl')
                 }
                 opacity-80
@@ -249,10 +254,10 @@ export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
                 }
             `}>
                 {gridOrder.map((arrayIndex, gridPosition) => {
-                    if (isEmptySlot(arrayIndex)) return <div key={`empty-${gridPosition}`} className="relative" />;
+                    if (isEmptySlot(arrayIndex)) return <div key={`zone-${gridPosition}`} className="relative" />;
 
                     return (
-                        <div key={slots[arrayIndex]?.id || `empty-${arrayIndex}`} className="relative flex items-center justify-center">
+                        <div key={`zone-${arrayIndex}`} className="relative flex items-center justify-center">
 
                             {/* Watermark Zone Number */}
                             <div
@@ -277,7 +282,8 @@ export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
                                     player={slots[arrayIndex]}
                                     index={arrayIndex}
                                     teamId={teamId}
-                                    theme={theme}
+                                    side={side}
+                                    teamColor={color}
                                     isServer={isServing && arrayIndex === 0}
                                     onActivate={handlePlayerActivate}
                                     isMVP={mvpId === slots[arrayIndex].id}

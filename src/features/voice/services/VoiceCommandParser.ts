@@ -42,6 +42,8 @@ const PHONETIC_SYNONYMS_PT: Record<string, string> = {
   'eis': 'ace',
   'ops ': 'desfazer ',
   'opss ': 'desfazer ',
+  // Web Speech API pode unir "pro flu" em "profundo" — desfazer essa fusão
+  'profundo': 'pro flu',
 };
 
 const PHONETIC_SYNONYMS_EN: Record<string, string> = {
@@ -197,6 +199,19 @@ const VOCABULARY: Record<string, {
 
 export class VoiceCommandParser {
 
+  private static calculateAdaptiveConfidence(
+    baseScore: number,
+    hasExplicitTeam: boolean,
+    hasPlayer: boolean,
+    hasSkill: boolean,
+  ): number {
+    let confidence = baseScore;
+    if (hasExplicitTeam) confidence += 0.15;
+    if (hasPlayer) confidence += 0.10;
+    if (hasSkill) confidence += 0.05;
+    return Math.min(confidence, 1.0);
+  }
+
   // -------------------------------------------------------------------------
   // NORMALIZAÇÃO
   // Ordem: lowercase → acentos → pontuação → espaços → números → sinônimos
@@ -305,7 +320,7 @@ export class VoiceCommandParser {
       // Tenta extrair uma janela de tokens do tamanho do nome do time
       for (let i = 0; i <= textTokens.length - nameTokens.length; i++) {
         const candidate = textTokens.slice(i, i + nameTokens.length).join(' ');
-        if (isFuzzyMatch(candidate, safeNameA)) return { team: 'A', confidence: 0.85 };
+        if (candidate.length >= 3 && isFuzzyMatch(candidate, safeNameA)) return { team: 'A', confidence: 0.85 };
       }
       // Single-token fuzzy (para nomes de 1 palavra como "Flamengo")
       if (nameTokens.length === 1) {
@@ -320,11 +335,31 @@ export class VoiceCommandParser {
       const textTokens = text.split(' ');
       for (let i = 0; i <= textTokens.length - nameTokens.length; i++) {
         const candidate = textTokens.slice(i, i + nameTokens.length).join(' ');
-        if (isFuzzyMatch(candidate, safeNameB)) return { team: 'B', confidence: 0.85 };
+        if (candidate.length >= 3 && isFuzzyMatch(candidate, safeNameB)) return { team: 'B', confidence: 0.85 };
       }
       if (nameTokens.length === 1) {
         for (const token of textTokens) {
           if (token.length >= 3 && isFuzzyMatch(token, safeNameB)) return { team: 'B', confidence: 0.85 };
+        }
+      }
+    }
+
+    // 4b. SUBSTRING / PREFIX MATCH — Apelidos como "Flu" → "Fluminense"
+    // Token do texto deve ter min 3 chars e ser prefixo do nome do time
+    if (safeNameA.length > 3) {
+      const textTokens = text.split(' ');
+      for (const token of textTokens) {
+        if (token.length >= 3 && safeNameA.startsWith(token) && token.length >= safeNameA.length * 0.3) {
+          return { team: 'A', confidence: 0.80 };
+        }
+      }
+    }
+
+    if (safeNameB.length > 3) {
+      const textTokens = text.split(' ');
+      for (const token of textTokens) {
+        if (token.length >= 3 && safeNameB.startsWith(token) && token.length >= safeNameB.length * 0.3) {
+          return { team: 'B', confidence: 0.80 };
         }
       }
     }
@@ -433,6 +468,53 @@ export class VoiceCommandParser {
   }
 
   // -------------------------------------------------------------------------
+  // STRIP TEAM IDENTIFIERS — Remove nome do time e keywords do texto
+  // para evitar falso positivo em busca de jogador
+  // Ex: "São Paulo" no texto → fuzzy match com "Ana Paula" → falso positivo
+  // -------------------------------------------------------------------------
+
+  private static stripTeamIdentifiers(
+    text: string,
+    team: TeamId,
+    teamAName: string,
+    teamBName: string,
+    vocab: typeof VOCABULARY['pt'],
+  ): string {
+    let cleaned = text;
+
+    // 1. Strip normalized team name
+    const teamName = this.normalizeTeamName(team === 'A' ? teamAName : teamBName);
+    if (teamName.length > 1) {
+      cleaned = cleaned.replace(teamName, '');
+    }
+
+    // 2. Strip all strict + side keywords (both teams — "time" appears in A and B)
+    const allTeamKeywords = [
+      ...vocab.teamA_Strict, ...vocab.teamB_Strict,
+      ...vocab.teamA_Sides, ...vocab.teamB_Sides,
+    ];
+    for (const key of allTeamKeywords) {
+      cleaned = cleaned.replace(key, '');
+    }
+
+    // 3. Strip leftover component tokens from multi-word keywords
+    //    e.g. "time" from "time a", "equipe" from "equipe b"
+    //    These 4+ char fragments cause false fuzzy matches with player names
+    //    (e.g. "time" → fuzzy match "lima" with Levenshtein 2)
+    const componentTokens = new Set<string>();
+    for (const key of allTeamKeywords) {
+      if (key.includes(' ')) {
+        for (const token of key.split(' ')) {
+          if (token.length >= 4) componentTokens.add(token);
+        }
+      }
+    }
+
+    const tokens = cleaned.replace(/\s{2,}/g, ' ').trim().split(' ');
+    return tokens.filter(t => t.length > 0 && !componentTokens.has(t)).join(' ');
+  }
+
+  // -------------------------------------------------------------------------
   // RESOLUÇÃO COMBINADA — Time + Jogador
   // Prioridade: Team Name > Strict Keywords > Sides > Players > Fuzzy Team
   // -------------------------------------------------------------------------
@@ -444,20 +526,68 @@ export class VoiceCommandParser {
     teamAName: string,
     teamBName: string,
     vocab: typeof VOCABULARY['pt'],
-  ): { player?: Player; team?: TeamId; confidence: number; isAmbiguous?: boolean; candidates?: string[] } | null {
+  ): {
+    player?: Player;
+    team?: TeamId;
+    confidence: number;
+    isAmbiguous?: boolean;
+    candidates?: string[];
+    domainConflict?: {
+      player: Player;
+      detectedTeam: TeamId;
+      playerTeam: TeamId;
+    };
+  } | null {
 
-    // Rejeitar "a" / "b" soltos (falso-positivo)
     const words = text.split(' ');
     if (words.length === 1 && (words[0] === 'a' || words[0] === 'b')) return null;
 
-    // 1. Tentar resolver time pelo nome/keywords
     const teamResult = this.resolveTeamFromText(text, teamAName, teamBName, vocab);
 
-    // 2. Tentar resolver jogador
-    const playerResult = this.resolvePlayer(text, playersA, playersB, vocab);
+    // Strip team identifiers from text before player search to prevent
+    // false fuzzy matches (e.g. "São Paulo" matching player "Ana Paula")
+    const textForPlayerSearch = teamResult
+      ? this.stripTeamIdentifiers(text, teamResult.team, teamAName, teamBName, vocab)
+      : text;
 
-    // Se ambos resolvidos
+    let playerResult: { player: Player; team: TeamId; confidence: number } | { isAmbiguous: true; candidates: string[] } | null = null;
+
+    if (teamResult) {
+      const playersInTeam = teamResult.team === 'A' ? playersA : playersB;
+      playerResult = this.resolvePlayerInTeam(textForPlayerSearch, playersInTeam, teamResult.team, vocab);
+
+      if (playerResult && !('isAmbiguous' in playerResult)) {
+        return {
+          player: playerResult.player,
+          team: teamResult.team,
+          confidence: Math.max(teamResult.confidence, playerResult.confidence),
+        };
+      }
+
+      if (playerResult && 'isAmbiguous' in playerResult) {
+        return {
+          isAmbiguous: true,
+          candidates: playerResult.candidates,
+          confidence: 0,
+        };
+      }
+    }
+
+    playerResult = this.resolvePlayer(textForPlayerSearch, playersA, playersB, vocab);
+
     if (teamResult && playerResult && !('isAmbiguous' in playerResult)) {
+      if (playerResult.team !== teamResult.team) {
+        return {
+          player: playerResult.player,
+          team: teamResult.team,
+          confidence: Math.max(teamResult.confidence, playerResult.confidence),
+          domainConflict: {
+            player: playerResult.player,
+            detectedTeam: teamResult.team,
+            playerTeam: playerResult.team,
+          },
+        };
+      }
       return {
         player: playerResult.player,
         team: teamResult.team,
@@ -465,7 +595,6 @@ export class VoiceCommandParser {
       };
     }
 
-    // Se só player (e não ambíguo)
     if (playerResult && !('isAmbiguous' in playerResult)) {
       return {
         player: playerResult.player,
@@ -474,9 +603,7 @@ export class VoiceCommandParser {
       };
     }
 
-    // Se ambíguo
     if (playerResult && 'isAmbiguous' in playerResult) {
-      // Se temos time, filtrar candidatos do mesmo time
       if (teamResult) {
         const players = teamResult.team === 'A' ? playersA : playersB;
         const filtered = playerResult.candidates.filter(c => players.some(p => p.name === c));
@@ -492,9 +619,88 @@ export class VoiceCommandParser {
       };
     }
 
-    // Se só time
     if (teamResult) {
       return { team: teamResult.team, confidence: teamResult.confidence };
+    }
+
+    return null;
+  }
+
+  private static resolvePlayerInTeam(
+    text: string,
+    players: Player[],
+    teamId: TeamId,
+    vocab: typeof VOCABULARY['pt'],
+  ): { player: Player; team: TeamId; confidence: number } | { isAmbiguous: true; candidates: string[] } | null {
+
+    const cleanText = this.removePrepositions(text, vocab);
+
+    const matches: Array<{ p: Player; score: number }> = [];
+
+    for (const p of players) {
+      const playerNameNormalized = p.name.toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+      if (cleanText === playerNameNormalized) {
+        matches.push({ p, score: 100 });
+        continue;
+      }
+
+      if (p.number && (
+        cleanText.includes(`numero ${p.number}`) ||
+        cleanText.includes(`number ${p.number}`) ||
+        cleanText.includes(`camisa ${p.number}`) ||
+        cleanText.includes(`jersey ${p.number}`) ||
+        cleanText === p.number
+      )) {
+        matches.push({ p, score: 90 });
+        continue;
+      }
+
+      if (playerNameNormalized.startsWith(cleanText + ' ')) {
+        matches.push({ p, score: 70 });
+        continue;
+      }
+
+      if (playerNameNormalized.includes(cleanText) || cleanText.includes(playerNameNormalized)) {
+        matches.push({ p, score: 50 });
+        continue;
+      }
+
+      const playerTokens = playerNameNormalized.split(' ');
+      const inputTokens = cleanText.split(' ');
+      const hasTokenMatch = inputTokens.some(inputToken =>
+        inputToken.length >= 3 &&
+        playerTokens.some(nameToken => nameToken === inputToken)
+      );
+      if (hasTokenMatch) {
+        matches.push({ p, score: 45 });
+        continue;
+      }
+
+      const hasFuzzyMatch = inputTokens.some(inputToken =>
+        inputToken.length >= 4 &&
+        playerTokens.some(nameToken => nameToken.length >= 4 && isFuzzyMatch(inputToken, nameToken))
+      );
+
+      if (hasFuzzyMatch) {
+        matches.push({ p, score: 30 });
+      }
+    }
+
+    if (matches.length > 0) {
+      matches.sort((a, b) => b.score - a.score);
+      const topMatch = matches[0];
+      const similarMatches = matches.filter(m => m.score === topMatch.score);
+
+      if (similarMatches.length > 1 && topMatch.score < 100) {
+        return {
+          isAmbiguous: true,
+          candidates: similarMatches.map(m => m.p.name),
+        };
+      }
+
+      return { player: topMatch.p, team: teamId, confidence: topMatch.score / 100 };
     }
 
     return null;
@@ -656,13 +862,11 @@ export class VoiceCommandParser {
     if (hasAnyIndicator) {
       let targetTeam = entity?.team;
 
-      // Player sem time → derivar do player
       if (!targetTeam && entity?.player) {
         const playerInA = context.playersA.some(p => p.id === entity.player!.id);
         targetTeam = playerInA ? 'A' : 'B';
       }
 
-      // Sem team → inferência contextual
       if (!targetTeam) {
         const inferred = this.resolveByContext(detectedSkill, isNegative, isPointTrigger, context);
         if (inferred) {
@@ -675,16 +879,30 @@ export class VoiceCommandParser {
           ? { id: entity.player.id, name: entity.player.name }
           : undefined;
 
-        // statsEnabled + skill sem jogador → aguardar player
-        if (context.statsEnabled && detectedSkill && !playerPayload && !isNegative) {
+        const hasExplicitTeam = entity?.team !== undefined;
+        const finalConfidence = this.calculateAdaptiveConfidence(
+          0.75,
+          hasExplicitTeam,
+          !!playerPayload,
+          !!detectedSkill,
+        );
+
+        if (entity?.domainConflict) {
           return {
             type: 'point',
             team: targetTeam,
+            player: playerPayload,
             skill: detectedSkill,
-            confidence: 0.6,
+            isNegative,
+            confidence: finalConfidence,
             rawText,
-            requiresMoreInfo: true,
-            debugMessage: `Heard ${detectedSkill} for ${targetTeam}, waiting for player...`,
+            debugMessage: `Domain conflict: ${entity.domainConflict.player.name} is in Team ${entity.domainConflict.playerTeam}, not Team ${entity.domainConflict.detectedTeam}`,
+            domainConflict: {
+              player: playerPayload!,
+              detectedTeam: entity.domainConflict.detectedTeam,
+              playerTeam: entity.domainConflict.playerTeam,
+              skill: detectedSkill,
+            },
           };
         }
 
@@ -699,7 +917,7 @@ export class VoiceCommandParser {
           player: playerPayload,
           skill: detectedSkill,
           isNegative,
-          confidence: entity?.confidence ?? 0.75,
+          confidence: finalConfidence,
           rawText,
           debugMessage: debugMsg,
         };

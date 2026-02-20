@@ -1,5 +1,5 @@
 
-import { doc, onSnapshot, setDoc, serverTimestamp, DocumentSnapshot, FirestoreError, Unsubscribe, collection, deleteDoc, onSnapshot as onSnapshotQuery } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, serverTimestamp, DocumentSnapshot, FirestoreError, Unsubscribe, collection, deleteDoc, onSnapshot as onSnapshotQuery, writeBatch, getDocs, getDoc } from 'firebase/firestore';
 import { db, isFirebaseInitialized } from '@lib/firebase';
 import { GameState } from '@types';
 import { SecureStorage } from '@lib/storage/SecureStorage';
@@ -29,6 +29,8 @@ const SYNC_QUEUE_KEY = 'sync_pending_queue';
 export class SyncEngine {
     private static instance: SyncEngine;
     private activeUnsubscribe: Unsubscribe | null = null;
+    private spectatorCountUnsubscribe: Unsubscribe | null = null;
+    private currentHostSessionId: string | null = null;
 
     // Offline Resilience State
     private isOnline: boolean = typeof navigator !== 'undefined' ? navigator.onLine : true;
@@ -166,6 +168,30 @@ export class SyncEngine {
             if (this.pendingState && this.isOnline) {
                 this.flushQueue();
             }
+        }
+    }
+
+    /**
+     * Checks if a session exists and is active.
+     * Returns: 'active' | 'finished' | 'not_found'
+     */
+    public async checkSessionStatus(sessionId: string): Promise<'active' | 'finished' | 'not_found'> {
+        if (!isFirebaseInitialized || !db) {
+            return 'not_found';
+        }
+
+        const sessionRef = doc(db, 'live_matches', sessionId);
+
+        try {
+            const snapshot = await getDoc(sessionRef);
+            if (!snapshot.exists()) {
+                return 'not_found';
+            }
+            const data = snapshot.data() as SyncSessionSchema;
+            return data.status === 'finished' ? 'finished' : 'active';
+        } catch (e) {
+            logger.error('[SyncEngine] Failed to check session status:', e);
+            return 'not_found';
         }
     }
 
@@ -361,7 +387,56 @@ export class SyncEngine {
     }
 
     /**
+     * Host: Monitora a subcoleção spectators e sincroniza o contador
+     * no documento principal da sessão.
+     */
+    public subscribeHostToSpectatorCount(sessionId: string): void {
+        if (!isFirebaseInitialized || !db) return;
+
+        if (this.spectatorCountUnsubscribe) {
+            this.spectatorCountUnsubscribe();
+        }
+
+        this.currentHostSessionId = sessionId;
+        const spectatorsCol = collection(db, 'live_matches', sessionId, 'spectators');
+        const sessionRef = doc(db, 'live_matches', sessionId);
+
+        this.spectatorCountUnsubscribe = onSnapshotQuery(
+            spectatorsCol,
+            async (snapshot) => {
+                const count = snapshot.size;
+                
+                if (this.currentHostSessionId === sessionId) {
+                    try {
+                        await setDoc(sessionRef, {
+                            connectedCount: count + 1 // +1 para incluir o host
+                        }, { merge: true });
+                    } catch (e) {
+                        logger.warn('[SyncEngine] Failed to update spectator count:', e);
+                    }
+                }
+            },
+            (error) => {
+                logger.error('[SyncEngine] Host spectator count subscription error:', error);
+            }
+        );
+    }
+
+    /**
+     * Host: Para de monitorar contagem de espectadores.
+     */
+    public unsubscribeHostFromSpectatorCount(): void {
+        if (this.spectatorCountUnsubscribe) {
+            this.spectatorCountUnsubscribe();
+            this.spectatorCountUnsubscribe = null;
+        }
+        this.currentHostSessionId = null;
+    }
+
+    /**
      * Ends an active broadcast session (Host only).
+     * Notifies all spectators by setting status to 'finished',
+     * then cleans up spectators subcollection.
      */
     public async endSession(sessionId: string): Promise<void> {
         if (!isFirebaseInitialized || !db) {
@@ -369,23 +444,72 @@ export class SyncEngine {
             return;
         }
 
+        this.unsubscribeHostFromSpectatorCount();
+
+        if (this.activeUnsubscribe) {
+            this.activeUnsubscribe();
+            this.activeUnsubscribe = null;
+        }
+
         const sessionRef = doc(db, 'live_matches', sessionId);
 
         try {
-            // Use setDoc merge to set status without affecting other fields
             await setDoc(sessionRef, {
                 status: 'finished',
                 lastUpdate: serverTimestamp()
             }, { merge: true });
 
-            // Clear any pending broadcasts
             this.pendingState = null;
             await SecureStorage.remove(SYNC_QUEUE_KEY);
+
+            await this.cleanupSpectators(sessionId);
 
             logger.log('[SyncEngine] Session ended:', sessionId);
         } catch (e) {
             logger.error('[SyncEngine] Failed to end session:', e);
             throw e;
+        }
+    }
+
+    /**
+     * Removes all spectator documents from a session.
+     * Called when host ends the session.
+     */
+    private async cleanupSpectators(sessionId: string): Promise<void> {
+        if (!isFirebaseInitialized || !db) return;
+
+        try {
+            const spectatorsCol = collection(db, 'live_matches', sessionId, 'spectators');
+            const snapshot = await getDocs(spectatorsCol);
+            
+            if (snapshot.empty) return;
+
+            const batch = writeBatch(db);
+            snapshot.docs.forEach((docSnapshot) => {
+                batch.delete(docSnapshot.ref);
+            });
+
+            await batch.commit();
+            logger.log('[SyncEngine] Cleaned up', snapshot.size, 'spectators');
+        } catch (e) {
+            logger.warn('[SyncEngine] Failed to cleanup spectators:', e);
+        }
+    }
+
+    /**
+     * Permanently deletes a finished session document.
+     * Should be called after spectators have been notified.
+     */
+    public async deleteSession(sessionId: string): Promise<void> {
+        if (!isFirebaseInitialized || !db) return;
+
+        const sessionRef = doc(db, 'live_matches', sessionId);
+
+        try {
+            await deleteDoc(sessionRef);
+            logger.log('[SyncEngine] Session deleted:', sessionId);
+        } catch (e) {
+            logger.warn('[SyncEngine] Failed to delete session:', e);
         }
     }
 }

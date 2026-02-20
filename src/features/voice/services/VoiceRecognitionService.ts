@@ -3,17 +3,20 @@ import { Capacitor } from '@capacitor/core';
 import { SpeechRecognition } from '@capacitor-community/speech-recognition';
 
 type ResultCallback = (text: string, isFinal: boolean) => void;
+type VisualFeedbackCallback = (text: string) => void;
 type ErrorCallback = (type: 'permission' | 'network' | 'generic') => void;
 type StatusCallback = (isListening: boolean) => void;
 
 const MAX_RESTART_ATTEMPTS = 3;
-const DEAD_STATE_TIMEOUT_MS = 12_000; // 12s sem resultado → auto-restart
+const DEAD_STATE_TIMEOUT_MS = 12_000;
+const FINAL_RESULT_TIMEOUT_MS = 2000;
 
 export class VoiceRecognitionService {
   private static instance: VoiceRecognitionService;
   private webRecognition: any = null;
   private isNative: boolean;
   private onResult?: ResultCallback;
+  private onVisualFeedback?: VisualFeedbackCallback;
   private onError?: ErrorCallback;
   private onStatusChange?: StatusCallback;
 
@@ -21,12 +24,13 @@ export class VoiceRecognitionService {
   private isActualState: boolean = false;
   private restartTimer: any = null;
 
-  // 4.8 — Backoff exponencial
   private restartAttempts: number = 0;
 
-  // 4.8 — Dead-state detection
   private deadStateTimer: any = null;
   private lastLocale: string = 'pt-BR';
+
+  private pendingInterim: string = '';
+  private finalResultTimer: any = null;
 
   private constructor() {
     this.isNative = Capacitor.isNativePlatform();
@@ -58,10 +62,12 @@ export class VoiceRecognitionService {
 
   public setCallbacks(
     onResult: ResultCallback,
+    onVisualFeedback: VisualFeedbackCallback,
     onError: ErrorCallback,
     onStatusChange: StatusCallback,
   ) {
     this.onResult = onResult;
+    this.onVisualFeedback = onVisualFeedback;
     this.onError = onError;
     this.onStatusChange = onStatusChange;
   }
@@ -165,6 +171,8 @@ export class VoiceRecognitionService {
     this.intendedState = false;
     this.restartAttempts = 0;
     this.clearDeadStateTimer();
+    this.cancelFinalResultTimer();
+    this.pendingInterim = '';
 
     if (this.restartTimer) {
       clearTimeout(this.restartTimer);
@@ -281,12 +289,40 @@ export class VoiceRecognitionService {
   }
 
   private handleResult(text: string, isFinal: boolean) {
-    // 4.8 — Reset de tentativas ao receber resultado com sucesso
     this.restartAttempts = 0;
-    // 4.8 — Resetar dead-state timer
     this.resetDeadStateTimer(this.lastLocale);
 
-    if (this.onResult) this.onResult(text, isFinal);
+    if (!isFinal) {
+      this.pendingInterim = text;
+      if (this.onVisualFeedback) {
+        this.onVisualFeedback(text);
+      }
+      this.scheduleFinalResultFallback();
+      return;
+    }
+
+    this.cancelFinalResultTimer();
+
+    if (this.onResult) {
+      this.onResult(text, true);
+    }
+  }
+
+  private scheduleFinalResultFallback(): void {
+    this.cancelFinalResultTimer();
+    this.finalResultTimer = setTimeout(() => {
+      if (this.pendingInterim && this.onResult) {
+        this.onResult(this.pendingInterim, true);
+        this.pendingInterim = '';
+      }
+    }, FINAL_RESULT_TIMEOUT_MS);
+  }
+
+  private cancelFinalResultTimer(): void {
+    if (this.finalResultTimer) {
+      clearTimeout(this.finalResultTimer);
+      this.finalResultTimer = null;
+    }
   }
 
   private handleError(type: 'permission' | 'network' | 'generic') {

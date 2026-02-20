@@ -224,6 +224,12 @@ export interface VoiceCommandIntent {
   requiresMoreInfo?: boolean;
   isAmbiguous?: boolean;
   ambiguousCandidates?: string[];
+  domainConflict?: {
+    player: { id: string; name: string };
+    detectedTeam: TeamId;
+    playerTeam: TeamId;
+    skill?: SkillType;
+  };
 }
 
 export type ActionLog =
@@ -261,7 +267,7 @@ export type ActionLog =
 
 export type GameAction =
   | { type: 'LOAD_STATE'; payload: GameState }
-  | { type: 'POINT'; team: TeamId; metadata?: { playerId: string, skill: SkillType } }
+  | { type: 'POINT'; team: TeamId; metadata?: { playerId?: string, skill: SkillType } }
   | { type: 'SUBTRACT_POINT'; team: TeamId }
   | { type: 'TIMEOUT'; team: TeamId }
   | { type: 'UNDO' }

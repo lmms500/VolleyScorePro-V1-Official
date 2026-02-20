@@ -629,3 +629,205 @@ describe('VoiceCommandParser — Casos Complexos', () => {
   });
 
 });
+
+// -------------------------------------------------------------------------
+// SKILL SEM JOGADOR (deve executar direto)
+// -------------------------------------------------------------------------
+
+describe('VoiceCommandParser — Skill sem Jogador', () => {
+
+  it('deve executar "ponto de bloqueio time A" sem pedir jogador (statsEnabled)', () => {
+    const result = parse('ponto de bloqueio time A', { statsEnabled: true });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+    expect(result.skill).toBe('block');
+    expect(result.requiresMoreInfo).toBeFalsy();
+  });
+
+  it('deve executar "ataque Flamengo" sem pedir jogador (statsEnabled)', () => {
+    const result = parse('ataque Flamengo', { statsEnabled: true });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+    expect(result.skill).toBe('attack');
+    expect(result.requiresMoreInfo).toBeFalsy();
+  });
+
+  it('deve executar "ace time B" sem pedir jogador', () => {
+    const result = parse('ace time B', { statsEnabled: true });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('B');
+    expect(result.skill).toBe('ace');
+    expect(result.requiresMoreInfo).toBeFalsy();
+  });
+
+});
+
+// -------------------------------------------------------------------------
+// CONFLITO DE DOMÍNIO (jogador de time diferente)
+// -------------------------------------------------------------------------
+
+describe('VoiceCommandParser — Conflito de Domínio', () => {
+
+  it('deve detectar conflito quando jogador está em time diferente do explicitado', () => {
+    const result = parse('ataque João Flamengo', { 
+      statsEnabled: false,
+      playersA: [],
+      playersB: [makePlayer('b1', 'João Silva', '7')],
+    });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+    expect(result.player?.name).toBe('João Silva');
+    expect(result.domainConflict).toBeDefined();
+    expect(result.domainConflict?.playerTeam).toBe('B');
+    expect(result.domainConflict?.detectedTeam).toBe('A');
+  });
+
+  it('deve detectar conflito com "bloqueio Fernando Botafogo" (Fernando no Flamengo)', () => {
+    const result = parse('bloqueio Fernando Botafogo', { 
+      statsEnabled: false,
+      playersA: [makePlayer('a1', 'Fernando', '10')],
+      playersB: [],
+    });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('B');
+    expect(result.player?.name).toBe('Fernando');
+    expect(result.domainConflict).toBeDefined();
+    expect(result.domainConflict?.playerTeam).toBe('A');
+    expect(result.domainConflict?.detectedTeam).toBe('B');
+  });
+
+  it('NÃO deve detectar conflito quando jogador está no time correto', () => {
+    const result = parse('ataque João Flamengo', { 
+      statsEnabled: false,
+      playersA: [makePlayer('a1', 'João Silva', '7')],
+      playersB: [],
+    });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+    expect(result.player?.name).toBe('João Silva');
+    expect(result.domainConflict).toBeUndefined();
+  });
+
+});
+
+// -------------------------------------------------------------------------
+// CONFIANÇA ADAPTATIVA
+// -------------------------------------------------------------------------
+
+describe('VoiceCommandParser — Confiança Adaptativa', () => {
+
+  it('confiança base sem team/player/skill deve ser >= 0.75', () => {
+    const result = parse('ponto time a', { statsEnabled: false });
+    expect(result.confidence).toBeGreaterThanOrEqual(0.75);
+  });
+
+  it('confiança com team explicito deve ser >= 0.90', () => {
+    const result = parse('ponto time a', { statsEnabled: false });
+    expect(result.confidence).toBeGreaterThanOrEqual(0.90);
+  });
+
+  it('confiança com team + player deve ser >= 0.95', () => {
+    const result = parse('João ponto Flamengo', { statsEnabled: false });
+    expect(result.confidence).toBeGreaterThanOrEqual(0.85);
+  });
+
+  it('confiança com team + player + skill deve ser 1.0', () => {
+    const result = parse('ataque João Flamengo', { statsEnabled: false });
+    expect(result.confidence).toBeGreaterThanOrEqual(0.95);
+  });
+
+});
+
+// -------------------------------------------------------------------------
+// JOGADOR EM TIME ESPECÍFICO
+// -------------------------------------------------------------------------
+
+describe('VoiceCommandParser — Jogador em Time Específico', () => {
+
+  it('deve encontrar jogador apenas no time especificado', () => {
+    const result = parse('João Flamengo', { 
+      statsEnabled: false,
+      playersA: [makePlayer('a1', 'João Silva', '7')],
+      playersB: [makePlayer('b1', 'João Santos', '10')],
+    });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+    expect(result.player?.name).toBe('João Silva');
+  });
+
+  it('deve encontrar jogador no time B quando especificado', () => {
+    const result = parse('João Botafogo', { 
+      statsEnabled: false,
+      playersA: [makePlayer('a1', 'João Silva', '7')],
+      playersB: [makePlayer('b1', 'João Santos', '10')],
+    });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('B');
+    expect(result.player?.name).toBe('João Santos');
+  });
+
+  it('deve resolver ambiguidade automaticamente com time explícito', () => {
+    const result = parse('Ana Flamengo', { 
+      statsEnabled: false,
+      playersA: [makePlayer('a1', 'Ana Paula', '3')],
+      playersB: [makePlayer('b1', 'Ana Maria', '5')],
+    });
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+    expect(result.player?.name).toBe('Ana Paula');
+    expect(result.isAmbiguous).toBeFalsy();
+  });
+
+});
+
+// -------------------------------------------------------------------------
+// NOME DE TIME vs NOME DE JOGADOR (falso positivo fuzzy)
+// -------------------------------------------------------------------------
+
+describe('VoiceCommandParser — Team Name não deve match com Player Name', () => {
+
+  const ctxSaoPaulo: Partial<VoiceContext> = {
+    teamAName: 'São Paulo',
+    teamBName: 'Flamengo',
+    playersA: [
+      makePlayer('a1', 'Ana Paula', '3'),
+      makePlayer('a2', 'Carlos Lima', '10'),
+    ],
+    playersB: [
+      makePlayer('b1', 'João Silva', '7'),
+    ],
+    statsEnabled: true,
+  };
+
+  it('"ponto de ataque time São Paulo" → team A, SEM player (paulo ≠ paula)', () => {
+    const result = parse('ponto de ataque time São Paulo', ctxSaoPaulo);
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+    expect(result.skill).toBe('attack');
+    expect(result.player).toBeUndefined();
+  });
+
+  it('"ponto São Paulo" → team A, SEM player', () => {
+    const result = parse('ponto São Paulo', ctxSaoPaulo);
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+    expect(result.player).toBeUndefined();
+  });
+
+  it('"ponto de ataque Ana Paula São Paulo" → team A, COM player Ana Paula', () => {
+    const result = parse('ponto de ataque Ana Paula São Paulo', ctxSaoPaulo);
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+    expect(result.player?.name).toBe('Ana Paula');
+    expect(result.skill).toBe('attack');
+  });
+
+  it('"Ana Paula bloqueio" → resolve player normalmente (sem time no texto)', () => {
+    const result = parse('Ana Paula bloqueio', ctxSaoPaulo);
+    expect(result.type).toBe('point');
+    expect(result.team).toBe('A');
+    expect(result.player?.name).toBe('Ana Paula');
+    expect(result.skill).toBe('block');
+  });
+
+});

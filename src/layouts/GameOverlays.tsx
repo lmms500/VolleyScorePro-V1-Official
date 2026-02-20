@@ -56,7 +56,7 @@ export const GameOverlays: React.FC<GameOverlaysProps> = ({ isOnline, isFullscre
                         initial={{ y: -50, x: '-50%', opacity: 0 }}
                         animate={{ y: 0, x: '-50%', opacity: 1 }}
                         exit={{ y: -50, x: '-50%', opacity: 0 }}
-                        className={`fixed left-1/2 z-[110] px-4 py-1.5 bg-gradient-to-br from-rose-500 to-rose-600 text-white rounded-full flex items-center gap-2 shadow-[0_8px_20px_rgba(244,63,94,0.35),inset_0_1px_0_0_rgba(255,255,255,0.15)] border border-white/20 backdrop-blur-md ring-1 ring-inset ring-white/10 transition-all duration-300 ${isFullscreen ? 'top-24' : 'top-14'
+                        className={`absolute left-1/2 z-[110] px-4 py-1.5 bg-gradient-to-br from-rose-500 to-rose-600 text-white rounded-full flex items-center gap-2 shadow-[0_8px_20px_rgba(244,63,94,0.35),inset_0_1px_0_0_rgba(255,255,255,0.15)] border border-white/20 backdrop-blur-md ring-1 ring-inset ring-white/10 transition-all duration-300 ${isFullscreen ? 'top-24' : 'top-[52px] sm:top-[60px]'
                             }`}
                     >
                         <WifiOff size={14} strokeWidth={3} />
@@ -108,7 +108,7 @@ export const GameOverlays: React.FC<GameOverlaysProps> = ({ isOnline, isFullscre
             {FEATURE_FLAGS.ENABLE_LIVE_SYNC && (isHost || isSpectator) && (
                 <button
                     onClick={() => openModal('liveSync')}
-                    className={`fixed left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-1 pointer-events-auto transition-all duration-300 ease-in-out ${isFullscreen ? 'top-24' : 'bottom-28'
+                    className={`absolute left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-1 pointer-events-auto transition-all duration-300 ease-in-out ${isFullscreen ? 'top-24' : 'top-[52px] sm:top-[60px]'
                         }`}
                 >
                     <div

@@ -179,21 +179,21 @@ export const CourtLayout: React.FC<CourtLayoutProps> = ({
 
     // --- SWAP DISPLAY LOGIC ---
     const swapped = swappedSides ?? false;
-    const leftTeamId: TeamId  = swapped ? 'B' : 'A';
+    const leftTeamId: TeamId = swapped ? 'B' : 'A';
     const rightTeamId: TeamId = swapped ? 'A' : 'B';
-    const leftTeam  = swapped ? teamB : teamA;
+    const leftTeam = swapped ? teamB : teamA;
     const rightTeam = swapped ? teamA : teamB;
-    const scoreLeft  = swapped ? scoreB : scoreA;
+    const scoreLeft = swapped ? scoreB : scoreA;
     const scoreRight = swapped ? scoreA : scoreB;
-    const setsLeft   = swapped ? setsB  : setsA;
-    const setsRight  = swapped ? setsA  : setsB;
-    const timeoutsLeft  = swapped ? (timeoutsB ?? 0) : (timeoutsA ?? 0);
+    const setsLeft = swapped ? setsB : setsA;
+    const setsRight = swapped ? setsA : setsB;
+    const timeoutsLeft = swapped ? (timeoutsB ?? 0) : (timeoutsA ?? 0);
     const timeoutsRight = swapped ? (timeoutsA ?? 0) : (timeoutsB ?? 0);
-    const isMatchPointLeft  = swapped ? isMatchPointB : isMatchPointA;
+    const isMatchPointLeft = swapped ? isMatchPointB : isMatchPointA;
     const isMatchPointRight = swapped ? isMatchPointA : isMatchPointB;
-    const isSetPointLeft    = swapped ? isSetPointB   : isSetPointA;
-    const isSetPointRight   = swapped ? isSetPointA   : isSetPointB;
-    const onTimeoutLeft  = swapped ? onTimeoutB : onTimeoutA;
+    const isSetPointLeft = swapped ? isSetPointB : isSetPointA;
+    const isSetPointRight = swapped ? isSetPointA : isSetPointB;
+    const onTimeoutLeft = swapped ? onTimeoutB : onTimeoutA;
     const onTimeoutRight = swapped ? onTimeoutA : onTimeoutB;
     const servingTeamDisplay: TeamId | null = swapped
         ? (servingTeam === 'A' ? 'B' : servingTeam === 'B' ? 'A' : null)
@@ -252,8 +252,8 @@ export const CourtLayout: React.FC<CourtLayoutProps> = ({
                 }
             `} />
 
-            {/* key força unmount/remount quando o time muda, prevenindo animações cross-court do Framer Motion */}
-            <div key={`left-${leftTeamId}`} className="flex-1 relative z-10 w-full h-full">
+            {/* key removed: cross-court animations are now prevented by layoutId prefixing in VolleyballCourt, allowing instant swaps without DOM destruction */}
+            <div className="flex-1 relative z-10 w-full h-full">
                 <VolleyballCourt
                     players={leftTeam.players}
                     color={leftTeam.color}
@@ -270,7 +270,7 @@ export const CourtLayout: React.FC<CourtLayoutProps> = ({
                     orientation={isVertical ? 'portrait' : 'landscape'}
                 />
             </div>
-            <div key={`right-${rightTeamId}`} className="flex-1 relative z-10 w-full h-full">
+            <div className="flex-1 relative z-10 w-full h-full">
                 <VolleyballCourt
                     players={rightTeam.players}
                     color={rightTeam.color}

@@ -161,21 +161,21 @@ export const CourtModal: React.FC<CourtModalProps> = ({
     const swapped = swappedSides ?? false;
     const flipTeamId = (id: TeamId): TeamId => id === 'A' ? 'B' : 'A';
 
-    const leftTeamId: TeamId  = swapped ? 'B' : 'A';
+    const leftTeamId: TeamId = swapped ? 'B' : 'A';
     const rightTeamId: TeamId = swapped ? 'A' : 'B';
-    const leftTeam  = swapped ? teamB : teamA;
+    const leftTeam = swapped ? teamB : teamA;
     const rightTeam = swapped ? teamA : teamB;
-    const scoreLeft  = swapped ? scoreB : scoreA;
+    const scoreLeft = swapped ? scoreB : scoreA;
     const scoreRight = swapped ? scoreA : scoreB;
-    const setsLeft   = swapped ? setsB  : setsA;
-    const setsRight  = swapped ? setsA  : setsB;
-    const timeoutsLeft  = swapped ? (timeoutsB ?? 0) : (timeoutsA ?? 0);
+    const setsLeft = swapped ? setsB : setsA;
+    const setsRight = swapped ? setsA : setsB;
+    const timeoutsLeft = swapped ? (timeoutsB ?? 0) : (timeoutsA ?? 0);
     const timeoutsRight = swapped ? (timeoutsA ?? 0) : (timeoutsB ?? 0);
-    const isMatchPointLeft  = swapped ? isMatchPointB : isMatchPointA;
+    const isMatchPointLeft = swapped ? isMatchPointB : isMatchPointA;
     const isMatchPointRight = swapped ? isMatchPointA : isMatchPointB;
-    const isSetPointLeft    = swapped ? isSetPointB   : isSetPointA;
-    const isSetPointRight   = swapped ? isSetPointA   : isSetPointB;
-    const onTimeoutLeft  = swapped ? onTimeoutB : onTimeoutA;
+    const isSetPointLeft = swapped ? isSetPointB : isSetPointA;
+    const isSetPointRight = swapped ? isSetPointA : isSetPointB;
+    const onTimeoutLeft = swapped ? onTimeoutB : onTimeoutA;
     const onTimeoutRight = swapped ? onTimeoutA : onTimeoutB;
 
     let servingTeamDisplay: TeamId | null;
@@ -237,11 +237,11 @@ export const CourtModal: React.FC<CourtModalProps> = ({
                                     )}
                                 </div>
                                 <div className="absolute top-0 bottom-0 left-1/2 w-1 -ml-0.5 z-30 shadow-[0_0_15px_rgba(0,0,0,0.1)] pointer-events-none bg-white/60 dark:bg-white/20 backdrop-blur-sm border-l border-white/50" />
-                                {/* key força unmount/remount quando o time muda, prevenindo animações cross-court do Framer Motion */}
-                                <div key={`left-${leftTeamId}`} className="flex-1 h-full relative z-10">
+                                {/* key removido para permitir animações fluidas do framer motion sem unmount/remount que causava o glitch branco */}
+                                <div className="flex-1 h-full relative z-10">
                                     <VolleyballCourt players={leftTeam.players} color={leftTeam.color} isServing={servingTeam === leftTeamId} side="left" teamId={leftTeamId} variant="minimal" onPlayerClick={(p) => handlePlayerClick(p, leftTeamId)} mvpId={currentMVPId} layoutConfig={getCourtLayoutFromConfig(config || { mode: 'indoor' } as any)} isDragActive={isDragging} namePlacement="right" />
                                 </div>
-                                <div key={`right-${rightTeamId}`} className="flex-1 h-full relative z-10">
+                                <div className="flex-1 h-full relative z-10">
                                     <VolleyballCourt players={rightTeam.players} color={rightTeam.color} isServing={servingTeam === rightTeamId} side="right" teamId={rightTeamId} variant="minimal" onPlayerClick={(p) => handlePlayerClick(p, rightTeamId)} mvpId={currentMVPId} layoutConfig={getCourtLayoutFromConfig(config || { mode: 'indoor' } as any)} isDragActive={isDragging} namePlacement="left" />
                                 </div>
                             </div>

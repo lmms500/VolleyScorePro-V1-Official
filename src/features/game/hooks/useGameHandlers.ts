@@ -48,9 +48,11 @@ export function useGameHandlers(triggerSupportAd: (onComplete: () => void) => vo
     const handleAddPoint = useCallback((teamId: TeamId, playerId?: string, skill?: SkillType) => {
         if (isSpectator) return;
 
-        const metadata = (playerId && playerId !== 'unknown')
-            ? { playerId, skill: skill || 'generic' }
-            : undefined;
+        const metadata = (() => {
+            if (playerId && playerId !== 'unknown') return { playerId, skill: skill || 'generic' };
+            if (skill && skill !== 'generic') return { playerId: 'unknown', skill };
+            return undefined;
+        })();
 
         audio.playTap();
         addPoint(teamId, metadata);

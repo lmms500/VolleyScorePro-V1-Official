@@ -2,11 +2,12 @@
 import React, { useState, useEffect, useRef, memo, useCallback } from 'react';
 import { Modal } from '@ui/Modal';
 import { GameConfig } from '@types';
-import { Check, Trophy, AlertTriangle, Layers, Cpu, X } from 'lucide-react';
+import { Check, Trophy, AlertTriangle, Layers, Cpu, X, Volume2 } from 'lucide-react';
 import { useTranslation } from '@contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MatchTab } from '../components/MatchTab';
 import { AppTab } from '../components/AppTab';
+import { AudioTab } from '../components/AudioTab';
 import { SystemTab } from '../components/SystemTab';
 
 interface SettingsModalProps {
@@ -18,7 +19,7 @@ interface SettingsModalProps {
     zIndex?: string;
 }
 
-type SettingsTab = 'match' | 'app' | 'system';
+type SettingsTab = 'match' | 'app' | 'audio' | 'system';
 
 export const SettingsModal: React.FC<SettingsModalProps> = memo(({
     isOpen, onClose, config, onSave, isMatchActive, zIndex
@@ -80,12 +81,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = memo(({
     const tabConfig = [
         { id: 'match' as SettingsTab, icon: Trophy, label: t('settings.rules.title'), from: 'from-amber-500', to: 'to-amber-600', shadow: 'shadow-amber-500/30' },
         { id: 'app' as SettingsTab, icon: Layers, label: t('settings.appearance.title'), from: 'from-indigo-500', to: 'to-indigo-600', shadow: 'shadow-indigo-500/30' },
+        { id: 'audio' as SettingsTab, icon: Volume2, label: t('settings.sections.audio'), from: 'from-rose-500', to: 'to-rose-600', shadow: 'shadow-rose-500/30' },
         { id: 'system' as SettingsTab, icon: Cpu, label: t('settings.sections.install'), from: 'from-emerald-500', to: 'to-emerald-600', shadow: 'shadow-emerald-500/30' },
     ];
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="" showCloseButton={false} variant="immersive" zIndex={zIndex}>
-            <div ref={scrollRef} onScroll={onScroll} className="flex flex-col h-full render-crisp relative overflow-y-auto custom-scrollbar">
+            <div ref={scrollRef} onScroll={onScroll} className="flex flex-col h-full render-crisp relative overflow-y-auto overflow-x-hidden custom-scrollbar">
 
                 {/* SMART NAVIGATION BAR (Collapsible) */}
                 <div className="sticky top-0 z-50 pt-safe-top px-2 pointer-events-none">
@@ -97,43 +99,49 @@ export const SettingsModal: React.FC<SettingsModalProps> = memo(({
                     >
                         <div className="flex gap-2">
                             {/* PREMIUM GLASS TAB CONTAINER */}
-                            <div className="flex flex-1 bg-white/40 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-1 gap-1 border border-white/50 dark:border-white/5 ring-1 ring-inset ring-white/10 dark:ring-white/5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]">
-                                {tabConfig.map(tab => (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => handleTabSwitch(tab.id)}
-                                        disabled={pendingRestart && tab.id !== 'system'}
-                                        className={`
-                                            flex-1 px-3 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider
-                                            flex items-center justify-center gap-2 transition-all relative overflow-hidden group
-                                            ${activeTab === tab.id
-                                                ? `bg-gradient-to-br ${tab.from} ${tab.to} text-white shadow-lg ${tab.shadow} ring-1 ring-inset ring-white/10`
-                                                : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 hover:bg-white/40 dark:hover:bg-white/5'
-                                            }
-                                            ${pendingRestart && tab.id !== 'system' ? 'opacity-30 cursor-not-allowed' : ''}
-                                        `}
-                                    >
-                                        {/* Icon box for active tab */}
-                                        {activeTab === tab.id ? (
-                                            <div className="w-5 h-5 rounded-md bg-white/20 flex items-center justify-center flex-shrink-0">
-                                                <tab.icon size={12} strokeWidth={2.5} />
-                                            </div>
-                                        ) : (
-                                            <tab.icon size={14} className="flex-shrink-0" strokeWidth={2.5} />
-                                        )}
-                                        <span className="truncate">{tab.label}</span>
-                                        {/* Shimmer on active */}
-                                        {activeTab === tab.id && (
-                                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700 skew-x-12 pointer-events-none" />
-                                        )}
-                                    </button>
-                                ))}
+                            <div className="relative flex-1 min-w-0 flex">
+                                {/* Edge Fading for clear scroll indication - CSS Mask approach is cleaner over transparent backgrounds */}
+                                <div
+                                    className="flex w-full overflow-x-auto hide-scrollbar snap-x snap-mandatory bg-white/40 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-1 gap-1 border border-white/50 dark:border-white/5 ring-1 ring-inset ring-white/10 dark:ring-white/5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]"
+                                    style={{ maskImage: 'linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 16px, black calc(100% - 16px), transparent)' }}
+                                >
+                                    {tabConfig.map(tab => (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => handleTabSwitch(tab.id)}
+                                            disabled={pendingRestart && tab.id !== 'system'}
+                                            className={`
+                                                flex-1 md:flex-none flex-shrink-0 min-w-fit px-4 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-wider
+                                                flex items-center justify-center gap-2 transition-all relative overflow-hidden group snap-center
+                                                ${activeTab === tab.id
+                                                    ? `bg-gradient-to-br ${tab.from} ${tab.to} text-white shadow-lg ${tab.shadow} ring-1 ring-inset ring-white/10`
+                                                    : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 hover:bg-white/40 dark:hover:bg-white/5'
+                                                }
+                                                ${pendingRestart && tab.id !== 'system' ? 'opacity-30 cursor-not-allowed' : ''}
+                                            `}
+                                        >
+                                            {/* Icon box for active tab */}
+                                            {activeTab === tab.id ? (
+                                                <div className="w-5 h-5 rounded-md bg-white/20 flex items-center justify-center flex-shrink-0">
+                                                    <tab.icon size={12} strokeWidth={2.5} />
+                                                </div>
+                                            ) : (
+                                                <tab.icon size={14} className="flex-shrink-0" strokeWidth={2.5} />
+                                            )}
+                                            <span className="truncate whitespace-nowrap">{tab.label}</span>
+                                            {/* Shimmer on active */}
+                                            {activeTab === tab.id && (
+                                                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700 skew-x-12 pointer-events-none" />
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
                             {/* SCOUT MODAL CLOSE BUTTON */}
                             <button
                                 onClick={onClose}
-                                className="w-12 flex items-center justify-center bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-2xl transition-all active:scale-95 shadow-xl shadow-red-500/30 ring-1 ring-inset ring-white/10 group/close"
+                                className="w-12 flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-2xl transition-all active:scale-95 shadow-xl shadow-red-500/30 ring-1 ring-inset ring-white/10 group/close"
                             >
                                 <X size={18} strokeWidth={3} className="group-hover/close:rotate-90 transition-transform duration-300" />
                             </button>
@@ -165,6 +173,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = memo(({
                                 transition={{ type: "spring", damping: 25, stiffness: 300, mass: 0.8 }}
                             >
                                 <AppTab localConfig={localConfig} setLocalConfig={setLocalConfig} />
+                            </motion.div>
+                        )}
+
+                        {activeTab === 'audio' && (
+                            <motion.div
+                                key="audio"
+                                initial={{ opacity: 0, x: -12, scale: 0.98 }}
+                                animate={{ opacity: 1, x: 0, scale: 1 }}
+                                exit={{ opacity: 0, x: 12, scale: 0.98 }}
+                                transition={{ type: "spring", damping: 25, stiffness: 300, mass: 0.8 }}
+                            >
+                                <AudioTab localConfig={localConfig} setLocalConfig={setLocalConfig} />
                             </motion.div>
                         )}
 

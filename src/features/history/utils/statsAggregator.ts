@@ -128,10 +128,13 @@ export const calculateMatchStats = (match: Match): MatchStats => {
 
     const allPlayers = Array.from(playerStats.values());
 
-    const topScorer = allPlayers.sort((a, b) => b.points - a.points)[0];
-    const topAttacker = allPlayers.sort((a, b) => b.skills.attack - a.skills.attack)[0];
-    const topBlocker = allPlayers.sort((a, b) => b.skills.block - a.skills.block)[0];
-    const topServer = allPlayers.sort((a, b) => b.skills.ace - a.skills.ace)[0];
+    // Ignore unknown players for top performer calculations
+    const knownPlayers = allPlayers.filter(p => p.id && p.id !== 'unknown');
+
+    const topScorer = knownPlayers.sort((a, b) => b.points - a.points)[0];
+    const topAttacker = knownPlayers.sort((a, b) => b.skills.attack - a.skills.attack)[0];
+    const topBlocker = knownPlayers.sort((a, b) => b.skills.block - a.skills.block)[0];
+    const topServer = knownPlayers.sort((a, b) => b.skills.ace - a.skills.ace)[0];
 
     const sequences = calculateSequences(logs);
     const timeouts = calculateTimeouts(logs, match);

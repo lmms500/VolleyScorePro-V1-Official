@@ -1,6 +1,5 @@
-
 import React, { useRef } from 'react';
-import { Share2, FileDown, Trophy, Umbrella, Zap, Target, Layers, Scale, ToggleLeft, ToggleRight, Users, ArrowLeftRight } from 'lucide-react';
+import { Share2, FileDown, Trophy, Umbrella, Zap, Target, Layers, Scale, ToggleLeft, ToggleRight, Users, ArrowLeftRight, Activity } from 'lucide-react';
 import { GameConfig } from '@types';
 import { SectionTitle, SettingItem, PresetButton } from './SettingsUI';
 import { parseJSONFile, exportActiveMatch } from '@lib/storage/io';
@@ -232,6 +231,16 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
                         </div>
                         <SettingItem label={t('settings.rules.autoSwapSides')} icon={ArrowLeftRight} color={{ bg: 'bg-orange-500/10', text: 'text-orange-500' }} className={localConfig.mode === 'beach' ? 'ring-1 ring-orange-500/20' : ''}>
                             <button onClick={() => setLocalConfig(prev => ({ ...prev, autoSwapSides: !prev.autoSwapSides }))} className={`text-2xl transition-colors ${localConfig.autoSwapSides ? 'text-indigo-500' : 'text-slate-300'}`}>{localConfig.autoSwapSides ? <ToggleRight size={28} fill="currentColor" fillOpacity={0.2} /> : <ToggleLeft size={28} />}</button>
+                        </SettingItem>
+                    </div>
+                </div>
+                <div>
+                    <SectionTitle icon={Activity}>{t('common.analysis')}</SectionTitle>
+                    <div className="space-y-2">
+                        <SettingItem label={t('settings.game.scoutMode')} sub={t('settings.game.scoutModeSub')} icon={Activity} color={{ bg: 'bg-cyan-500/10', text: 'text-cyan-500' }}>
+                            <button onClick={() => setLocalConfig(prev => ({ ...prev, enablePlayerStats: !prev.enablePlayerStats }))} className={`w-10 h-6 rounded-full p-1 transition-colors ${localConfig.enablePlayerStats ? 'bg-cyan-500' : 'bg-slate-200 dark:bg-white/10'}`}>
+                                <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${localConfig.enablePlayerStats ? 'translate-x-4' : ''}`} />
+                            </button>
                         </SettingItem>
                     </div>
                 </div>

@@ -30,7 +30,7 @@ export const useGameActions = ({
     dispatch({ type: 'LOAD_STATE', payload: newState });
   }, [dispatch]);
 
-  const addPoint = useCallback((team: TeamId, metadata?: { playerId: string, skill: SkillType }) => {
+  const addPoint = useCallback((team: TeamId, metadata?: { playerId?: string, skill: SkillType }) => {
     const s = stateRef.current;
     if (s.isMatchOver || s.syncRole === 'spectator') return;
     dispatch({ type: 'POINT', team, metadata });

@@ -16,7 +16,7 @@ import { useTranslation } from '@contexts/LanguageContext';
 import { useNotification } from '@contexts/NotificationContext';
 import { useModals } from '@contexts/ModalContext';
 import { useTimeoutContext } from '@contexts/TimeoutContext';
-import { useCombinedGameState } from '@features/game/hooks/useCombinedGameState';
+import { useCombinedGameStateWithTimer } from '@features/game/hooks/useCombinedGameStateWithTimer';
 
 export interface SyncManagerReturn {
     isBroadcastMode: boolean;
@@ -29,7 +29,7 @@ export interface SyncManagerReturn {
 }
 
 export function useSyncManager(): SyncManagerReturn {
-    const combinedState = useCombinedGameState();
+    const combinedState = useCombinedGameStateWithTimer();
     const { setState } = useActions();
     const { isMatchOver } = useScore();
     const { syncRole, sessionId } = useRoster();
@@ -113,7 +113,11 @@ export function useSyncManager(): SyncManagerReturn {
     const handleHostSession = useCallback(async (code: string) => {
         if (!FEATURE_FLAGS.ENABLE_LIVE_SYNC || !user) return;
 
-        await SyncEngine.getInstance().hostMatch(code, user.uid, combinedState);
+        const syncEngine = SyncEngine.getInstance();
+        await syncEngine.hostMatch(code, user.uid, combinedState);
+        
+        syncEngine.subscribeHostToSpectatorCount(code);
+        
         setState({ type: 'SET_SYNC_ROLE', role: 'host', sessionId: code });
         showNotification({
             mainText: t('liveSync.hosting', { code }),
@@ -138,29 +142,51 @@ export function useSyncManager(): SyncManagerReturn {
 
         currentSessionRef.current = code;
         const syncEngine = SyncEngine.getInstance();
-        
-        syncEngine.joinAsSpectator(code, user.uid);
 
-        unsubscribeRef.current = syncEngine.subscribeToMatch(
-            code,
-            (remoteState) => {
-                setState({
-                    type: 'LOAD_STATE',
-                    payload: { ...remoteState, syncRole: 'spectator', sessionId: code }
+        syncEngine.checkSessionStatus(code).then((status) => {
+            if (status === 'finished') {
+                showNotification({
+                    mainText: t('liveSync.sessionEnded'),
+                    type: 'info',
+                    subText: t('liveSync.sessionEndedSub'),
+                    systemIcon: 'mic'
                 });
-            },
-            undefined,
-            undefined,
-            handleSessionEnded
-        );
+                return;
+            }
 
-        setState({ type: 'SET_SYNC_ROLE', role: 'spectator', sessionId: code });
-        
-        showNotification({
-            mainText: t('liveSync.joined', { code }),
-            type: 'success',
-            subText: t('liveSync.joinedSub'),
-            systemIcon: 'mic'
+            if (status === 'not_found') {
+                showNotification({
+                    mainText: t('liveSync.sessionNotFound'),
+                    type: 'error',
+                    subText: t('liveSync.sessionNotFoundSub'),
+                    systemIcon: 'mic'
+                });
+                return;
+            }
+
+            syncEngine.joinAsSpectator(code, user!.uid);
+
+            unsubscribeRef.current = syncEngine.subscribeToMatch(
+                code,
+                (remoteState) => {
+                    setState({
+                        type: 'LOAD_STATE',
+                        payload: { ...remoteState, syncRole: 'spectator', sessionId: code }
+                    });
+                },
+                undefined,
+                undefined,
+                handleSessionEnded
+            );
+
+            setState({ type: 'SET_SYNC_ROLE', role: 'spectator', sessionId: code });
+            
+            showNotification({
+                mainText: t('liveSync.joined', { code }),
+                type: 'success',
+                subText: t('liveSync.joinedSub'),
+                systemIcon: 'mic'
+            });
         });
     }, [user?.uid, setState, showNotification, t, handleSessionEnded]);
 
@@ -236,6 +262,20 @@ export function useSyncManager(): SyncManagerReturn {
             SyncEngine.getInstance().broadcastState(sessionId, combinedState);
         }
     }, [isHost, sessionId, combinedState]);
+
+    useEffect(() => {
+        const syncEngine = SyncEngine.getInstance();
+        
+        if (isHost && sessionId) {
+            syncEngine.subscribeHostToSpectatorCount(sessionId);
+        }
+        
+        return () => {
+            if (isHost) {
+                syncEngine.unsubscribeHostFromSpectatorCount();
+            }
+        };
+    }, [isHost, sessionId]);
 
     return {
         isBroadcastMode,

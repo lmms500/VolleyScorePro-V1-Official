@@ -56,6 +56,10 @@ export default {
     { pattern: /^bg-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(100|200|400|500|600)\/\d+$/ },
     { pattern: /^dark:bg-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(100|200|400|500|600)\/\d+$/ },
 
+    // All color background variants (solid)
+    { pattern: /^bg-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(300|400|500|600)$/ },
+    { pattern: /^dark:bg-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(300|400|500|600)$/ },
+
     // All color border variants with opacity
     { pattern: /^border-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(100|200|400|500|600)\/\d+$/ },
     { pattern: /^dark:border-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(100|200|400|500|600)\/\d+$/ },
@@ -64,8 +68,11 @@ export default {
     { pattern: /^ring-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(200|300|400|500|600|700|800)$/ },
 
     // All gradient variants
-    { pattern: /^from-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(100|200|400|500|600)\/\d+$/ },
-    { pattern: /^to-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(100|200|400|500|600)\/\d+$/ },
+    { pattern: /^from-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(100|200|300|400|500|600)(\/\d+)?$/ },
+    { pattern: /^to-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(100|200|300|400|500|600)(\/\d+)?$/ },
+    { pattern: /^to-gray-900\/\d+$/ },
+    { pattern: /^to-slate-900\/\d+$/ },
+    { pattern: /^to-black\/\d+$/ },
 
     // Arbitrary values (for custom hex colors)
     { pattern: /^text-\[#[0-9a-fA-F]{6}\]$/ },

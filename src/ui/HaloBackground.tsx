@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePerformanceSafe } from '@contexts/PerformanceContext';
+import { getHexFromColor } from '@lib/utils/colors';
 
 export type HaloMode = 'idle' | 'serving' | 'lastScorer' | 'critical';
 
@@ -114,28 +115,10 @@ export const HaloBackground: React.FC<HaloBackgroundProps> = memo(({
     const glowHex = useMemo(() => {
         if (haloDisabled) return '#00000000'; // Return transparent if disabled
 
-        if (mode === 'critical') return hexColorMap['amber'];
-        
-        // Serving indicator uses cyan for maximum visibility on all surfaces
-        if (mode === 'serving') return hexColorMap['cyan'];
+        if (mode === 'critical') return '#f59e0b'; // amber for match point
 
-        // 1. Check mapped themes
-        if (hexColorMap[colorTheme]) return hexColorMap[colorTheme];
-
-        // 2. Check for "custom:HEX" format from resolveTheme
-        if (colorTheme?.startsWith('custom:')) {
-            const parts = colorTheme.split(':');
-            return parts[1] || hexColorMap['indigo'];
-        }
-
-        // 3. Check for valid CSS color (hex, rgb, hsl)
-        // Simple heuristic: starts with # or contains 'rgb'/'hsl'
-        if (colorTheme && (colorTheme.startsWith('#') || colorTheme.includes('rgb') || colorTheme.includes('hsl'))) {
-            return colorTheme;
-        }
-
-        // 4. Default fallback
-        return hexColorMap['indigo'];
+        // Always respect the exact colorTheme!
+        return getHexFromColor(colorTheme);
     }, [mode, colorTheme, haloDisabled]);
 
     if (haloDisabled) return null;

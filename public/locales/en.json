@@ -739,6 +739,8 @@
         "left": "You left the session",
         "sessionEnded": "Broadcast Ended",
         "sessionEndedSub": "The host has ended the broadcast",
+        "sessionNotFound": "Session not found",
+        "sessionNotFoundSub": "Check the code and try again",
         "authRequired": "Login Required",
         "authRequiredSub": "Please login to watch broadcasts",
         "broadcastStopped": "Broadcast Stopped",

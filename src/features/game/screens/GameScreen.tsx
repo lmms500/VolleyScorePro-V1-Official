@@ -143,6 +143,10 @@ export const GameScreen: React.FC = () => {
         pendingIntent,
         confirmPendingIntent,
         cancelPendingIntent,
+        domainConflict,
+        resolveDomainConflict,
+        cancelDomainConflict,
+        visualFeedback,
         commandHistory,
     } = useVoiceControl({
         enabled: config.voiceControlEnabled && !isSpectator,
@@ -169,6 +173,10 @@ export const GameScreen: React.FC = () => {
         scoreB: scoreState.scoreB,
         currentSet: scoreState.currentSet,
         isMatchOver: scoreState.isMatchOver,
+        showNotification,
+        hideNotification,
+        colorA: teamARoster.color || 'indigo',
+        colorB: teamBRoster.color || 'rose',
     });
 
     // Stable callbacks for fullscreen toggle (prevent layout re-renders)
@@ -184,12 +192,17 @@ export const GameScreen: React.FC = () => {
         pendingIntent,
         confirmPendingIntent,
         cancelPendingIntent,
+        domainConflict,
+        resolveDomainConflict,
+        cancelDomainConflict,
+        visualFeedback,
         commandHistory,
         isPushToTalkMode: config.pushToTalkMode ?? false,
     }), [
         isListening, toggleListening, startListening, stopListening,
         pendingIntent, confirmPendingIntent, cancelPendingIntent,
-        commandHistory, config.pushToTalkMode,
+        domainConflict, resolveDomainConflict, cancelDomainConflict,
+        visualFeedback, commandHistory, config.pushToTalkMode,
     ]);
 
     // --- EARLY RETURN: Broadcast Mode ---

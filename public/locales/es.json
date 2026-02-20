@@ -725,6 +725,8 @@
         "left": "Has salido de la sesión",
         "sessionEnded": "Transmisión Finalizada",
         "sessionEndedSub": "El anfitrión ha finalizado la transmisión",
+        "sessionNotFound": "Sesión no encontrada",
+        "sessionNotFoundSub": "Verifica el código e intenta de nuevo",
         "authRequired": "Inicio de Sesión Requerido",
         "authRequiredSub": "Inicia sesión para ver transmisiones",
         "broadcastStopped": "Transmisión Detenida",

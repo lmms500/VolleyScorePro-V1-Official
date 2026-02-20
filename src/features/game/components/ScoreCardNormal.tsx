@@ -8,7 +8,7 @@ import { GestureHint } from '@ui/GestureHint';
 import { motion, AnimatePresence } from 'framer-motion';
 import { stampVariants } from '@lib/utils/animations';
 import { ScoutModal } from '@features/game/modals/ScoutModal';
-import { resolveTheme } from '@lib/utils/colors';
+import { resolveTheme, getHexFromColor } from '@lib/utils/colors';
 import { TeamLogo } from '@ui/TeamLogo';
 import { normalize, hp } from '@lib/utils/responsive';
 import { HaloPortal } from '@ui/HaloPortal';
@@ -116,11 +116,11 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                                 initial={false}
                                 animate={{
                                     scale: i < setsWon ? 1.1 : 1,
-                                    backgroundColor: i < setsWon ? 'var(--theme-color)' : 'transparent',
+                                    backgroundColor: i < setsWon ? getHexFromColor(resolvedColor) : 'transparent',
                                 }}
                                 className={`
                             w-2 h-2 rounded-full border transition-all duration-500
-                            ${i < setsWon ? `${theme.halo} shadow-[0_0_8px_currentColor]` : 'border-slate-300 dark:border-slate-700 opacity-20'}
+                            ${i < setsWon ? `shadow-[0_0_8px_currentColor] border-transparent` : 'border-slate-300 dark:border-slate-700 opacity-20'}
                         `}
                             />
                         ))}
@@ -137,7 +137,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                             </div>
                         )}
                         <div className="flex items-center gap-2 min-w-0">
-                            <h2 className="font-black uppercase text-center text-xl md:text-2xl text-slate-900 dark:text-white tracking-tighter truncate leading-none">
+                            <h2 className="font-black uppercase text-center text-xl md:text-2xl text-slate-900 dark:text-white tracking-tighter truncate leading-tight py-1">
                                 {team?.name || ''}
                             </h2>
                             {isServing && (
@@ -145,7 +145,8 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                                     layout="position"
                                     initial={{ scale: 0, rotate: -90 }}
                                     animate={{ scale: 1, rotate: 0 }}
-                                    className="text-cyan-500 dark:text-cyan-400 shrink-0 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)]"
+                                    className={`${theme.crown} shrink-0`}
+                                    style={{ filter: `drop-shadow(0 0 8px ${getHexFromColor(resolvedColor)}99)` }}
                                 >
                                     <Volleyball size={18} strokeWidth={2.5} fill="currentColor" fillOpacity={0.1} />
                                 </motion.div>

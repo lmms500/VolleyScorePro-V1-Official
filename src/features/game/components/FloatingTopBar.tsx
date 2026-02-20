@@ -3,7 +3,7 @@ import React, { memo, useRef } from 'react';
 import { Volleyball, Timer, Skull, TrendingUp, Zap, Crown } from 'lucide-react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 import { useTranslation } from '@contexts/LanguageContext';
-import { resolveTheme } from '@lib/utils/colors';
+import { resolveTheme, getHexFromColor } from '@lib/utils/colors';
 import { TeamColor } from '@types';
 import { useTimerControls, useTimerValue } from '@contexts/TimerContext';
 import { useScore, useRoster, useActions } from '@contexts/GameContext';
@@ -53,7 +53,7 @@ const mapTeamColorToBadgeColor = (color: TeamColor): 'indigo' | 'rose' | 'emeral
 };
 
 const TimeoutDots = memo<{ count: number; teamColor: TeamColor }>(({ count, teamColor }) => {
-  const badgeColor = mapTeamColorToBadgeColor(teamColor);
+  const hexColor = getHexFromColor(teamColor);
 
   return (
     <div className="flex gap-1.5 justify-center">
@@ -66,13 +66,12 @@ const TimeoutDots = memo<{ count: number; teamColor: TeamColor }>(({ count, team
             initial={false}
             animate={{
               scale: isAvailable ? 1 : 0.8,
-              opacity: isAvailable ? 1 : 0.3
+              opacity: isAvailable ? 1 : 0.6
             }}
           >
-            <Badge
-              variant="dot"
-              color={isAvailable ? badgeColor : 'slate'}
-              className={isAvailable ? '' : 'opacity-30'}
+            <div
+              className={`w-2 h-2 rounded-full transition-all ${!isAvailable ? 'bg-slate-400 dark:bg-slate-500' : 'ring-2 ring-white/30'}`}
+              style={isAvailable ? { backgroundColor: hexColor, boxShadow: `0 0 6px rgba(255,255,255,0.5), 0 0 8px ${hexColor}80` } : {}}
             />
           </motion.div>
         );
@@ -150,7 +149,7 @@ const TeamInfoSmart = memo<{
         {/* Name & Badge Container */}
         <div className={`flex flex-col ${align === 'right' ? 'items-start' : 'items-end'} min-w-0 flex-1`}>
           <div className={`flex items-center gap-2 ${align === 'right' ? 'flex-row-reverse' : ''}`}>
-            <span className={`text-lg sm:text-xl font-black uppercase tracking-tighter transition-colors truncate block leading-none ${theme.text} dark:text-white ${hudText}`}>
+            <span className={`text-lg sm:text-xl font-black uppercase tracking-tighter transition-colors truncate block leading-tight py-0.5 ${theme.text} dark:text-white ${hudText}`}>
               {name}
             </span>
             {logo && (
@@ -195,10 +194,11 @@ const TeamInfoSmart = memo<{
                 animate={{ scale: 1, rotate: 0 }}
                 exit={{ scale: 0, rotate: 180 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className="absolute inset-0 flex items-center justify-center drop-shadow-[0_0_10px_rgba(34,211,238,0.6)]"
+                className="absolute inset-0 flex items-center justify-center"
+                style={{ filter: `drop-shadow(0 0 10px ${getHexFromColor(color)}99)` }}
               >
-                <div className="bg-white dark:bg-slate-900 rounded-full p-0.5 shadow-lg border border-cyan-400/50 dark:border-cyan-400/30 flex items-center justify-center">
-                  <Volleyball size={18} className="text-cyan-500 dark:text-cyan-400" fill="currentColor" fillOpacity={0.2} />
+                <div className={`bg-white dark:bg-slate-900 rounded-full p-0.5 shadow-lg border ${theme.border} flex items-center justify-center`}>
+                  <Volleyball size={18} className={theme.crown} fill="currentColor" fillOpacity={0.2} />
                 </div>
               </motion.div>
             )}

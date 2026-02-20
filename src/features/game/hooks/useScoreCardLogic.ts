@@ -62,11 +62,11 @@ export const useScoreCardLogic = ({
   const resolvedColor = colorTheme || team.color || 'slate';
 
   const haloMode: HaloMode = useMemo(() => {
-    if (isCritical) return 'critical';
+    if (isMatchPoint) return 'critical';
     if (isLastScorer) return 'lastScorer';
     if (isServing) return 'serving';
     return 'idle';
-  }, [isCritical, isLastScorer, isServing]);
+  }, [isMatchPoint, isLastScorer, isServing]);
 
   // --- Handlers (STABLE - use refs for services) ---
   const handleScoutClose = useCallback(() => {

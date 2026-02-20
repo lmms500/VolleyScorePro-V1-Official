@@ -8,27 +8,37 @@ const VOICE_COMMAND_SCHEMA = {
   properties: {
     type: {
       type: 'string' as const,
-      description: "Tipo do comando: 'point', 'timeout', 'server', 'undo', 'unknown'"
+      enum: ['point', 'timeout', 'server', 'swap', 'undo', 'unknown'],
+      description: "Command type.",
     },
     team: {
       type: 'string' as const,
-      description: "ID do time: 'A' ou 'B'."
+      enum: ['A', 'B'],
+      description: "Team ID.",
     },
     playerId: {
       type: 'string' as const,
-      description: "UUID do jogador. 'unknown' se não encontrado."
+      description: "Player UUID from the roster. 'unknown' if not identified.",
+    },
+    playerName: {
+      type: 'string' as const,
+      description: "Player name as matched from the roster.",
     },
     skill: {
       type: 'string' as const,
-      description: "Habilidade: 'attack', 'block', 'ace', 'opponent_error', 'generic'"
+      enum: ['attack', 'block', 'ace', 'opponent_error', 'generic'],
+      description: "Skill type.",
     },
     isNegative: {
       type: 'boolean' as const,
-      description: "True se for correção/remover ponto."
-    }
+      description: "True if it's a correction / remove point.",
+    },
   },
-  required: ["type", "isNegative"]
+  required: ['type', 'isNegative'],
 };
+
+const VALID_TYPES = new Set(['point', 'timeout', 'server', 'swap', 'undo', 'unknown']);
+const VALID_SKILLS = new Set<string>(['attack', 'block', 'ace', 'opponent_error', 'generic']);
 
 export class GeminiCommandService {
   private static instance: GeminiCommandService;
@@ -79,24 +89,30 @@ export class GeminiCommandService {
     }
   }
 
-  private validateParsedCommand(data: any): VoiceCommandIntent | null {
+  private validateParsedCommand(data: any, transcript: string): VoiceCommandIntent | null {
     if (!data || typeof data !== 'object') return null;
-    // Ensure required fields
-    if (!data.type) return null;
+    if (!data.type || !VALID_TYPES.has(data.type)) return null;
 
-    const safeData = { ...data };
-    if (typeof safeData.isNegative !== 'boolean') safeData.isNegative = false;
-    if (safeData.type === 'unknown') return { type: 'unknown', confidence: 0, rawText: '' };
+    const isNegative = typeof data.isNegative === 'boolean' ? data.isNegative : false;
 
-    // Map simplified AI structure to strictly typed intent
+    if (data.type === 'unknown') {
+      return { type: 'unknown', confidence: 0, rawText: transcript };
+    }
+
+    const team: TeamId | undefined = (data.team === 'A' || data.team === 'B') ? data.team : undefined;
+    const skill: SkillType | undefined = VALID_SKILLS.has(data.skill) ? data.skill : undefined;
+    const playerName: string | undefined = data.playerName || undefined;
+    const playerId: string | undefined = data.playerId && data.playerId !== 'unknown' ? data.playerId : undefined;
+
     return {
-      type: safeData.type as any,
-      team: safeData.team as TeamId,
-      player: safeData.playerId ? { id: safeData.playerId, name: 'AI Identified' } : undefined,
-      skill: safeData.skill as SkillType,
-      isNegative: safeData.isNegative,
-      confidence: 0.9, // AI confidence is generally high if it returns struct
-      rawText: '' // Filled by caller if needed
+      type: data.type,
+      team,
+      player: playerId ? { id: playerId, name: playerName || playerId } : undefined,
+      skill,
+      isNegative,
+      confidence: 0.9,
+      rawText: transcript,
+      debugMessage: ['[AI]', data.type, team && 'Team ' + team, playerName, skill && '(' + skill + ')'].filter(Boolean).join(' '),
     };
   }
 
@@ -121,7 +137,7 @@ export class GeminiCommandService {
       if (!response.ok) throw new Error(`Proxy error: ${response.status}`);
 
       const result = await response.json();
-      return this.validateParsedCommand(result);
+      return this.validateParsedCommand(result, transcript);
     } catch (error) {
       console.warn("[Gemini] Remote parse failed, attempting fallback if local key exists.");
       if (this.apiKey) return this.localParse(transcript, context);
@@ -139,8 +155,8 @@ export class GeminiCommandService {
     const ai = new GoogleGenAI({ apiKey: this.apiKey });
 
     try {
-      // Updated to gemini-3-flash-preview for optimal latency/cost on basic text tasks
-      const model = "gemini-3-flash-preview";
+      // Updated to gemini-2.0-flash-lite for optimal latency/cost on basic text tasks
+      const model = "gemini-2.0-flash-lite";
       const prompt = this.buildPrompt(transcript, context);
 
       const response = await ai.models.generateContent({
@@ -155,7 +171,7 @@ export class GeminiCommandService {
 
       if (response.text) {
         const result = JSON.parse(response.text);
-        return this.validateParsedCommand(result);
+        return this.validateParsedCommand(result, transcript);
       }
       return null;
     } catch (e) {
@@ -165,23 +181,40 @@ export class GeminiCommandService {
     }
   }
 
-  private buildPrompt(transcript: string, context: any): string {
-    const rosterA = context.playersA.map((p: any) => `${p.name} (#${p.number})`).join(", ");
-    const rosterB = context.playersB.map((p: any) => `${p.name} (#${p.number})`).join(", ");
+  private formatPlayer(p: Player): string {
+    return p.number ? `${p.name} (#${p.number}, id:${p.id})` : `${p.name} (id:${p.id})`;
+  }
 
-    return `
-        Interpret volleyball voice commands.
-        Context:
-        Team A: "${context.teamAName}" [${rosterA}]
-        Team B: "${context.teamBName}" [${rosterB}]
-        
-        Input: "${transcript}"
-        
-        Rules:
-        - Identify Team A/B based on name similarity.
-        - Identify Player based on name/number similarity.
-        - Skill keywords: Ace, Block, Attack, Out/Error.
-        - "Remove point" -> isNegative: true.
-      `;
+  private buildPrompt(transcript: string, context: any): string {
+    const rosterA = context.playersA.map((p: Player) => this.formatPlayer(p)).join(', ');
+    const rosterB = context.playersB.map((p: Player) => this.formatPlayer(p)).join(', ');
+
+    return [
+      'You are a volleyball voice command parser. Return structured JSON.',
+      '',
+      'Context:',
+      `  Team A: "${context.teamAName}" — Players: [${rosterA}]`,
+      `  Team B: "${context.teamBName}" — Players: [${rosterB}]`,
+      '',
+      `Input: "${transcript}"`,
+      '',
+      'Command types:',
+      '  point    — Score a point (team required, player/skill optional)',
+      '  timeout  — Call a timeout (team required)',
+      '  server   — Change serving team (team required)',
+      '  swap     — Switch court sides (no team needed)',
+      '  undo     — Undo last action (no team needed)',
+      '  unknown  — Cannot interpret',
+      '',
+      'Skills: attack, block, ace, opponent_error, generic (default if unclear)',
+      '',
+      'Rules:',
+      '  - Match team by name similarity (e.g. "Flamengo" → Team A if name matches)',
+      '  - Match player by name or jersey number from the roster above',
+      '  - Return the player id from the roster, not the name',
+      '  - "Remove/subtract/cancel point" → isNegative: true',
+      '  - If team cannot be determined, omit the team field',
+      '  - Commands may be in Portuguese, English, or Spanish',
+    ].join('\n');
   }
 }

@@ -1,10 +1,11 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { TeamId, Player, SkillType, VoiceCommandIntent } from '@types';
+import { TeamId, Player, SkillType, VoiceCommandIntent, TeamColor } from '@types';
 import { VoiceRecognitionService } from '../services/VoiceRecognitionService';
 import { VoiceCommandParser, VoiceContext } from '../services/VoiceCommandParser';
 import { GeminiCommandService } from '../services/GeminiCommandService';
 import { CommandBuffer } from '../services/CommandBuffer';
+import { getCommandDeduplicator, resetCommandDeduplicator } from '../services/CommandDeduplicator';
 import { FEATURE_FLAGS } from '@config/constants';
 
 // -----------------------------------------------------------------------
@@ -69,6 +70,15 @@ export interface CommandHistoryEntry {
   executedAt: number;
 }
 
+export interface DomainConflictState {
+  type: 'team_conflict';
+  player: { id: string; name: string };
+  detectedTeam: TeamId;
+  playerTeam: TeamId;
+  skill?: SkillType;
+  rawText: string;
+}
+
 interface UseVoiceControlProps {
   enabled: boolean;
   pushToTalkMode: boolean;
@@ -92,6 +102,10 @@ interface UseVoiceControlProps {
   scoreB: number;
   currentSet: number;
   isMatchOver: boolean;
+  showNotification?: (options: any) => void;
+  hideNotification?: () => void;
+  colorA: TeamColor;
+  colorB: TeamColor;
 }
 
 // -----------------------------------------------------------------------
@@ -120,14 +134,18 @@ export const useVoiceControl = ({
   scoreB,
   currentSet,
   isMatchOver,
+  showNotification,
+  hideNotification,
+  colorA,
+  colorB,
 }: UseVoiceControlProps) => {
   const [isListening, setIsListening] = useState(false);
   const [isProcessingAI, setIsProcessingAI] = useState(false);
+  const [visualFeedback, setVisualFeedback] = useState<string>('');
 
-  // 4.2 — Pending intent aguardando confirmação
   const [pendingIntent, setPendingIntent] = useState<VoiceCommandIntent | null>(null);
+  const [domainConflict, setDomainConflict] = useState<DomainConflictState | null>(null);
 
-  // 4.7 — Histórico circular de comandos executados
   const [commandHistory, setCommandHistory] = useState<CommandHistoryEntry[]>([]);
 
   const isListeningRef = useRef(isListening);
@@ -136,7 +154,7 @@ export const useVoiceControl = ({
   const geminiService = useRef(GeminiCommandService.getInstance()).current;
   const recognitionService = useRef(VoiceRecognitionService.getInstance()).current;
   const bufferRef = useRef<CommandBuffer | null>(null);
-  const lastExecutedRef = useRef<{ text: string; time: number } | null>(null);
+  const deduplicatorRef = useRef(getCommandDeduplicator());
   const pendingIntentRef = useRef<VoiceCommandIntent | null>(pendingIntent);
   pendingIntentRef.current = pendingIntent;
 
@@ -163,7 +181,30 @@ export const useVoiceControl = ({
 
     switch (intent.type) {
       case 'point':
-        if (intent.team) onAddPoint(intent.team, intent.player?.id, intent.skill);
+        if (intent.team) {
+          onAddPoint(intent.team, intent.player?.id, intent.skill);
+
+          // Show conditional visual feedback (notification) mapping the detailed intent
+          if (showNotification) {
+            const hasSkill = intent.skill && intent.skill !== 'generic';
+            const hasPlayer = !!intent.player;
+
+            if (hasSkill || hasPlayer) {
+              let mainText = intent.team === 'A' ? teamAName : teamBName;
+              if (hasPlayer) {
+                mainText += ` • ${intent.player?.name}`;
+              }
+
+              showNotification({
+                type: 'success',
+                mainText,
+                skill: intent.skill || 'generic',
+                color: intent.team === 'A' ? colorA : colorB,
+                // No subText means it will default to the translation of the skill
+              });
+            }
+          }
+        }
         break;
       case 'timeout':
         if (intent.team) onTimeout(intent.team);
@@ -176,6 +217,14 @@ export const useVoiceControl = ({
         break;
       case 'undo':
         onUndo();
+        if (showNotification) {
+          showNotification({
+            type: 'info',
+            mainText: 'Ação desfeita',
+            systemIcon: 'undo',
+            duration: 1500,
+          });
+        }
         break;
     }
   }, [onAddPoint, onSubtractPoint, onUndo, onTimeout, onSetServer, onSwapSides]);
@@ -189,6 +238,14 @@ export const useVoiceControl = ({
     if (!pending) return;
     const resolved: VoiceCommandIntent = { ...pending, team, requiresMoreInfo: false };
     setPendingIntent(null);
+
+    const dedupeResult = deduplicatorRef.current.canExecute(resolved);
+    if (!dedupeResult.allowed) {
+      console.log('[VoiceControl] Blocked by deduplicator:', dedupeResult.reason);
+      return;
+    }
+
+    deduplicatorRef.current.register(resolved);
     processIntent(resolved);
   }, [processIntent]);
 
@@ -197,20 +254,42 @@ export const useVoiceControl = ({
     playCommandBeep('error');
   }, []);
 
+  const resolveDomainConflict = useCallback((useDetectedTeam: boolean) => {
+    const conflict = domainConflict;
+    if (!conflict) return;
+
+    const resolvedTeam = useDetectedTeam ? conflict.detectedTeam : conflict.playerTeam;
+    const intent: VoiceCommandIntent = {
+      type: 'point',
+      team: resolvedTeam,
+      player: conflict.player,
+      skill: conflict.skill,
+      confidence: 0.9,
+      rawText: conflict.rawText,
+    };
+
+    setDomainConflict(null);
+
+    const dedupeResult = deduplicatorRef.current.canExecute(intent);
+    if (!dedupeResult.allowed) {
+      console.log('[VoiceControl] Blocked by deduplicator:', dedupeResult.reason);
+      return;
+    }
+
+    deduplicatorRef.current.register(intent);
+    processIntent(intent);
+  }, [domainConflict, processIntent]);
+
+  const cancelDomainConflict = useCallback(() => {
+    setDomainConflict(null);
+    playCommandBeep('error');
+  }, []);
+
   // -----------------------------------------------------------------------
   // EXECUTE ACTION — Pipeline principal com filtro de confiança
   // -----------------------------------------------------------------------
 
   const executeAction = useCallback(async (transcript: string, isFinal: boolean) => {
-    const normalizedTranscript = transcript.toLowerCase().trim();
-    const now = Date.now();
-
-    // Anti-duplicata
-    if (lastExecutedRef.current) {
-      const { text, time } = lastExecutedRef.current;
-      if (text === normalizedTranscript && now - time < 1000) return;
-    }
-
     const voiceContext: VoiceContext = {
       teamAName, teamBName, playersA, playersB,
       statsEnabled: enablePlayerStats,
@@ -221,7 +300,6 @@ export const useVoiceControl = ({
 
     const localIntent = VoiceCommandParser.parse(transcript, language, voiceContext);
 
-    // 4.6 — Se há pending intent aguardando time, tentar resolver com o transcript atual
     if (pendingIntentRef.current) {
       const vocabMap: Record<string, { A: string[]; B: string[] }> = {
         pt: { A: ['time a', 'equipe a', 'esquerda', 'lado a', teamAName.toLowerCase()], B: ['time b', 'equipe b', 'direita', 'lado b', teamBName.toLowerCase()] },
@@ -229,66 +307,97 @@ export const useVoiceControl = ({
         es: { A: ['equipo a', 'local', 'izquierda', teamAName.toLowerCase()], B: ['equipo b', 'visitante', 'derecha', teamBName.toLowerCase()] },
       };
       const lang = vocabMap[language] || vocabMap['en'];
-      const norm = normalizedTranscript.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const norm = transcript.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       if (lang.A.some(k => norm.includes(k))) {
         confirmPendingIntent('A');
-        lastExecutedRef.current = { text: normalizedTranscript, time: now };
         return;
       }
       if (lang.B.some(k => norm.includes(k))) {
         confirmPendingIntent('B');
-        lastExecutedRef.current = { text: normalizedTranscript, time: now };
         return;
       }
     }
 
-    // ---- FALLBACK IA (desabilitado por padrão) ----
     if (
       FEATURE_FLAGS.ENABLE_AI_VOICE_COMMANDS &&
       (!localIntent || localIntent.type === 'unknown' || localIntent.confidence < 0.8)
     ) {
       if (!isFinal) return;
+      console.log('[VoiceControl] Processing command via GEMINI:', transcript);
       setIsProcessingAI(true);
       onThinkingState?.(true);
+      if (showNotification) {
+        showNotification({
+          type: 'info',
+          mainText: 'Thinking...',
+          systemIcon: 'party', // we can map this later, but for now we'll trigger the thinking state. Note: NotificationToast intercepts mainText === 'Thinking...' and applies the violet sparkle theme anyway.
+          duration: 10000 // A long duration, we'll clear it when done
+        });
+      }
       const aiResult = await geminiService.parseCommand(transcript, {
         teamAName, teamBName, playersA, playersB,
       });
+      if (hideNotification) hideNotification();
       setIsProcessingAI(false);
       onThinkingState?.(false);
       if (aiResult && aiResult.type !== 'unknown') {
-        lastExecutedRef.current = { text: normalizedTranscript, time: now };
-        processIntent(aiResult);
+        const dedupeResult = deduplicatorRef.current.canExecute(aiResult);
+        if (dedupeResult.allowed) {
+          deduplicatorRef.current.register(aiResult);
+          processIntent(aiResult);
+        }
+      } else {
+        // Gemini não reconheceu o comando — feedback ao usuário
+        playCommandBeep('error');
+        if (showNotification) {
+          showNotification({
+            type: 'error',
+            mainText: 'Comando não reconhecido',
+            duration: 2000,
+          });
+        }
       }
       return;
     }
 
     if (!localIntent || localIntent.type === 'unknown') return;
 
-    // -----------------------------------------------------------------------
-    // 4.2 — FILTRO DE CONFIANÇA EM 3 FAIXAS
-    // -----------------------------------------------------------------------
+    console.log('[VoiceControl] Processing command LOCALLY:', transcript, localIntent);
 
-    // Faixa 1: requiresMoreInfo → pending intent (pedir time ao usuário)
+    if (localIntent.domainConflict) {
+      setDomainConflict({
+        type: 'team_conflict',
+        player: localIntent.domainConflict.player,
+        detectedTeam: localIntent.domainConflict.detectedTeam,
+        playerTeam: localIntent.domainConflict.playerTeam,
+        skill: localIntent.domainConflict.skill,
+        rawText: localIntent.rawText,
+      });
+      playCommandBeep('confirm');
+      return;
+    }
+
     if (localIntent.requiresMoreInfo && localIntent.type !== 'server') {
       if (['point', 'timeout'].includes(localIntent.type)) {
         setPendingIntent(localIntent);
         playCommandBeep('confirm');
-        lastExecutedRef.current = { text: normalizedTranscript, time: now };
         return;
       }
     }
 
+    const dedupeResult = deduplicatorRef.current.canExecute(localIntent);
+    if (!dedupeResult.allowed) {
+      console.log('[VoiceControl] Blocked by deduplicator:', dedupeResult.reason);
+      return;
+    }
+
     if (localIntent.confidence >= CONFIDENCE_EXECUTE) {
-      // Faixa 2: Alta confiança → executar imediatamente
-      lastExecutedRef.current = { text: normalizedTranscript, time: now };
+      deduplicatorRef.current.register(localIntent);
       processIntent(localIntent);
     } else if (localIntent.confidence >= CONFIDENCE_CONFIRM) {
-      // Faixa 3: Confiança média → pending para confirmação do usuário
       setPendingIntent(localIntent);
       playCommandBeep('confirm');
-      lastExecutedRef.current = { text: normalizedTranscript, time: now };
     }
-    // Faixa 4: Baixa confiança → descartar silenciosamente
   }, [
     language, teamAName, teamBName, playersA, playersB, enablePlayerStats,
     servingTeam, lastScorerTeam, scoreA, scoreB, currentSet, isMatchOver,
@@ -314,6 +423,7 @@ export const useVoiceControl = ({
 
     recognitionService.setCallbacks(
       (text, isFinal) => bufferRef.current?.push(text, isFinal),
+      (text) => setVisualFeedback(text),
       (err) => console.error('[VoiceControl] Recognition Error:', err),
       (status) => setIsListening(status),
     );
@@ -331,7 +441,7 @@ export const useVoiceControl = ({
 
   const startListening = useCallback(() => {
     if (!isListeningRef.current) {
-      bufferRef.current?.resetCooldown();
+      deduplicatorRef.current.reset();
       recognitionService.start(language);
     }
   }, [language, recognitionService]);
@@ -346,7 +456,7 @@ export const useVoiceControl = ({
     if (isListeningRef.current) {
       recognitionService.stop();
     } else {
-      bufferRef.current?.resetCooldown();
+      deduplicatorRef.current.reset();
       recognitionService.start(language);
     }
   }, [language, recognitionService]);
@@ -354,15 +464,16 @@ export const useVoiceControl = ({
   return {
     isListening,
     isProcessingAI,
+    visualFeedback,
     toggleListening,
-    // 4.1 — PTT
     startListening,
     stopListening,
-    // 4.2/4.6 — Pending Intent
     pendingIntent,
     confirmPendingIntent,
     cancelPendingIntent,
-    // 4.7 — Histórico
+    domainConflict,
+    resolveDomainConflict,
+    cancelDomainConflict,
     commandHistory,
   };
 };

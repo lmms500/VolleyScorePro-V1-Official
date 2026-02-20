@@ -95,8 +95,8 @@ export const FEATURE_FLAGS = {
   ENABLE_BROADCAST_OVERLAY: true,
 
   // Artificial Intelligence / Gemini Integration
-  // Disabled for initial release; requires additional optimization
-  ENABLE_AI_VOICE_COMMANDS: false,
+  // Fallback: when local parser returns unknown/low-confidence, tries Gemini
+  ENABLE_AI_VOICE_COMMANDS: true,
   ENABLE_GEMINI_SERVICE: false,
 
   // Cloud Sync (Firebase sync - can stay enabled for backup/auth)
