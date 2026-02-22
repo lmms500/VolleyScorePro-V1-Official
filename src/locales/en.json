@@ -89,6 +89,7 @@
     },
     "roles": {
         "setter": "Setter",
+        "opposite": "Opposite",
         "hitter": "Hitter",
         "libero": "Libero",
         "middle": "Middle",

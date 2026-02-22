@@ -102,6 +102,8 @@ interface RosterContextState {
     gameId?: string;
     gameCreatedAt?: number;
     connectedSpectators?: number;
+    matchDurationSeconds?: number;
+    isTimerRunning?: boolean;
 
     // Meta
     isLoaded: boolean;
@@ -181,6 +183,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         gameId: game.state.gameId,
         gameCreatedAt: game.state.gameCreatedAt,
         connectedSpectators: game.state.connectedSpectators,
+        matchDurationSeconds: game.state.matchDurationSeconds,
+        isTimerRunning: game.state.isTimerRunning,
         isLoaded: game.isLoaded,
         canUndo: game.canUndo,
         hasDeletedPlayers: game.hasDeletedPlayers,
@@ -191,6 +195,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         game.profiles, game.state.rotationReport, game.state.deletedPlayerHistory,
         game.state.rotationMode, game.state.syncRole, game.state.sessionId,
         game.state.gameId, game.state.gameCreatedAt, game.state.connectedSpectators,
+        game.state.matchDurationSeconds, game.state.isTimerRunning,
         game.isLoaded, game.canUndo, game.hasDeletedPlayers, game.deletedCount
     ]);
 

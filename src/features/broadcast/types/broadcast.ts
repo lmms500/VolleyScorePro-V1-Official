@@ -61,6 +61,14 @@ export interface RotationState {
   teamB: number;
 }
 
+export interface OverlayPositions {
+  teamStats: { x: number; y: number };
+  topPlayer: { x: number; y: number };
+  rotationA: { x: number; y: number };
+  rotationB: { x: number; y: number };
+  broadcastBar: { x: number; y: number };
+}
+
 export const DEFAULT_BROADCAST_CONFIG: BroadcastConfig = {
   eventName: '',
   eventPhase: '',

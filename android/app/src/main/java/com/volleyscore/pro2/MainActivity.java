@@ -63,11 +63,8 @@ public class MainActivity extends BridgeActivity {
         // Permissions Android 6.0+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             String[] permissions = {
-                "android.permission.READ_EXTERNAL_STORAGE",
-                "android.permission.WRITE_EXTERNAL_STORAGE",
                 "android.permission.CAMERA",
-                "android.permission.RECORD_AUDIO",
-                "android.permission.ACCESS_FINE_LOCATION"
+                "android.permission.RECORD_AUDIO"
             };
 
             for (String permission : permissions) {

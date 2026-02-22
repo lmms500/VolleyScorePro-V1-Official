@@ -10,7 +10,7 @@ export type RotationMode = 'standard' | 'balanced';
 export type GameMode = 'indoor' | 'beach';
 export type SkillType = 'attack' | 'block' | 'ace' | 'opponent_error' | 'generic';
 export type PlayerId = string;
-export type PlayerRole = 'setter' | 'hitter' | 'middle' | 'libero' | 'none';
+export type PlayerRole = 'setter' | 'opposite' | 'hitter' | 'middle' | 'libero' | 'none';
 export type TeamColor = string;
 
 // --- DYNAMIC GAME MODE TYPES ---

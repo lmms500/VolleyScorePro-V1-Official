@@ -27,6 +27,7 @@ interface PlayerCardProps {
 
 const ROLE_STYLES: Record<string, string> = {
   setter: 'bg-gradient-to-br from-amber-500/20 to-amber-500/5 border-amber-500/30 ring-1 ring-inset ring-amber-500/10 hover:from-amber-500/30 hover:to-amber-500/10',
+  opposite: 'bg-gradient-to-br from-orange-500/20 to-orange-500/5 border-orange-500/30 ring-1 ring-inset ring-orange-500/10 hover:from-orange-500/30 hover:to-orange-500/10',
   hitter: 'bg-gradient-to-br from-rose-500/20 to-rose-500/5 border-rose-500/30 ring-1 ring-inset ring-rose-500/10 hover:from-rose-500/30 hover:to-rose-500/10',
   middle: 'bg-gradient-to-br from-indigo-500/20 to-indigo-500/5 border-indigo-500/30 ring-1 ring-inset ring-indigo-500/10 hover:from-indigo-500/30 hover:to-indigo-500/10',
   libero: 'bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border-emerald-500/30 ring-1 ring-inset ring-emerald-500/10 hover:from-emerald-500/30 hover:to-emerald-500/10',

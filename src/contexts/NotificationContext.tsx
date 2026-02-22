@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { TeamColor, SkillType } from '@types';
 import { useHaptics } from '@lib/haptics/useHaptics';
+import { audioService } from '@lib/audio/AudioService';
 
 interface NotificationState {
   visible: boolean;
@@ -43,10 +44,13 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     // Haptics Integration
     if (params.type === 'error') {
       hapticNotification('error');
+      audioService.playError();
     } else if (params.type === 'success') {
       hapticNotification('success');
+      audioService.playSuccess();
     } else if (params.type === 'info') {
       impact('light');
+      audioService.playNotification();
     }
 
     setState({

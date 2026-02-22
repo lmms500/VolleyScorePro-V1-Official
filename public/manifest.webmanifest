@@ -1,7 +1,7 @@
 {
-  "name": "VolleyScore Pro 2",
+  "name": "VolleyScore Pro",
   "short_name": "VolleyScore",
-  "description": "VolleyScore Pro 2 is the definitive volleyball companion.",
+  "description": "Placar inteligente para vôlei. Indoor e Beach Volley com estatísticas, rotação inteligente e comandos de voz.",
   "theme_color": "#020617",
   "background_color": "#020617",
   "display": "fullscreen",

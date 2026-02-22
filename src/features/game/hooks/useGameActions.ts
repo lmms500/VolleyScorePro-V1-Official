@@ -8,6 +8,7 @@ interface UseGameActionsOptions {
   dispatch: Dispatch<GameAction>;
   upsertProfileRef: MutableRefObject<(name: string, skill?: number, sourceId?: string, extra?: { number?: string; avatar?: string; role?: PlayerRole }) => PlayerProfile>;
   deleteProfileRef: MutableRefObject<(id: string) => PlayerProfile | undefined>;
+  findProfileByNameRef: MutableRefObject<(name: string) => PlayerProfile | undefined>;
   batchUpdateStats: (updates: Map<string, StatsDelta>) => void;
   mergeProfiles: (remoteProfiles: PlayerProfile[]) => void;
 }
@@ -21,6 +22,7 @@ export const useGameActions = ({
   dispatch,
   upsertProfileRef,
   deleteProfileRef,
+  findProfileByNameRef,
   batchUpdateStats,
   mergeProfiles
 }: UseGameActionsOptions) => {
@@ -110,10 +112,21 @@ export const useGameActions = ({
   }, [dispatch]);
 
   const addPlayer = useCallback((name: string, target: string, number?: string, skill?: number, profileId?: string) => {
-    const p = createPlayer(name, 999, profileId, skill, number);
+    // Auto-link por nome: se não houver profileId explícito, busca perfil com mesmo nome
+    const matchedProfile = !profileId ? findProfileByNameRef.current(name) : undefined;
+    const resolvedProfileId = profileId ?? matchedProfile?.id;
+    // Sincronizar dados do perfil quando auto-linkado
+    const resolvedSkill = skill ?? matchedProfile?.skillLevel;
+    const resolvedNumber = number ?? matchedProfile?.number;
+    const p = createPlayer(name, 999, resolvedProfileId, resolvedSkill, resolvedNumber);
+    // Se auto-linkado, copiar role do perfil
+    if (matchedProfile?.role) {
+      p.role = matchedProfile.role;
+    }
     dispatch({ type: 'ROSTER_ADD_PLAYER', player: p, targetId: target });
     return { success: true };
-  }, [dispatch]);
+  }, [dispatch, findProfileByNameRef]);
+
 
   const undoRemovePlayer = useCallback(() => {
     dispatch({ type: 'ROSTER_UNDO_REMOVE' });

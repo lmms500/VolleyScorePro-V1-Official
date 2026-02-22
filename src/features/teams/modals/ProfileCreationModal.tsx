@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Modal } from '@ui/Modal';
 import { Button } from '@ui/Button';
-import { Save, UserCircle2, Shield, Hand, Zap, Target, Palette, Star, X } from 'lucide-react';
+import { Save, UserCircle2, Shield, Hand, Zap, Target, Palette, Star, X, ArrowUpRight } from 'lucide-react';
 import { useTranslation } from '@contexts/LanguageContext';
 import { PlayerRole } from '@types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -106,6 +106,7 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
 
     const roles: { id: PlayerRole, label: string, icon: any, color: string, bg: string, border: string, gradient: string, shadow: string }[] = [
         { id: 'setter', label: t('roles.setter'), icon: Hand, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20', gradient: 'from-amber-400 to-amber-500', shadow: 'shadow-amber-500/30' },
+        { id: 'opposite', label: t('roles.opposite'), icon: ArrowUpRight, color: 'text-orange-500', bg: 'bg-orange-500/10', border: 'border-orange-500/20', gradient: 'from-orange-400 to-orange-500', shadow: 'shadow-orange-500/30' },
         { id: 'hitter', label: t('roles.hitter'), icon: Zap, color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/20', gradient: 'from-rose-500 to-rose-600', shadow: 'shadow-rose-500/30' },
         { id: 'middle', label: t('roles.middle'), icon: Target, color: 'text-indigo-500', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20', gradient: 'from-indigo-500 to-indigo-600', shadow: 'shadow-indigo-500/30' },
         { id: 'libero', label: t('roles.libero'), icon: Shield, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', gradient: 'from-emerald-500 to-emerald-600', shadow: 'shadow-emerald-500/30' },

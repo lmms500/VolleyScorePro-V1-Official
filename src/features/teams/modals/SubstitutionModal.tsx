@@ -5,6 +5,7 @@ import { Team, Player } from '@types';
 import { User, Hash, ArrowRight, ArrowLeft, Check, X, ArrowRightLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useHaptics } from '@lib/haptics/useHaptics';
+import { audioService } from '@lib/audio/AudioService';
 import { resolveTheme } from '@lib/utils/colors';
 import { useTranslation } from '@contexts/LanguageContext';
 
@@ -105,6 +106,7 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
     const handleConfirm = () => {
         if (pairs.length > 0) {
             haptics.notification('success');
+            audioService.playConfirm();
             pairs.forEach(pair => onConfirm(pair.inId, pair.outId));
             onClose();
         }
@@ -112,6 +114,7 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
 
     const handleSelect = (id: string, type: 'in' | 'out') => {
         haptics.impact('light');
+        audioService.playTap();
         const existingPairIndex = pairs.findIndex(p => p.outId === id || p.inId === id);
 
         if (existingPairIndex !== -1) {
@@ -129,6 +132,7 @@ export const SubstitutionModal: React.FC<SubstitutionModalProps> = ({
                 setPairs(prev => [...prev, { outId: pendingOutId, inId: id }]);
                 setPendingOutId(null);
                 haptics.notification('success');
+                audioService.playSuccess();
             }
         }
     };

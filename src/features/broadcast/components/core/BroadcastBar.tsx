@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect } from 'react';
+import React, { memo } from 'react';
 import { GameState } from '@types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getHexFromColor } from '@lib/utils/colors';
@@ -79,7 +79,7 @@ export const BroadcastBar: React.FC<BroadcastBarProps> = ({
   const maxTimeouts = state.config.mode === 'beach' ? 1 : 2;
 
   return (
-    <div className="fixed top-8 left-1/2 -translate-x-1/2 pointer-events-none">
+    <div className="pointer-events-none">
       <style>
         {`
           html, body, #root { 

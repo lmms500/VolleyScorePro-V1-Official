@@ -1,64 +1,76 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Move } from 'lucide-react';
 
 interface DraggableCardProps {
   children: React.ReactNode;
-  positionKey: 'teamStats' | 'topPlayer' | 'rotationA' | 'rotationB';
-  position: { x: number; y: number };
+  positionKey: string;
+  defaultX: number;
+  defaultY: number;
   isEditMode: boolean;
-  onPositionChange: (key: 'teamStats' | 'topPlayer' | 'rotationA' | 'rotationB', pos: { x: number; y: number }) => void;
-  defaultPosition?: { top?: string; bottom?: string; left?: string; right?: string };
 }
 
 export const DraggableCard: React.FC<DraggableCardProps> = ({
   children,
   positionKey,
-  position,
+  defaultX,
+  defaultY,
   isEditMode,
-  onPositionChange,
-  defaultPosition,
 }) => {
-  const handleDragEnd = useCallback(
-    (_: any, info: { point: { x: number; y: number }; offset: { x: number; y: number } }) => {
-      onPositionChange(positionKey, {
-        x: position.x + info.offset.x,
-        y: position.y + info.offset.y,
-      });
-    },
-    [positionKey, position, onPositionChange]
-  );
+  const [pos, setPos] = useState({ x: defaultX, y: defaultY });
 
-  const transform = position.x !== 0 || position.y !== 0
-    ? `translate(${position.x}px, ${position.y}px)`
-    : undefined;
+  useEffect(() => {
+    const stored = localStorage.getItem(`vs_pos_${positionKey}`);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (typeof parsed.x === 'number' && typeof parsed.y === 'number') {
+          setPos({ x: parsed.x, y: parsed.y });
+          return;
+        }
+      } catch (e) {}
+    }
+    setPos({ x: defaultX, y: defaultY });
+  }, [positionKey, defaultX, defaultY]);
+
+  const handleDragEnd = useCallback(
+    (_: any, info: { point: { x: number; y: number } }) => {
+      const newX = info.point.x;
+      const newY = info.point.y;
+      setPos({ x: newX, y: newY });
+      localStorage.setItem(`vs_pos_${positionKey}`, JSON.stringify({ x: newX, y: newY }));
+    },
+    [positionKey]
+  );
 
   return (
-    <div
-      className="relative"
+    <motion.div
+      drag={isEditMode}
+      dragMomentum={false}
+      dragElastic={0}
+      onDragEnd={handleDragEnd}
+      className={`${isEditMode ? 'cursor-move z-50' : ''}`}
       style={{
-        ...(defaultPosition?.top && { top: defaultPosition.top }),
-        ...(defaultPosition?.bottom && { bottom: defaultPosition.bottom }),
-        ...(defaultPosition?.left && { left: defaultPosition.left }),
-        ...(defaultPosition?.right && { right: defaultPosition.right }),
-        transform,
+        position: 'fixed',
+        left: pos.x,
+        top: pos.y,
+        transform: 'translate(-50%, -50%)',
       }}
+      whileDrag={{ scale: 1.02, outline: '2px solid rgba(34, 211, 238, 0.8)' }}
     >
-      <motion.div
-        drag={isEditMode}
-        dragMomentum={false}
-        onDragEnd={handleDragEnd}
-        className={`${isEditMode ? 'cursor-move' : ''}`}
-        whileDrag={{ scale: 1.02, opacity: 0.9 }}
-      >
-        {isEditMode && (
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-cyan-500/20 text-cyan-400 text-[10px] font-bold px-2 py-0.5 rounded-full border border-cyan-400/30 z-50">
-            <Move size={10} />
-            <span>Arraste para mover</span>
-          </div>
-        )}
-        {children}
-      </motion.div>
-    </div>
+      {isEditMode && (
+        <div className="absolute -top-8 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-cyan-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap z-50">
+          <Move size={12} />
+          <span>{positionKey}</span>
+        </div>
+      )}
+      {children}
+    </motion.div>
   );
+};
+
+export const resetAllDraggablePositions = (keys: string[]) => {
+  keys.forEach((key) => {
+    localStorage.removeItem(`vs_pos_${key}`);
+  });
 };

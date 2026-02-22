@@ -11,6 +11,18 @@
         "source": "**",
         "destination": "/index.html"
       }
+    ],
+    "cleanUrls": true,
+    "headers": [
+      {
+        "source": "/privacy-policy.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=3600"
+          }
+        ]
+      }
     ]
   },
   "firestore": {

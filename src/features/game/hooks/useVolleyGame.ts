@@ -23,6 +23,7 @@ export const useVolleyGame = () => {
     isReady: profilesReady,
     upsertProfile,
     deleteProfile,
+    findProfileByName,
     batchUpdateStats,
     mergeProfiles
   } = usePlayerProfiles();
@@ -37,6 +38,7 @@ export const useVolleyGame = () => {
   // These refs ensure external functions can be called from stable callbacks
   const upsertProfileRef = useRef(upsertProfile);
   const deleteProfileRef = useRef(deleteProfile);
+  const findProfileByNameRef = useRef(findProfileByName);
   const profilesRef = useRef(profiles);
 
   // [NEW] Ref para rastrear o ID da Sessão Ativa (Independente de Render cycle)
@@ -46,6 +48,7 @@ export const useVolleyGame = () => {
   useLayoutEffect(() => {
     upsertProfileRef.current = upsertProfile;
     deleteProfileRef.current = deleteProfile;
+    findProfileByNameRef.current = findProfileByName;
     profilesRef.current = profiles;
   }); // Updates synchronously after every render
 
@@ -74,7 +77,8 @@ export const useVolleyGame = () => {
   // Team generation
   const { generateTeams, balanceTeams } = useTeamGenerator({
     stateRef,
-    dispatch
+    dispatch,
+    findProfileByNameRef
   });
 
   // All game actions
@@ -86,6 +90,7 @@ export const useVolleyGame = () => {
     dispatch,
     upsertProfileRef,
     deleteProfileRef,
+    findProfileByNameRef,
     batchUpdateStats,
     mergeProfiles
   });

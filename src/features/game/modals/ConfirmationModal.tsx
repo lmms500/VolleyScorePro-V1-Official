@@ -4,6 +4,7 @@ import { Modal } from '@ui/Modal';
 import { Button } from '@ui/Button';
 import { AlertTriangle } from 'lucide-react';
 import { useTranslation } from '@contexts/LanguageContext';
+import { audioService } from '@lib/audio/AudioService';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -19,6 +20,13 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   isOpen, onClose, onConfirm, title, message, confirmLabel, icon: Icon = AlertTriangle 
 }) => {
   const { t } = useTranslation();
+
+  const handleConfirm = () => {
+    audioService.playConfirm();
+    onConfirm();
+    onClose();
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} maxWidth="max-w-sm">
       <div className="flex flex-col items-center text-center space-y-6 animate-in fade-in zoom-in-95 duration-300">
@@ -34,7 +42,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
            <Button variant="secondary" onClick={onClose}>
              {t('confirm.cancel')}
            </Button>
-           <Button variant="danger" onClick={() => { onConfirm(); onClose(); }}>
+           <Button variant="danger" onClick={handleConfirm}>
              {confirmLabel || t('confirm.reset.confirmButton')}
            </Button>
         </div>

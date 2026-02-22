@@ -1,9 +1,8 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { buttonTap } from '@lib/utils/animations';
-import { useGameAudio } from '@features/game/hooks/useGameAudio';
+import { audioService } from '@lib/audio/AudioService';
 import { useHaptics } from '@lib/haptics/useHaptics';
-import { DEFAULT_CONFIG } from '@config/constants';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'icon' | 'success' | 'outline';
@@ -26,12 +25,11 @@ export const Button: React.FC<ButtonProps> = ({
   hapticStyle = 'light',
   ...props
 }) => {
-  const audioConfig = useMemo(() => ({ ...DEFAULT_CONFIG, enableSound: true }), []);
-  const audio = useGameAudio(audioConfig);
+  audioService.init();
   const haptics = useHaptics();
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    audio.playTap();
+    audioService.playTap();
     haptics.impact(hapticStyle);
     if (onClick) onClick(e);
   };

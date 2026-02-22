@@ -7,6 +7,7 @@ import { GeminiCommandService } from '../services/GeminiCommandService';
 import { CommandBuffer } from '../services/CommandBuffer';
 import { getCommandDeduplicator, resetCommandDeduplicator } from '../services/CommandDeduplicator';
 import { FEATURE_FLAGS } from '@config/constants';
+import { audioService } from '@lib/audio/AudioService';
 
 // -----------------------------------------------------------------------
 // CONSTANTS
@@ -18,48 +19,6 @@ const CONFIDENCE_EXECUTE = 0.85;
 const CONFIDENCE_CONFIRM = 0.60;
 /** Máximo de entradas no histórico circular */
 const MAX_HISTORY_SIZE = 20;
-
-// -----------------------------------------------------------------------
-// BEEP HELPER — 4.9: feedback sonoro via Web Audio API
-// -----------------------------------------------------------------------
-
-function playCommandBeep(type: 'success' | 'error' | 'confirm') {
-  try {
-    const AudioContext = (window as any).AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContext) return;
-    const ctx = new AudioContext();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    if (type === 'success') {
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.06);
-      gain.gain.setValueAtTime(0.15, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.15);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.15);
-    } else if (type === 'confirm') {
-      osc.frequency.setValueAtTime(660, ctx.currentTime);
-      gain.gain.setValueAtTime(0.1, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.1);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.1);
-    } else {
-      osc.frequency.setValueAtTime(300, ctx.currentTime);
-      gain.gain.setValueAtTime(0.1, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.1);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.1);
-    }
-
-    // Fechar contexto para liberar recursos
-    osc.onended = () => { ctx.close(); };
-  } catch {
-    // Ignorar se Web Audio API não disponível
-  }
-}
 
 // -----------------------------------------------------------------------
 // TYPES
@@ -151,6 +110,20 @@ export const useVoiceControl = ({
   const isListeningRef = useRef(isListening);
   isListeningRef.current = isListening;
 
+  // Refs for values used inside stable callbacks (prevents stale closures)
+  const teamANameRef = useRef(teamAName);
+  teamANameRef.current = teamAName;
+  const teamBNameRef = useRef(teamBName);
+  teamBNameRef.current = teamBName;
+  const colorARef = useRef(colorA);
+  colorARef.current = colorA;
+  const colorBRef = useRef(colorB);
+  colorBRef.current = colorB;
+  const showNotificationRef = useRef(showNotification);
+  showNotificationRef.current = showNotification;
+  const hideNotificationRef = useRef(hideNotification);
+  hideNotificationRef.current = hideNotification;
+
   const geminiService = useRef(GeminiCommandService.getInstance()).current;
   const recognitionService = useRef(VoiceRecognitionService.getInstance()).current;
   const bufferRef = useRef<CommandBuffer | null>(null);
@@ -171,7 +144,7 @@ export const useVoiceControl = ({
     });
 
     // 4.9 — Beep de confirmação
-    playCommandBeep('success');
+    audioService.playVoiceBeep('success');
 
     if (intent.isNegative) {
       if (intent.team) onSubtractPoint(intent.team);
@@ -185,22 +158,22 @@ export const useVoiceControl = ({
           onAddPoint(intent.team, intent.player?.id, intent.skill);
 
           // Show conditional visual feedback (notification) mapping the detailed intent
-          if (showNotification) {
+          const notify = showNotificationRef.current;
+          if (notify) {
             const hasSkill = intent.skill && intent.skill !== 'generic';
             const hasPlayer = !!intent.player;
 
             if (hasSkill || hasPlayer) {
-              let mainText = intent.team === 'A' ? teamAName : teamBName;
+              let mainText = intent.team === 'A' ? teamANameRef.current : teamBNameRef.current;
               if (hasPlayer) {
                 mainText += ` • ${intent.player?.name}`;
               }
 
-              showNotification({
+              notify({
                 type: 'success',
                 mainText,
                 skill: intent.skill || 'generic',
-                color: intent.team === 'A' ? colorA : colorB,
-                // No subText means it will default to the translation of the skill
+                color: intent.team === 'A' ? colorARef.current : colorBRef.current,
               });
             }
           }
@@ -217,8 +190,8 @@ export const useVoiceControl = ({
         break;
       case 'undo':
         onUndo();
-        if (showNotification) {
-          showNotification({
+        if (showNotificationRef.current) {
+          showNotificationRef.current({
             type: 'info',
             mainText: 'Ação desfeita',
             systemIcon: 'undo',
@@ -251,7 +224,7 @@ export const useVoiceControl = ({
 
   const cancelPendingIntent = useCallback(() => {
     setPendingIntent(null);
-    playCommandBeep('error');
+    audioService.playVoiceBeep('error');
   }, []);
 
   const resolveDomainConflict = useCallback((useDetectedTeam: boolean) => {
@@ -282,7 +255,7 @@ export const useVoiceControl = ({
 
   const cancelDomainConflict = useCallback(() => {
     setDomainConflict(null);
-    playCommandBeep('error');
+    audioService.playVoiceBeep('error');
   }, []);
 
   // -----------------------------------------------------------------------
@@ -326,31 +299,32 @@ export const useVoiceControl = ({
       console.log('[VoiceControl] Processing command via GEMINI:', transcript);
       setIsProcessingAI(true);
       onThinkingState?.(true);
-      if (showNotification) {
-        showNotification({
+      if (showNotificationRef.current) {
+        showNotificationRef.current({
           type: 'info',
           mainText: 'Thinking...',
-          systemIcon: 'party', // we can map this later, but for now we'll trigger the thinking state. Note: NotificationToast intercepts mainText === 'Thinking...' and applies the violet sparkle theme anyway.
-          duration: 10000 // A long duration, we'll clear it when done
+          systemIcon: 'party',
+          duration: 10000,
         });
       }
       const aiResult = await geminiService.parseCommand(transcript, {
         teamAName, teamBName, playersA, playersB,
       });
-      if (hideNotification) hideNotification();
+      if (hideNotificationRef.current) hideNotificationRef.current();
       setIsProcessingAI(false);
       onThinkingState?.(false);
       if (aiResult && aiResult.type !== 'unknown') {
+        console.log('[VoiceControl] Gemini result:', aiResult);
         const dedupeResult = deduplicatorRef.current.canExecute(aiResult);
         if (dedupeResult.allowed) {
           deduplicatorRef.current.register(aiResult);
           processIntent(aiResult);
         }
       } else {
-        // Gemini não reconheceu o comando — feedback ao usuário
-        playCommandBeep('error');
-        if (showNotification) {
-          showNotification({
+        console.log('[VoiceControl] Gemini returned null/unknown for:', transcript);
+        audioService.playVoiceBeep('error');
+        if (showNotificationRef.current) {
+          showNotificationRef.current({
             type: 'error',
             mainText: 'Comando não reconhecido',
             duration: 2000,
@@ -373,14 +347,14 @@ export const useVoiceControl = ({
         skill: localIntent.domainConflict.skill,
         rawText: localIntent.rawText,
       });
-      playCommandBeep('confirm');
+      audioService.playVoiceBeep('confirm');
       return;
     }
 
     if (localIntent.requiresMoreInfo && localIntent.type !== 'server') {
       if (['point', 'timeout'].includes(localIntent.type)) {
         setPendingIntent(localIntent);
-        playCommandBeep('confirm');
+        audioService.playVoiceBeep('confirm');
         return;
       }
     }
@@ -396,7 +370,7 @@ export const useVoiceControl = ({
       processIntent(localIntent);
     } else if (localIntent.confidence >= CONFIDENCE_CONFIRM) {
       setPendingIntent(localIntent);
-      playCommandBeep('confirm');
+      audioService.playVoiceBeep('confirm');
     }
   }, [
     language, teamAName, teamBName, playersA, playersB, enablePlayerStats,

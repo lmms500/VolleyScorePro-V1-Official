@@ -7,6 +7,7 @@ import { motion, AnimatePresence, Transition, Variants } from 'framer-motion';
 import { resolveTheme } from '@lib/utils/colors';
 import { useTranslation } from '@contexts/LanguageContext';
 import { useHaptics } from '@lib/haptics/useHaptics';
+import { audioService } from '@lib/audio/AudioService';
 
 interface ScoutModalProps {
     isOpen: boolean;
@@ -79,6 +80,7 @@ export const ScoutModal: React.FC<ScoutModalProps> = ({
 
     const goToStep2 = (pid: string) => {
         haptics.impact('light');
+        audioService.playTap();
         setSelectedPlayerId(pid);
         setDirection(1);
         setStep(2);
@@ -86,6 +88,7 @@ export const ScoutModal: React.FC<ScoutModalProps> = ({
 
     const goToStep1 = () => {
         haptics.impact('light');
+        audioService.playTap();
         setDirection(-1);
         setStep(1);
         setTimeout(() => setSelectedPlayerId(null), 200);
@@ -93,6 +96,7 @@ export const ScoutModal: React.FC<ScoutModalProps> = ({
 
     const handleOpponentError = () => {
         haptics.notification('success');
+        audioService.playSuccess();
         onConfirm('', 'opponent_error');
         onClose();
     };
@@ -100,6 +104,7 @@ export const ScoutModal: React.FC<ScoutModalProps> = ({
     const handleSkillSelect = (skill: SkillType) => {
         if (selectedPlayerId) {
             haptics.notification('success');
+            audioService.playConfirm();
             onConfirm(selectedPlayerId, skill);
             onClose();
         }

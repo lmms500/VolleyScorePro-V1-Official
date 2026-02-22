@@ -10,6 +10,7 @@ import { FEATURE_FLAGS } from '@config/constants';
 import { SyncEngine } from '@features/broadcast/services/SyncEngine';
 import { useTimeoutSync } from './useTimeoutSync';
 import { useRemoteTimeoutSync } from './useRemoteTimeoutSync';
+import { useTimerToReducerSync } from './useTimerToReducerSync';
 import { useActions, useScore, useRoster } from '@contexts/GameContext';
 import { useAuth } from '@contexts/AuthContext';
 import { useTranslation } from '@contexts/LanguageContext';
@@ -29,6 +30,7 @@ export interface SyncManagerReturn {
 }
 
 export function useSyncManager(): SyncManagerReturn {
+    useTimerToReducerSync();
     const combinedState = useCombinedGameStateWithTimer();
     const { setState } = useActions();
     const { isMatchOver } = useScore();

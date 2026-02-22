@@ -62,7 +62,7 @@ export const useSensoryFX = (state: GameState) => {
 
     // Undo Feedback
     if (scoreChanged && scoreDecreased && !state.isMatchOver) {
-        // Distinct "Retraction" feeling
+        audio.playUndo();
         haptics.impact('medium');
     }
 

@@ -10,6 +10,7 @@ class AudioService {
 
   private isSuspendedByApp: boolean = false;
   private initialized: boolean = false;
+  private globallyEnabled: boolean = true;
 
   // Volume State
   private readonly DEFAULT_VOLUME = 0.8;
@@ -36,6 +37,14 @@ class AudioService {
     // Do not eagerly create AudioContext to avoid "not allowed to start" warning.
     // It will be created on first user interaction via setupUnlockListener.
     this.initialized = true;
+  }
+
+  public setEnabled(enabled: boolean) {
+    this.globallyEnabled = enabled;
+  }
+
+  public isEnabled(): boolean {
+    return this.globallyEnabled;
   }
 
   private getContext(): AudioContext | null {
@@ -155,6 +164,7 @@ class AudioService {
   }
 
   private safePlay(playFn: (ctx: AudioContext, t: number) => void) {
+    if (!this.globallyEnabled) return;
     const ctx = this.getContext();
     if (!ctx || !this.masterGain) return;
 
@@ -413,6 +423,132 @@ class AudioService {
         osc.start(start);
         osc.stop(start + 0.6);
       });
+    });
+  }
+
+  public playConfirm() {
+    this.safePlay((ctx, t) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, t);
+      osc.frequency.setValueAtTime(659.25, t + 0.08);
+      gain.gain.setValueAtTime(0.12, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      osc.connect(gain);
+      gain.connect(this.masterGain!);
+      osc.start(t);
+      osc.stop(t + 0.25);
+    });
+  }
+
+  public playError() {
+    this.safePlay((ctx, t) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(200, t);
+      osc.frequency.setValueAtTime(150, t + 0.1);
+      gain.gain.setValueAtTime(0.08, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 600;
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.masterGain!);
+      osc.start(t);
+      osc.stop(t + 0.25);
+    });
+  }
+
+  public playSuccess() {
+    this.safePlay((ctx, t) => {
+      const notes = [523.25, 659.25, 783.99];
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const start = t + (i * 0.07);
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0, start);
+        gain.gain.linearRampToValueAtTime(0.1, start + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + 0.25);
+        osc.connect(gain);
+        gain.connect(this.masterGain!);
+        osc.start(start);
+        osc.stop(start + 0.3);
+      });
+    });
+  }
+
+  public playModalOpen() {
+    this.safePlay((ctx, t) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(440, t);
+      osc.frequency.exponentialRampToValueAtTime(880, t + 0.05);
+      gain.gain.setValueAtTime(0.05, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+      osc.connect(gain);
+      gain.connect(this.masterGain!);
+      osc.start(t);
+      osc.stop(t + 0.1);
+    });
+  }
+
+  public playNotification() {
+    this.safePlay((ctx, t) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, t);
+      gain.gain.setValueAtTime(0.08, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+      osc.connect(gain);
+      gain.connect(this.masterGain!);
+      osc.start(t);
+      osc.stop(t + 0.12);
+    });
+  }
+
+  public playVoiceBeep(type: 'success' | 'error' | 'confirm') {
+    this.safePlay((ctx, t) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(this.masterGain!);
+
+      if (type === 'success') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, t);
+        osc.frequency.setValueAtTime(1100, t + 0.06);
+        gain.gain.setValueAtTime(0.12, t);
+        gain.gain.linearRampToValueAtTime(0, t + 0.15);
+        osc.start(t);
+        osc.stop(t + 0.15);
+      } else if (type === 'confirm') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(660, t);
+        gain.gain.setValueAtTime(0.08, t);
+        gain.gain.linearRampToValueAtTime(0, t + 0.1);
+        osc.start(t);
+        osc.stop(t + 0.1);
+      } else {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(300, t);
+        gain.gain.setValueAtTime(0.08, t);
+        gain.gain.linearRampToValueAtTime(0, t + 0.1);
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 500;
+        osc.disconnect();
+        osc.connect(filter);
+        filter.connect(gain);
+        osc.start(t);
+        osc.stop(t + 0.1);
+      }
     });
   }
 

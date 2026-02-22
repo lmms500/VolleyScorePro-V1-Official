@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GameState, TeamId } from '@types';
 import { BroadcastBar } from '../components/core/BroadcastBar';
-import { TeamStatsOverlay } from '../components/stats/TeamStatsOverlay';
-import { TopPlayerOverlay } from '../components/stats/TopPlayerOverlay';
 import { PointScorerGraphic } from '../components/lower-thirds/PointScorerGraphic';
 import { RotationDisplay } from '../components/formation/RotationDisplay';
 import { PointCelebration } from '../components/animations/PointCelebration';
 import { SetWinCelebration } from '../components/animations/SetWinCelebration';
 import { MatchWinCelebration } from '../components/animations/MatchWinCelebration';
 import { EventHeader } from '../components/event/EventHeader';
-import { DraggableCard } from '../components/ui/DraggableCard';
+import { DraggableCard, resetAllDraggablePositions } from '../components/ui/DraggableCard';
+import { TeamStatsOverlay } from '../components/stats/TeamStatsOverlay';
+import { TopPlayerOverlay } from '../components/stats/TopPlayerOverlay';
 import {
   BroadcastConfig,
   DEFAULT_BROADCAST_CONFIG,
@@ -18,13 +18,14 @@ import {
 } from '../types/broadcast';
 import { getLastPointScorer, calculatePlayerStats, PlayerStatsResult } from '../utils/statsCalculator';
 import { getBroadcastConfig } from '../config/BroadcastConfig';
-import { useDraggableOverlay } from '../hooks/useDraggableOverlay';
 import { AnimatePresence, motion } from 'framer-motion';
 
 interface BroadcastScreenProps {
   state: GameState;
   config?: Partial<BroadcastConfig>;
 }
+
+const DRAGGABLE_KEYS = ['broadcastBar', 'teamStats', 'topPlayer', 'rotationA', 'rotationB'];
 
 export const BroadcastScreen: React.FC<BroadcastScreenProps> = ({
   state,
@@ -36,11 +37,11 @@ export const BroadcastScreen: React.FC<BroadcastScreenProps> = ({
     ...getBroadcastConfig()
   };
 
-  const { positions, isEditMode, updatePosition, resetPositions } = useDraggableOverlay();
-
+  const [isEditMode, setIsEditMode] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [showFormation, setShowFormation] = useState(false);
   const [activeLowerThird, setActiveLowerThird] = useState<LowerThirdData | null>(null);
+  const [lowerThirdKey, setLowerThirdKey] = useState(0);
 
   const [celebrationType, setCelebrationType] = useState<CelebrationType | null>(null);
   const [celebrationTeam, setCelebrationTeam] = useState<TeamId | null>(null);
@@ -53,15 +54,15 @@ export const BroadcastScreen: React.FC<BroadcastScreenProps> = ({
   const prevIsMatchOver = useRef(state.isMatchOver);
   const prevHistoryLength = useRef(state.history.length);
   const lowerThirdTimeout = useRef<NodeJS.Timeout | null>(null);
-
-  const scoreAChanged = state.scoreA !== prevScoreA.current;
-  const scoreBChanged = state.scoreB !== prevScoreB.current;
-  const scoreChanged = scoreAChanged || scoreBChanged;
-
-  const historyChanged = state.history.length !== prevHistoryLength.current;
-  const matchEnded = state.isMatchOver && !prevIsMatchOver.current;
+  const lastPointRef = useRef<{ teamA: number; teamB: number }>({ teamA: 0, teamB: 0 });
 
   useEffect(() => {
+    const matchEnded = state.isMatchOver && !prevIsMatchOver.current;
+    const historyChanged = state.history.length !== prevHistoryLength.current;
+    const scoreAChanged = state.scoreA !== prevScoreA.current;
+    const scoreBChanged = state.scoreB !== prevScoreB.current;
+    const scoreChanged = scoreAChanged || scoreBChanged;
+
     if (matchEnded) {
       setCelebrationType('match');
       setCelebrationTeam(state.matchWinner);
@@ -90,19 +91,7 @@ export const BroadcastScreen: React.FC<BroadcastScreenProps> = ({
     prevSetsB.current = state.setsB;
     prevIsMatchOver.current = state.isMatchOver;
     prevHistoryLength.current = state.history.length;
-  }, [
-    state.scoreA,
-    state.scoreB,
-    state.setsA,
-    state.setsB,
-    state.isMatchOver,
-    state.matchWinner,
-    state.history.length,
-    historyChanged,
-    matchEnded,
-    scoreChanged,
-    config.autoShowLowerThirds
-  ]);
+  }, [state.scoreA, state.scoreB, state.setsA, state.setsB, state.isMatchOver, state.matchWinner, state.history, config.autoShowLowerThirds]);
 
   const showPointScorerLowerThird = useCallback(() => {
     const result = getLastPointScorer(
@@ -111,12 +100,16 @@ export const BroadcastScreen: React.FC<BroadcastScreenProps> = ({
       state.teamBRoster
     );
 
-    if (!result) return;
+    if (!result) {
+      setActiveLowerThird(null);
+      return;
+    }
 
     const teamRoster = result.teamId === 'A' ? state.teamARoster : state.teamBRoster;
     const playerStats = calculatePlayerStats(state.matchLog, teamRoster, result.teamId);
     const stats = playerStats.find((s) => s.playerId === result.player.id);
 
+    setLowerThirdKey(prev => prev + 1);
     setActiveLowerThird({
       type: 'point_scorer',
       player: result.player,
@@ -139,6 +132,11 @@ export const BroadcastScreen: React.FC<BroadcastScreenProps> = ({
     setCelebrationSetData(null);
   }, []);
 
+  const handleResetPositions = useCallback(() => {
+    resetAllDraggablePositions(DRAGGABLE_KEYS);
+    window.location.reload();
+  }, []);
+
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -154,28 +152,34 @@ export const BroadcastScreen: React.FC<BroadcastScreenProps> = ({
         case 'f':
           setShowFormation((prev) => !prev);
           break;
+        case 'e':
+          setIsEditMode((prev) => !prev);
+          break;
+        case 'r':
+          if (isEditMode) {
+            handleResetPositions();
+          }
+          break;
         case 'h':
           setActiveLowerThird(null);
           setShowStats(false);
           setShowFormation(false);
-          break;
-        case 'r':
-          if (isEditMode) {
-            resetPositions();
-          }
           break;
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [clearCelebration, isEditMode, resetPositions]);
+  }, [clearCelebration, isEditMode, handleResetPositions]);
 
   useEffect(() => {
     return () => {
       if (lowerThirdTimeout.current) clearTimeout(lowerThirdTimeout.current);
     };
   }, []);
+
+  const w = typeof window !== 'undefined' ? window.innerWidth : 1920;
+  const h = typeof window !== 'undefined' ? window.innerHeight : 1080;
 
   return (
     <div className="w-full h-screen bg-transparent overflow-hidden">
@@ -196,26 +200,24 @@ export const BroadcastScreen: React.FC<BroadcastScreenProps> = ({
         venue={config.venue}
       />
 
-      <BroadcastBar
-        state={state}
-        showTimer={true}
-        showTimeouts={true}
-      />
+      <DraggableCard
+        positionKey="broadcastBar"
+        defaultX={w / 2}
+        defaultY={60}
+        isEditMode={isEditMode}
+      >
+        <BroadcastBar state={state} showTimer={true} showTimeouts={true} />
+      </DraggableCard>
 
       <AnimatePresence>
         {showStats && (
           <DraggableCard
             positionKey="teamStats"
-            position={positions.teamStats}
+            defaultX={w / 2}
+            defaultY={h - 120}
             isEditMode={isEditMode}
-            onPositionChange={updatePosition}
-            defaultPosition={{ bottom: '8px', left: '50%' }}
           >
-            <TeamStatsOverlay
-              show={showStats}
-              state={state}
-              position="bottom"
-            />
+            <TeamStatsOverlay show={showStats} state={state} />
           </DraggableCard>
         )}
       </AnimatePresence>
@@ -224,53 +226,41 @@ export const BroadcastScreen: React.FC<BroadcastScreenProps> = ({
         {showStats && (
           <DraggableCard
             positionKey="topPlayer"
-            position={positions.topPlayer}
+            defaultX={w - 150}
+            defaultY={h / 2}
             isEditMode={isEditMode}
-            onPositionChange={updatePosition}
-            defaultPosition={{ bottom: '192px', right: '32px' }}
           >
-            <TopPlayerOverlay
-              show={showStats}
-              state={state}
-              position="right"
-            />
+            <TopPlayerOverlay show={showStats} state={state} />
           </DraggableCard>
         )}
       </AnimatePresence>
 
-      <DraggableCard
-        positionKey="rotationA"
-        position={positions.rotationA}
-        isEditMode={isEditMode}
-        onPositionChange={updatePosition}
-        defaultPosition={{ top: '50%', left: '32px' }}
-      >
-        <RotationDisplay
-          show={showFormation}
-          state={state}
-          teamId="A"
-          position="left"
-        />
-      </DraggableCard>
+      {showFormation && (
+        <DraggableCard
+          positionKey="rotationA"
+          defaultX={150}
+          defaultY={h / 2}
+          isEditMode={isEditMode}
+        >
+          <RotationDisplay show={showFormation} state={state} teamId="A" />
+        </DraggableCard>
+      )}
 
-      <DraggableCard
-        positionKey="rotationB"
-        position={positions.rotationB}
-        isEditMode={isEditMode}
-        onPositionChange={updatePosition}
-        defaultPosition={{ top: '50%', right: '32px' }}
-      >
-        <RotationDisplay
-          show={showFormation}
-          state={state}
-          teamId="B"
-          position="right"
-        />
-      </DraggableCard>
+      {showFormation && (
+        <DraggableCard
+          positionKey="rotationB"
+          defaultX={w - 150}
+          defaultY={h / 2 + 200}
+          isEditMode={isEditMode}
+        >
+          <RotationDisplay show={showFormation} state={state} teamId="B" />
+        </DraggableCard>
+      )}
 
       <AnimatePresence>
         {activeLowerThird?.type === 'point_scorer' && activeLowerThird.player && (
           <PointScorerGraphic
+            key={lowerThirdKey}
             show={true}
             player={activeLowerThird.player}
             teamId={activeLowerThird.teamId!}
@@ -318,20 +308,16 @@ export const BroadcastScreen: React.FC<BroadcastScreenProps> = ({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
-          className="fixed top-4 right-4 bg-cyan-500/20 backdrop-blur-sm border border-cyan-400/30 rounded-lg px-4 py-2 z-50"
+          className="fixed top-4 left-1/2 -translate-x-1/2 bg-cyan-500 text-white rounded-lg px-4 py-2 z-[100]"
         >
-          <div className="flex items-center gap-2 text-cyan-400">
-            <span className="text-sm font-bold">Modo Edição Ativo</span>
-          </div>
-          <div className="text-xs text-cyan-400/70 mt-1">
-            Arraste os cards para reposicionar • [R] Resetar • [E] Sair
-          </div>
+          <span className="text-sm font-bold">Modo Edição</span>
+          <span className="text-xs ml-2 opacity-80">Arraste os elementos • [R] Reset • [E] Sair</span>
         </motion.div>
       )}
 
-      <div className="fixed bottom-4 right-4 pointer-events-none opacity-40">
-        <div className="text-[10px] font-mono text-white/60 bg-black/40 px-2 py-1 rounded">
-          [S] Stats • [F] Formação • [E] Editar • [R] Reset • [H] Ocultar • [ESC] Fechar
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 pointer-events-none opacity-40">
+        <div className="text-[10px] font-mono text-white/60 bg-black/40 px-3 py-1.5 rounded">
+          [S] Stats • [F] Formação • [E] Editar • [H] Ocultar • [ESC] Fechar
         </div>
       </div>
     </div>

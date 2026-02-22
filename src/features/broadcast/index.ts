@@ -20,8 +20,9 @@ export { BroadcastScreen } from './screens/BroadcastScreen';
 
 export { useBroadcastManager } from './hooks/useBroadcastManager';
 export { useDraggableOverlay } from './hooks/useDraggableOverlay';
+export { useTimerToReducerSync } from './hooks/useTimerToReducerSync';
 
-export { DraggableCard } from './components/ui/DraggableCard';
+export { DraggableCard, resetAllDraggablePositions } from './components/ui/DraggableCard';
 
 export * from './types/broadcast';
 export * from './utils/statsCalculator';

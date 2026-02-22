@@ -17,7 +17,10 @@ export const useGameAudio = (config: GameConfig) => {
   const enabledRef = useRef(config.enableSound);
   const lowGfxRef = useRef(config.lowGraphics);
 
-  useEffect(() => { enabledRef.current = config.enableSound; }, [config.enableSound]);
+  useEffect(() => { 
+    enabledRef.current = config.enableSound; 
+    audioService.setEnabled(config.enableSound);
+  }, [config.enableSound]);
   useEffect(() => { lowGfxRef.current = config.lowGraphics; }, [config.lowGraphics]);
 
   // Stable object - never recreated
@@ -33,6 +36,12 @@ export const useGameAudio = (config: GameConfig) => {
     playSuddenDeath: () => { if (enabledRef.current) audioService.playSuddenDeath(lowGfxRef.current); },
     playSwap: () => { if (enabledRef.current) audioService.playSwap(); },
     playDeuce: () => { if (enabledRef.current) audioService.playDeuce(); },
-    playUnlock: () => { if (enabledRef.current) audioService.playUnlock(); }
+    playUnlock: () => { if (enabledRef.current) audioService.playUnlock(); },
+    playConfirm: () => { if (enabledRef.current) audioService.playConfirm(); },
+    playError: () => { if (enabledRef.current) audioService.playError(); },
+    playSuccess: () => { if (enabledRef.current) audioService.playSuccess(); },
+    playModalOpen: () => { if (enabledRef.current) audioService.playModalOpen(); },
+    playNotification: () => { if (enabledRef.current) audioService.playNotification(); },
+    playVoiceBeep: (type: 'success' | 'error' | 'confirm') => { if (enabledRef.current) audioService.playVoiceBeep(type); }
   }), []); // STABLE - never recreated
 };

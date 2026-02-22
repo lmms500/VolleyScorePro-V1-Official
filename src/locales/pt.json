@@ -89,6 +89,7 @@
     },
     "roles": {
         "setter": "Levantador",
+        "opposite": "Oposto",
         "hitter": "Ponteiro",
         "libero": "Líbero",
         "middle": "Central",

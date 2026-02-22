@@ -2,13 +2,12 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { GameState } from '@types';
 import { getHexFromColor } from '@lib/utils/colors';
-import { calculateTeamStats, TeamStatsResult } from '../../utils/statsCalculator';
+import { calculateTeamStats } from '../../utils/statsCalculator';
 import { Zap, Shield, Target, AlertCircle } from 'lucide-react';
 
 interface TeamStatsOverlayProps {
   show: boolean;
   state: GameState;
-  position?: 'top' | 'bottom';
 }
 
 interface StatRowProps {
@@ -65,30 +64,22 @@ const StatRow: React.FC<StatRowProps> = ({ label, valueA, valueB, icon, colorA, 
   );
 };
 
-export const TeamStatsOverlay: React.FC<TeamStatsOverlayProps> = ({
-  show,
-  state,
-  position = 'bottom',
-}) => {
+export const TeamStatsOverlay: React.FC<TeamStatsOverlayProps> = ({ show, state }) => {
   const colorA = getHexFromColor(state.teamARoster.color || 'indigo');
   const colorB = getHexFromColor(state.teamBRoster.color || 'rose');
 
   const statsA = calculateTeamStats(state.matchLog, 'A', state.teamAName);
   const statsB = calculateTeamStats(state.matchLog, 'B', state.teamBName);
 
-  const positionClasses = position === 'top' 
-    ? 'top-24 left-1/2 -translate-x-1/2' 
-    : 'bottom-8 left-1/2 -translate-x-1/2';
-
   if (!show) return null;
 
   return (
     <motion.div
-      initial={{ y: position === 'top' ? -50 : 50, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      exit={{ y: position === 'top' ? -50 : 50, opacity: 0 }}
+      initial={{ scale: 0.9, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: 0.9, opacity: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className={`fixed ${positionClasses} pointer-events-none z-40`}
+      className="pointer-events-none"
     >
       <div className="bg-black/80 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden min-w-[400px]">
         <div className="flex items-center justify-between px-4 py-2 border-b border-white/10 bg-white/5">

@@ -89,8 +89,9 @@
     },
     "roles": {
         "setter": "Armador",
+        "opposite": "Opuesto",
         "hitter": "Rematador",
-        "libero": "Lbero",
+        "libero": "Líbero",
         "middle": "Central",
         "none": "Ninguno"
     },

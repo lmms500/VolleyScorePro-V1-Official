@@ -1,8 +1,7 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { useGameAudio } from '@features/game/hooks/useGameAudio';
+import { audioService } from '@lib/audio/AudioService';
 import { useHaptics } from '@lib/haptics/useHaptics';
-import { DEFAULT_CONFIG } from '@config/constants';
 
 interface ToggleOption<T extends string> {
     value: T;
@@ -29,13 +28,12 @@ export function ToggleGroup<T extends string>({
     fullWidth = false,
     className = ''
 }: ToggleGroupProps<T>) {
-    const audioConfig = useMemo(() => ({ ...DEFAULT_CONFIG, enableSound: true }), []);
-    const audio = useGameAudio(audioConfig);
+    audioService.init();
     const haptics = useHaptics();
 
     const handleChange = (newValue: T) => {
         if (newValue !== value) {
-            audio.playTap();
+            audioService.playTap();
             haptics.impact('light');
             onChange(newValue);
         }

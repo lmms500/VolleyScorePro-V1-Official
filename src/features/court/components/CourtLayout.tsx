@@ -13,6 +13,7 @@ import { CourtHeader } from '@features/court/components/CourtHeader';
 import { CourtFooter } from '@features/court/components/CourtFooter';
 import BeachSandTexture from '@features/court/components/BeachSandTexture';
 import { useElementSize } from '@features/game/hooks/useElementSize';
+import { autoPositionPlayersByRole } from '@lib/utils/courtPositioning';
 
 interface CourtLayoutProps {
     teamA: Team;
@@ -168,6 +169,7 @@ export const CourtLayout: React.FC<CourtLayoutProps> = ({
         onManualRotate(teamId, direction);
     }, [haptics, onManualRotate]);
 
+
     const handleSubstituteRequest = useCallback((teamId: string) => {
         haptics.impact('light');
         setSubModalTeamId(teamId);
@@ -198,6 +200,34 @@ export const CourtLayout: React.FC<CourtLayoutProps> = ({
     const servingTeamDisplay: TeamId | null = swapped
         ? (servingTeam === 'A' ? 'B' : servingTeam === 'B' ? 'A' : null)
         : servingTeam;
+
+    // Auto-position players: reorders the team's array to match standard rotation positions
+    // Must be declared after `swapped` so it can resolve visual → actual teamId correctly
+    const handleAutoPosition = useCallback((teamId: string) => {
+        const actualTeamId = swapped ? (teamId === 'A' ? 'B' : 'A') : teamId;
+        const team = actualTeamId === 'A' ? teamA : teamB;
+        const layout = getCourtLayoutFromConfig(config || { mode: 'indoor' } as any);
+        const playersOnCourt = layout.playersOnCourt;
+
+        if (playersOnCourt !== 6) return;
+
+        const currentPlayers = team.players.slice(0, playersOnCourt);
+        const reordered = autoPositionPlayersByRole(currentPlayers, playersOnCourt);
+
+        // Bubble-sort-style sequential swaps to move each player to their target slot
+        const arr = [...currentPlayers];
+        for (let targetIdx = 0; targetIdx < reordered.length; targetIdx++) {
+            const targetPlayer = reordered[targetIdx];
+            const currentIdx = arr.findIndex(p => p.id === targetPlayer.id);
+            if (currentIdx !== targetIdx) {
+                const tmp = arr[currentIdx];
+                arr[currentIdx] = arr[targetIdx];
+                arr[targetIdx] = tmp;
+                onMovePlayer(actualTeamId, currentIdx, targetIdx);
+            }
+        }
+        haptics.impact('heavy');
+    }, [swapped, teamA, teamB, config, onMovePlayer, haptics]);
 
     const handleScoreForDisplay = useCallback((visualId: TeamId, delta: number) => {
         const actual = swapped ? (visualId === 'A' ? 'B' : 'A') as TeamId : visualId;
@@ -324,6 +354,7 @@ export const CourtLayout: React.FC<CourtLayoutProps> = ({
                     teamA={leftTeam} teamB={rightTeam}
                     onRotate={handleRotateForDisplay}
                     onSubstituteRequest={handleSubstituteForDisplay}
+                    onAutoPosition={handleAutoPosition}
                     hideNavButtons={isInline}
                     onOpenManager={isInline ? undefined : () => onOpenManager?.()}
                     onOpenHistory={isInline ? undefined : () => onOpenHistory?.()}

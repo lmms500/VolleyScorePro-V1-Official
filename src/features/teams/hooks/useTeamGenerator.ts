@@ -1,5 +1,5 @@
 import { useCallback, MutableRefObject, Dispatch } from 'react';
-import { GameState, GameAction } from '@types';
+import { GameState, GameAction, PlayerProfile } from '@types';
 import { getPlayersOnCourtFromConfig } from '@config/gameModes';
 import { createPlayer } from '@features/teams/utils/rosterLogic';
 import { distributeStandard, balanceTeamsSnake } from '@features/game/utils/balanceUtils';
@@ -7,6 +7,7 @@ import { distributeStandard, balanceTeamsSnake } from '@features/game/utils/bala
 interface UseTeamGeneratorOptions {
   stateRef: MutableRefObject<GameState>;
   dispatch: Dispatch<GameAction>;
+  findProfileByNameRef: MutableRefObject<(name: string) => PlayerProfile | undefined>;
 }
 
 /**
@@ -15,7 +16,8 @@ interface UseTeamGeneratorOptions {
  */
 export const useTeamGenerator = ({
   stateRef,
-  dispatch
+  dispatch,
+  findProfileByNameRef
 }: UseTeamGeneratorOptions) => {
 
   /**
@@ -57,7 +59,16 @@ export const useTeamGenerator = ({
         }
       }
 
-      return createPlayer(pName, index, undefined, pSkill, pNum);
+      // Auto-link por nome: busca perfil existente e sincroniza dados
+      const matchedProfile = findProfileByNameRef.current(pName);
+      const resolvedProfileId = matchedProfile?.id;
+      const resolvedSkill = matchedProfile?.skillLevel ?? pSkill;
+      const resolvedNumber = matchedProfile?.number ?? pNum;
+      const player = createPlayer(pName, index, resolvedProfileId, resolvedSkill, resolvedNumber);
+      if (matchedProfile?.role) {
+        player.role = matchedProfile.role;
+      }
+      return player;
     });
 
     const result = distributeStandard(
@@ -74,7 +85,7 @@ export const useTeamGenerator = ({
       courtB: result.courtB,
       queue: result.queue
     });
-  }, [stateRef, dispatch]);
+  }, [stateRef, dispatch, findProfileByNameRef]);
 
   /**
    * Rebalances existing players across teams based on rotation mode.

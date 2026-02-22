@@ -2,13 +2,11 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GameState, TeamId, Player } from '@types';
 import { getHexFromColor } from '@lib/utils/colors';
-import { User } from 'lucide-react';
 
 interface RotationDisplayProps {
   show: boolean;
   state: GameState;
   teamId: TeamId;
-  position?: 'left' | 'right';
 }
 
 const PlayerCard: React.FC<{
@@ -68,12 +66,7 @@ const PlayerCard: React.FC<{
   );
 };
 
-export const RotationDisplay: React.FC<RotationDisplayProps> = ({
-  show,
-  state,
-  teamId,
-  position = 'left',
-}) => {
+export const RotationDisplay: React.FC<RotationDisplayProps> = ({ show, state, teamId }) => {
   if (!show) return null;
 
   const teamColor = teamId === 'A'
@@ -96,8 +89,7 @@ export const RotationDisplay: React.FC<RotationDisplayProps> = ({
   ];
 
   const getPlayerByZone = (zone: number): Player | undefined => {
-    const rotationOffset = 0;
-    const playerIndex = (zone - 1 + rotationOffset) % 6;
+    const playerIndex = (zone - 1) % 6;
     return players[playerIndex];
   };
 
@@ -105,18 +97,14 @@ export const RotationDisplay: React.FC<RotationDisplayProps> = ({
     return isServing && zone === 1;
   };
 
-  const positionClasses = position === 'left'
-    ? 'left-8 top-1/2 -translate-y-1/2'
-    : 'right-8 top-1/2 -translate-y-1/2';
-
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ x: position === 'left' ? -50 : 50, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        exit={{ x: position === 'left' ? -50 : 50, opacity: 0 }}
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className={`fixed ${positionClasses} pointer-events-none z-40`}
+        className="pointer-events-none"
       >
         <div className="bg-black/80 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden">
           <div 
