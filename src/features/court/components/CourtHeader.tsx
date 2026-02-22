@@ -2,7 +2,7 @@
 import React, { memo } from 'react';
 import { Timer, Crown, Zap, TrendingUp, Skull, Plus, Minus, Volleyball } from 'lucide-react';
 import { Team, TeamId } from '@types';
-import { resolveTheme, getHexFromColor } from '@lib/utils/colors';
+import { resolveTheme, getHexFromColor, ColorTheme } from '@lib/utils/colors';
 import { useTranslation } from '@contexts/LanguageContext';
 import { useTimerValue } from '@contexts/TimerContext';
 import { TeamLogo } from '@ui/TeamLogo';
@@ -30,14 +30,14 @@ interface CourtHeaderProps {
     compact?: boolean;
 }
 
-const MiniBadge = memo(({ icon: Icon, colorClass, text }: any) => (
+const MiniBadge = memo(({ icon: Icon, colorClass, text }: { icon: React.ElementType; colorClass: string; text: string }) => (
     <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${colorClass} shadow-lg border border-white/20 backdrop-blur-sm`}>
         <Icon size={9} fill="currentColor" />
         <span>{text}</span>
     </div>
 ));
 
-const TimeoutControl = memo(({ onTimeout, count = 0, theme, color }: { onTimeout?: () => void, count?: number, theme: any, color?: string }) => {
+const TimeoutControl = memo(({ onTimeout, count = 0, theme, color }: { onTimeout?: () => void, count?: number, theme: ColorTheme, color?: string }) => {
     if (!onTimeout) return null;
     const isExhausted = count >= 2;
     const hexColor = getHexFromColor(color);

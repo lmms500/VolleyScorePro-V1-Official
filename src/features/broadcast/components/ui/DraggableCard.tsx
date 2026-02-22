@@ -28,7 +28,7 @@ export const DraggableCard: React.FC<DraggableCardProps> = ({
           setPos({ x: parsed.x, y: parsed.y });
           return;
         }
-      } catch (e) {}
+      } catch (e) { console.warn('[DraggableCard] Failed to parse stored position:', e); }
     }
     setPos({ x: defaultX, y: defaultY });
   }, [positionKey, defaultX, defaultY]);

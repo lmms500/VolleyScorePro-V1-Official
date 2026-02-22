@@ -3,7 +3,7 @@ import React from 'react';
 import { Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export const SectionTitle = ({ children, icon: Icon, color }: { children?: React.ReactNode; icon?: any; color?: string }) => {
+export const SectionTitle = ({ children, icon: Icon, color }: { children?: React.ReactNode; icon?: React.ElementType; color?: string }) => {
     const colorFrom = color ? `from-${color}-500` : 'from-slate-400';
     const colorTo = color ? `to-${color}-600` : 'to-slate-600';
     const shadowColor = color ? `shadow-${color}-500/20` : 'shadow-slate-500/20';
@@ -23,7 +23,7 @@ export const SectionTitle = ({ children, icon: Icon, color }: { children?: React
     );
 };
 
-export const SettingItem = ({ label, icon: Icon, color, children, sub, onClick }: any) => {
+export const SettingItem = ({ label, icon: Icon, color, children, sub, onClick, className }: { label: string; icon: React.ElementType; color: { bg?: string; bgGradient?: string; text?: string; iconText?: string; shadow?: string }; children?: React.ReactNode; sub?: string; onClick?: () => void; className?: string }) => {
     const iconBgClass = color.bgGradient ? `bg-gradient-to-br ${color.bgGradient}` : color.bg;
     return <div
         onClick={onClick}
@@ -40,6 +40,7 @@ export const SettingItem = ({ label, icon: Icon, color, children, sub, onClick }
             transition-all duration-200
             overflow-hidden group
             ${onClick ? 'cursor-pointer active:scale-[0.99]' : ''}
+            ${className ?? ''}
         `}
     >
         {/* Shimmer on hover */}
@@ -58,7 +59,7 @@ export const SettingItem = ({ label, icon: Icon, color, children, sub, onClick }
     </div>;
 };
 
-export const PresetButton = ({ active, onClick, icon: Icon, label, sub, colorClass, borderClass, bgActive, textActive }: any) => (
+export const PresetButton = ({ active, onClick, icon: Icon, label, sub, colorClass, borderClass, bgActive, textActive }: { active: boolean; onClick: () => void; icon: React.ElementType; label: string; sub: string; colorClass: string; borderClass: string; bgActive: string; textActive: string }) => (
     <button
         onClick={onClick}
         className={`

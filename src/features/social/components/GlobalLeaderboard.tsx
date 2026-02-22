@@ -97,7 +97,7 @@ export const GlobalLeaderboard: React.FC<GlobalLeaderboardProps> = ({ onJoinMatc
                         {players.map((player, idx) => (
                             <motion.div 
                                 key={player.id} variants={staggerItem}
-                                className={`flex items-center justify-between p-4 rounded-2xl border bg-white/80 dark:bg-white/[0.03] backdrop-blur-sm border-black/5 dark:border-white/5 ring-1 ring-inset ring-white/10 dark:ring-white/5 shadow-sm hover:shadow-md transition-all ${idx === 0 ? 'ring-2 ring-amber-500/30 bg-amber-500/[0.02]' : ''}`}
+                                className={`flex items-center justify-between p-4 rounded-2xl border bg-white/80 dark:bg-white/[0.03] backdrop-blur-sm border-black/5 dark:border-white/5 shadow-sm hover:shadow-md transition-all ${idx === 0 ? 'ring-2 ring-inset ring-amber-500/30 bg-amber-500/[0.02]' : 'ring-1 ring-inset ring-white/10 dark:ring-white/5'}`}
                             >
                                 <div className="flex items-center gap-4">
                                     <div className="w-8 flex items-center justify-center">{getRankBadge(idx)}</div>

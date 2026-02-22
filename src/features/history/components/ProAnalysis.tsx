@@ -12,7 +12,7 @@ import { MatchAnalysis } from '@types';
 const EfficiencyBadge = ({ label, value, colorClass, icon: Icon }: any) => (
     <div className="flex flex-col gap-2 p-4 bg-white/60 dark:bg-white/[0.03] backdrop-blur-sm rounded-3xl border border-black/5 dark:border-white/5 ring-1 ring-inset ring-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.1)] relative overflow-hidden group">
         <div className="flex items-center justify-between relative z-10">
-            <div className={`p-2 rounded-xl ${colorClass.replace('bg-', 'bg-opacity-20 bg-')} ${colorClass.replace('bg-', 'text-')}`}>
+            <div className={`p-2 rounded-xl ${colorClass}/20 ${colorClass.replace('bg-', 'text-')}`}>
                 <Icon size={16} strokeWidth={2.5} />
             </div>
             <span className="text-xl font-black tabular-nums">{value}/10</span>

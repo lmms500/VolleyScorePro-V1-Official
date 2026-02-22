@@ -230,7 +230,7 @@ const CenterDisplayStealth = memo<{
   let key = 'timer';
   let content = null;
 
-  const StatusPill = ({ icon: Icon, text, badgeColor, animateIcon }: { icon: any; text: string; badgeColor: 'red' | 'amber' | 'emerald' | 'indigo' | 'rose' | 'neutral'; animateIcon: any }) => (
+  const StatusPill = ({ icon: Icon, text, badgeColor, animateIcon }: { icon: React.ElementType; text: string; badgeColor: 'red' | 'amber' | 'emerald' | 'indigo' | 'rose' | 'neutral'; animateIcon: React.ComponentProps<typeof motion.div>['animate'] }) => (
     <div className={`flex flex-col items-center justify-center gap-0.5 w-full h-full`}>
       <motion.div
         animate={animateIcon}

@@ -120,7 +120,7 @@ export const InteractiveGestureDemo: React.FC<InteractiveGestureDemoProps> = ({
         <motion.div
           className={`
             relative w-full max-w-sm p-6 sm:p-8 rounded-3xl shadow-xl
-            border-2 border-opacity-30
+            border-2 border-white/30
             bg-gradient-to-br from-white via-white/80 to-white/60
             dark:from-slate-800/80 dark:via-slate-800/60 dark:to-slate-900/40
             backdrop-blur-md
@@ -169,8 +169,8 @@ export const InteractiveGestureDemo: React.FC<InteractiveGestureDemoProps> = ({
                 className={`
                   w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-bold text-white
                   border-2 transition-all text-xs sm:text-sm
-                  ${task.completed 
-                    ? `${haloClass} border-opacity-50` 
+                  ${task.completed
+                    ? `${haloClass} border-current/50`
                     : 'bg-slate-200 dark:bg-slate-700 border-slate-300 dark:border-slate-600'}
                 `}
                 animate={task.completed ? { scale: [1, 1.15, 1] } : {}}

@@ -39,11 +39,11 @@ export const IconButton: React.FC<IconButtonProps> = ({
 
   // Variantes
   const variants = {
-    default: "bg-white/50 dark:bg-white/5 border border-white/50 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:bg-white/70 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-slate-200 shadow-sm ring-1 ring-inset ring-white/10 dark:ring-white/5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:shadow-md",
+    default: "bg-white/50 dark:bg-white/5 border border-white/50 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:bg-white/70 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-slate-200 shadow-[0_1px_2px_0_rgba(0,0,0,0.05),inset_0_1px_0_0_rgba(255,255,255,0.15)] ring-1 ring-inset ring-white/10 dark:ring-white/5 hover:shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1),inset_0_1px_0_0_rgba(255,255,255,0.15)]",
     ghost: "bg-transparent text-slate-500 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-slate-700 dark:hover:text-slate-200",
-    filled: "bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/30 ring-1 ring-inset ring-white/10 border border-indigo-400/20 hover:from-indigo-400 hover:to-indigo-500 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)]",
-    danger: "bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/30 ring-1 ring-inset ring-white/10 border border-rose-400/20 hover:from-rose-400 hover:to-rose-500 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)]",
-    success: "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/30 ring-1 ring-inset ring-white/10 border border-emerald-400/20 hover:from-emerald-400 hover:to-emerald-500 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)]"
+    filled: "bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-[0_10px_15px_-3px_rgba(99,102,241,0.3),0_4px_6px_-4px_rgba(99,102,241,0.3),inset_0_1px_0_0_rgba(255,255,255,0.2)] ring-1 ring-inset ring-white/10 border border-indigo-400/20 hover:from-indigo-400 hover:to-indigo-500",
+    danger: "bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-[0_10px_15px_-3px_rgba(244,63,94,0.3),0_4px_6px_-4px_rgba(244,63,94,0.3),inset_0_1px_0_0_rgba(255,255,255,0.2)] ring-1 ring-inset ring-white/10 border border-rose-400/20 hover:from-rose-400 hover:to-rose-500",
+    success: "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-[0_10px_15px_-3px_rgba(16,185,129,0.3),0_4px_6px_-4px_rgba(16,185,129,0.3),inset_0_1px_0_0_rgba(255,255,255,0.2)] ring-1 ring-inset ring-white/10 border border-emerald-400/20 hover:from-emerald-400 hover:to-emerald-500"
   };
 
   // Tamanhos

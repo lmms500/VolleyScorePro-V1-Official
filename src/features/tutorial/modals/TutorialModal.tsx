@@ -14,7 +14,7 @@ export interface TutorialStep {
     id: string;
     title: string;
     desc: string;
-    icon: any;
+    icon: React.ElementType;
     color: string;
     content?: React.ReactNode;
 }
@@ -30,14 +30,14 @@ interface TutorialModalProps {
   isStandalone?: boolean;
 }
 
-const Slide = ({ title, desc, icon: Icon, color, children }: any) => (
+const Slide = ({ title, desc, icon: Icon, color, children }: { title: string; desc: string; icon: React.ElementType; color: string; children?: React.ReactNode }) => (
   <div className="flex flex-col items-center text-center w-full px-4">
     {/* Icon Header - Larger & Softer */}
     <div className={`
         p-6 rounded-[2rem] mb-6 
-        ${color.replace('bg-', 'bg-opacity-10 bg-')} 
+        ${color}/10
         ${color.replace('bg-', 'text-')}
-        ring-1 ring-current ring-opacity-20
+        ring-1 ring-current/20
     `}>
       <Icon size={40} strokeWidth={1.5} />
     </div>

@@ -23,7 +23,7 @@ const MenuButton = memo(({
   delay = 0,
   className = ""
 }: {
-  icon: any,
+  icon: React.ElementType,
   label: string,
   subLabel: string,
   onClick: () => void,
@@ -56,10 +56,9 @@ const MenuButton = memo(({
   const theme = colors[themeColor];
 
   // Mobile-first handler (conforme .clinerules)
-  const handleClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    console.log('🖱️ MenuButton clicked:', label);
+  const handleClick = useCallback((_e: React.MouseEvent | React.TouchEvent) => {
     onClick();
-  }, [onClick, label]);
+  }, [onClick]);
 
   return (
     <motion.button
@@ -115,47 +114,25 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = memo(({
   const { theme, setTheme } = useTheme();
   
   const handleSettings = useCallback(() => {
-    console.log('🔧 Settings clicked');
-    // Fechar drawer ANTES de abrir o novo modal
     onClose();
-    // Pequeno delay para garantir que o drawer fecha antes de abrir o settings
-    setTimeout(() => {
-      console.log('🔧 Abrindo Settings após fechar drawer');
-      onOpenSettings();
-    }, 100);
+    setTimeout(() => onOpenSettings(), 100);
   }, [onOpenSettings, onClose]);
 
   const handleRoster = useCallback(() => {
-    console.log('👥 Roster clicked');
-    // Fechar drawer ANTES de abrir o novo modal
     onClose();
-    // Pequeno delay para garantir que o drawer fecha antes de abrir o roster
-    setTimeout(() => {
-      console.log('👥 Abrindo Roster após fechar drawer');
-      onOpenRoster();
-    }, 100);
+    setTimeout(() => onOpenRoster(), 100);
   }, [onOpenRoster, onClose]);
 
   const handleHistory = useCallback(() => {
-    console.log('📜 History clicked');
-    // Fechar drawer ANTES de abrir o novo modal
     onClose();
-    // Pequeno delay para garantir que o drawer fecha antes de abrir o history
-    setTimeout(() => {
-      console.log('📜 Abrindo History após fechar drawer');
-      onOpenHistory();
-    }, 100);
+    setTimeout(() => onOpenHistory(), 100);
   }, [onOpenHistory, onClose]);
 
   const handleExit = useCallback(() => {
-    console.log('🚪 Exit clicked');
     onExitFullscreen();
     onClose();
   }, [onExitFullscreen, onClose]);
 
-  const handleThemeToggle = useCallback(() => setTheme(theme === 'light' ? 'dark' : 'light'), [theme, setTheme]);
-
-  // Mobile-first handlers (conforme .clinerules)
   const handleLightTheme = useCallback(() => {
     setTheme('light');
   }, [setTheme]);
@@ -163,14 +140,6 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = memo(({
   const handleDarkTheme = useCallback(() => {
     setTheme('dark');
   }, [setTheme]);
-
-  const handleExitClick = useCallback(() => {
-    handleExit();
-  }, [handleExit]);
-
-  const handleCloseClick = useCallback(() => {
-    onClose();
-  }, [onClose]);
 
   return (
     <AnimatePresence>
@@ -182,7 +151,7 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = memo(({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
             className="fixed inset-0 bg-slate-900/60 backdrop-blur-xl z-[65]"
-            onClick={handleCloseClick}
+            onClick={onClose}
             style={{ touchAction: 'manipulation' }}
           />
 
@@ -215,7 +184,7 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = memo(({
                 {t('game.menu')}
               </h2>
               <button
-                onClick={handleCloseClick}
+                onClick={onClose}
                 style={{ touchAction: 'manipulation' }}
                 className="w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center bg-gradient-to-br from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 active:scale-95 transition-all shadow-xl shadow-red-500/30 ring-1 ring-inset ring-white/10 group/close"
               >
@@ -287,7 +256,7 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = memo(({
 
                     {/* Exit Button */}
                     <button
-                        onClick={handleExitClick}
+                        onClick={handleExit}
                         style={{ touchAction: 'manipulation' }}
                         className="
                         relative overflow-hidden group/exit

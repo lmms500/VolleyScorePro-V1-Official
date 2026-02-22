@@ -564,63 +564,66 @@
         "start": "Start",
         "welcome": {
             "title": "VolleyScore Pro",
-            "desc": "The definitive scoring companion. Gestures, Voice Control, and Pro Stats.",
-            "optIn": "Skip tutorial."
+            "desc": "Your professional scoring companion. Intuitive gestures, voice control, and elite statistics for every match."
+        },
+        "about": {
+            "title": "Made with Dedication",
+            "desc": "This app is crafted by a single developer. If you encounter any issues, please send feedback before leaving a negative review. Your patience and support make all the difference!"
         },
         "gestures": {
-            "title": "Smart Gestures",
-            "desc": "Tap anywhere on a team's side to score (+1). Swipe DOWN to subtract (-1). Long press to edit scores."
+            "title": "Intuitive Gestures",
+            "desc": "Tap any team's area to score (+1). Swipe down to correct (-1). Simple, fast, and precise."
         },
         "main": {
             "config": {
-                "title": "Match Setup",
-                "desc": "Select 'Indoor' or 'Beach' presets in Settings. Configure sets (1/3/5) and tie-break rules before starting."
+                "title": "Customize Your Match",
+                "desc": "Choose Indoor or Beach presets, configure sets (1/3/5), points per set, and tie-break rules."
             },
             "audio": {
-                "title": "Audio Narrator",
-                "desc": "The app speaks the score, server, and critical moments like 'Match Point' automatically."
+                "title": "Smart Narrator",
+                "desc": "Automatic announcements for score, server, and decisive moments like Match Point. Perfect for streaming."
             },
             "narrator": {
-                "title": "Audio Narrator",
-                "desc": "The app speaks the score, server, and critical moments like 'Match Point' automatically."
+                "title": "Smart Narrator",
+                "desc": "Automatic announcements for score, server, and decisive moments like Match Point. Perfect for streaming."
             }
         },
         "features": {
             "title": "Full Control",
-            "desc": "Manage timeouts, sides, and access the Team Manager from the floating menu bar."
+            "desc": "Manage timeouts, swap sides, and access Team Manager from the floating menu."
         },
         "voice": {
             "title": "Voice Commands",
-            "desc": "Tap the mic icon. Say 'Point Home', 'Timeout', or 'Side Out' to score hands-free."
+            "desc": "Tap the microphone and say 'Point Home', 'Timeout', or 'Side Out' for hands-free control."
         },
         "manager": {
             "intro": {
                 "title": "Team Manager",
-                "desc": "Your command center. Organize lineups, manage the bench, and handle rotations."
+                "desc": "Your command center for organizing lineups, managing reserves, and automating rotations."
             },
             "structure": {
                 "title": "Drag & Drop",
-                "desc": "Drag players between Court, Bench, and Queue. The top 6 are active. Excess players form the Bench."
+                "desc": "Drag players between Court, Bench, and Queue. Active players play; excess forms the Bench."
             },
             "subs": {
-                "title": "Substitutions",
-                "desc": "Tap the 'Swap' icon. Tap a player on Court (OUT), then a player on the Bench (IN) to swap."
+                "title": "Quick Substitutions",
+                "desc": "Tap 'Swap', select who goes out (Court) and who comes in (Bench). Confirm and done."
             },
             "profiles": {
                 "title": "Player Profiles",
-                "desc": "Link players to Profiles to track career stats (Wins, Kills, Aces) across different matches."
+                "desc": "Link players to Profiles to track career statistics across different matches."
             },
             "rotation": {
                 "title": "Auto Rotation",
-                "desc": "Use 'Standard Mode' for Winner-Stays or 'Balanced Mode' to mix teams by skill level."
+                "desc": "Use 'Standard' for winner-stays or 'Balanced' for skill-leveled teams."
             },
             "balance": {
                 "title": "Skill Balance",
-                "desc": "Assign a Skill Level (1-10) to players. The AI will generate fair teams automatically."
+                "desc": "Assign skill levels (1-10) to players. AI generates fair teams automatically."
             },
             "batch": {
-                "title": "Batch Input",
-                "desc": "Paste a list of names (one per line) in the Batch tab. Format: 'Name 8' to set skill level."
+                "title": "Batch Import",
+                "desc": "Paste a list of names in the 'Import' tab. Use 'Name 8' to set skill level."
             },
             "rosterDesc": "Manage players.",
             "rotationDesc": "Auto rotations."
@@ -628,28 +631,28 @@
         "history": {
             "summary": {
                 "title": "Match History",
-                "desc": "View past matches, sets, and duration. Tap any match to see the full analytics report."
+                "desc": "Review past scores, sets, and duration. Tap any match for the full analysis."
             },
             "timeline": {
                 "title": "Momentum Graph",
-                "desc": "Visualize the game flow. See exactly when the momentum shifted in the timeline view."
+                "desc": "Visualize game flow and identify decisive moments in the timeline view."
             },
             "stats": "Scout Mode",
-            "statsDesc": "Enable in Settings to log specific actions (Kill, Block, Ace) for each point.",
-            "statsFeedback": "When scoring, select the Player and Skill. The system updates their career stats instantly.",
-            "feedback": "Feedback",
+            "statsDesc": "Enable to log specific actions (Kill, Block, Ace) for each point.",
+            "statsFeedback": "When scoring, select the player and action. Statistics update instantly.",
+            "feedback": "Analysis",
             "export": {
                 "title": "Export Data",
-                "desc": "Share match results as social images or export raw CSV/JSON data for analysis."
+                "desc": "Share results as images or export CSV/JSON data for external analysis."
             },
             "welcome": "History",
-            "welcomeDesc": "Review past games."
+            "welcomeDesc": "Review past matches."
         },
         "install": {
-            "title": "Install",
-            "installed": "Ready.",
-            "descAndroid": "Install for offline use.",
-            "descIOS": "Install instructions:",
+            "title": "Install App",
+            "installed": "Ready!",
+            "descAndroid": "Install for offline use and quick access from your home screen.",
+            "descIOS": "Installation instructions:",
             "descAndroidShort": "Offline Mode",
             "descIOSShort": "Add to Home",
             "installNow": "Install"

@@ -34,8 +34,8 @@ export const SyncService = {
             await setDoc(matchRef, payload, { merge: true });
             console.debug(`[Sync] Match ${match.id} pushed successfully.`);
             return true;
-        } catch (e: any) {
-            const errorMsg = e?.message || String(e);
+        } catch (e: unknown) {
+            const errorMsg = e instanceof Error ? e.message : 'Unknown sync error';
             console.error('[Sync] pushMatch failed:', errorMsg);
             
             // Don't retry on permission errors - will cause infinite loop

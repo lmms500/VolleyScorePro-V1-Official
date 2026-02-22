@@ -562,92 +562,95 @@
         "start": "Comenzar",
         "welcome": {
             "title": "VolleyScore Pro",
-            "desc": "El compañero de anotación definitivo. Gestos, Control de Voz y Estadísticas Pro.",
-            "optIn": "Omitir tutorial."
+            "desc": "Tu compañero profesional de marcador. Gestos intuitivos, control por voz y estadísticas de élite para cada partido."
+        },
+        "about": {
+            "title": "Hecho con Dedicación",
+            "desc": "Esta app es creada por una sola persona. Si encuentras algún problema, por favor envía tu feedback antes de dejar una reseña negativa. ¡Tu paciencia y colaboración marcan la diferencia!"
         },
         "gestures": {
-            "title": "Gestos Inteligentes",
-            "desc": "Toque en cualquier parte del lado de un equipo para anotar (+1). Deslice hacia ABAJO para restar (-1). Mantenga presionado para editar puntajes."
+            "title": "Gestos Intuitivos",
+            "desc": "Toca el área del equipo para anotar (+1). Desliza hacia abajo para corregir (-1). Simple, rápido y preciso."
         },
         "main": {
             "config": {
-                "title": "Configuración del Partido",
-                "desc": "Seleccione ajustes preestablecidos 'Cancha' o 'Playa' en Configuración. Configure sets (1/3/5) y reglas de desempate antes de comenzar."
+                "title": "Personaliza tu Partido",
+                "desc": "Elige entre presets Cancha o Playa, configura sets (1/3/5), puntos por set y reglas de desempate."
             },
             "audio": {
-                "title": "Narrador de Audio",
-                "desc": "La aplicación dice el puntaje, el servidor y momentos críticos como 'Punto de Partido' automáticamente."
+                "title": "Narrador Inteligente",
+                "desc": "Anuncios automáticos de marcador, saque y momentos decisivos como Punto de Partido. Perfecto para streaming."
             },
             "narrator": {
-                "title": "Narrador de Audio",
-                "desc": "La aplicación dice el puntaje, el servidor y momentos críticos como 'Punto de Partido' automáticamente."
+                "title": "Narrador Inteligente",
+                "desc": "Anuncios automáticos de marcador, saque y momentos decisivos como Punto de Partido. Perfecto para streaming."
             }
         },
         "features": {
             "title": "Control Total",
-            "desc": "Gestione tiempos fuera, lados y acceda al Gerente de Equipos desde la barra de menú flotante."
+            "desc": "Gestiona tiempos, cambia lados y accede al Gestor de Equipos desde el menú flotante."
         },
         "voice": {
             "title": "Comandos de Voz",
-            "desc": "Toque el icono del micrófono. Diga 'Punto Local', 'Tiempo' o 'Cambio de Saque' para anotar con manos libres."
+            "desc": "Toca el micrófono y di 'Punto Local', 'Tiempo' o 'Cambio de Saque' para controlar sin usar las manos."
         },
         "manager": {
             "intro": {
-                "title": "Gerente de Equipos",
-                "desc": "Su centro de comando. Organice alineaciones, gestione la banca y maneje rotaciones."
+                "title": "Gestor de Equipos",
+                "desc": "Tu centro de comando para organizar alineaciones, gestionar reservas y automatizar rotaciones."
             },
             "structure": {
                 "title": "Arrastrar y Soltar",
-                "desc": "Arrastre jugadores entre Cancha, Banca y Cola. Los 6 mejores están activos. El exceso forma la Banca."
+                "desc": "Arrastra jugadores entre Cancha, Banca y Cola. Los activos juegan; el excedente forma la Banca."
             },
             "subs": {
-                "title": "Sustituciones",
-                "desc": "Toque el icono 'Cambio'. Toque un jugador en Cancha (SALE), luego uno en la Banca (ENTRA) para cambiar."
+                "title": "Sustituciones Rápidas",
+                "desc": "Toca 'Cambio', selecciona quién sale (Cancha) y quién entra (Banca). Confirma y listo."
             },
             "profiles": {
                 "title": "Perfiles de Jugador",
-                "desc": "Vincule jugadores a Perfiles para rastrear estadísticas de carrera (Victorias, Bajas, Aces) en diferentes partidos."
+                "desc": "Vincula jugadores a Perfiles para seguir estadísticas de carrera entre partidos."
             },
             "rotation": {
                 "title": "Rotación Automática",
-                "desc": "Use 'Modo Estándar' para Ganador-Se-Queda o 'Modo Balanceado' para mezclar equipos por nivel de habilidad."
+                "desc": "Usa 'Estándar' para ganador-se-queda o 'Balanceado' para equipos equilibrados por habilidad."
             },
             "balance": {
-                "title": "Equilibrio de Habilidad",
-                "desc": "Asigne un Nivel de Habilidad (1-10) a los jugadores. La IA generará equipos justos automáticamente."
+                "title": "Balance por Habilidad",
+                "desc": "Asigna niveles (1-10) a los jugadores. La IA genera equipos justos automáticamente."
             },
             "batch": {
-                "title": "Entrada por Lotes",
-                "desc": "Pegue una lista de nombres (uno por línea) en la pestaña Lote. Formato: 'Nombre 8' para establecer el nivel de habilidad."
+                "title": "Importación por Lotes",
+                "desc": "Pega una lista de nombres en la pestaña 'Importar'. Usa 'Nombre 8' para definir nivel de habilidad."
             },
-            "rosterDesc": "Gestionar jugadores.",
-            "rotationDesc": "Rotaciones auto."
+            "rosterDesc": "Gestiona jugadores.",
+            "rotationDesc": "Rotaciones automáticas."
         },
         "history": {
             "summary": {
                 "title": "Historial de Partidos",
-                "desc": "Vea partidos pasados, sets y duración. Toque cualquier partido para ver el informe analítico completo."
+                "desc": "Consulta marcadores anteriores, sets y duración. Toca para ver el análisis completo."
             },
             "timeline": {
-                "title": "Gráfico de Momento",
-                "desc": "Visualice el flujo del juego. Vea exactamente cuándo cambió el momento en la vista de línea de tiempo."
+                "title": "Gráfico de Momentum",
+                "desc": "Visualiza el flujo del juego e identifica los momentos decisivos en la línea de tiempo."
             },
             "stats": "Modo Scout",
-            "statsDesc": "Habilitar en Configuración para registrar acciones específicas (Remate, Bloqueo, Ace) para cada punto.",
-            "statsFeedback": "Al anotar, seleccione el Jugador y la Habilidad. El sistema actualiza sus estadísticas de carrera al instante.",
-            "feedback": "Comentarios",
+            "statsDesc": "Activa para registrar acciones específicas (Remate, Bloqueo, Ace) en cada punto.",
+            "statsFeedback": "Al anotar, selecciona el jugador y la acción. Las estadísticas se actualizan instantáneamente.",
+            "feedback": "Análisis",
             "export": {
                 "title": "Exportar Datos",
-                "desc": "Comparta los resultados del partido como imágenes sociales o exporte datos CSV/JSON sin procesar para análisis."
+                "desc": "Comparte resultados como imágenes o exporta datos CSV/JSON para análisis externo."
             },
             "welcome": "Historial",
-            "welcomeDesc": "Revisar juegos pasados."
+            "welcomeDesc": "Revisa partidos anteriores."
         },
         "install": {
-            "title": "Instalar",
-            "installed": "Listo.",
-            "descAndroid": "Instalar para uso offline.",
-            "descIOS": "Instrucciones:",
+            "title": "Instalar App",
+            "installed": "¡Listo!",
+            "descAndroid": "Instala para usar offline y tener acceso rápido desde tu pantalla de inicio.",
+            "descIOS": "Instrucciones de instalación:",
             "descAndroidShort": "Modo Offline",
             "descIOSShort": "Añadir a Inicio",
             "installNow": "Instalar"

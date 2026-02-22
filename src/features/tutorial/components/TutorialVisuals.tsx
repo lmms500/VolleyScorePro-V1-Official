@@ -12,8 +12,10 @@ import {
   VoiceControlScene,
   SettingsScene,
   TeamCompositionScene,
-  PlayerStatsScene
-} from './MotionScenes';
+  PlayerStatsScene,
+  WelcomeHeroScene,
+  IndieDevScene
+} from '../scenes';
 import {
   AppLogoVisual,
   SceneCommandCenter,
@@ -25,10 +27,11 @@ import {
 
 // --- MAIN EXPORT ---
 export const TutorialVisual: React.FC<{ visualId: string; colorTheme: any; isPaused: boolean; onComplete?: () => void }> = ({ visualId, colorTheme, isPaused, onComplete }) => {
-    // Map theme object back to a tailwind text class string required by visuals
     const color = colorTheme?.crown || 'text-indigo-500';
 
     const visualMap: Record<string, React.ReactElement> = {
+        'welcome_hero': <WelcomeHeroScene isPaused={isPaused} />,
+        'indie_dev': <IndieDevScene isPaused={isPaused} />,
         'app_logo': <AppLogoVisual isPaused={isPaused} />,
         'gestures': <InteractiveGestureDemo colorTheme={colorTheme} onComplete={onComplete || (() => {})} />,
         'settings_config': <SettingsScene color={color} isPaused={isPaused} />,
@@ -50,5 +53,5 @@ export const TutorialVisual: React.FC<{ visualId: string; colorTheme: any; isPau
         'install_app': <SceneInstall color={color} isPaused={isPaused} />,
     };
 
-    return visualMap[visualId] || <AppLogoVisual isPaused={isPaused} />;
+    return visualMap[visualId] || <WelcomeHeroScene isPaused={isPaused} />;
 };

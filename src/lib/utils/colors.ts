@@ -1,7 +1,7 @@
 
 import { TeamColor } from '@types';
 
-interface ColorTheme {
+export interface ColorTheme {
     text: string;           // Base text color
     textDark: string;       // Dark mode text color
     bg: string;             // Light background (pills, badges)

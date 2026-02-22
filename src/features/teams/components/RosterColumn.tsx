@@ -110,7 +110,7 @@ export const RosterColumn = memo(({
     const containerBorder = isQueue ? 'border-transparent' : 'border';
 
     let dropBg = ""; if (isDragOver) dropBg = "bg-indigo-400/10";
-    const containerClass = `flex flex-col w-full h-auto min-h-[300px] rounded-2xl ${containerBorder} relative transition-transform transition-colors duration-300 p-4 sm:p-6 landscape:p-2 ${bgClass} ${isDragOver ? `ring-4 ring-indigo-400 ring-opacity-50 scale-[1.01] ${dropBg} z-20` : (isQueue ? '' : 'hover:border-slate-300 dark:hover:border-white/20')} ${(isQueue && queueIndex === 0) ? 'ring-2 ring-amber-500/50 dark:ring-amber-500/40 shadow-2xl shadow-amber-500/10' : ''} ${highlighted ? 'ring-4 ring-indigo-500/50 scale-[1.02] shadow-2xl z-30' : ''}`;
+    const containerClass = `flex flex-col w-full h-auto min-h-[300px] rounded-2xl ${containerBorder} relative transition-transform transition-colors duration-300 p-4 sm:p-6 landscape:p-2 ${bgClass} ${isDragOver ? `ring-4 ring-indigo-400/50 scale-[1.01] ${dropBg} z-20` : (isQueue ? '' : 'hover:border-slate-300 dark:hover:border-white/20')} ${(isQueue && queueIndex === 0) ? 'ring-2 ring-amber-500/50 dark:ring-amber-500/40 shadow-2xl shadow-amber-500/10' : ''} ${highlighted ? 'ring-4 ring-indigo-500/50 scale-[1.02] shadow-2xl z-30' : ''}`;
 
     return (
         <div ref={droppableRef} className={containerClass}>

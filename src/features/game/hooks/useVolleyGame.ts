@@ -62,7 +62,6 @@ export const useVolleyGame = () => {
     if (isLoaded && !hasInitializedGameIdRef.current && state.gameId) {
       currentGameIdRef.current = state.gameId;
       hasInitializedGameIdRef.current = true;
-      console.log('[VolleyGame] Initialized gameId ref from loaded state:', state.gameId);
     }
   }, [isLoaded, state.gameId]);
 
@@ -125,7 +124,6 @@ export const useVolleyGame = () => {
       gameId: newGameId
     });
 
-    console.log('[VolleyGame] Started New Game:', newGameId);
   }, [dispatch]);
 
   // [NEW] Função de Rotate Teams com ID seguro (para botão "Próximo")
@@ -141,7 +139,6 @@ export const useVolleyGame = () => {
       gameId: newGameId
     });
 
-    console.log('[VolleyGame] Rotated Teams - New Game:', newGameId);
   }, [dispatch]);
 
   // [MODIFIED] Compor objeto de actions final com overrides seguros

@@ -154,8 +154,8 @@ const DraggablePlayer = memo(({ player, index, teamId, side, teamColor, isServer
 
             {/* Name Label */}
             <div
-                className={`absolute ${positionClass} backdrop-blur-md px-2.5 py-0.5 rounded-full border shadow-xl max-w-[200%] transition-opacity duration-200 bg-opacity-95 dark:bg-opacity-90
-                         ${isMVP ? 'bg-amber-500 border-amber-300' : `border-white/20`}
+                className={`absolute ${positionClass} backdrop-blur-md px-2.5 py-0.5 rounded-full border shadow-xl max-w-[200%] transition-opacity duration-200
+                         ${isMVP ? 'bg-amber-500/95 dark:bg-amber-500/90 border-amber-300' : `border-white/20`}
                          ${isGlobalDragging ? 'opacity-0' : 'opacity-100'}
                          ${isMVP ? 'shadow-[0_0_15px_rgba(251,191,36,0.5)]' : ''}
                         `}

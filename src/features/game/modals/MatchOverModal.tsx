@@ -108,8 +108,6 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
 
     useEffect(() => {
         if (isOpen) {
-            console.log('[MatchOver] OPENED. isOpen:', isOpen, 'isSpectator:', isSpectator);
-            console.log('[MatchOver] Props Check:', { onRotate: !!onRotate, onReset: !!onReset });
             setCanInteract(false);
             setView('summary');
             
@@ -118,7 +116,6 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
             const confettiTimer = setTimeout(() => setShowConfetti(false), 3000);
             
             const interactionTimer = setTimeout(() => {
-                console.log('[MatchOver] Timer fired. Setting canInteract = TRUE');
                 setCanInteract(true);
             }, 1000);
             
@@ -168,25 +165,13 @@ export const MatchOverModal: React.FC<MatchOverModalProps> = ({ isOpen, state, o
     };
 
     const handleRotateWrapper = () => {
-        console.log('[MatchOver] Next Game Clicked.');
-        console.log('  State -> canInteract:', canInteract, 'isSpectator:', isSpectator);
-        if (!canInteract) console.warn('[MatchOver] Blocked: Interaction not allowed yet');
-        if (isSpectator) console.warn('[MatchOver] Blocked: Spectator mode');
-
         if (canInteract && !isSpectator) {
-            console.log('[MatchOver] Executing onRotate()');
             onRotate();
         }
     };
 
     const handleResetWrapper = () => {
-        console.log('[MatchOver] Reset Clicked.');
-        console.log('  State -> canInteract:', canInteract, 'isSpectator:', isSpectator);
-        if (!canInteract) console.warn('[MatchOver] Blocked: Interaction not allowed yet');
-        if (isSpectator) console.warn('[MatchOver] Blocked: Spectator mode');
-
         if (canInteract && !isSpectator) {
-            console.log('[MatchOver] Executing onReset()');
             onReset();
         }
     };

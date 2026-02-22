@@ -6,8 +6,8 @@ import { MATCH_ANALYSIS_SCHEMA } from '@features/voice/services/schemas';
 export class AnalysisEngine {
   
   // Configuration
-  private static apiKey: string = process.env.API_KEY || ''; 
-  private static proxyUrl: string = process.env.VITE_AI_PROXY_URL || '';
+  private static apiKey: string = import.meta.env.VITE_AI_API_KEY || '';
+  private static proxyUrl: string = import.meta.env.VITE_AI_PROXY_URL || '';
 
   /**
    * Generates a professional tactical analysis of the match.

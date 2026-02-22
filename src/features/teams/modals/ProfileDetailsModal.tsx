@@ -15,7 +15,7 @@ interface ProfileDetailsModalProps {
     onEdit: () => void;
 }
 
-const StatGlassBox = ({ label, value, icon: Icon, colorClass }: any) => (
+const StatGlassBox = ({ label, value, icon: Icon, colorClass }: { label: string; value: number | string; icon: React.ElementType; colorClass: string }) => (
     <div
         className="group relative flex flex-col items-center justify-center p-3 rounded-2xl bg-white/40 dark:bg-white/5 backdrop-blur-sm border border-white/50 dark:border-white/5 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:shadow-md transition-all overflow-hidden ring-1 ring-inset ring-white/10 dark:ring-white/5"
     >

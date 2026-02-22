@@ -20,7 +20,7 @@ export const MatchStatistics: React.FC<MatchStatisticsProps> = ({ match }) => {
     const stats = useMemo(() => calculateMatchStats(match), [match]);
 
     // --- COMPONENT: STAT BAR ---
-    const StatBar = ({ label, valueA, valueB, icon: Icon }: { label: string, valueA: number, valueB: number, icon: any }) => {
+    const StatBar = ({ label, valueA, valueB, icon: Icon }: { label: string, valueA: number, valueB: number, icon: React.ElementType }) => {
         const total = (valueA + valueB) || 1;
         const percentA = Math.round((valueA / total) * 100);
         const percentB = Math.round((valueB / total) * 100);
@@ -58,7 +58,7 @@ export const MatchStatistics: React.FC<MatchStatisticsProps> = ({ match }) => {
     };
 
     // --- COMPONENT: HIGHLIGHT CARD ---
-    const HighlightCard = ({ title, player, icon: Icon, valueStr }: { title: string, player?: PlayerStat, icon: any, valueStr?: string }) => {
+    const HighlightCard = ({ title, player, icon: Icon, valueStr }: { title: string, player?: PlayerStat, icon: React.ElementType, valueStr?: string }) => {
         if (!player || player.points === 0) return null;
         return (
             <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/60 dark:border-white/10 ring-1 ring-inset ring-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)] rounded-2xl p-3 flex items-center gap-3 min-w-[140px] flex-1">

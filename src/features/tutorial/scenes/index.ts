@@ -8,6 +8,10 @@
 // Types
 export type { MotionSceneProps } from './types';
 
+// Welcome & Introduction Scenes
+export { WelcomeHeroScene } from './WelcomeHeroScene';
+export { IndieDevScene } from './IndieDevScene';
+
 // Team Manager Scenes
 export { TeamCompositionScene } from './TeamCompositionScene';
 export { PlayerStatsScene } from './PlayerStatsScene';

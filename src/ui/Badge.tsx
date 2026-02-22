@@ -61,7 +61,7 @@ export const Badge: React.FC<BadgeProps> = ({
     // Efeitos opcionais
     const pulseClass = pulse ? "animate-pulse" : "";
     const glowClass = glow ? "shadow-lg shadow-current/50" : "";
-    const glassClass = glass ? "backdrop-blur-xl bg-opacity-80 dark:bg-opacity-80 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]" : "";
+    const glassClass = glass ? "backdrop-blur-xl shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]" : "";
 
     const Component = pulse ? motion.div : 'div';
     const animationProps = pulse ? {

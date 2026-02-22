@@ -143,11 +143,12 @@ export class VoiceRecognitionService {
         this.handleResult(result.matches[0], true);
       }
       this.handleNativeSessionEnd(locale);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.warn('[VoiceService] Native Error:', e);
       this.updateStatus(false);
       this.clearDeadStateTimer();
-      if (!e.message?.includes('canceled')) {
+      const err = e as { message?: string };
+      if (!err.message?.includes('canceled')) {
         this.handleError('generic');
       }
     }

@@ -214,7 +214,6 @@ export const useVoiceControl = ({
 
     const dedupeResult = deduplicatorRef.current.canExecute(resolved);
     if (!dedupeResult.allowed) {
-      console.log('[VoiceControl] Blocked by deduplicator:', dedupeResult.reason);
       return;
     }
 
@@ -245,7 +244,6 @@ export const useVoiceControl = ({
 
     const dedupeResult = deduplicatorRef.current.canExecute(intent);
     if (!dedupeResult.allowed) {
-      console.log('[VoiceControl] Blocked by deduplicator:', dedupeResult.reason);
       return;
     }
 
@@ -296,7 +294,6 @@ export const useVoiceControl = ({
       (!localIntent || localIntent.type === 'unknown' || localIntent.confidence < 0.8)
     ) {
       if (!isFinal) return;
-      console.log('[VoiceControl] Processing command via GEMINI:', transcript);
       setIsProcessingAI(true);
       onThinkingState?.(true);
       if (showNotificationRef.current) {
@@ -314,14 +311,12 @@ export const useVoiceControl = ({
       setIsProcessingAI(false);
       onThinkingState?.(false);
       if (aiResult && aiResult.type !== 'unknown') {
-        console.log('[VoiceControl] Gemini result:', aiResult);
         const dedupeResult = deduplicatorRef.current.canExecute(aiResult);
         if (dedupeResult.allowed) {
           deduplicatorRef.current.register(aiResult);
           processIntent(aiResult);
         }
       } else {
-        console.log('[VoiceControl] Gemini returned null/unknown for:', transcript);
         audioService.playVoiceBeep('error');
         if (showNotificationRef.current) {
           showNotificationRef.current({
@@ -336,7 +331,6 @@ export const useVoiceControl = ({
 
     if (!localIntent || localIntent.type === 'unknown') return;
 
-    console.log('[VoiceControl] Processing command LOCALLY:', transcript, localIntent);
 
     if (localIntent.domainConflict) {
       setDomainConflict({
@@ -361,7 +355,6 @@ export const useVoiceControl = ({
 
     const dedupeResult = deduplicatorRef.current.canExecute(localIntent);
     if (!dedupeResult.allowed) {
-      console.log('[VoiceControl] Blocked by deduplicator:', dedupeResult.reason);
       return;
     }
 

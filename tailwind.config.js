@@ -1,4 +1,17 @@
 /** @type {import('tailwindcss').Config} */
+
+// Split color groups to keep regex complexity under SonarQube S5843 threshold (max 20)
+const WARM = 'red|rose|pink|fuchsia|orange|amber|yellow|lime';
+const COOL = 'purple|violet|indigo|blue|sky|cyan|teal|emerald|green';
+
+/** Build a safelist pattern for both warm and cool color groups */
+function colorPatterns(prefix, shades, opts = {}) {
+  const { variants, suffix = '' } = opts;
+  const build = (colors) => new RegExp(String.raw`^${prefix}-(${colors})-(${shades})${suffix}$`);
+  const entry = (pattern) => variants ? { pattern, variants } : { pattern };
+  return [entry(build(WARM)), entry(build(COOL))];
+}
+
 export default {
   content: [
     "./index.html",
@@ -48,47 +61,27 @@ export default {
     'grid-cols-2',
     'grid-cols-3',
 
-    // All color text variants
-    { pattern: /^text-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(200|300|400|500|600|700|800)$/ },
-    { pattern: /^dark:text-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(200|300|400|500|600|700|800)$/ },
+    // Color text variants (with dark variant)
+    ...colorPatterns('text', '200|300|400|500|600|700|800', { variants: ['dark'] }),
 
-    // All color background variants with opacity
-    { pattern: /^bg-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(100|200|400|500|600)\/\d+$/ },
-    { pattern: /^dark:bg-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(100|200|400|500|600)\/\d+$/ },
+    // Color background variants with opacity (with dark variant)
+    ...colorPatterns('bg', '100|200|400|500|600', { variants: ['dark'], suffix: String.raw`\/\d+` }),
 
-    // All color background variants (solid)
-    { pattern: /^bg-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(300|400|500|600)$/ },
-    { pattern: /^dark:bg-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(300|400|500|600)$/ },
+    // Color background variants solid (with dark variant)
+    ...colorPatterns('bg', '300|400|500|600', { variants: ['dark'] }),
 
-    // All color border variants with opacity
-    { pattern: /^border-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(100|200|400|500|600)\/\d+$/ },
-    { pattern: /^dark:border-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(100|200|400|500|600)\/\d+$/ },
+    // Color border variants with opacity (with dark variant)
+    ...colorPatterns('border', '100|200|400|500|600', { variants: ['dark'], suffix: String.raw`\/\d+` }),
 
-    // All color ring variants
-    { pattern: /^ring-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(200|300|400|500|600|700|800)$/ },
+    // Color ring variants
+    ...colorPatterns('ring', '200|300|400|500|600|700|800'),
 
-    // All gradient variants
-    { pattern: /^from-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(100|200|300|400|500|600)(\/\d+)?$/ },
-    { pattern: /^to-(red|rose|pink|fuchsia|purple|violet|indigo|blue|sky|cyan|teal|emerald|green|lime|yellow|amber|orange)-(100|200|300|400|500|600)(\/\d+)?$/ },
+    // Gradient variants
+    ...colorPatterns('from', '100|200|300|400|500|600', { suffix: String.raw`(\/\d+)?` }),
+    ...colorPatterns('to', '100|200|300|400|500|600', { suffix: String.raw`(\/\d+)?` }),
     { pattern: /^to-gray-900\/\d+$/ },
     { pattern: /^to-slate-900\/\d+$/ },
     { pattern: /^to-black\/\d+$/ },
-
-    // Arbitrary values (for custom hex colors)
-    { pattern: /^text-\[#[0-9a-fA-F]{6}\]$/ },
-    { pattern: /^dark:text-\[#[0-9a-fA-F]{6}\]$/ },
-    { pattern: /^bg-\[#[0-9a-fA-F]{6}\]$/ },
-    { pattern: /^dark:bg-\[#[0-9a-fA-F]{6}\]$/ },
-    { pattern: /^border-\[#[0-9a-fA-F]{6}\]$/ },
-    { pattern: /^ring-\[#[0-9a-fA-F]{6}\]$/ },
-    { pattern: /^from-\[#[0-9a-fA-F]{6}\]$/ },
-    { pattern: /^to-\[#[0-9a-fA-F]{6}\]$/ },
-
-    // Opacity variants for arbitrary values
-    { pattern: /^bg-\[#[0-9a-fA-F]{6}\]\/\d+$/ },
-    { pattern: /^dark:bg-\[#[0-9a-fA-F]{6}\]\/\d+$/ },
-    { pattern: /^border-\[#[0-9a-fA-F]{6}\]\/\d+$/ },
   ],
   plugins: [],
 }
-

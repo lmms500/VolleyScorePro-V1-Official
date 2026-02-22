@@ -9,7 +9,7 @@ export interface TutorialStep {
   id: string;
   titleKey: string;
   descKey: string;
-  icon: any;
+  icon: React.ElementType;
   color: string; // Tailwind color class for the graphic header (e.g. 'indigo', 'rose')
   visualId?: string; // Links to TutorialVisuals.tsx
   CustomComponent?: React.ReactNode;
@@ -25,7 +25,15 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialStep[]> = {
       descKey: 'tutorial.welcome.desc', 
       icon: Trophy, 
       color: 'indigo',
-      visualId: 'app_logo' 
+      visualId: 'welcome_hero' 
+    },
+    { 
+      id: 'about', 
+      titleKey: 'tutorial.about.title', 
+      descKey: 'tutorial.about.desc', 
+      icon: UserCircle, 
+      color: 'rose',
+      visualId: 'indie_dev'
     },
     { 
       id: 'gestures', 

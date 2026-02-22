@@ -135,20 +135,20 @@ export const TeamColumn = memo(({
 
             if (currentCount >= limit) {
                 if (viewMode === 'main' && team.hasActiveBench && (team.reserves || []).length < 6) {
-                    ringColor = "ring-amber-400"; dropBg = "bg-amber-400/10";
+                    ringColor = "ring-amber-400/50"; dropBg = "bg-amber-400/10";
                 } else {
-                    ringColor = "ring-rose-500"; dropBg = "bg-rose-500/10";
+                    ringColor = "ring-rose-500/50"; dropBg = "bg-rose-500/10";
                 }
             } else {
-                ringColor = "ring-emerald-400"; dropBg = "bg-emerald-400/10";
+                ringColor = "ring-emerald-400/50"; dropBg = "bg-emerald-400/10";
             }
         } else {
-            ringColor = "ring-indigo-400"; dropBg = "bg-indigo-400/10";
+            ringColor = "ring-indigo-400/50"; dropBg = "bg-indigo-400/10";
         }
     }
     const finalRing = ringColor || colorConfig.ring;
 
-    const containerClass = `flex flex-col w-full h-auto min-h-[300px] rounded-2xl ${containerBorder} relative transition-transform transition-colors duration-300 p-4 sm:p-6 landscape:p-2 ${bgClass} ${isDragOver ? `ring-4 ${finalRing} ring-opacity-50 scale-[1.01] ${dropBg} z-20` : (isQueue ? '' : 'hover:border-slate-300 dark:hover:border-white/20')} ${(isQueue && queueIndex === 0) ? 'ring-2 ring-amber-500/50 dark:ring-amber-500/40 shadow-2xl shadow-amber-500/10' : ''} ${highlighted ? 'ring-4 ring-indigo-500/50 scale-[1.02] shadow-2xl z-30' : ''}`;
+    const containerClass = `flex flex-col w-full h-auto min-h-[300px] rounded-2xl ${containerBorder} relative transition-transform transition-colors duration-300 p-4 sm:p-6 landscape:p-2 ${bgClass} ${isDragOver ? `ring-4 ${finalRing} scale-[1.01] ${dropBg} z-20` : (isQueue ? '' : 'hover:border-slate-300 dark:hover:border-white/20')} ${(isQueue && queueIndex === 0) ? 'ring-2 ring-amber-500/50 dark:ring-amber-500/40 shadow-2xl shadow-amber-500/10' : ''} ${highlighted ? 'ring-4 ring-indigo-500/50 scale-[1.02] shadow-2xl z-30' : ''}`;
 
     return (
         <div ref={droppableRef} className={containerClass}>

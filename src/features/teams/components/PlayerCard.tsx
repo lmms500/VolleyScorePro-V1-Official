@@ -45,7 +45,7 @@ const EditableTitle = memo(({ name, onSave, className }: { name: string; onSave:
   return <div className={`flex items-center gap-2 group cursor-pointer min-w-0 flex-1 ${className}`} onClick={(e) => { e.stopPropagation(); setIsEditing(true); }} onPointerDown={e => e.stopPropagation()}><span className="truncate flex-1 min-w-0 block">{name}</span><Edit2 size={10} className="opacity-0 group-hover:opacity-100 transition-opacity text-slate-400 flex-shrink-0" /></div>;
 });
 
-const EditableNumber = memo(({ number, onSave, isOpen, onRequestOpen, onRequestClose }: any) => {
+const EditableNumber = memo(({ number, onSave, isOpen, onRequestOpen, onRequestClose }: { number?: string; onSave: (val: string) => { success: boolean; error?: string } | void; isOpen: boolean; onRequestOpen: () => void; onRequestClose: () => void }) => {
   const [val, setVal] = useState(number || '');
   const [isError, setIsError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);

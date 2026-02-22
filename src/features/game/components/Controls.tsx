@@ -35,7 +35,7 @@ const premiumSpring = {
 const ControlButton = memo(({ onClick, disabled, icon: Icon, active = false, title, badge, badgeColor = 'emerald', onPointerDown, onPointerUp, onPointerLeave }: {
     onClick?: () => void;
     disabled?: boolean;
-    icon: any;
+    icon: React.ElementType;
     active?: boolean;
     title?: string;
     badge?: boolean;
@@ -165,7 +165,6 @@ export const Controls: React.FC<ControlsProps> = memo(({
                     {voiceEnabled && (
                         <ControlButton
                             onClick={isPushToTalkMode ? undefined : () => {
-                                console.log('[Controls] Button clicked, calling onToggleListening');
                                 onToggleListening();
                             }}
                             onPointerDown={isPushToTalkMode ? () => onStartListening?.() : undefined}

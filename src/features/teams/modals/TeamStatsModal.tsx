@@ -26,7 +26,7 @@ interface TeamAggregate {
     pointsConceded: number;
 }
 
-const StatCard = ({ title, value, sub, icon: Icon, gradientFrom, gradientTo, shadowColor }: any) => (
+const StatCard = ({ title, value, sub, icon: Icon, gradientFrom, gradientTo, shadowColor }: { title: string; value: number | string; sub?: string; icon: React.ElementType; gradientFrom: string; gradientTo: string; shadowColor: string }) => (
     <div className="bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-2xl p-3 flex flex-col items-center justify-center text-center border border-white/60 dark:border-white/10 ring-1 ring-inset ring-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)] h-full">
         <div className={`p-2 rounded-xl mb-1 bg-gradient-to-br ${gradientFrom} ${gradientTo} text-white shadow-sm ${shadowColor}`}>
             <Icon size={16} />

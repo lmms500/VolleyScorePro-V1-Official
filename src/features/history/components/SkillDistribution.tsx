@@ -80,7 +80,7 @@ export const SkillDistribution: React.FC<SkillDistributionProps> = ({ match, tea
 
     if (totalA === 0 && totalB === 0) return null;
 
-    const LegendItem = ({ label, color, icon: Icon }: { label: string; color: string; icon: any }) => (
+    const LegendItem = ({ label, color, icon: Icon }: { label: string; color: string; icon: React.ElementType }) => (
         <div className="flex items-center gap-1.5">
             <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: color }} />
             <Icon size={10} className="text-slate-400" />

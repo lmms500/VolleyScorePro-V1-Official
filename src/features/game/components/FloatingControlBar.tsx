@@ -47,7 +47,6 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({
   const handleMenu = useCallback(() => { onMenu(); setIsHovering(false); }, [onMenu]);
   const handleCourt = useCallback(() => { onCourt(); setIsHovering(false); }, [onCourt]);
   const handleToggleListening = useCallback(() => {
-    console.log('[FloatingControlBar] handleToggleListening called');
     onToggleListening();
     setIsHovering(false);
   }, [onToggleListening]);
@@ -119,7 +118,6 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({
               <IconButton
                 icon={isListening ? <Mic size={iconSize} strokeWidth={1.5} /> : <MicOff size={iconSize} strokeWidth={1.5} />}
                 onClick={isPushToTalkMode ? undefined : () => {
-                  console.log('[FloatingControlBar] Button clicked, calling handleToggleListening');
                   handleToggleListening();
                   handleUserActivity();
                 }}

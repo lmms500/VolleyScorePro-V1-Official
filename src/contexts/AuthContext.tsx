@@ -27,7 +27,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // 1. Handle Redirect Result (Crucial for Native/Mobile Chrome flows)
     getRedirectResult(auth).then((result) => {
       if (result?.user) {
-        console.log("[Auth] Redirect sign-in success:", result.user.displayName);
         setUser(result.user);
       }
     }).catch((error) => {
@@ -70,12 +69,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       setLoading(true);
-      console.log("[Auth] Starting Google Sign-In...");
 
       // Native platforms use the Native Plugin (Fix for 'localhost' 403 error on Android)
       if (Capacitor.isNativePlatform()) {
-        console.log("[Auth] Using Native Plugin flow (Android/iOS)");
-
         // 1. Native Sign-In
         const result = await FirebaseAuthentication.signInWithGoogle();
 
@@ -85,32 +81,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // 3. Sign-in to Firebase JS SDK (required for 'auth' object sync)
         const userCredential = await signInWithCredential(auth, credential);
 
-        console.log("[Auth] Native Sign-in successful:", userCredential.user.displayName);
         setUser(userCredential.user);
       } else {
-        console.log("[Auth] Using popup flow for web");
         // Force popup for all web (including mobile web) to avoid redirect issues on localhost
         const result = await signInWithPopup(auth, googleProvider);
-        console.log("[Auth] Sign-in successful:", result.user.displayName);
         setUser(result.user);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[Auth] Google Sign-In Failed:", error);
+      const authError = error as { code?: string; message?: string };
 
       // Mensagens de erro mais específicas
-      if (error.code === 'auth/popup-closed-by-user') {
-        // Ignorar silêncioso ou toast leve
-        console.log("Login cancelado pelo usuário.");
-      } else if (error.code === 'auth/popup-blocked') {
+      if (authError.code === 'auth/popup-closed-by-user') {
+        // Usuário cancelou o login — ignorar silenciosamente
+      } else if (authError.code === 'auth/popup-blocked') {
         alert("Pop-up bloqueado pelo navegador. Por favor, permita pop-ups para este site (ícone na barra de endereço).");
-      } else if (error.code === 'auth/unauthorized-domain') {
+      } else if (authError.code === 'auth/unauthorized-domain') {
         alert(`Domínio não autorizado: ${window.location.hostname}\n\nAdicione este domínio em: Firebase Console -> Authentication -> Settings -> Authorized Domains`);
-      } else if (error.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') {
+      } else if (authError.code === 'auth/api-key-not-valid.-please-pass-a-valid-api-key.') {
         alert("Chave de API Inválida. Verifique VITE_FIREBASE_API_KEY no arquivo .env");
-      } else if (error.code === 'auth/operation-not-allowed') {
+      } else if (authError.code === 'auth/operation-not-allowed') {
         alert("Login com Google não está ativado no Firebase Console.\n\nVá em Authentication -> Sign-in method e ative o provedor Google.");
       } else {
-        alert(`Erro ao fazer login (${error.code}): ${error.message}\n\nVeja o console (F12) para detalhes técnicos.`);
+        alert(`Erro ao fazer login (${authError.code}): ${authError.message}\n\nVeja o console (F12) para detalhes técnicos.`);
       }
 
       throw error;

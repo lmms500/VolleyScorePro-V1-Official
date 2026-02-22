@@ -16,7 +16,7 @@ const CommandRow = ({ cmd, desc }: { cmd: string, desc: string }) => (
     </div>
 );
 
-const Section = ({ title, icon: Icon, gradientFrom, gradientTo, shadowColor, children }: any) => (
+const Section = ({ title, icon: Icon, gradientFrom, gradientTo, shadowColor, children }: { title: string; icon: React.ElementType; gradientFrom: string; gradientTo: string; shadowColor: string; children?: React.ReactNode }) => (
     <div className="mb-4 bg-white/60 dark:bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/60 dark:border-white/10 ring-1 ring-inset ring-white/10 shadow-[0_1px_3px_rgba(0,0,0,0.04),inset_0_1px_0_0_rgba(255,255,255,0.15)]">
         <div className="flex items-center gap-2 mb-2 pb-2 border-b border-black/5 dark:border-white/5">
             <div className={`p-1.5 rounded-lg bg-gradient-to-br ${gradientFrom} ${gradientTo} text-white shadow-sm ${shadowColor}`}><Icon size={12} /></div>

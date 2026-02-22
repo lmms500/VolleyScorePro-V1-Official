@@ -22,7 +22,7 @@ export const SecureStorage = {
       }
     } catch (error) {
       console.error('[Storage] Persistent Write Error:', error);
-      try { localStorage.setItem(fullKey, value); } catch(e){}
+      try { localStorage.setItem(fullKey, value); } catch(e){ console.warn('[Storage] localStorage fallback failed:', e); }
     }
   },
 

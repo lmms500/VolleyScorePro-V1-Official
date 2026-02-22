@@ -41,7 +41,7 @@ export function ToggleGroup<T extends string>({
 
     // Container classes por variante - Premium glass surfaces
     const containerClasses = {
-        pills: "bg-white/40 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-1.5 flex gap-1 border border-white/50 dark:border-white/5 ring-1 ring-inset ring-white/10 dark:ring-white/5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] shadow-sm",
+        pills: "bg-white/40 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-1.5 flex gap-1 border border-white/50 dark:border-white/5 ring-1 ring-inset ring-white/10 dark:ring-white/5 shadow-[0_1px_2px_0_rgba(0,0,0,0.05),inset_0_1px_0_0_rgba(255,255,255,0.15)]",
         tabs: "border-b border-white/20 dark:border-white/5 flex gap-4",
         chips: "flex gap-2 flex-wrap"
     };

@@ -17,14 +17,10 @@ globalThis.addEventListener('unhandledrejection', (event) => {
   }
 });
 
-// DEBUG: Log initialization
-console.log('🚀 App initializing...', { NODE_ENV: process.env.NODE_ENV });
-console.log('Root element:', document.getElementById('root'));
-
 // --- SECURITY CONTEXT INITIALIZATION ---
 // Strip console logs in production/native environments to prevent sensitive data leakage.
 // This is critical for avoiding PII leaks via logcat/xcode logs.
-if (process.env.NODE_ENV === 'production' || (Capacitor.isNativePlatform() && !(import.meta as any).env.DEV)) {
+if (import.meta.env.PROD || (Capacitor.isNativePlatform() && !import.meta.env.DEV)) {
   const noop = () => { };
   console.log = noop;
   console.info = noop;
