@@ -2,6 +2,7 @@
 import { initializeApp, getApp, getApps } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore, terminate, persistentLocalCache, persistentMultipleTabManager, initializeFirestore } from 'firebase/firestore';
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from 'firebase/app-check';
 import { logger } from '@lib/utils/logger';
 
 // ------------------------------------------------------------------
@@ -55,6 +56,20 @@ const initialize = async () => {
                     tabManager: persistentMultipleTabManager()
                 })
             });
+
+            // App Check — protects Firebase resources from abuse
+            const appCheckSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
+            if (appCheckSiteKey) {
+                try {
+                    initializeAppCheck(app, {
+                        provider: new ReCaptchaEnterpriseProvider(appCheckSiteKey),
+                        isTokenAutoRefreshEnabled: true,
+                    });
+                    logger.log("[Firebase] App Check initialized.");
+                } catch (appCheckError) {
+                    logger.warn("[Firebase] App Check init skipped:", appCheckError);
+                }
+            }
 
             isFirebaseInitialized = true;
             logger.log("[Firebase] 100% Operational.");

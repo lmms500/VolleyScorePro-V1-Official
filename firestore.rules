@@ -38,20 +38,28 @@ service cloud.firestore {
       }
     }
 
-    // Rosters (Team Data) - Authenticated users can read/write
+    // Rosters (Team Data) - Owner-based access control
     match /rosters/{rosterId} {
-      allow read, write: if isAuthenticated();
-      
-      // Players within roster
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                    request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isAuthenticated() &&
+                            resource.data.ownerId == request.auth.uid;
+
+      // Players within roster - same ownership as parent roster
       match /players/{playerId} {
-        allow read, write: if isAuthenticated();
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated() &&
+                     get(/databases/$(database)/documents/rosters/$(rosterId)).data.ownerId == request.auth.uid;
       }
     }
 
     // Public league/tournament data (optional)
     match /public/{document=**} {
       allow read: if true;
-      allow write: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() &&
+                            resource.data.ownerId == request.auth.uid;
     }
 
     // Live Matches - Real-time broadcast sessions

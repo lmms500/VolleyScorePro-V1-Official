@@ -10,6 +10,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default defineConfig({
+  // Strip console/debugger statements in production builds
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
   resolve: {
     // ========== PATH ALIASES (NOVO) ==========
     alias: {

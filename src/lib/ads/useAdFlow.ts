@@ -1,42 +1,60 @@
 
 import { useState, useCallback } from 'react';
 import { adService } from '@lib/ads/AdService';
-import { useTranslation } from '@contexts/LanguageContext';
+import { logger } from '@lib/utils/logger';
 
 interface UseAdFlowReturn {
   showAdConfirm: boolean;
   triggerSupportAd: (onComplete: () => void) => void;
+  triggerMatchEndAd: (onComplete: () => void) => void;
   confirmWatchAd: () => void;
   cancelWatchAd: () => void;
   isAdLoading: boolean;
 }
 
+const MATCH_END_AD_PROBABILITY = 0.30;
+
 export const useAdFlow = (): UseAdFlowReturn => {
   const [showAdConfirm, setShowAdConfirm] = useState(false);
   const [pendingCallback, setPendingCallback] = useState<(() => void) | null>(null);
   const [isAdLoading, setIsAdLoading] = useState(false);
-  
+
+  const shouldShowMatchEndAd = useCallback(() => {
+    // Respect AdService frequency cap (max per session + cooldown)
+    if (!adService.canShowInterstitial()) return false;
+    return Math.random() < MATCH_END_AD_PROBABILITY;
+  }, []);
+
   const triggerSupportAd = useCallback((onComplete: () => void) => {
-    // 50% chance to ask for support (Soft Monetization)
-    // Or ask every time? Requirements say "User-Friendly", so maybe every time but strictly opt-in.
-    // Let's ask every time for now as it's explicit Opt-in.
+    if (!adService.canShowInterstitial()) {
+      onComplete();
+      return;
+    }
     setPendingCallback(() => onComplete);
     setShowAdConfirm(true);
   }, []);
 
+  const triggerMatchEndAd = useCallback((onComplete: () => void) => {
+    if (shouldShowMatchEndAd()) {
+      setPendingCallback(() => onComplete);
+      setShowAdConfirm(true);
+    } else {
+      onComplete();
+    }
+  }, [shouldShowMatchEndAd]);
+
   const confirmWatchAd = useCallback(async () => {
     setShowAdConfirm(false);
     setIsAdLoading(true);
-    
+
     try {
-        await adService.showInterstitial();
+      await adService.showInterstitial();
     } catch (e) {
-        console.error("Ad failed", e);
+      logger.error('[AdFlow] Ad failed', e);
     } finally {
-        setIsAdLoading(false);
-        // Execute callback regardless of ad success (don't block user flow)
-        if (pendingCallback) pendingCallback();
-        setPendingCallback(null);
+      setIsAdLoading(false);
+      if (pendingCallback) pendingCallback();
+      setPendingCallback(null);
     }
   }, [pendingCallback]);
 
@@ -49,6 +67,7 @@ export const useAdFlow = (): UseAdFlowReturn => {
   return {
     showAdConfirm,
     triggerSupportAd,
+    triggerMatchEndAd,
     confirmWatchAd,
     cancelWatchAd,
     isAdLoading

@@ -53,3 +53,10 @@ test_output.txt
 
 # History folder (contains old versions with potential secrets)
 .history/
+
+# Environment variables (NEVER commit secrets)
+.env
+.env.*
+.env.local
+.env.production
+.env.development
