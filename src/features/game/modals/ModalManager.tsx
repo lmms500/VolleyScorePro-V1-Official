@@ -162,6 +162,7 @@ export const ModalManager: React.FC<ModalManagerProps> = memo(({
         <ConfirmationModal
           isOpen={true} onClose={closeModal} onConfirm={() => { onResetWrapper(); closeModal(); }}
           title={t('confirm.reset.title')} message={t('confirm.reset.message')} confirmLabel={t('confirm.reset.confirmButton')}
+          zIndex="z-[120]"
         />
       )}
 
@@ -170,6 +171,7 @@ export const ModalManager: React.FC<ModalManagerProps> = memo(({
           isOpen={true} onClose={cancelWatchAd} onConfirm={confirmWatchAd}
           title="Support VolleyScore" message="Watch a short ad to support development?"
           confirmLabel={isAdLoading ? "Loading..." : "Watch Ad"} icon={Heart}
+          zIndex="z-[120]"
         />
       )}
 

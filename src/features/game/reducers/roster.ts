@@ -18,6 +18,15 @@ export const rosterReducer = (state: GameState, action: GameAction): GameState =
         case 'ROSTER_RESTORE_PLAYER': {
             const { player, targetId, index } = action;
             let newA = { ...state.teamARoster }, newB = { ...state.teamBRoster }, newQ = [...state.queue];
+
+            // Global check for duplicates
+            const allPlayers = [
+                ...newA.players, ...(newA.reserves || []),
+                ...newB.players, ...(newB.reserves || []),
+                ...newQ.flatMap(t => [...t.players, ...(t.reserves || [])])
+            ];
+            if (allPlayers.some(p => p.id === player.id)) return state;
+
             const insert = (list: Player[]) => {
                 const copy = [...list];
                 if (index !== undefined && index >= 0 && index <= copy.length) copy.splice(index, 0, player);
@@ -49,6 +58,14 @@ export const rosterReducer = (state: GameState, action: GameAction): GameState =
             const { player, originId } = history.pop()!;
 
             let newA = { ...state.teamARoster }, newB = { ...state.teamBRoster }, newQ = [...state.queue];
+
+            // Global check for duplicates
+            const allPlayers = [
+                ...newA.players, ...(newA.reserves || []),
+                ...newB.players, ...(newB.reserves || []),
+                ...newQ.flatMap(t => [...t.players, ...(t.reserves || [])])
+            ];
+            if (allPlayers.some(p => p.id === player.id)) return { ...state, deletedPlayerHistory: history };
 
             const insert = (list: Player[]) => {
                 const copy = [...list];

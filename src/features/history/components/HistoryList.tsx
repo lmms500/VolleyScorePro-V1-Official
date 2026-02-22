@@ -12,6 +12,7 @@ import { Button } from '@ui/Button';
 import { MatchDetail } from './MatchDetail';
 import { resolveTheme } from '@lib/utils/colors';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import { ConfirmationModal } from '@features/game/modals/ConfirmationModal';
 // import { GlobalLeaderboard } from '@/components/Social/GlobalLeaderboard'; // DISABLED - Global tab hidden
 import { useActions } from '@contexts/GameContext'; // UPDATED: useActions only
 import { useNotification } from '@contexts/NotificationContext';
@@ -156,7 +157,7 @@ const HistoryCard: React.FC<{
 });
 
 export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
-    const { matches, deleteMatch, addMatch, importJSON, exportJSON } = useHistoryStore();
+    const { matches, deleteMatch, addMatch, clearHistory, importJSON, exportJSON, mergeMatches } = useHistoryStore();
     const { t } = useTranslation();
     const { setState } = useActions(); // UPDATED: useActions
     const { showNotification } = useNotification();
@@ -174,6 +175,8 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
     const [importMsg, setImportMsg] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const [deletedMatch, setDeletedMatch] = useState<Match | null>(null);
     const [showHeader, setShowHeader] = useState(true);
+    const [showClearConfirm, setShowClearConfirm] = useState(false);
+    const [matchToDeleteId, setMatchToDeleteId] = useState<string | null>(null);
     const virtuosoRef = useRef<VirtuosoHandle>(null);
     const lastScrollY = useRef(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -201,28 +204,8 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
     }, [setState, onClose]);
 
     const handleDelete = useCallback((id: string) => {
-        const match = matches.find(m => m.id === id);
-        if (match) {
-            setDeletedMatch(match);
-            deleteMatch(id);
-            showNotification({
-                type: 'info',
-                mainText: t('teamManager.playerRemoved'),
-                subText: t('common.undo'),
-                systemIcon: 'delete',
-                onUndo: () => {
-                    if (deletedMatch) {
-                        addMatch(deletedMatch);
-                        setDeletedMatch(null);
-                    }
-                }
-            });
-            if (selectedMatch?.id === id) {
-                setSelectedMatch(null);
-                setShowMobileDetail(false);
-            }
-        }
-    }, [matches, deleteMatch, selectedMatch, showNotification, t, deletedMatch, addMatch]);
+        setMatchToDeleteId(id);
+    }, []);
 
     // Stable handler for toggling card expansion
     const handleToggle = useCallback((id: string) => {
@@ -281,6 +264,29 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
         setTimeout(() => setImportMsg(null), 3000);
     };
 
+    const handleClearAll = useCallback(() => {
+        if (matches.length === 0) return;
+        setShowClearConfirm(true);
+    }, [matches.length]);
+
+    const executeClearAll = useCallback(() => {
+        const tempMatches = [...matches];
+        clearHistory();
+        showNotification({
+            type: 'info',
+            mainText: t('historyList.deleteAllSuccess') || 'History cleared',
+            subText: t('common.undo'),
+            systemIcon: 'delete',
+            onUndo: () => {
+                mergeMatches(tempMatches);
+            }
+        });
+        setSelectedMatch(null);
+        setShowMobileDetail(false);
+        setExpandedId(null);
+        setShowClearConfirm(false);
+    }, [matches, clearHistory, showNotification, t, mergeMatches]);
+
     // Memoized rowRenderer for Virtuoso to avoid re-renders
     const rowRenderer = useCallback((index: number, match: Match) => (
         <div className="py-1">
@@ -300,6 +306,35 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
         <div className="flex flex-col h-full w-full relative overflow-hidden min-h-[50vh]">
             <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={handleFileChange} />
             <Suspense fallback={null}><TeamStatsModal isOpen={showStats} onClose={() => setShowStats(false)} /></Suspense>
+            <ConfirmationModal
+                isOpen={showClearConfirm}
+                onClose={() => setShowClearConfirm(false)}
+                onConfirm={executeClearAll}
+                title={t('historyList.deleteAll') || 'Clear All'}
+                message={t('historyList.confirmDeleteAll') || 'Are you sure you want to delete all matches? This action cannot be undone.'}
+            />
+            <ConfirmationModal
+                isOpen={!!matchToDeleteId}
+                onClose={() => setMatchToDeleteId(null)}
+                onConfirm={() => {
+                    if (matchToDeleteId) {
+                        deleteMatch(matchToDeleteId);
+                        showNotification({
+                            type: 'info',
+                            mainText: t('historyList.deleteSuccess') || 'Match deleted',
+                            systemIcon: 'delete',
+                        });
+                        if (selectedMatch?.id === matchToDeleteId) {
+                            setSelectedMatch(null);
+                            setShowMobileDetail(false);
+                        }
+                    }
+                    setMatchToDeleteId(null);
+                }}
+                title={t('historyList.deleteMatch') || 'Delete Match'}
+                message={t('historyList.confirmDeleteMatch') || 'Are you sure you want to delete this match?'}
+                confirmLabel={t('common.yes') || 'Yes'}
+            />
 
             <div className={`flex flex-col landscape:flex-row h-full overflow-visible ${selectedMatch ? 'landscape:gap-0' : ''}`}>
                 <div className={`flex flex-col h-full w-full landscape:w-[320px] lg:landscape:w-[380px] landscape:border-r border-black/5 dark:border-white/5 relative ${showMobileDetail ? 'hidden landscape:flex' : 'flex'}`}>
@@ -307,10 +342,11 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
                     {/* FIXED HEADER WRAPPER - Absolute positioning to avoid layout shift */}
                     <div className="absolute top-0 left-0 right-0 z-50 pt-safe-top px-1 pointer-events-none">
                         <motion.div
-                            initial={{ y: 0 }}
-                            animate={{ y: showHeader ? 0 : -120, opacity: showHeader ? 1 : 0 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            className="bg-transparent pb-2 pt-2 px-2 pointer-events-auto flex flex-col gap-2 relative z-50"
+                            initial={false}
+                            animate={{ y: showHeader ? 0 : -120 }}
+                            transition={{ duration: 0.25, ease: [0.25, 1, 0.5, 1] }}
+                            style={{ transform: 'translateZ(0)', willChange: 'transform' }}
+                            className={`bg-transparent pb-2 pt-2 px-2 pointer-events-auto flex flex-col gap-2 relative z-50 transition-opacity duration-200 ${showHeader ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                         >
                             {/* TAB SELECTOR - DISABLED (Local only) */}
 
@@ -329,6 +365,9 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
                                 <div className="flex gap-2 items-center">
                                     <div className="grid grid-cols-2 gap-2 flex-1"><CustomSelect value={filterType} onChange={(val) => setFilterType(val as any)} options={filterOptions} icon={<Filter size={12} />} /><CustomSelect value={sortOrder} onChange={(val) => setSortOrder(val as any)} options={sortOptions} icon={<SortDesc size={12} />} /></div>
                                     <div className="flex gap-1 shrink-0">
+                                        <button onClick={handleClearAll} className="p-2.5 rounded-xl bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/20 ring-1 ring-inset ring-white/10 active:scale-95 transition-all" title={t('historyList.deleteAll') || 'Clear All'}>
+                                            <Trash2 size={16} />
+                                        </button>
                                         <button onClick={() => setShowStats(true)} className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/20 ring-1 ring-inset ring-white/10 active:scale-95 transition-all">
                                             <PieChart size={16} />
                                         </button>

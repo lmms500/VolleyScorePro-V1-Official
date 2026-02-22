@@ -24,25 +24,21 @@ const fullscreenVariants: Variants = {
   hidden: {
     y: "100%",
     opacity: 0,
-    scale: 0.98,
     transition: { duration: 0.25, ease: [0.32, 0, 0.67, 0] }
   },
   visible: {
     y: "0%",
     opacity: 1,
-    scale: 1,
     transition: {
       type: "spring",
-      damping: 30,
-      stiffness: 300,
-      mass: 0.8,
-      restDelta: 0.001
+      damping: 32,
+      stiffness: 280,
+      mass: 0.7
     }
   },
   exit: {
     y: "100%",
     opacity: 0,
-    scale: 0.98,
     transition: { duration: 0.2, ease: [0.32, 0, 0.67, 0] }
   }
 };
@@ -50,29 +46,26 @@ const fullscreenVariants: Variants = {
 const floatingVariants: Variants = {
   hidden: {
     opacity: 0,
-    scale: 0.95,
-    y: 10,
-    filter: "blur(4px)",
-    transition: { duration: 0.2 }
+    scale: 0.96,
+    y: 8,
+    transition: { duration: 0.2, ease: [0.25, 1, 0.5, 1] }
   },
   visible: {
     opacity: 1,
     scale: 1,
     y: 0,
-    filter: "blur(0px)",
     transition: {
       type: "spring",
-      damping: 25,
-      stiffness: 350,
-      mass: 0.5
+      damping: 28,
+      stiffness: 320,
+      mass: 0.6
     }
   },
   exit: {
     opacity: 0,
-    scale: 0.95,
-    y: 10,
-    filter: "blur(4px)",
-    transition: { duration: 0.15 }
+    scale: 0.96,
+    y: 8,
+    transition: { duration: 0.15, ease: [0.32, 0, 0.67, 0] }
   }
 };
 

@@ -1,0 +1,55 @@
+<svg width="1080" height="1920" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="50%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <radialGradient id="orb1Grad" cx="30%" cy="30%">
+      <stop offset="0%" stop-color="rgba(99,102,241,0.15)"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </radialGradient>
+    <radialGradient id="orb2Grad" cx="70%" cy="70%">
+      <stop offset="0%" stop-color="rgba(168,85,247,0.12)"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </radialGradient>
+  </defs>
+  
+  <rect width="100%" height="100%" fill="#020617"/>
+  
+  <ellipse cx="270" cy="576" rx="432" ry="576" fill="url(#orb1Grad)"/>
+  <ellipse cx="810" cy="1344" rx="378" ry="480" fill="url(#orb2Grad)"/>
+  
+  <g transform="translate(405, 729)">
+    <circle cx="135" cy="135" r="121.5" 
+            fill="none" stroke="url(#logoGradient)" stroke-width="6.75" filter="url(#glow)"/>
+    <circle cx="135" cy="135" r="102.6" 
+            fill="none" stroke="url(#logoGradient)" stroke-width="4.05" opacity="0.4"/>
+    <path d="M135 21.6 Q229.5 94.5 135 135 Q40.5 175.5 135 248.4"
+          fill="none" stroke="url(#logoGradient)" stroke-width="6.75" stroke-linecap="round"/>
+    <path d="M21.6 135 Q94.5 40.5 135 135 Q175.5 229.5 248.4 135"
+          fill="none" stroke="url(#logoGradient)" stroke-width="6.75" stroke-linecap="round"/>
+    <path d="M54 48.6 Q135 108 216 48.6"
+          fill="none" stroke="url(#logoGradient)" stroke-width="4.859999999999999" stroke-linecap="round" opacity="0.5"/>
+    <path d="M54 221.39999999999998 Q135 162 216 221.39999999999998"
+          fill="none" stroke="url(#logoGradient)" stroke-width="4.859999999999999" stroke-linecap="round" opacity="0.5"/>
+    <circle cx="135" cy="135" r="13.5" fill="url(#logoGradient)"/>
+    <circle cx="135" cy="135" r="6.75" fill="white" opacity="0.8"/>
+  </g>
+  
+  <text x="540" y="1152.6" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="86.39999999999999">
+    <tspan fill="url(#logoGradient)">VolleyScore</tspan>
+    <tspan fill="#f1f5f9"> Pro</tspan>
+  </text>
+  
+  <text x="540" y="1229.3999999999999" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="500" font-size="34.559999999999995" fill="#64748b" letter-spacing="0.15em">
+    PLACAR PROFISSIONAL
+  </text>
+</svg>

@@ -334,6 +334,8 @@
         "movedToBench": "A la Banca",
         "movedToBenchSub": "Plantilla Llena",
         "playerRemoved": "Eliminado",
+        "removePlayer": "Eliminar Jugador",
+        "confirmRemovePlayer": "¿Estás seguro de que quieres eliminar a este jugador del equipo?",
         "undo": "DESHACER",
         "activateBenchTitle": "¿Usar Banca?",
         "activateBenchMsg": "La banca está deshabilitada.",
@@ -349,6 +351,7 @@
         "resetConfirm": "¿Reiniciar este equipo? Esto borrará el nombre y eliminará todos los jugadores.",
         "resetTeam": "Reiniciar Equipo",
         "teamReset": "Equipo Reiniciado",
+        "confirmResetTeam": "¿Estás seguro de que quieres reiniciar este equipo? Se eliminarán todos los jugadores y el logo.",
         "teamAdded": "Equipo Agregado",
         "newTeam": "Nuevo Equipo",
         "queueHint": "Añadir equipos a la rotación",
@@ -393,10 +396,13 @@
         },
         "batch": {
             "title": "Importar Lista",
-            "desc": "Pega una lista de nombres (uno por línea). El sistema detecta números y nivel de habilidad automáticamente.",
-            "tipTitle": "Consejo:",
-            "tipFormat": "Formatos: \"Nombre 8\" o \"10 Nombre 8\" (Número Nombre Habilidad).",
+            "desc": "Pega una lista de jugadores para añadir automáticamente. Cada línea crea un jugador. Puedes incluir número y nivel de habilidad (1-10) junto con el nombre.",
+            "tipTitle": "Formatos Inteligentes:",
+            "tipFormat": "• Nombre\n• 10 Nombre (Número + Nombre)\n• 10 Nombre 9 (Completo con Habilidad)",
             "tipDesc": "",
+            "formatName": "Solo nombre",
+            "formatNumName": "# + Nombre",
+            "formatFull": "# + Nombre + Habilidad",
             "placeholder": "Nombre 8\n10 Nombre 9\nNombre",
             "generate": "Generar"
         },
@@ -410,7 +416,8 @@
             "addTo": "Añadir a",
             "addToQueue": "Añadir Cola",
             "globalBalance": "Balancear",
-            "restoreOrder": "Reiniciar Orden"
+            "restoreOrder": "Reiniciar Orden",
+            "randomTest": "Prueba Aleatoria"
         },
         "location": {
             "courtA": "Cancha A",
@@ -513,7 +520,13 @@
         "delete": "Eliminar",
         "analysis": "Ver",
         "importSuccess": "¡Importado!",
-        "importError": "Archivo inválido."
+        "importError": "Archivo inválido.",
+        "deleteAll": "Borrar Todo",
+        "confirmDeleteAll": "¿Estás seguro de que quieres borrar todo el historial? Esta acción no se puede deshacer.",
+        "deleteAllSuccess": "Historial borrado",
+        "deleteMatch": "Eliminar Partido",
+        "confirmDeleteMatch": "¿Estás seguro de que quieres eliminar este partido?",
+        "deleteSuccess": "Partido eliminado"
     },
     "history": {
         "setLabel": "S{setNumber}",
@@ -523,36 +536,36 @@
         "scorecard": "Hoja de Anotación"
     },
     "voice": {
-        "title": "Voz",
-        "intro": "Diga Nombre o Equipo.",
+        "title": "Comandos de Voz",
+        "intro": "Habla naturalmente para controlar el marcador. Di el nombre del equipo o del jugador para anotar puntos. Usa comandos específicos para acciones como ace, bloqueo y tiempo.",
         "thinking": "...",
         "processing": "IA...",
         "sections": {
-            "basic": "Básico",
-            "stats": "Stats",
-            "controls": "Control"
+            "basic": "Puntuación Básica",
+            "stats": "Estadísticas Detalladas",
+            "controls": "Controles de Juego"
         },
         "commands": {
-            "pointA": "Ponto A",
-            "pointA_desc": "Punto local",
-            "pointDynamic": "Punto [Equipo]",
-            "pointDynamic_desc": "Por nombre",
-            "remove": "Quitar",
-            "remove_desc": "Deshacer punto",
-            "pointPlayer": "Punto Juan",
-            "pointPlayer_desc": "Genérico",
-            "ace": "Ace Juan",
-            "ace_desc": "Ace",
-            "block": "Block Pedro",
-            "block_desc": "Bloqueo",
-            "attack": "Ataque Lucas",
-            "attack_desc": "Remate",
-            "undo": "Deshacer",
-            "undo_desc": "Volver",
-            "timeout": "Tiempo",
-            "timeout_desc": "Pausa",
-            "serve": "Saque",
-            "serve_desc": "Cambio"
+            "pointA": "Punto A o Punto Local",
+            "pointA_desc": "Anota punto para el equipo local (Equipo A)",
+            "pointDynamic": "Punto [Nombre del Equipo]",
+            "pointDynamic_desc": "Anota usando el nombre del equipo (ej: Punto Azul)",
+            "remove": "Quitar o Deshacer",
+            "remove_desc": "Quita el último punto anotado",
+            "pointPlayer": "Punto [Nombre del Jugador]",
+            "pointPlayer_desc": "Anota un punto genérico para el jugador",
+            "ace": "Ace [Nombre]",
+            "ace_desc": "Registra un ace (saque directo) para el jugador",
+            "block": "Block [Nombre] o Bloqueo [Nombre]",
+            "block_desc": "Registra un bloqueo para el jugador",
+            "attack": "Ataque [Nombre]",
+            "attack_desc": "Registra un ataque punto para el jugador",
+            "undo": "Deshacer o Volver",
+            "undo_desc": "Deshace la última acción",
+            "timeout": "Tiempo o Timeout",
+            "timeout_desc": "Pide tiempo para el equipo actual",
+            "serve": "Saque o Cambio",
+            "serve_desc": "Cambia el saque al otro equipo"
         }
     },
     "tutorial": {

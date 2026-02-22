@@ -1,141 +1,212 @@
 /**
- * SCENE: Skill Balance - Comparison of unbalanced vs balanced teams
- * Unique: Shows before (red) → balancing process → after (green)
+ * SkillBalanceScene - Team Balancing Animation
+ * Shows skill levels balancing between teams with animated values
  */
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRightLeft, Scale } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Scale, TrendingUp, Sparkles } from 'lucide-react';
 import { MotionSceneProps } from './types';
 
 export const SkillBalanceScene: React.FC<MotionSceneProps> = ({ color, isPaused }) => {
-  const beforeTeam = [
-    { label: 'Equipe A', skills: [90, 95, 85], balance: 'Desbalanceada' },
-    { label: 'Equipe B', skills: [45, 40, 50], balance: 'Fraca' }
-  ];
+  const [phase, setPhase] = useState<'before' | 'balancing' | 'after'>('before');
+  
+  const beforeTeamA = [90, 95, 85];
+  const beforeTeamB = [40, 45, 50];
+  const afterTeamA = [70, 72, 68];
+  const afterTeamB = [69, 71, 70];
+  
+  const beforeAvgA = Math.round(beforeTeamA.reduce((a,b) => a+b, 0) / 3);
+  const beforeAvgB = Math.round(beforeTeamB.reduce((a,b) => a+b, 0) / 3);
+  const afterAvgA = Math.round(afterTeamA.reduce((a,b) => a+b, 0) / 3);
+  const afterAvgB = Math.round(afterTeamB.reduce((a,b) => a+b, 0) / 3);
+
+  useEffect(() => {
+    if (isPaused) return;
+    
+    const timer1 = setTimeout(() => setPhase('balancing'), 2000);
+    const timer2 = setTimeout(() => setPhase('after'), 3500);
+    const timer3 = setTimeout(() => setPhase('before'), 6000);
+    
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
+  }, [phase, isPaused]);
+
+  const TeamCard = ({ 
+    skills, 
+    avg, 
+    label, 
+    color, 
+    delay 
+  }: { 
+    skills: number[]; 
+    avg: number; 
+    label: string; 
+    color: string;
+    delay: number;
+  }) => (
+    <motion.div
+      className="flex-1 p-3 rounded-xl border"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <span className={`text-[10px] font-bold ${color}`}>{label}</span>
+        <motion.span
+          className={`text-lg font-black ${color}`}
+          key={avg}
+          initial={{ scale: 1.3 }}
+          animate={{ scale: 1 }}
+        >
+          {avg}
+        </motion.span>
+      </div>
+      <div className="flex gap-1">
+        {skills.map((skill, i) => (
+          <motion.div
+            key={i}
+            className={`flex-1 h-8 rounded-md ${color.replace('text-', 'bg-')}/40 flex items-center justify-center`}
+            initial={{ height: 0 }}
+            animate={{ height: 32 }}
+            transition={{ delay: delay + i * 0.05 }}
+          >
+            <span className="text-[10px] font-bold">{skill}</span>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 dark:bg-white/5 relative overflow-hidden px-4 py-6 gap-4">
-      {/* TITLE */}
+    <div className="w-full h-full flex flex-col items-center justify-center p-4 gap-3">
+      {/* Title */}
       <motion.div
-        className="text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300"
-        animate={isPaused ? { opacity: 0.5 } : { opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        className="text-center"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
       >
-        Balanceamento de Habilidades
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <Scale size={16} className={color} />
+          <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+            Balanceamento por Skill
+          </span>
+        </div>
+        <p className="text-[10px] text-slate-400">A IA equaliza os times automaticamente</p>
       </motion.div>
 
-      {/* BEFORE → AFTER COMPARISON */}
-      <div className="flex items-center justify-center gap-4 w-full max-w-sm">
-        {/* BEFORE (UNBALANCED) */}
-        <motion.div
-          className="flex-1 p-4 rounded-xl bg-slate-100 dark:bg-white/5 border-2 border-red-500/50"
-          animate={isPaused ? { opacity: 1 } : {
-            opacity: [1, 1, 0.5, 1],
-            scale: [1, 1, 0.95, 1]
-          }}
-          transition={{ duration: 3.2, repeat: Infinity, times: [0, 0.4, 0.6, 1] }}
-        >
-          <div className="text-xs font-bold text-red-600 dark:text-red-400 mb-3 uppercase">Antes</div>
-
-          {beforeTeam.map((team, idx) => (
-            <div key={team.label} className="mb-3 last:mb-0">
-              <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">{team.label}</div>
-              <div className="flex gap-1">
-                {team.skills.map((skill, skillIdx) => (
-                  <motion.div
-                    key={skillIdx}
-                    className="flex-1 h-6 rounded-sm bg-red-500/40 border border-red-600 flex items-center justify-center"
-                    animate={isPaused ? {} : {
-                      opacity: [0.6, 1, 0.6]
-                    }}
-                    transition={{
-                      duration: 3.2,
-                      repeat: Infinity,
-                      delay: skillIdx * 0.1,
-                      times: [0, 0.4, 1]
-                    }}
-                  >
-                    <span className="text-xs font-bold text-red-700 dark:text-red-300">{skill}</span>
-                  </motion.div>
-                ))}
+      {/* Teams comparison */}
+      <div className="w-full max-w-[260px]">
+        <AnimatePresence mode="wait">
+          {phase === 'before' && (
+            <motion.div
+              key="before"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-2"
+            >
+              <div className="flex gap-2">
+                <TeamCard 
+                  skills={beforeTeamA} 
+                  avg={beforeAvgA} 
+                  label="Time A" 
+                  color="text-rose-500"
+                  delay={0}
+                />
+                <TeamCard 
+                  skills={beforeTeamB} 
+                  avg={beforeAvgB} 
+                  label="Time B" 
+                  color="text-slate-400"
+                  delay={0.1}
+                />
               </div>
-            </div>
-          ))}
-
-          <motion.div
-            className="text-xs text-red-600 dark:text-red-400 font-semibold mt-2"
-            animate={isPaused ? { opacity: 0.5 } : { opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 3.2, repeat: Infinity }}
-          >
-            ❌ Desbalanceado
-          </motion.div>
-        </motion.div>
-
-        {/* TRANSFORMATION ARROW */}
-        <motion.div
-          className="flex flex-col items-center gap-1"
-          animate={isPaused ? { opacity: 0 } : { opacity: [0, 0, 1, 1, 0] }}
-          transition={{ duration: 3.2, repeat: Infinity, times: [0, 0.4, 0.5, 0.75, 1] }}
-        >
-          <ArrowRightLeft size={20} className="text-amber-500" strokeWidth={2.5} />
-          <span className="text-xs font-bold text-amber-600 dark:text-amber-400 whitespace-nowrap">Balanceia</span>
-        </motion.div>
-
-        {/* AFTER (BALANCED) */}
-        <motion.div
-          className="flex-1 p-4 rounded-xl bg-slate-100 dark:bg-white/5 border-2 border-emerald-500/50"
-          animate={isPaused ? { opacity: 1 } : {
-            opacity: [0.5, 0.5, 1, 1],
-            scale: [1, 1, 1.05, 1]
-          }}
-          transition={{ duration: 3.2, repeat: Infinity, times: [0, 0.4, 0.6, 1] }}
-        >
-          <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-3 uppercase">Depois</div>
-
-          {beforeTeam.map((team, idx) => (
-            <div key={team.label} className="mb-3 last:mb-0">
-              <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">{team.label}</div>
-              <div className="flex gap-1">
-                {[70, 72, 68].map((skill, skillIdx) => (
-                  <motion.div
-                    key={skillIdx}
-                    className="flex-1 h-6 rounded-sm bg-emerald-500/40 border border-emerald-600 flex items-center justify-center"
-                    animate={isPaused ? {} : {
-                      opacity: [0.6, 1, 0.6]
-                    }}
-                    transition={{
-                      duration: 3.2,
-                      repeat: Infinity,
-                      delay: skillIdx * 0.1,
-                      times: [0.4, 0.6, 1]
-                    }}
-                  >
-                    <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{skill}</span>
-                  </motion.div>
-                ))}
+              <div className="flex items-center justify-center gap-2 py-2">
+                <span className="text-[9px] font-bold text-rose-500">❌ Desbalanceado</span>
+                <span className="text-[9px] text-slate-400">Diferença: {beforeAvgA - beforeAvgB} pontos</span>
               </div>
-            </div>
-          ))}
+            </motion.div>
+          )}
 
-          <motion.div
-            className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-2"
-            animate={isPaused ? { opacity: 0.5 } : { opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 3.2, repeat: Infinity, delay: 0.5 }}
-          >
-            ✓ Balanceado
-          </motion.div>
-        </motion.div>
+          {phase === 'balancing' && (
+            <motion.div
+              key="balancing"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center py-6"
+            >
+              <motion.div
+                className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+              >
+                <Sparkles size={24} className="text-white" />
+              </motion.div>
+              <span className="text-[10px] font-bold text-amber-600 mt-3">Balanceando times...</span>
+            </motion.div>
+          )}
+
+          {phase === 'after' && (
+            <motion.div
+              key="after"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-2"
+            >
+              <div className="flex gap-2">
+                <TeamCard 
+                  skills={afterTeamA} 
+                  avg={afterAvgA} 
+                  label="Time A" 
+                  color="text-emerald-500"
+                  delay={0}
+                />
+                <TeamCard 
+                  skills={afterTeamB} 
+                  avg={afterAvgB} 
+                  label="Time B" 
+                  color="text-emerald-500"
+                  delay={0.1}
+                />
+              </div>
+              <div className="flex items-center justify-center gap-2 py-2">
+                <span className="text-[9px] font-bold text-emerald-500">✓ Balanceado</span>
+                <span className="text-[9px] text-slate-400">Diferença: {Math.abs(afterAvgA - afterAvgB)} pontos</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
-      {/* BALANCE SCORE INDICATOR */}
+      {/* Balance meter */}
       <motion.div
-        className="flex items-center gap-2 text-xs"
-        animate={isPaused ? { opacity: 0.5 } : { opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 2.4, repeat: Infinity, delay: 0.8 }}
+        className="w-full max-w-[200px]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
       >
-        <Scale size={16} className="text-emerald-500" />
-        <span className="font-semibold text-slate-600 dark:text-slate-300">Índice de Balanceamento: 92%</span>
+        <div className="flex justify-between text-[9px] text-slate-400 mb-1">
+          <span>Índice de Equilíbrio</span>
+          <motion.span
+            className="font-bold text-emerald-500"
+            key={phase === 'after' ? '100%' : '35%'}
+          >
+            {phase === 'after' ? '92%' : '35%'}
+          </motion.span>
+        </div>
+        <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full"
+            animate={{ width: phase === 'after' ? '92%' : '35%' }}
+            transition={{ duration: 0.5 }}
+          />
+        </div>
       </motion.div>
     </div>
   );

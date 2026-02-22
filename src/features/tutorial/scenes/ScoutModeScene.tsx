@@ -1,124 +1,85 @@
 /**
- * SCENE: Scout Mode - Central player with orbital stat icons
- * Unique: Icons orbit in smooth circle, each with slight bounce
+ * ScoutModeScene - Stats Tracking Animation
+ * Ultra-compact layout without overflow
  */
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Users } from 'lucide-react';
+import { User, Zap, Shield, Sparkles, Target } from 'lucide-react';
 import { MotionSceneProps } from './types';
 
 export const ScoutModeScene: React.FC<MotionSceneProps> = ({ color, isPaused }) => {
-  const statIcons = [
-    { icon: '⚡', label: 'ATK', angle: 0, bounce: 'top' },
-    { icon: '🛡️', label: 'BLK', angle: 90, bounce: 'right' },
-    { icon: '✨', label: 'ACE', angle: 180, bounce: 'bottom' },
-    { icon: '🔄', label: 'REC', angle: 270, bounce: 'left' }
+  const stats = [
+    { icon: Zap, label: 'Ataque', value: '12', color: 'bg-orange-500' },
+    { icon: Shield, label: 'Bloqueio', value: '5', color: 'bg-blue-500' },
+    { icon: Sparkles, label: 'Ace', value: '3', color: 'bg-violet-500' },
+    { icon: Target, label: 'Defesa', value: '8', color: 'bg-emerald-500' }
   ];
 
   return (
-    <div className="w-full h-full flex items-center justify-center bg-slate-50 dark:bg-white/5 relative overflow-hidden">
-      {/* ORBIT CIRCLE - Animated dash */}
+    <div className="w-full h-full flex flex-col items-center justify-center p-4 gap-2">
+      {/* Title */}
       <motion.div
-        className="absolute w-40 h-40 rounded-full border-2 border-dashed border-slate-200 dark:border-white/10"
-        animate={isPaused ? { rotate: 0, opacity: 0.3 } : { rotate: 360, opacity: [0.3, 0.6, 0.3] }}
-        transition={{
-          rotate: { duration: 12, repeat: Infinity, ease: 'linear' },
-          opacity: { duration: 4, repeat: Infinity, ease: 'easeInOut' }
-        }}
-      />
-
-      {/* STAT ICONS ORBITING - With unique bounce patterns */}
-      {statIcons.map((stat, idx) => {
-        const radius = 80;
-        const x = Math.cos((stat.angle * Math.PI) / 180) * radius;
-        const y = Math.sin((stat.angle * Math.PI) / 180) * radius;
-
-        return (
-          <motion.div
-            key={`stat-${idx}`}
-            className="absolute w-10 h-10 rounded-full bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-white/20 flex items-center justify-center text-sm font-bold shadow-md z-10 hover:scale-110 transition-transform"
-            animate={isPaused ? {
-              x: x,
-              y: y,
-              scale: 1,
-              opacity: 1
-            } : {
-              // Orbital motion
-              x: [x, x, x],
-              y: [y, y, y],
-              // Individual bounce on pass
-              scale: [1, 1.3, 1],
-              opacity: [0.7, 1, 0.7],
-              filter: ['brightness(1)', 'brightness(1.3)', 'brightness(1)']
-            }}
-            transition={{
-              duration: 12,
-              repeat: Infinity,
-              delay: stat.angle / 360 * 12,
-              times: [0, 0.25 + idx * 0.08, 0.35 + idx * 0.08],
-              ease: 'linear'
-            }}
-            style={{
-              x: x,
-              y: y
-            }}
-          >
-            {stat.icon}
-          </motion.div>
-        );
-      })}
-
-      {/* CENTRAL PLAYER - Continuous pulsing with glow */}
-      <motion.div
-        className="w-14 h-14 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 shadow-lg flex items-center justify-center z-20"
-        animate={isPaused ? { scale: 1 } : {
-          scale: [1, 1.12, 1],
-          boxShadow: [
-            '0 0 0px rgba(99,102,241,0)',
-            '0 0 25px rgba(99,102,241,0.5)',
-            '0 0 0px rgba(99,102,241,0)'
-          ]
-        }}
-        transition={{
-          duration: 2.5,
-          repeat: Infinity,
-          ease: 'easeInOut'
-        }}
+        className="text-center"
+        initial={{ opacity: 0, y: -5 }}
+        animate={{ opacity: 1, y: 0 }}
       >
-        <Users size={24} className="text-white" />
+        <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+          Modo Scout
+        </span>
+        <p className="text-[10px] text-slate-400">Toque ao pontuar para registrar</p>
       </motion.div>
 
-      {/* STAT LABELS - Show on hover or loop */}
-      {statIcons.map((stat, idx) => {
-        const radius = 80;
-        const x = Math.cos((stat.angle * Math.PI) / 180) * radius;
-        const y = Math.sin((stat.angle * Math.PI) / 180) * radius;
-        const offset = stat.angle === 0 ? -30 : stat.angle === 90 ? 30 : stat.angle === 180 ? 30 : -30;
+      {/* Player card */}
+      <motion.div
+        className="w-full max-w-[200px] bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow overflow-hidden"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+      >
+        {/* Header */}
+        <div className="bg-gradient-to-r from-indigo-500 to-violet-600 px-3 py-2 flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+            <User size={16} className="text-white" />
+          </div>
+          <div>
+            <span className="text-xs font-bold text-white block">João Silva</span>
+            <span className="text-[9px] text-white/70">#10 Ponteiro</span>
+          </div>
+        </div>
 
-        return (
-          <motion.div
-            key={`label-${idx}`}
-            className="absolute text-xs font-bold text-slate-600 dark:text-slate-300 pointer-events-none"
-            animate={isPaused ? { opacity: 0 } : {
-              opacity: [0, 0, 1, 1, 0]
-            }}
-            transition={{
-              duration: 12,
-              repeat: Infinity,
-              delay: stat.angle / 360 * 12 + 0.2,
-              times: [0, 0.2, 0.3, 0.7, 1]
-            }}
-            style={{
-              left: `calc(50% + ${x + (stat.angle === 0 ? 0 : stat.angle === 90 ? 20 : stat.angle === 180 ? 0 : -20)}px)`,
-              top: `calc(50% + ${y + offset}px)`,
-              transform: 'translate(-50%, -50%)'
-            }}
-          >
-            {stat.label}
-          </motion.div>
-        );
-      })}
+        {/* Stats grid */}
+        <div className="grid grid-cols-2 gap-1.5 p-2">
+          {stats.map((stat, idx) => (
+            <motion.div
+              key={stat.label}
+              className="flex items-center gap-1.5 p-2 rounded-lg bg-slate-50 dark:bg-slate-700/50"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: idx * 0.05 }}
+            >
+              <div className={`w-6 h-6 rounded ${stat.color} flex items-center justify-center`}>
+                <stat.icon size={12} className="text-white" />
+              </div>
+              <div>
+                <span className="text-[8px] text-slate-500 block">{stat.label}</span>
+                <span className="text-xs font-black text-slate-800 dark:text-white">{stat.value}</span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Hint */}
+      <motion.div
+        className="flex items-center gap-2 text-[9px] text-slate-500"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+      >
+        <span>Após cada ponto</span>
+        <span className="text-indigo-500 font-bold">→</span>
+        <span className="text-indigo-600 dark:text-indigo-400 font-medium">Selecione jogador + ação</span>
+      </motion.div>
     </div>
   );
 };

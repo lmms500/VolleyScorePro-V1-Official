@@ -1,135 +1,140 @@
 /**
- * SCENE: Rotation - Players orbiting in a circle carousel
- * Unique: Each player appears at different angles in smooth circle
+ * RotationScene - Team Rotation & Player Loan System
+ * Compact layout showing queue and loan system
  */
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRightLeft, Layout } from 'lucide-react';
+import { Users, ArrowDown, ArrowRight, Sparkles } from 'lucide-react';
 import { MotionSceneProps } from './types';
 
 export const RotationScene: React.FC<MotionSceneProps> = ({ color, isPaused }) => {
-  const positions = [0, 60, 120, 180, 240, 300];
-
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 dark:bg-white/5 relative overflow-hidden px-4 py-8">
-      {/* TITLE */}
+    <div className="w-full h-full flex flex-col items-center justify-center p-4 gap-3">
+      {/* Title */}
       <motion.div
-        className="text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-4"
-        animate={isPaused ? { opacity: 0.5 } : { opacity: [0.5, 1, 0.5] }}
-        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        className="text-center"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
       >
-        Rotação de Posições
+        <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+          Rotação de Times
+        </span>
+        <p className="text-[10px] text-slate-400 mt-1">Sistema de empréstimo entre times</p>
       </motion.div>
 
-      {/* CENTRAL ROTATION DIAGRAM */}
-      <div className="relative flex items-center justify-center" style={{ width: 240, height: 240 }}>
-        {/* ORBIT CIRCLE - Clean rotation */}
+      {/* Queue visualization */}
+      <div className="w-full max-w-[240px] space-y-2">
+        {/* Current team */}
         <motion.div
-          className="absolute w-48 h-48 rounded-full border-2 border-dashed border-slate-300 dark:border-white/10"
-          animate={isPaused ? { rotate: 0, opacity: 0.3 } : { rotate: 360, opacity: 0.4 }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
-        />
-
-        {/* CENTER COURT ICON */}
-        <motion.div
-          className="absolute w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center z-20 shadow-lg"
-          animate={isPaused ? { scale: 1 } : { scale: [1, 1.1, 1] }}
-          transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+          className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800/50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
         >
-          <Layout size={20} className="text-white" />
-        </motion.div>
-
-        {/* BACKGROUND GLOW */}
-        <motion.div
-          className="absolute rounded-full bg-indigo-500/4 blur-3xl"
-          animate={isPaused ? { scale: 1 } : { scale: [0.95, 1.1, 0.95] }}
-          transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ width: 240, height: 240 }}
-        />
-
-        {/* PLAYERS ON ORBIT - Smooth circular motion with position labels */}
-        {positions.map((angle, idx) => {
-          const radius = 90;
-          const x = Math.cos((angle * Math.PI) / 180) * radius;
-          const y = Math.sin((angle * Math.PI) / 180) * radius;
-          const positionLabels = ['Levantador', 'Ponteiro', 'Central', 'Oposto', 'Levantador', 'Libero'];
-
-          return (
-            <motion.div
-              key={`player-${idx}`}
-              className="absolute flex flex-col items-center gap-1"
-              animate={isPaused ? {
-                x: x,
-                y: y,
-                scale: 1
-              } : {
-                x: x,
-                y: y,
-                scale: [1, 1, 1.2, 1, 1]
-              }}
-              transition={{
-                scale: {
-                  duration: 3.6,
-                  repeat: Infinity,
-                  delay: (angle / 360) * 3.6,
-                  times: [0, 0.7, 0.8, 0.9, 1]
-                }
-              }}
-            >
-              {/* PLAYER CIRCLE */}
-              <motion.div
-                className="w-11 h-11 rounded-full bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center z-10 font-bold text-white text-sm shadow-md border-2 border-sky-700"
-                animate={isPaused ? {} : {
-                  boxShadow: [
-                    '0 0 0px rgba(14, 165, 233, 0)',
-                    '0 0 0px rgba(14, 165, 233, 0)',
-                    '0 0 12px rgba(14, 165, 233, 0.6)',
-                    '0 0 0px rgba(14, 165, 233, 0)',
-                    '0 0 0px rgba(14, 165, 233, 0)'
-                  ]
-                }}
-                transition={{
-                  duration: 3.6,
-                  repeat: Infinity,
-                  delay: (angle / 360) * 3.6,
-                  times: [0, 0.7, 0.8, 0.9, 1]
-                }}
-              >
-                {idx + 1}
-              </motion.div>
-
-              {/* POSITION LABEL */}
-              <motion.div
-                className="text-xs font-semibold text-slate-600 dark:text-slate-300 text-center whitespace-nowrap"
-                animate={isPaused ? { opacity: 0.5 } : {
-                  opacity: [0.5, 0.5, 1, 0.5, 0.5]
-                }}
-                transition={{
-                  duration: 3.6,
-                  repeat: Infinity,
-                  delay: (angle / 360) * 3.6,
-                  times: [0, 0.7, 0.8, 0.9, 1]
-                }}
-              >
-                {positionLabels[idx]}
-              </motion.div>
-            </motion.div>
-          );
-        })}
-
-        {/* ROTATION ARROW - Top */}
-        <motion.div
-          className="absolute top-0 z-15"
-          animate={isPaused ? { opacity: 0 } : { opacity: [0, 0, 1, 1, 0] }}
-          transition={{ duration: 3.6, repeat: Infinity, times: [0, 0.7, 0.8, 0.95, 1] }}
-        >
-          <div className="flex flex-col items-center gap-1">
-            <ArrowRightLeft size={16} className="text-emerald-500 rotate-90" strokeWidth={2.5} />
-            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Rotaciona</span>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-5 h-5 rounded-full bg-indigo-500 flex items-center justify-center">
+              <Users size={10} className="text-white" />
+            </div>
+            <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300">Time A - Em Quadra</span>
+          </div>
+          <div className="flex gap-1.5">
+            {[1,2,3,4].map(n => (
+              <div key={n} className="w-6 h-6 rounded-full bg-indigo-400 flex items-center justify-center text-[10px] font-bold text-white">
+                {n}
+              </div>
+            ))}
           </div>
         </motion.div>
+
+        {/* Arrow */}
+        <motion.div 
+          className="flex items-center justify-center gap-2 py-1"
+          animate={isPaused ? {} : { opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        >
+          <ArrowDown size={16} className="text-violet-500" />
+          <span className="text-[9px] font-bold text-violet-500">Venceu, sai</span>
+        </motion.div>
+
+        {/* Incoming team */}
+        <motion.div
+          className="p-3 rounded-xl bg-violet-50 dark:bg-violet-950/30 border border-violet-200 dark:border-violet-800/50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-5 h-5 rounded-full bg-violet-500 flex items-center justify-center">
+              <Users size={10} className="text-white" />
+            </div>
+            <span className="text-[10px] font-bold text-violet-700 dark:text-violet-300">Time B - Precisa de 2</span>
+          </div>
+          <div className="flex gap-1.5">
+            {[5,6].map(n => (
+              <div key={n} className="w-6 h-6 rounded-full bg-violet-400 flex items-center justify-center text-[10px] font-bold text-white">
+                {n}
+              </div>
+            ))}
+            <div className="w-6 h-6 rounded-full border-2 border-dashed border-violet-300 flex items-center justify-center">
+              <span className="text-[8px] text-violet-400">?</span>
+            </div>
+            <div className="w-6 h-6 rounded-full border-2 border-dashed border-violet-300 flex items-center justify-center">
+              <span className="text-[8px] text-violet-400">?</span>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Loan indicator */}
+        <motion.div 
+          className="flex items-center justify-center gap-2 py-1"
+          animate={isPaused ? {} : { x: [0, 3, 0] }}
+          transition={{ duration: 1, repeat: Infinity }}
+        >
+          <Sparkles size={14} className="text-amber-500" />
+          <ArrowRight size={14} className="text-amber-500" />
+          <span className="text-[9px] font-bold text-amber-600">Empresta jogadores</span>
+        </motion.div>
+
+        {/* Queue team */}
+        <motion.div
+          className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center">
+              <Users size={10} className="text-white" />
+            </div>
+            <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300">Time C - Na Fila</span>
+          </div>
+          <div className="flex gap-1.5">
+            {[7,8,9,10].map(n => (
+              <motion.div 
+                key={n} 
+                className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${n <= 8 ? 'bg-amber-400' : 'bg-emerald-400'} text-white`}
+                animate={n <= 8 && !isPaused ? { scale: [1, 1.1, 1] } : {}}
+                transition={{ duration: 1, repeat: Infinity, delay: n * 0.1 }}
+              >
+                {n}
+              </motion.div>
+            ))}
+          </div>
+          <p className="text-[8px] text-amber-600 mt-2">Jogadores 7 e 8 serão emprestados</p>
+        </motion.div>
       </div>
+
+      {/* Mode indicator */}
+      <motion.div
+        className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.6 }}
+      >
+        <span className="text-[9px] font-bold text-slate-600 dark:text-slate-300">
+          Modo Balanceado: IA escolhe jogadores para equilibrar níveis
+        </span>
+      </motion.div>
     </div>
   );
 };

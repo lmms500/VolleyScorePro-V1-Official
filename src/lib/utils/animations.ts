@@ -1,10 +1,12 @@
 
 import { Variants, Transition } from "framer-motion";
+import { getAnimationConfig, AnimationConfig } from "@lib/platform/animationConfig";
 
 /**
- * VolleyScore Pro - Liquid Motion System 3.2 (Accessibility Aware)
- * 
- * Manages global motion preferences.
+ * VolleyScore Pro - Liquid Motion System 4.0 (Platform Adaptive)
+ *
+ * Provides platform-aware animation variants that optimize for Android
+ * while maintaining visual quality on high-end devices.
  */
 
 let isReducedMotion = false;
@@ -17,79 +19,112 @@ export const setGlobalReducedMotion = (enabled: boolean) => {
 
 const getTransition = (standard: Transition): Transition => {
   if (isReducedMotion) {
-    return { duration: 0 }; // Instant
+    return { duration: 0 };
   }
   return standard;
 };
 
-// "Liquid Spring": Fluid, responsive.
+export const getAdaptiveTransition = (): Transition => {
+  const config = getAnimationConfig();
+  if (isReducedMotion) return { duration: 0 };
+  
+  if (config.modalUseSpring) {
+    return {
+      type: "spring",
+      stiffness: 300,
+      damping: 30,
+      mass: 0.8
+    };
+  }
+  
+  return {
+    duration: config.modalDuration / 1000,
+    ease: [0.25, 1, 0.5, 1] as const
+  };
+};
+
 export const liquidSpring: Transition = {
-  type: "spring",
-  stiffness: 400,
-  damping: 35,
-  mass: 0.8
+  type: "tween",
+  duration: 0.25,
+  ease: [0.25, 1, 0.5, 1]
 };
 
-// "Soft Bounce": Playful elements.
 export const softBounce: Transition = {
-  type: "spring",
-  stiffness: 300,
-  damping: 20,
-  mass: 1
+  type: "tween",
+  duration: 0.3,
+  ease: [0.25, 1, 0.5, 1]
 };
 
-// "Ticker Slide": Fast numbers.
 export const tickerSpring: Transition = {
-  type: "spring",
-  stiffness: 250,
-  damping: 25,
-  mass: 0.5
+  type: "tween",
+  duration: 0.2,
+  ease: [0.25, 1, 0.5, 1]
 };
 
-// "Snappy": Quick UI toggles.
 export const springSnappy: Transition = {
-  type: "spring",
-  stiffness: 400,
-  damping: 25,
-  mass: 1
+  type: "tween",
+  duration: 0.2,
+  ease: [0.25, 1, 0.5, 1]
 };
 
-// "Premium": Standard interaction.
 export const springPremium: Transition = {
-  type: "spring",
-  stiffness: 300,
-  damping: 20,
-  mass: 0.8
+  type: "tween",
+  duration: 0.25,
+  ease: [0.25, 1, 0.5, 1]
 };
 
-// --- CORE VARIANTS (Dynamic) ---
+// --- ADAPTIVE VARIANTS ---
 
-// 1. Modal Entrance
+export const getAdaptiveModalVariants = (): Variants => {
+  const config = getAnimationConfig();
+  const duration = config.modalDuration / 1000;
+  
+  return {
+    hidden: {
+      opacity: 0,
+      ...(config.modalUseScale && { scale: 0.95 }),
+      y: 20,
+      transition: { duration: Math.max(0.1, duration * 0.5), ease: [0.25, 1, 0.5, 1] }
+    },
+    visible: {
+      opacity: 1,
+      ...(config.modalUseScale && { scale: 1 }),
+      y: 0,
+      transition: config.modalUseSpring
+        ? { type: "spring", stiffness: 300, damping: 30, mass: 0.8 }
+        : { duration, ease: [0.25, 1, 0.5, 1] }
+    },
+    exit: {
+      opacity: 0,
+      ...(config.modalUseScale && { scale: 0.96 }),
+      y: 10,
+      transition: { duration: Math.max(0.08, duration * 0.4), ease: [0.32, 0, 0.67, 0] }
+    }
+  };
+};
+
+// Legacy static variants (kept for backward compatibility)
 export const modalVariants: Variants = {
   hidden: {
     opacity: 0,
-    scale: 0.92,
-    y: 20,
-    filter: "blur(4px)",
-    transition: { duration: 0.2 }
+    scale: 0.96,
+    y: 16,
+    transition: { duration: 0.2, ease: [0.25, 1, 0.5, 1] }
   },
   visible: {
     opacity: 1,
     scale: 1,
     y: 0,
-    filter: "none",
-    transition: isReducedMotion ? { duration: 0.1 } : liquidSpring
+    transition: isReducedMotion ? { duration: 0.1 } : { duration: 0.25, ease: [0.25, 1, 0.5, 1] }
   },
   exit: {
     opacity: 0,
     scale: 0.96,
-    y: 10,
-    filter: "blur(4px)",
-    transition: { duration: 0.2, ease: "easeIn" }
+    y: 8,
+    transition: { duration: 0.15, ease: [0.32, 0, 0.67, 0] }
   }
 };
 
-// 2. Staggered Container
 export const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: {
@@ -105,45 +140,41 @@ export const staggerContainer: Variants = {
   }
 };
 
-// 3. Staggered Item
 export const staggerItem: Variants = {
   hidden: {
     opacity: 0,
-    y: 15,
-    scale: 0.95
+    y: 12,
+    scale: 0.96
   },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: isReducedMotion ? { duration: 0 } : liquidSpring
+    transition: isReducedMotion ? { duration: 0 } : { duration: 0.2, ease: [0.25, 1, 0.5, 1] }
   },
   exit: {
     opacity: 0,
-    scale: 0.9,
-    transition: { duration: 0.15 }
+    scale: 0.94,
+    transition: { duration: 0.12, ease: [0.32, 0, 0.67, 0] }
   }
 };
 
-// 4. Backdrop Fade
 export const overlayVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { duration: isReducedMotion ? 0.1 : 0.4, ease: "easeOut" }
+    transition: { duration: isReducedMotion ? 0.1 : 0.2, ease: [0.25, 1, 0.5, 1] }
   },
   exit: {
     opacity: 0,
-    transition: { duration: 0.1, ease: "easeIn" }
+    transition: { duration: 0.12, ease: [0.32, 0, 0.67, 0] }
   }
 };
 
-// 5. Button Press
 export const buttonTap: Variants = {
-  idle: { scale: 1, filter: "brightness(1)" },
+  idle: { scale: 1 },
   tap: {
     scale: isReducedMotion ? 1 : 0.94,
-    filter: "brightness(1.15)",
     transition: { type: "spring", stiffness: 800, damping: 15 }
   },
   hover: {
@@ -152,52 +183,44 @@ export const buttonTap: Variants = {
   }
 };
 
-// 6. Liquid Ticker - Increased scale from 0.5 to 0.8 for smoother headroom
 export const tickerVariants: Variants = {
   enter: (direction: number) => ({
     y: isReducedMotion ? 0 : (direction > 0 ? "60%" : "-60%"),
     opacity: 0,
     scale: isReducedMotion ? 1 : 0.8,
-    filter: isReducedMotion ? "blur(0px)" : "blur(10px)",
     position: "relative",
     transition: isReducedMotion ? { duration: 0 } : {
       y: tickerSpring,
       scale: tickerSpring,
-      opacity: { duration: 0.2, ease: "easeOut" },
-      filter: { type: "tween", ease: "easeOut", duration: 0.2 }
+      opacity: { duration: 0.15, ease: "easeOut" }
     }
   }),
   center: {
     y: "0%",
     opacity: 1,
     scale: 1,
-    filter: "blur(0px)",
     position: "relative",
     zIndex: 1,
     transition: isReducedMotion ? { duration: 0 } : {
       y: tickerSpring,
       scale: tickerSpring,
-      opacity: { duration: 0.2, ease: "easeOut" },
-      filter: { type: "tween", ease: "easeOut", duration: 0.2 }
+      opacity: { duration: 0.15, ease: "easeOut" }
     }
   },
   exit: (direction: number) => ({
     y: isReducedMotion ? 0 : (direction > 0 ? "-60%" : "60%"),
     opacity: 0,
     scale: isReducedMotion ? 1 : 0.8,
-    filter: isReducedMotion ? "blur(0px)" : "blur(10px)",
     position: "absolute",
     zIndex: 0,
     transition: isReducedMotion ? { duration: 0 } : {
-      y: { duration: 0.25, ease: "easeIn" },
-      scale: { duration: 0.25, ease: "easeIn" },
-      opacity: { duration: 0.2, ease: "easeIn" },
-      filter: { type: "tween", ease: "easeIn", duration: 0.2 }
+      y: { duration: 0.2, ease: "easeIn" },
+      scale: { duration: 0.2, ease: "easeIn" },
+      opacity: { duration: 0.15, ease: "easeIn" }
     }
   })
 };
 
-// 7. Pulse (Intensified for Critical Points)
 export const pulseHeartbeat: Variants = {
   idle: { scale: 1, opacity: 1 },
   pulse: {
@@ -211,14 +234,12 @@ export const pulseHeartbeat: Variants = {
   }
 };
 
-// 8. Ghost Score (Background Highlight)
 export const ghostScoreVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.5, filter: "blur(10px)" },
+  hidden: { opacity: 0, scale: 0.5 },
   visible: {
     opacity: 0.08,
     scale: 1,
-    filter: "blur(0px)",
-    transition: { duration: 0.8, ease: "easeOut" }
+    transition: { duration: 0.6, ease: "easeOut" }
   },
   pulse: {
     scale: [1, 1.1, 1],
@@ -227,24 +248,20 @@ export const ghostScoreVariants: Variants = {
   }
 };
 
-// 9. Stamp
 export const stampVariants: Variants = {
-  hidden: { scale: 2, opacity: 0, filter: "blur(10px)" },
+  hidden: { scale: 1.5, opacity: 0 },
   visible: {
     scale: 1,
     opacity: 1,
-    filter: "none",
     transition: isReducedMotion ? { duration: 0 } : softBounce
   },
   exit: {
     opacity: 0,
     scale: 0.8,
-    filter: "blur(5px)",
-    transition: { duration: 0.2 }
+    transition: { duration: 0.15 }
   }
 };
 
-// 10. Vignette (Sudden Death - Phase 1 Polish)
 export const vignettePulse: Variants = {
   hidden: {
     opacity: 0,
@@ -261,27 +278,50 @@ export const vignettePulse: Variants = {
   }
 };
 
-// 11. List Item
 export const listItemVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.9, x: -10 },
-  visible: { opacity: 1, scale: 1, x: 0, transition: isReducedMotion ? { duration: 0 } : liquidSpring },
-  exit: { opacity: 0, scale: 0.9, transition: { duration: 0.2 } }
+  hidden: { opacity: 0, scale: 0.96, x: -8 },
+  visible: { opacity: 1, scale: 1, x: 0, transition: isReducedMotion ? { duration: 0 } : { duration: 0.2, ease: [0.25, 1, 0.5, 1] } },
+  exit: { opacity: 0, scale: 0.96, transition: { duration: 0.12, ease: [0.32, 0, 0.67, 0] } }
 };
 
 // --- SCOUT MODAL DESIGN LANGUAGE ---
 
-// 12. Scout Spring: The canonical spring for Scout Modal design language
 export const scoutSpring: Transition = {
-  type: "spring",
-  damping: 25,
-  stiffness: 300,
-  mass: 0.8
+  type: "tween",
+  duration: 0.2,
+  ease: [0.25, 1, 0.5, 1]
 };
 
-// 13. Scout Slide Variants (multi-step navigation)
+export const getAdaptiveScoutSlideVariants = (): Variants => {
+  const config = getAnimationConfig();
+  const duration = config.modalDuration / 1000;
+  
+  return {
+    enter: (direction: number) => ({
+      x: direction > 0 ? "20%" : "-20%",
+      opacity: 0,
+      scale: config.modalUseScale ? 0.98 : 1
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+      transition: config.modalUseSpring
+        ? { ...scoutSpring, delay: 0.05 }
+        : { duration, ease: [0.25, 1, 0.5, 1], delay: 0.03 }
+    },
+    exit: (direction: number) => ({
+      x: direction < 0 ? "20%" : "-20%",
+      opacity: 0,
+      scale: config.modalUseScale ? 0.98 : 1,
+      transition: { duration: Math.max(0.1, duration * 0.5), ease: "easeIn" as const }
+    })
+  };
+};
+
 export const scoutSlideVariants: Variants = {
   enter: (direction: number) => ({
-    x: direction > 0 ? "20%" : "-20%",
+    x: direction > 0 ? "16%" : "-16%",
     opacity: 0,
     scale: 0.98
   }),
@@ -290,48 +330,39 @@ export const scoutSlideVariants: Variants = {
     opacity: 1,
     scale: 1,
     transition: isReducedMotion ? { duration: 0.1 } : {
-      type: "spring",
-      damping: 25,
-      stiffness: 300,
-      mass: 0.8,
-      delay: 0.05
+      duration: 0.2,
+      ease: [0.25, 1, 0.5, 1],
+      delay: 0.03
     }
   },
   exit: (direction: number) => ({
-    x: direction < 0 ? "20%" : "-20%",
+    x: direction < 0 ? "16%" : "-16%",
     opacity: 0,
     scale: 0.98,
-    transition: { duration: 0.15, ease: "easeIn" as const }
+    transition: { duration: 0.12, ease: [0.32, 0, 0.67, 0] }
   })
 };
 
-// 14. Blur-to-Focus Entry (Premium modal entrance)
 export const blurFocusVariants: Variants = {
   hidden: {
     opacity: 0,
-    scale: 0.92,
-    filter: isReducedMotion ? "none" : "blur(8px)"
+    scale: 0.96
   },
   visible: {
     opacity: 1,
     scale: 1,
-    filter: "blur(0px)",
     transition: isReducedMotion ? { duration: 0.1 } : {
-      type: "spring",
-      damping: 25,
-      stiffness: 300,
-      mass: 0.8
+      duration: 0.25,
+      ease: [0.25, 1, 0.5, 1]
     }
   },
   exit: {
     opacity: 0,
     scale: 0.96,
-    filter: isReducedMotion ? "none" : "blur(4px)",
-    transition: { duration: 0.15, ease: "easeIn" as const }
+    transition: { duration: 0.12, ease: [0.32, 0, 0.67, 0] }
   }
 };
 
-// 15. Stagger Container (Scout-style stagger)
 export const scoutStaggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: {
@@ -347,27 +378,24 @@ export const scoutStaggerContainer: Variants = {
   }
 };
 
-// 16. Stagger Item (Scout-style)
 export const scoutStaggerItem: Variants = {
   hidden: {
     opacity: 0,
-    y: 12,
-    scale: 0.96
+    y: 10,
+    scale: 0.97
   },
   visible: {
     opacity: 1,
     y: 0,
     scale: 1,
     transition: isReducedMotion ? { duration: 0 } : {
-      type: "spring",
-      damping: 25,
-      stiffness: 300,
-      mass: 0.8
+      duration: 0.2,
+      ease: [0.25, 1, 0.5, 1]
     }
   },
   exit: {
     opacity: 0,
-    scale: 0.9,
-    transition: { duration: 0.12 }
+    scale: 0.94,
+    transition: { duration: 0.1 }
   }
 };

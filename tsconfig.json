@@ -54,6 +54,9 @@
       ],
       "@hooks/*": [
         "./src/hooks/*"
+      ],
+      "@pages/*": [
+        "./src/pages/*"
       ]
     },
     "allowImportingTsExtensions": true,

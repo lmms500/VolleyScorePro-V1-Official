@@ -1,4 +1,134 @@
 {
+    "landing": {
+        "brand": {
+            "name": "VolleyScore Pro",
+            "tagline": "Professional Scoring"
+        },
+        "nav": {
+            "features": "Features",
+            "demo": "Demo",
+            "about": "About",
+            "roadmap": "Roadmap",
+            "openApp": "Open App",
+            "backToTop": "Back to top"
+        },
+        "hero": {
+            "title": "VolleyScore",
+            "subtitle": "Pro",
+            "description": "Smart volleyball scoring with advanced stats, tactical court, and voice commands. Perfect for coaches, referees, and enthusiasts.",
+            "cta": "Get Started",
+            "install": "Install App",
+            "installed": "Installed",
+            "pills": {
+                "pwa": "PWA",
+                "offline": "Offline",
+                "voiceAI": "Voice AI",
+                "multiLang": "Multi-lang"
+            }
+        },
+        "features": {
+            "title": "Professional Features",
+            "subtitle": "Everything you need to manage volleyball matches with precision and style.",
+            "highlight": "Free & Open Source",
+            "smartScoreboard": {
+                "title": "Smart Scoreboard",
+                "description": "One-tap scoring. Undo/redo, multiple game modes, Indoor & Beach support."
+            },
+            "stats": {
+                "title": "Advanced Statistics",
+                "description": "Scout mode with kill, block, ace tracking. CSV/JSON export and MVP detection."
+            },
+            "court": {
+                "title": "Tactical Court",
+                "description": "Position visualization, drag & drop formations, auto rotations and substitutions."
+            },
+            "broadcast": {
+                "title": "VolleyLink Live",
+                "description": "Broadcast matches in real-time. OBS-compatible overlay for streaming."
+            },
+            "voice": {
+                "title": "Voice Commands",
+                "description": "Hands-free control with AI. Portuguese, English, and Spanish support."
+            },
+            "sync": {
+                "title": "Cloud Sync",
+                "description": "Google Sign-In, automatic backup, multi-device sync."
+            }
+        },
+        "demo": {
+            "title": "See It In Action",
+            "subtitle": "Intuitive interface designed for maximum efficiency during matches.",
+            "scoreboard": "Main Scoreboard",
+            "scoreboardDesc": "Clean and responsive interface",
+            "court": "Tactical Court",
+            "courtDesc": "Manage formations visually",
+            "stats": "Statistics",
+            "statsDesc": "Detailed performance analysis",
+            "note": "Real screenshots coming soon"
+        },
+        "about": {
+            "title": "Our Story",
+            "paragraph1": "VolleyScore Pro was born from a real need: a volleyball scoreboard that was simple, complete, and worked anywhere. As a coach and volleyball enthusiast, I needed a tool that let me focus on the game, not the technology.",
+            "paragraph2": "Developed by a single person with lots of coffee and dedication, the app evolved from a simple point counter to a complete platform with advanced statistics, live broadcasting, and voice commands. All while keeping the simplicity that makes volleyball so special.",
+            "paragraph3": "Today, VolleyScore Pro is used by coaches, referees, and enthusiasts in over 50 countries. Every feedback received helps make the app better. This project is a labor of love for the sport.",
+            "highlight1": "Made with love",
+            "highlight2": "Always free",
+            "highlight3": "50+ countries",
+            "highlight4": "Active community",
+            "signature": "— Developed by a volleyball enthusiast"
+        },
+        "roadmap": {
+            "title": "Roadmap",
+            "subtitle": "New features and improvements in continuous development.",
+            "inProgress": "In Progress",
+            "moreComing": "More amazing features coming!",
+            "viewGithub": "View on GitHub",
+            "q1_2026": {
+                "title": "v2.0 Launch",
+                "item1": "Redesigned Neo-Glass interface",
+                "item2": "VolleyLink Live broadcasting",
+                "item3": "Voice commands with Gemini AI"
+            },
+            "q2_2026": {
+                "title": "Advanced Analytics",
+                "item1": "Detailed statistics dashboard",
+                "item2": "Professional PDF export"
+            },
+            "q3_2026": {
+                "title": "iOS App Store",
+                "item1": "Native iOS application",
+                "item2": "Apple Watch integration"
+            },
+            "future": {
+                "title": "Future Vision",
+                "item1": "AI for automatic tactical analysis",
+                "item2": "Unlimited cloud history"
+            }
+        },
+        "footer": {
+            "tagline": "Professional volleyball scoring with stats, tactical court, and live broadcasting.",
+            "version": "v2.0.0",
+            "product": "Product",
+            "features": "Features",
+            "pricing": "Pricing",
+            "changelog": "Changelog",
+            "roadmap": "Roadmap",
+            "support": "Support",
+            "helpCenter": "Help Center",
+            "contact": "Contact",
+            "feedback": "Feedback",
+            "bugs": "Report Bugs",
+            "legal": "Legal",
+            "privacy": "Privacy",
+            "terms": "Terms",
+            "ctaTitle": "Ready to get started?",
+            "ctaSubtitle": "Try VolleyScore Pro for free right now.",
+            "ctaButton": "Open App",
+            "copyright": "© 2026 VolleyScore Pro. All rights reserved.",
+            "madeWith": "Made with ",
+            "forVolleyball": " for volleyball"
+        }
+    },
     "app": {
         "loading": "Loading..."
     },
@@ -36,7 +166,7 @@
         "summary": "Summary",
         "continue": "Continue?",
         "players": "players",
-        "confirm": "Confirm"
+        "yes": "Yes"
     },
     "controls": {
         "undo": "Undo",
@@ -90,6 +220,7 @@
     },
     "roles": {
         "setter": "Setter",
+        "opposite": "Opposite",
         "hitter": "Hitter",
         "libero": "Libero",
         "middle": "Middle",
@@ -185,11 +316,11 @@
             "lowPowerSub": "Reduce effects",
             "reducedMotion": "Reduced Motion",
             "reducedMotionSub": "Less animation",
-            "perfNormal": "High Perf.",
-            "perfEco": "Eco Mode",
-            "perfMinimal": "No Effects",
-            "performanceMode": "Performance",
-            "performanceModeSub": "Adjust graphic effects"
+            "performanceMode": "Visual Quality",
+            "performanceModeSub": "Adjust effects for your device",
+            "perfNormal": "Full",
+            "perfEco": "Eco",
+            "perfMinimal": "Minimal"
         },
         "rules": {
             "title": "Rules",
@@ -336,6 +467,8 @@
         "movedToBench": "To Bench",
         "movedToBenchSub": "Roster Full",
         "playerRemoved": "Removed",
+        "removePlayer": "Remove Player",
+        "confirmRemovePlayer": "Are you sure you want to remove this player from the team?",
         "undo": "UNDO",
         "activateBenchTitle": "Use Bench?",
         "activateBenchMsg": "Bench is disabled.",
@@ -350,6 +483,7 @@
         },
         "resetConfirm": "Reset this team? This will clear the name and remove all players.",
         "resetTeam": "Reset Team",
+        "confirmResetTeam": "Are you sure you want to reset this team? All players and the logo will be removed.",
         "teamReset": "Team Reset",
         "teamAdded": "Team Added",
         "newTeam": "New Team",
@@ -400,7 +534,10 @@
             "tipFormat": "Formats: \"Name 8\" or \"10 Name 8\" (Number Name Skill).",
             "tipDesc": "",
             "placeholder": "Name 8\n10 Name 9\nName",
-            "generate": "Generate"
+            "generate": "Generate",
+            "formatName": "Name only",
+            "formatNumName": "# + Name",
+            "formatFull": "# + Name + Skill"
         },
         "profiles": {
             "empty": "No profiles.",
@@ -428,16 +565,14 @@
         "inBench": "In",
         "emptyCourt": "Empty",
         "emptyBench": "Empty",
-        "confirm": "Confirm ({count})",
+        "confirm": "Confirm {count}",
         "select": "Select"
     },
     "scout": {
         "step1": "Scorer",
         "step2": "Action",
         "whoScored": "Who?",
-        "selectPlayer": "Select Player",
-        "selectAction": "Select Action",
-        "tapToConfirm": "Tap to confirm",
+        "selectAction": "What?",
         "unknownPlayer": "Unknown",
         "back": "Back",
         "skills": {
@@ -517,7 +652,13 @@
         "delete": "Delete",
         "analysis": "View",
         "importSuccess": "Imported!",
-        "importError": "Invalid file."
+        "importError": "Invalid file.",
+        "deleteAll": "Clear All",
+        "confirmDeleteAll": "Are you sure you want to delete all match history? This action cannot be undone.",
+        "deleteAllSuccess": "History cleared",
+        "deleteMatch": "Delete Match",
+        "confirmDeleteMatch": "Are you sure you want to delete this match?",
+        "deleteSuccess": "Match deleted"
     },
     "history": {
         "setLabel": "S{setNumber}",
@@ -566,63 +707,67 @@
         "start": "Start",
         "welcome": {
             "title": "VolleyScore Pro",
-            "desc": "The definitive scoring companion. Gestures, Voice Control, and Pro Stats.",
-            "optIn": "Skip tutorial."
+            "desc": "Your professional scoring companion. Intuitive gestures, voice control, and elite statistics for every match.",
+            "waitMessage": "Please wait a moment..."
+        },
+        "about": {
+            "title": "Made with Dedication",
+            "desc": "This app is crafted by a single developer. If you encounter any issues, please send feedback before leaving a negative review. Your patience and support make all the difference!"
         },
         "gestures": {
-            "title": "Smart Gestures",
-            "desc": "Tap anywhere on a team's side to score (+1). Swipe DOWN to subtract (-1). Long press to edit scores."
+            "title": "Intuitive Gestures",
+            "desc": "Tap any team's area to score (+1). Swipe down to correct (-1). Simple, fast, and precise."
         },
         "main": {
             "config": {
-                "title": "Match Setup",
-                "desc": "Select 'Indoor' or 'Beach' presets in Settings. Configure sets (1/3/5) and tie-break rules before starting."
+                "title": "Customize Your Match",
+                "desc": "Choose Indoor or Beach presets, configure sets (1/3/5), points per set, and tie-break rules."
             },
             "audio": {
-                "title": "Audio Narrator",
-                "desc": "The app speaks the score, server, and critical moments like 'Match Point' automatically."
+                "title": "Smart Narrator",
+                "desc": "Automatic announcements for score, server, and decisive moments like Match Point. Perfect for streaming."
             },
             "narrator": {
-                "title": "Audio Narrator",
-                "desc": "The app speaks the score, server, and critical moments like 'Match Point' automatically."
+                "title": "Smart Narrator",
+                "desc": "Automatic announcements for score, server, and decisive moments like Match Point. Perfect for streaming."
             }
         },
         "features": {
             "title": "Full Control",
-            "desc": "Manage timeouts, sides, and access the Team Manager from the floating menu bar."
+            "desc": "Manage timeouts, swap sides, and access Team Manager from the floating menu."
         },
         "voice": {
             "title": "Voice Commands",
-            "desc": "Tap the mic icon. Say 'Point Home', 'Timeout', or 'Side Out' to score hands-free."
+            "desc": "Tap the microphone and say 'Point Home', 'Timeout', or 'Side Out' for hands-free control."
         },
         "manager": {
             "intro": {
                 "title": "Team Manager",
-                "desc": "Your command center. Organize lineups, manage the bench, and handle rotations."
+                "desc": "Your command center. Organize lineups, manage reserves, and queue teams for automatic rotation."
             },
             "structure": {
                 "title": "Drag & Drop",
-                "desc": "Drag players between Court, Bench, and Queue. The top 6 are active. Excess players form the Bench."
+                "desc": "Drag players between Court, Bench, and Queue. Tap and hold a player, then drag to the desired area."
             },
             "subs": {
-                "title": "Substitutions",
-                "desc": "Tap the 'Swap' icon. Tap a player on Court (OUT), then a player on the Bench (IN) to swap."
+                "title": "Quick Substitutions",
+                "desc": "Tap the Swap button. First select the player leaving (Court), then the one entering (Bench). Confirm to finish."
             },
             "profiles": {
                 "title": "Player Profiles",
-                "desc": "Link players to Profiles to track career stats (Wins, Kills, Aces) across different matches."
+                "desc": "Create profiles with photo, number, and skill level. Link to players to accumulate stats across matches."
             },
             "rotation": {
-                "title": "Auto Rotation",
-                "desc": "Use 'Standard Mode' for Winner-Stays or 'Balanced Mode' to mix teams by skill level."
+                "title": "Team Rotation",
+                "desc": "When a team wins and leaves, the next in queue enters. The system loans players from the previous team to complete the incoming team. In Balanced mode, AI picks specific players to equalize skill levels."
             },
             "balance": {
                 "title": "Skill Balance",
-                "desc": "Assign a Skill Level (1-10) to players. The AI will generate fair teams automatically."
+                "desc": "Assign skill levels from 1 to 10 for each player. When generating balanced teams, AI distributes players so both teams have similar skill levels."
             },
             "batch": {
-                "title": "Batch Input",
-                "desc": "Paste a list of names (one per line) in the Batch tab. Format: 'Name 8' to set skill level."
+                "title": "Batch Import",
+                "desc": "Paste a list of names (one per line) in the Import tab. Format: 'Name' or 'Name 8' (with skill level) or '10 Name 8' (with number and level)."
             },
             "rosterDesc": "Manage players.",
             "rotationDesc": "Auto rotations."
@@ -630,28 +775,28 @@
         "history": {
             "summary": {
                 "title": "Match History",
-                "desc": "View past matches, sets, and duration. Tap any match to see the full analytics report."
+                "desc": "Review past scores, sets, and duration. Tap any match for the full analysis."
             },
             "timeline": {
                 "title": "Momentum Graph",
-                "desc": "Visualize the game flow. See exactly when the momentum shifted in the timeline view."
+                "desc": "Visualize game flow and identify decisive moments in the timeline view."
             },
             "stats": "Scout Mode",
-            "statsDesc": "Enable in Settings to log specific actions (Kill, Block, Ace) for each point.",
-            "statsFeedback": "When scoring, select the Player and Skill. The system updates their career stats instantly.",
-            "feedback": "Feedback",
+            "statsDesc": "Enable to log specific actions (Kill, Block, Ace) for each point.",
+            "statsFeedback": "When scoring, select the player and action. Statistics update instantly.",
+            "feedback": "Analysis",
             "export": {
                 "title": "Export Data",
-                "desc": "Share match results as social images or export raw CSV/JSON data for analysis."
+                "desc": "Share results as images or export CSV/JSON data for external analysis."
             },
             "welcome": "History",
-            "welcomeDesc": "Review past games."
+            "welcomeDesc": "Review past matches."
         },
         "install": {
-            "title": "Install",
-            "installed": "Ready.",
-            "descAndroid": "Install for offline use.",
-            "descIOS": "Install instructions:",
+            "title": "Install App",
+            "installed": "Ready!",
+            "descAndroid": "Install for offline use and quick access from your home screen.",
+            "descIOS": "Installation instructions:",
             "descAndroidShort": "Offline Mode",
             "descIOSShort": "Add to Home",
             "installNow": "Install"
@@ -728,21 +873,11 @@
         "connected": "Connected to Room {code}",
         "hosting": "Session {code} Started",
         "hostingSub": "You are the Host",
-        "joined": "Connected to Room {code}",
-        "joinedSub": "Following in real-time",
         "syncRequirement": "Sync requires an active internet connection. Host must be logged in.",
         "copy": "Copy",
         "connect": "Connect",
         "stopBroadcast": "Stop Broadcasting",
         "leaveSession": "Leave Session",
-        "stopped": "Broadcast Stopped",
-        "left": "You left the session",
-        "sessionEnded": "Broadcast Ended",
-        "sessionEndedSub": "The host has ended the broadcast",
-        "sessionNotFound": "Session not found",
-        "sessionNotFoundSub": "Check the code and try again",
-        "authRequired": "Login Required",
-        "authRequiredSub": "Please login to watch broadcasts",
         "broadcastStopped": "Broadcast Stopped",
         "sessionLeft": "You left the session",
         "nowLocal": "Local mode enabled"

@@ -14,6 +14,7 @@ import { AddPlayerForm } from '@features/teams/components/AddPlayerForm';
 import { BenchArea } from '@features/teams/components/BenchArea';
 import { PlayerListItem } from '@features/teams/components/PlayerListItem';
 import { SubstitutionModal } from '@features/teams/modals/SubstitutionModal';
+import { ConfirmationModal } from '@features/game/modals/ConfirmationModal';
 import { useActions } from '@contexts/GameContext';
 import { useNotification } from '@contexts/NotificationContext';
 import { useHaptics } from '@lib/haptics/useHaptics';
@@ -57,6 +58,7 @@ export const RosterColumn = memo(({
     const [showSortMenu, setShowSortMenu] = useState(false);
     const [viewMode, setViewMode] = useState<'main' | 'reserves'>('main');
     const [isSubModalOpen, setIsSubModalOpen] = useState(false);
+    const [showResetConfirm, setShowResetConfirm] = useState(false);
     const [sortConfig, setSortConfig] = useState<{ criteria: 'name' | 'number' | 'skill' | 'original', direction: 'asc' | 'desc' }>({ criteria: 'original', direction: 'asc' });
 
     const colorConfig = resolveTheme(team.color);
@@ -115,6 +117,38 @@ export const RosterColumn = memo(({
     return (
         <div ref={droppableRef} className={containerClass}>
             <SubstitutionModal isOpen={isSubModalOpen} onClose={() => setIsSubModalOpen(false)} team={team} onConfirm={(pIn, pOut) => substitutePlayers(id, pIn, pOut)} />
+            <ConfirmationModal
+                isOpen={showResetConfirm}
+                onClose={() => setShowResetConfirm(false)}
+                onConfirm={() => {
+                    // 1. Snapshot for Undo
+                    const backupLogo = team.logo;
+                    const backupPlayers = [...team.players];
+                    const backupReserves = [...(team.reserves || [])];
+
+                    // 2. Clear logo
+                    updateTeamLogo(id, '');
+                    // 3. Delete all players from main roster
+                    team.players.forEach(p => deletePlayer(p.id));
+                    // 4. Delete all players from reserves
+                    (team.reserves || []).forEach(p => deletePlayer(p.id));
+
+                    showNotification({
+                        mainText: t('teamManager.teamReset') || 'Team Reset',
+                        type: 'info',
+                        onUndo: () => {
+                            if (backupLogo) updateTeamLogo(id, backupLogo);
+                            // Restore players in order
+                            backupPlayers.forEach(p => onRestorePlayer(p, id));
+                            backupReserves.forEach(p => onRestorePlayer(p, `${id}_Reserves`));
+                        }
+                    });
+                    setShowResetConfirm(false);
+                }}
+                title={t('teamManager.resetTeam') || 'Reset Team'}
+                message={t('teamManager.confirmResetTeam') || 'Are you sure you want to reset this team? All players and the logo will be removed.'}
+                confirmLabel={t('common.yes') || 'Yes'}
+            />
             {isQueue && queueIndex !== undefined && (<div className={`absolute -top-4 right-6 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest z-10 flex items-center gap-1.5 shadow-md border border-white/50 dark:border-white/20 ${queueIndex === 0 ? 'bg-amber-500 text-amber-950' : 'bg-slate-200 text-slate-600 dark:bg-white/10 dark:text-slate-300'}`}>{queueIndex === 0 ? <ArrowUpCircle size={14} strokeWidth={3} /> : <ListOrdered size={12} strokeWidth={3} />}{queueIndex === 0 ? "NEXT UP" : `${queueIndex + 1}º`}</div>)}
             <div className="flex flex-col mb-2 w-full">
                 <div className="flex items-center gap-3 mb-2 w-full">
@@ -137,29 +171,9 @@ export const RosterColumn = memo(({
                         </div>
                         {/* Reset Team Button - Clears logo AND removes all players */}
                         <button
-                            onClick={() => {
-                                // 1. Snapshot for Undo
-                                const backupLogo = team.logo;
-                                const backupPlayers = [...team.players];
-                                const backupReserves = [...(team.reserves || [])];
-
-                                // 2. Clear logo
-                                updateTeamLogo(id, '');
-                                // 3. Delete all players from main roster
-                                team.players.forEach(p => deletePlayer(p.id));
-                                // 4. Delete all players from reserves
-                                (team.reserves || []).forEach(p => deletePlayer(p.id));
-
-                                showNotification({
-                                    mainText: t('teamManager.teamReset') || 'Team Reset',
-                                    type: 'info',
-                                    onUndo: () => {
-                                        if (backupLogo) updateTeamLogo(id, backupLogo);
-                                        // Restore players in order
-                                        backupPlayers.forEach(p => onRestorePlayer(p, id));
-                                        backupReserves.forEach(p => onRestorePlayer(p, `${id}_Reserves`));
-                                    }
-                                });
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowResetConfirm(true);
                             }}
                             className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 hover:bg-amber-100 transition-colors active:scale-95"
                             title={t('teamManager.resetTeam') || 'Reset Team'}

@@ -90,7 +90,11 @@ const DraggablePlayer = memo(({ player, index, teamId, side, teamColor, isServer
         <motion.div
             layoutId={nameRotation ? undefined : player.id}
             layout={nameRotation ? false : "position"}
-            transition={{ type: "spring", stiffness: 220, damping: 24, mass: 0.9 }}
+            transition={{ 
+                type: "tween", 
+                duration: 0.2, 
+                ease: [0.25, 1, 0.5, 1] 
+            }}
             ref={setNodeRef}
             {...listeners}
             {...attributes}
@@ -102,7 +106,9 @@ const DraggablePlayer = memo(({ player, index, teamId, side, teamColor, isServer
                 ${isGlobalDragging ? 'pointer-events-none' : 'pointer-events-auto'}
             `}
             style={{
-                touchAction: 'none'
+                touchAction: 'none',
+                transform: 'translateZ(0)',
+                willChange: isDragging ? 'transform, opacity' : 'transform'
             }}
         >
             {/* Server Indicator Ring - Ciano para máximo contraste em areia e quadra */}
@@ -111,9 +117,15 @@ const DraggablePlayer = memo(({ player, index, teamId, side, teamColor, isServer
                     layoutId={nameRotation ? undefined : `serve-ring-${teamId}`}
                     className="absolute -inset-2.5 rounded-full border-[4px] border-dashed border-cyan-400 animate-[spin_6s_linear_infinite]"
                     style={{
-                        boxShadow: '0 0 20px rgba(34, 211, 238, 0.7), 0 0 40px rgba(34, 211, 238, 0.4)'
+                        boxShadow: '0 0 20px rgba(34, 211, 238, 0.7), 0 0 40px rgba(34, 211, 238, 0.4)',
+                        transform: 'translateZ(0)',
+                        willChange: 'transform'
                     }}
-                    transition={{ type: "spring", stiffness: 220, damping: 24, mass: 0.9 }}
+                    transition={{ 
+                        type: "tween", 
+                        duration: 0.2, 
+                        ease: [0.25, 1, 0.5, 1] 
+                    }}
                 />
             )}
 

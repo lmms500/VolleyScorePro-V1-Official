@@ -20,20 +20,20 @@ export const TUTORIAL_SCENARIOS: Record<string, TutorialStep[]> = {
   // A. ONBOARDING (PANORAMA GERAL)
   main: [
     { 
-      id: 'welcome', 
-      titleKey: 'tutorial.welcome.title', 
-      descKey: 'tutorial.welcome.desc', 
-      icon: Trophy, 
-      color: 'indigo',
-      visualId: 'welcome_hero' 
-    },
-    { 
       id: 'about', 
       titleKey: 'tutorial.about.title', 
       descKey: 'tutorial.about.desc', 
       icon: UserCircle, 
       color: 'rose',
-      visualId: 'indie_dev'
+      visualId: 'indie_dev' as string
+    },
+    { 
+      id: 'welcome', 
+      titleKey: 'tutorial.welcome.title', 
+      descKey: 'tutorial.welcome.desc', 
+      icon: Trophy, 
+      color: 'indigo',
+      visualId: 'welcome_hero' as string
     },
     { 
       id: 'gestures', 

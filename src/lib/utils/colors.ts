@@ -38,25 +38,25 @@ export const TEAM_COLORS: Record<string, ColorTheme> = {
     rose: createTheme('rose', 500, 800, 300),
     pink: createTheme('pink', 500, 800, 300),
     fuchsia: createTheme('fuchsia', 500, 800, 300),
-    
+
     // PURPLES & VIOLETS
     purple: createTheme('purple', 600, 800, 300),
     violet: createTheme('violet', 500, 800, 300),
     indigo: createTheme('indigo', 500, 800, 300),
-    
+
     // BLUES
     blue: createTheme('blue', 600, 800, 300),
     sky: createTheme('sky', 500, 800, 300),
     cyan: createTheme('cyan', 500, 800, 300),
-    
+
     // TEALS & GREENS
     teal: createTheme('teal', 500, 800, 300),
     emerald: createTheme('emerald', 500, 800, 300),
     green: createTheme('green', 600, 800, 300),
     lime: createTheme('lime', 500, 800, 300),
-    
+
     // YELLOWS & ORANGES
-    yellow: createTheme('yellow', 400, 800, 200), 
+    yellow: createTheme('yellow', 400, 800, 200),
     amber: createTheme('amber', 500, 800, 300),
     orange: createTheme('orange', 500, 800, 300),
 };
@@ -91,7 +91,7 @@ export const COLOR_KEYS = Object.keys(TEAM_COLORS);
  */
 export const resolveTheme = (color: TeamColor | undefined): ColorTheme => {
     if (!color) return TEAM_COLORS['indigo'];
-    
+
     // 1. Check if it is a preset
     if (TEAM_COLORS[color]) {
         return TEAM_COLORS[color];
@@ -104,36 +104,36 @@ export const resolveTheme = (color: TeamColor | undefined): ColorTheme => {
         const secondary = parts[2] || primary; // Fallback to solid if only 1 provided
 
         return {
-            text: `text-[${primary}]`,
-            textDark: `dark:text-[${primary}]`,
-            bg: `bg-[${primary}]/20`,
-            bgDark: `dark:bg-[${primary}]/20`,
-            border: `border-[${primary}]/40`,
-            halo: `bg-[${primary}]`,
-            glow: `shadow-[0_0_15px_${primary}80]`,
-            crown: `text-[${secondary}]`,
-            ring: `ring-[${primary}]`,
-            gradient: `from-[${primary}]/20 to-[${secondary}]/20`, 
-            solid: `bg-[${primary}]`,
-            led: `bg-[${primary}]`
+            text: 'text-[' + primary + ']',
+            textDark: 'dark:text-[' + primary + ']',
+            bg: 'bg-[' + primary + ']/20',
+            bgDark: 'dark:bg-[' + primary + ']/20',
+            border: 'border-[' + primary + ']/40',
+            halo: 'bg-[' + primary + ']',
+            glow: 'shadow-[0_0_15px_' + primary + '80]',
+            crown: 'text-[' + secondary + ']',
+            ring: 'ring-[' + primary + ']',
+            gradient: 'from-[' + primary + ']/20 to-[' + secondary + ']/20',
+            solid: 'bg-[' + primary + ']',
+            led: 'bg-[' + primary + ']'
         };
     }
 
     // 3. Assume it is a Hex Code (Legacy fallback)
     const safeColor = color.trim();
     return {
-        text: `text-[${safeColor}]`,
-        textDark: `dark:text-[${safeColor}]`,
-        bg: `bg-[${safeColor}]/20`,
-        bgDark: `dark:bg-[${safeColor}]/20`,
-        border: `border-[${safeColor}]/40`,
-        halo: `bg-[${safeColor}]`,
-        glow: `shadow-[0_0_15px_${safeColor}80]`,
-        crown: `text-[${safeColor}]`,
-        ring: `ring-[${safeColor}]`,
-        gradient: `from-[${safeColor}]/15 to-transparent`,
-        solid: `bg-[${safeColor}]`,
-        led: `bg-[${safeColor}]`
+        text: 'text-[' + safeColor + ']',
+        textDark: 'dark:text-[' + safeColor + ']',
+        bg: 'bg-[' + safeColor + ']/20',
+        bgDark: 'dark:bg-[' + safeColor + ']/20',
+        border: 'border-[' + safeColor + ']/40',
+        halo: 'bg-[' + safeColor + ']',
+        glow: 'shadow-[0_0_15px_' + safeColor + '80]',
+        crown: 'text-[' + safeColor + ']',
+        ring: 'ring-[' + safeColor + ']',
+        gradient: 'from-[' + safeColor + ']/15 to-transparent',
+        solid: 'bg-[' + safeColor + ']',
+        led: 'bg-[' + safeColor + ']'
     };
 };
 
@@ -143,7 +143,7 @@ export const resolveTheme = (color: TeamColor | undefined): ColorTheme => {
 export const getHexFromColor = (color: TeamColor | undefined): string => {
     if (!color) return HEX_MAP['indigo'];
     if (HEX_MAP[color]) return HEX_MAP[color];
-    
+
     if (color.startsWith('custom:')) {
         const parts = color.split(':');
         return parts[1] || '#6366f1';

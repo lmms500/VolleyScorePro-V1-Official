@@ -66,19 +66,27 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
 
     return (
         <motion.header
-            initial={{ y: 0 }}
+            initial={false}
             animate={{
                 y: isVisible ? 0 : -100,
-                opacity: isVisible ? 1 : 0
             }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            transition={{ 
+                type: "tween", 
+                duration: 0.25, 
+                ease: [0.25, 1, 0.5, 1] 
+            }}
             className={`
                 sticky top-0 z-50 w-full
                 bg-transparent
-                transition-all duration-300
+                ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+                transition-opacity duration-200
                 ${className}
             `}
-            style={{ paddingTop: `${top}px` }}
+            style={{ 
+                paddingTop: `${top}px`,
+                transform: 'translateZ(0)',
+                willChange: 'transform'
+            }}
         >
             <div className="flex flex-col w-full">
                 {/* PRIMARY ROW */}

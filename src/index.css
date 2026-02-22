@@ -48,25 +48,21 @@
 /* PRODUCTION MOBILE LOCKDOWN v2.0 */
 html,
 body {
-  height: 100%;
-  width: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
-  position: fixed;
-  /* Evita bounce no iOS */
   overscroll-behavior: none;
-  /* Fixed background removed for theme support */
   -webkit-text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeSpeed;
-  /* Prioriza velocidade em telas 120Hz */
   -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: none;
+  /* Default to scrollable — app mode overrides via inline styles in JS */
+  overflow-x: hidden;
+  overflow-y: auto;
 }
+
+/* App mode - fixed viewport for game (applied via inline styles in JS) */
+/* Landing mode - scrollable (applied via inline styles in JS) */
 
 html.light {
   background-color: #f1f5f9 !important;
@@ -87,16 +83,13 @@ html:-moz-full-screen {
 }
 
 #root {
-  height: 100%;
   width: 100%;
-  overflow: hidden;
-
-  /* Isolar layout recalculations */
-  contain: layout size;
-
   display: flex;
   flex-direction: column;
 }
+
+/* App mode - full height (applied via JS when needed) */
+/* Landing page - scrollable (default) */
 
 /* Fullscreen root ajuste */
 #root:fullscreen,

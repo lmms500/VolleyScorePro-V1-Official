@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getAnimationConfig } from '@lib/platform/animationConfig';
 
 
 interface ScoreTickerProps {
@@ -8,20 +9,17 @@ interface ScoreTickerProps {
   style?: React.CSSProperties;
 }
 
-/**
- * ScoreTicker v6.2 (Optimized Height Edition)
- * - Synthetic Motion Blur: Aplica blur direcional baseado na transição.
- * - Reduced box height to prevent overlap with nearby UI elements.
- */
 export const ScoreTicker: React.FC<ScoreTickerProps> = memo(({ value, className, style }) => {
   const prevValue = useRef(value);
-  // Calculate direction synchronously to avoid layout thrashing on first render
+  const config = getAnimationConfig();
+  
   const direction = value > prevValue.current ? 1 : (value < prevValue.current ? -1 : 0);
 
-  // Update ref after render (safe for this use case as we want the direction for *this* render)
   if (value !== prevValue.current) {
     prevValue.current = value;
   }
+
+  const transitionDuration = Math.max(0.1, config.modalDuration / 1000 * 0.6);
 
   return (
     <div
@@ -37,19 +35,23 @@ export const ScoreTicker: React.FC<ScoreTickerProps> = memo(({ value, className,
         padding: '0 0.1em',
         isolation: 'isolate',
         overflow: 'visible',
-        willChange: 'transform',
-        transform: 'translateZ(0)',
-        backfaceVisibility: 'hidden',
-        WebkitBackfaceVisibility: 'hidden'
+        willChange: config.useWillChange ? 'transform' : undefined,
+        transform: config.useGPUTransform ? 'translateZ(0)' : undefined,
+        backfaceVisibility: config.useGPUTransform ? 'hidden' : undefined,
+        WebkitBackfaceVisibility: config.useGPUTransform ? 'hidden' : undefined
       }}
     >
       <AnimatePresence mode="popLayout" initial={false}>
         <motion.span
           key={value}
-          initial={{ opacity: 0, scale: 0.5, y: direction * 20 }}
+          initial={{ 
+            opacity: 0, 
+            ...(config.modalUseScale && { scale: 0.8 }), 
+            y: direction * 20 
+          }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 1.5, position: 'absolute' }}
-          transition={{ duration: 0.15, ease: "easeOut" }}
+          exit={{ opacity: 0, scale: 1.2, position: 'absolute' }}
+          transition={{ duration: transitionDuration, ease: "easeOut" }}
           data-testid="score-value"
           className="text-center leading-none origin-center absolute inset-0 flex items-center justify-center"
           style={{
@@ -57,7 +59,6 @@ export const ScoreTicker: React.FC<ScoreTickerProps> = memo(({ value, className,
             WebkitBackfaceVisibility: "hidden",
             height: '100%',
             width: '100%',
-            willChange: 'transform, opacity',
             transformStyle: 'preserve-3d',
           }}
         >

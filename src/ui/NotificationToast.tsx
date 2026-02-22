@@ -116,8 +116,8 @@ export const NotificationToast: React.FC<NotificationToastProps> = memo(({
             textColor: `${resolved.text} ${resolved.textDark}`,
             labelColor: `${resolved.text} ${resolved.textDark}`, // Matching label for specialized toasts
             Icon: skillIcons[skill || 'generic'],
-            shadow: `shadow-[0_8px_32px_-8px_${hex}40]`, // Colored shadow
-            glow: `shadow-[inset_0_0_20px_${hex}10]` // Inner tint
+            shadow: 'shadow-[0_8px_32px_-8px_' + hex + '40]', // Colored shadow
+            glow: 'shadow-[inset_0_0_20px_' + hex + '10]' // Inner tint
         };
     } else if (type === 'error') {
         theme = {

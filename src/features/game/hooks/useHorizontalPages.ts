@@ -1,11 +1,10 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { useMotionValue, animate, type MotionValue, type PanInfo } from 'framer-motion';
 
-const PAGE_SNAP_SPRING = {
-    type: "spring" as const,
-    stiffness: 320,
-    damping: 34,
-    mass: 0.8
+const PAGE_SNAP_TWEEN = {
+    type: "tween" as const,
+    duration: 0.25,
+    ease: [0.25, 1, 0.5, 1] as const
 };
 
 const SWIPE_VELOCITY_THRESHOLD = 500; // px/s
@@ -50,7 +49,7 @@ export function useHorizontalPages({
 
         isAnimatingRef.current = true;
         animate(offsetX, targetX, {
-            ...PAGE_SNAP_SPRING,
+            ...PAGE_SNAP_TWEEN,
             onComplete: () => {
                 isAnimatingRef.current = false;
             }

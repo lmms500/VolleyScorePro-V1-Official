@@ -111,9 +111,7 @@ export const GameScreen: React.FC = () => {
         }
     });
 
-    // Native integration
-    const anyModalOpen = activeModal !== 'none' || !!activeTimeoutTeam;
-    useNativeIntegration(isMatchActive, isFullscreen, closeModal, anyModalOpen);
+
 
     // Immersive Mode Control
     const shouldBeImmersive = isFullscreen || activeModal === 'court';
@@ -179,9 +177,18 @@ export const GameScreen: React.FC = () => {
         colorB: teamBRoster.color || 'rose',
     });
 
-    // Stable callbacks for fullscreen toggle (prevent layout re-renders)
     const handleExitFullscreen = useCallback(() => setIsFullscreen(false), []);
     const handleEnterFullscreen = useCallback(() => setIsFullscreen(true), []);
+
+    // Native integration (Moved after fullscreen handlers)
+    const anyModalOpen = activeModal !== 'none' || !!activeTimeoutTeam;
+    useNativeIntegration(
+        isMatchActive,
+        isFullscreen,
+        closeModal,
+        handleExitFullscreen,
+        anyModalOpen
+    );
 
     // Voice state object (passed to layouts) - MEMOIZED to prevent re-renders
     const voiceState = useMemo(() => ({

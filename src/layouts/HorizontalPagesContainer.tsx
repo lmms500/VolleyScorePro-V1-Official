@@ -60,12 +60,21 @@ export const HorizontalPagesContainer: React.FC<HorizontalPagesContainerProps> =
         >
             <motion.div
                 className="flex h-full"
-                style={{ x: offsetX }}
+                style={{ 
+                    x: offsetX,
+                    transform: 'translateZ(0)',
+                    willChange: 'transform'
+                }}
                 drag={isSwipeLocked || isInternalDrag ? false : "x"}
                 dragConstraints={dragConstraints}
-                dragElastic={0.2}
-                dragMomentum={false} // Disable momentum so we control the snap manually
+                dragElastic={0.15}
+                dragMomentum={false}
                 onDragEnd={onDragEnd}
+                transition={{ 
+                    type: "tween", 
+                    duration: 0.25, 
+                    ease: [0.25, 1, 0.5, 1] 
+                }}
             >
                 {children.map((child, i) => (
                     <div
@@ -75,6 +84,7 @@ export const HorizontalPagesContainer: React.FC<HorizontalPagesContainerProps> =
                             width: width > 0 ? width : '100%',
                             minWidth: width > 0 ? width : '100%',
                             contain: 'layout style paint',
+                            transform: 'translateZ(0)'
                         }}
                     >
                         {child}

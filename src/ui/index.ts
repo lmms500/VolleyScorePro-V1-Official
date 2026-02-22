@@ -10,6 +10,7 @@ export * from './FloatingTimeout';
 export * from './GestureHint';
 export * from './GlassSurface';
 export * from './GlobalLoader';
+export * from './SplashScreen';
 export * from './HaloBackground';
 export * from './InstallReminder';
 export * from './Modal';

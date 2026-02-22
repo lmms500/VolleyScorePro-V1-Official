@@ -12,6 +12,7 @@ export const useNativeIntegration = (
     isMatchActive: boolean,
     isFullscreen: boolean,
     onBackAction: () => void,
+    onExitFullscreen: () => void,
     modalsOpen: boolean
 ) => {
     const isNative = Capacitor.isNativePlatform();
@@ -28,10 +29,12 @@ export const useNativeIntegration = (
                         await Keyboard.setResizeMode({ mode: KeyboardResize.None });
                     }
 
-                    // Esconder Splash Screen após a app carregar
-                    setTimeout(async () => {
+                    // Hide native splash immediately - custom SplashScreen component handles transition
+                    try {
                         await SplashScreen.hide();
-                    }, 500);
+                    } catch {
+                        console.debug("[NativeIntegration] SplashScreen.hide() failed");
+                    }
                 } catch (e) {
                     console.warn("[NativeIntegration] Erro ao inicializar plugins nativos:", e);
                 }
@@ -146,6 +149,11 @@ export const useNativeIntegration = (
         const listener = CapApp.addListener('backButton', ({ canGoBack }) => {
             if (modalsOpen) {
                 onBackAction();
+                return;
+            }
+
+            if (isFullscreen) {
+                onExitFullscreen();
                 return;
             }
 

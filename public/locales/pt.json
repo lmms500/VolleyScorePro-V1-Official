@@ -1,4 +1,134 @@
 {
+    "landing": {
+        "brand": {
+            "name": "VolleyScore Pro",
+            "tagline": "Placar Profissional"
+        },
+        "nav": {
+            "features": "Recursos",
+            "demo": "Demonstração",
+            "about": "Sobre",
+            "roadmap": "Roadmap",
+            "openApp": "Abrir App",
+            "backToTop": "Voltar ao topo"
+        },
+        "hero": {
+            "title": "VolleyScore",
+            "subtitle": "Pro",
+            "description": "Placar inteligente para vôlei com estatísticas avançadas, quadro tático e comandos de voz. Perfeito para treinadores, árbitros e entusiastas.",
+            "cta": "Começar Agora",
+            "install": "Instalar App",
+            "installed": "Instalado",
+            "pills": {
+                "pwa": "PWA",
+                "offline": "Offline",
+                "voiceAI": "Voz IA",
+                "multiLang": "Multi-idioma"
+            }
+        },
+        "features": {
+            "title": "Recursos Profissionais",
+            "subtitle": "Tudo que você precisa para gerenciar partidas de vôlei com precisão e estilo.",
+            "highlight": "Gratuito e Open Source",
+            "smartScoreboard": {
+                "title": "Placar Inteligente",
+                "description": "Toque único para pontuar. Undo/redo, múltiplos modos de jogo, suporte Indoor e Praia."
+            },
+            "stats": {
+                "title": "Estatísticas Avançadas",
+                "description": "Modo Scout com tracking de kills, blocks, aces. Export CSV/JSON e detecção de MVP."
+            },
+            "court": {
+                "title": "Quadro Tático",
+                "description": "Visualização de posições, drag & drop de formações, rotações automáticas e substituições."
+            },
+            "broadcast": {
+                "title": "VolleyLink Live",
+                "description": "Transmita partidas em tempo real. Overlay compatível com OBS para streaming."
+            },
+            "voice": {
+                "title": "Comandos de Voz",
+                "description": "Controle hands-free com IA. Suporte para Português, Inglês e Espanhol."
+            },
+            "sync": {
+                "title": "Cloud Sync",
+                "description": "Login com Google, backup automático, sincronização multi-dispositivo."
+            }
+        },
+        "demo": {
+            "title": "Veja em Ação",
+            "subtitle": "Interface intuitiva projetada para máxima eficiência durante as partidas.",
+            "scoreboard": "Placar Principal",
+            "scoreboardDesc": "Interface limpa e responsiva",
+            "court": "Quadro Tático",
+            "courtDesc": "Gerencie formações visualmente",
+            "stats": "Estatísticas",
+            "statsDesc": "Análise detalhada de desempenho",
+            "note": "Screenshots reais em breve"
+        },
+        "about": {
+            "title": "Nossa História",
+            "paragraph1": "O VolleyScore Pro nasceu de uma necessidade real: um placar de vôlei que fosse simples, completo e funcionasse em qualquer lugar. Como treinador e entusiasta do vôlei, eu precisava de uma ferramenta que me permitisse focar no jogo, não na tecnologia.",
+            "paragraph2": "Desenvolvido por uma única pessoa com muito café e dedicação, o app evoluiu de um simples contador de pontos para uma plataforma completa com estatísticas avançadas, transmissão ao vivo e comandos de voz. Tudo isso mantendo a simplicidade que faz o vôlei ser tão especial.",
+            "paragraph3": "Hoje, o VolleyScore Pro é usado por treinadores, árbitros e entusiastas em mais de 50 países. Cada feedback recebido ajuda a tornar o app melhor. Este projeto é um trabalho de amor pelo esporte.",
+            "highlight1": "Feito com amor",
+            "highlight2": "Sempre gratuito",
+            "highlight3": "50+ países",
+            "highlight4": "Comunidade ativa",
+            "signature": "— Desenvolvido por um apaixonado por vôlei"
+        },
+        "roadmap": {
+            "title": "Roadmap",
+            "subtitle": "Novos recursos e melhorias em desenvolvimento contínuo.",
+            "inProgress": "Em Desenvolvimento",
+            "moreComing": "Mais recursos incríveis a caminho!",
+            "viewGithub": "Ver no GitHub",
+            "q1_2026": {
+                "title": "Lançamento v2.0",
+                "item1": "Interface Neo-Glass redesenhada",
+                "item2": "VolleyLink Live transmissão",
+                "item3": "Comandos de voz com IA Gemini"
+            },
+            "q2_2026": {
+                "title": "Analytics Avançado",
+                "item1": "Dashboard de estatísticas detalhado",
+                "item2": "Export PDF profissional"
+            },
+            "q3_2026": {
+                "title": "iOS App Store",
+                "item1": "Aplicativo nativo iOS",
+                "item2": "Integração Apple Watch"
+            },
+            "future": {
+                "title": "Visão Futura",
+                "item1": "IA para análise tática automática",
+                "item2": "Histórico em nuvem ilimitado"
+            }
+        },
+        "footer": {
+            "tagline": "Placar profissional de vôlei com estatísticas, quadro tático e transmissão ao vivo.",
+            "version": "v2.0.0",
+            "product": "Produto",
+            "features": "Recursos",
+            "pricing": "Preços",
+            "changelog": "Changelog",
+            "roadmap": "Roadmap",
+            "support": "Suporte",
+            "helpCenter": "Central de Ajuda",
+            "contact": "Contato",
+            "feedback": "Feedback",
+            "bugs": "Reportar Bugs",
+            "legal": "Legal",
+            "privacy": "Privacidade",
+            "terms": "Termos",
+            "ctaTitle": "Pronto para começar?",
+            "ctaSubtitle": "Experimente o VolleyScore Pro gratuitamente agora mesmo.",
+            "ctaButton": "Abrir Aplicativo",
+            "copyright": "© 2026 VolleyScore Pro. Todos os direitos reservados.",
+            "madeWith": "Feito com ",
+            "forVolleyball": " para o vôlei"
+        }
+    },
     "app": {
         "loading": "Carregando..."
     },
@@ -36,7 +166,7 @@
         "summary": "Resumo",
         "continue": "Continuar?",
         "players": "jogadores",
-        "confirm": "Confirmar"
+        "yes": "Sim"
     },
     "controls": {
         "undo": "Desfazer",
@@ -90,6 +220,7 @@
     },
     "roles": {
         "setter": "Levantador",
+        "opposite": "Oposto",
         "hitter": "Ponteiro",
         "libero": "Líbero",
         "middle": "Central",
@@ -183,11 +314,11 @@
             "lowPowerSub": "Menos efeitos",
             "reducedMotion": "Reduzir Movimento",
             "reducedMotionSub": "Menos animação",
-            "perfNormal": "Alta Perf.",
-            "perfEco": "Modo Eco",
-            "perfMinimal": "Sem Efeitos",
-            "performanceMode": "Gráficos",
-            "performanceModeSub": "Ajustar efeitos visuais"
+            "performanceMode": "Qualidade Visual",
+            "performanceModeSub": "Ajuste os efeitos para seu aparelho",
+            "perfNormal": "Full",
+            "perfEco": "Eco",
+            "perfMinimal": "Mínimo"
         },
         "rules": {
             "title": "Regras",
@@ -312,7 +443,9 @@
             "noData": "Sem dados de rotação",
             "enteringCourt": "ENTRANDO EM QUADRA",
             "borrowedPlayers": "JOGADORES EMPRESTADOS",
-            "borrowedDisclaimer": "Estes jogadores permaneceram em quadra para completar a formação."
+            "borrowedDisclaimer": "Estes jogadores permaneceram em quadra para completar a formação.",
+            "incomingCard": "ENTRA",
+            "leavingCard": "SAI"
         },
         "debugLogs": "Logs"
     },
@@ -334,6 +467,8 @@
         "movedToBench": "Pro Banco",
         "movedToBenchSub": "Time Cheio",
         "playerRemoved": "Removido",
+        "removePlayer": "Remover Jogador",
+        "confirmRemovePlayer": "Tem certeza que deseja remover este jogador do time?",
         "undo": "DESFAZER",
         "activateBenchTitle": "Usar Banco?",
         "activateBenchMsg": "Banco desativado.",
@@ -348,6 +483,7 @@
         },
         "resetConfirm": "Resetar este time? Isso vai limpar o nome e remover todos os jogadores.",
         "resetTeam": "Resetar Time",
+        "confirmResetTeam": "Tem certeza que deseja resetar este time? Todos os jogadores e o logo serão removidos.",
         "teamReset": "Time Resetado",
         "teamAdded": "Time Adicionado",
         "newTeam": "Novo Time",
@@ -398,7 +534,10 @@
             "tipFormat": "• Nome\n• 10 Nome (Número + Nome)\n• 10 Nome 9 (Completo com Skill)",
             "tipDesc": "",
             "placeholder": "Nome 8\n10 Nome 9\nNome",
-            "generate": "Gerar"
+            "generate": "Gerar",
+            "formatName": "Apenas nome",
+            "formatNumName": "# + Nome",
+            "formatFull": "# + Nome + Skill"
         },
         "profiles": {
             "empty": "Vazio.",
@@ -426,16 +565,15 @@
         "inBench": "Entra",
         "emptyCourt": "Vazio",
         "emptyBench": "Vazio",
-        "confirm": "Confirmar ({count})",
+        "confirm": "Confirmar {count}",
         "select": "Selecione"
     },
     "scout": {
         "step1": "Pontuador",
         "step2": "Ação",
+        "selectPlayer": "Selecionar Jogador",
         "whoScored": "Quem?",
-        "selectPlayer": "Selecione o Jogador",
-        "selectAction": "Selecione a Ação",
-        "tapToConfirm": "Toque para confirmar",
+        "selectAction": "O quê?",
         "unknownPlayer": "Desconhecido",
         "back": "Voltar",
         "skills": {
@@ -515,7 +653,13 @@
         "delete": "Apagar",
         "analysis": "Ver",
         "importSuccess": "Importado!",
-        "importError": "Erro."
+        "importError": "Erro.",
+        "deleteAll": "Apagar Tudo",
+        "confirmDeleteAll": "Tem certeza que deseja apagar todo o histórico? Esta ação não pode ser desfeita.",
+        "deleteAllSuccess": "Histórico apagado",
+        "deleteMatch": "Excluir Partida",
+        "confirmDeleteMatch": "Tem certeza que deseja excluir esta partida?",
+        "deleteSuccess": "Partida excluída"
     },
     "history": {
         "setLabel": "S{setNumber}",
@@ -564,96 +708,98 @@
         "start": "Iniciar",
         "welcome": {
             "title": "VolleyScore Pro",
-            "desc": "O companheiro definitivo. Gestos, Voz e Estatísticas Profissionais.",
-            "optIn": "Pule se quiser."
+            "desc": "Seu companheiro profissional de placar. Gestos intuitivos, controle por voz e estatísticas de elite para cada partida.",
+            "waitMessage": "Aguarde um momento..."
+        },
+        "about": {
+            "title": "Feito com Dedicação",
+            "desc": "Este app é criado por uma única pessoa. Se encontrar algum problema, por favor envie seu feedback antes de avaliar negativamente. Sua paciência e colaboração fazem toda a diferença!"
         },
         "gestures": {
-            "title": "Gestos Inteligentes",
-            "desc": "Toque na área de um time para somar (+1). Desliza para BAIXO no placar para corrigir (-1)."
+            "title": "Gestos Intuitivos",
+            "desc": "Toque na área do time para pontuar (+1). Deslize para baixo para corrigir (-1). Simples, rápido e preciso."
         },
         "main": {
             "config": {
-                "title": "Configuração",
-                "desc": "Defina 'Quadra' ou 'Praia' nos Ajustes. Escolha 1, 3 ou 5 sets e regras de tie-break antes de começar."
+                "title": "Personalize sua Partida",
+                "desc": "Escolha entre presets Quadra ou Praia, configure sets (1/3/5), pontos por set e regras de desempate."
             },
             "audio": {
-                "title": "Narrador de Áudio",
-                "desc": "O app fala o placar, quem saca e momentos críticos como 'Match Point' automaticamente."
+                "title": "Narrador Inteligente",
+                "desc": "Anúncios automáticos de placar, saque e momentos decisivos como Match Point. Perfeito para streaming."
             },
             "narrator": {
-                "title": "Narrador de Áudio",
-                "desc": "O app fala o placar, quem saca e momentos críticos como 'Match Point' automaticamente."
+                "title": "Narrador Inteligente",
+                "desc": "Anúncios automáticos de placar, saque e momentos decisivos como Match Point. Perfeito para streaming."
             }
         },
         "features": {
-            "title": "Controle Total",
-            "desc": "Gerencie tempos, lados e acesse o Gerenciador de Equipes pelo menu flutuante."
+            "title": "Controle Completo",
+            "desc": "Gerencie tempos, troque lados e acesse o Gerenciador de Times pelo menu flutuante."
         },
         "voice": {
-            "title": "Comandos de Voz",
-            "desc": "Toque no ícone do microfone. Diga 'Ponto Casa', 'Tempo' ou 'Troca de Saque' para pontuar sem as mãos."
+            "title": "Comandos por Voz",
+            "desc": "Toque no microfone e diga 'Ponto Casa', 'Tempo' ou 'Troca de Saque' para controlar sem usar as mãos."
         },
         "manager": {
             "intro": {
-                "title": "Gerenciador de Equipes",
-                "desc": "Seu centro de comando. Organize titulares, banco de reservas e rotações."
+                "title": "Gerenciador de Times",
+                "desc": "Seu centro de comando. Organize escalações, gerencie reservas e configure times na fila para rodar automaticamente."
             },
             "structure": {
                 "title": "Arrastar e Soltar",
-                "desc": "Arraste jogadores entre Quadra, Banco e Fila. Os top 6 são ativos. O excedente forma o Banco."
+                "desc": "Arraste jogadores entre Quadra, Banco e Fila. Toque e segure em um jogador, depois arraste para a área desejada."
             },
             "subs": {
-                "title": "Substituições",
-                "desc": "Toque no ícone 'Troca'. Toque num jogador em Quadra (SAI), depois num do Banco (ENTRA) para trocar."
+                "title": "Substituições Rápidas",
+                "desc": "Toque no botão Troca. Selecione primeiro o jogador que sai (Quadra), depois o que entra (Banco). Confirme para finalizar."
             },
             "profiles": {
                 "title": "Perfis de Jogador",
-                "desc": "Vincule jogadores a Perfis para rastrear estatísticas de carreira (Vitórias, Kills, Aces) entre partidas."
+                "desc": "Crie perfis com foto, número e nível de habilidade. Vincule aos jogadores para acumular estatísticas entre partidas."
             },
             "rotation": {
-                "title": "Rotação Automática",
-                "desc": "Use 'Modo Padrão' para Vencedor-Fica ou 'Modo Equilibrado' para misturar times por habilidade."
+                "title": "Rotação de Times",
+                "desc": "Quando um time vence e sai, o próximo da fila entra. O sistema empresta jogadores do time anterior para completar o time que entra. No modo Balanceado, a IA escolhe jogadores específicos para equilibrar os níveis."
             },
             "balance": {
-                "title": "Equilíbrio de Skill",
-                "desc": "Atribua um Nível (1-10) aos jogadores. A IA gera times justos automaticamente."
+                "title": "Balanceamento por Skill",
+                "desc": "Atribua níveis de 1 a 10 para cada jogador. Ao gerar times balanceados, a IA distribui os jogadores para que ambos os times tenham nível similar."
             },
             "batch": {
-                "title": "Entrada em Lote",
-                "desc": "Cole uma lista de nomes na aba 'Importar'. Formato: 'Nome 8' para definir o nível de habilidade.",
-                "tipFormat": "Formatos: \"Nome 8\" ou \"10 Nome 8\" (Número Nome Skill).",
-                "placeholder": "Nome 8\n10 Nome 9\nNome"
+                "title": "Importação em Lote",
+                "desc": "Cole uma lista de nomes (um por linha) na aba Importar. Formato: 'Nome' ou 'Nome 8' (com nível de habilidade) ou '10 Nome 8' (com número e nível)."
             },
-            "rosterDesc": "Gerenciar jogadores.",
-            "rotationDesc": "Rotações auto."
+            "rosterDesc": "Gerencie jogadores.",
+            "rotationDesc": "Rotações automáticas."
         },
         "history": {
             "summary": {
                 "title": "Histórico de Partidas",
-                "desc": "Veja placares e duração. Toque em qualquer partida para ver o relatório analítico completo."
+                "desc": "Consulte placares anteriores, sets e duração. Toque para ver a análise completa."
             },
             "timeline": {
                 "title": "Gráfico de Momentum",
-                "desc": "Visualize o fluxo do jogo. Veja exatamente quando o jogo virou na linha do tempo."
+                "desc": "Visualize o fluxo do jogo e identifique os momentos decisivos na linha do tempo."
             },
             "stats": "Modo Scout",
-            "statsDesc": "Ative nos Ajustes para registrar ações específicas (Ataque, Bloqueio, Ace) em cada ponto.",
-            "statsFeedback": "Ao pontuar, selecione o Jogador e a Habilidade. O sistema atualiza as estatísticas instantaneamente.",
+            "statsDesc": "Ative para registrar ações específicas (Ataque, Bloqueio, Ace) em cada ponto.",
+            "statsFeedback": "Ao pontuar, selecione o jogador e a ação. As estatísticas são atualizadas instantaneamente.",
             "feedback": "Análise",
             "export": {
                 "title": "Exportar Dados",
-                "desc": "Compartilhe resultados como imagens ou exporte dados brutos CSV/JSON para análise."
+                "desc": "Compartilhe resultados como imagens ou exporte dados CSV/JSON para análise externa."
             },
             "welcome": "Histórico",
-            "welcomeDesc": "Revise jogos."
+            "welcomeDesc": "Revise partidas anteriores."
         },
         "install": {
-            "title": "Instalar",
-            "installed": "Pronto.",
-            "descAndroid": "Instale para usar offline.",
-            "descIOS": "Instruções:",
+            "title": "Instalar App",
+            "installed": "Pronto!",
+            "descAndroid": "Instale para usar offline e ter acesso rápido pela tela inicial.",
+            "descIOS": "Instruções para instalar:",
             "descAndroidShort": "Modo Offline",
-            "descIOSShort": "Add Tela Início",
+            "descIOSShort": "Adicionar à Tela Início",
             "installNow": "Instalar"
         }
     },
@@ -728,21 +874,11 @@
         "connected": "Conectado à Sala {code}",
         "hosting": "Sessão {code} Iniciada",
         "hostingSub": "Você é o Host",
-        "joined": "Conectado à Sala {code}",
-        "joinedSub": "Acompanhando em tempo real",
         "syncRequirement": "A sincronização requer internet ativa. O Host deve estar logado.",
         "copy": "Copiar",
         "connect": "Conectar",
         "stopBroadcast": "Encerrar Transmissão",
         "leaveSession": "Parar de Assistir",
-        "stopped": "Transmissão Encerrada",
-        "left": "Você saiu da sessão",
-        "sessionEnded": "Transmissão Encerrada",
-        "sessionEndedSub": "O host encerrou a transmissão",
-        "sessionNotFound": "Sessão não encontrada",
-        "sessionNotFoundSub": "Verifique o código e tente novamente",
-        "authRequired": "Login Necessário",
-        "authRequiredSub": "Faça login para acompanhar transmissões",
         "broadcastStopped": "Transmissão Encerrada",
         "sessionLeft": "Você saiu da sessão",
         "nowLocal": "Modo local ativado"

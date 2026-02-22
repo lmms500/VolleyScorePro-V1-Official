@@ -336,6 +336,8 @@
         "movedToBench": "Pro Banco",
         "movedToBenchSub": "Time Cheio",
         "playerRemoved": "Removido",
+        "removePlayer": "Remover Jogador",
+        "confirmRemovePlayer": "Tem certeza que deseja remover este jogador do time?",
         "undo": "DESFAZER",
         "activateBenchTitle": "Usar Banco?",
         "activateBenchMsg": "Banco desativado.",
@@ -351,6 +353,7 @@
         "resetConfirm": "Resetar este time? Isso vai limpar o nome e remover todos os jogadores.",
         "resetTeam": "Resetar Time",
         "teamReset": "Time Resetado",
+        "confirmResetTeam": "Tem certeza que deseja resetar esse time? Todos os jogadores e o logo serão removidos.",
         "teamAdded": "Time Adicionado",
         "newTeam": "Novo Time",
         "queueHint": "Adicione times à rotação",
@@ -400,7 +403,10 @@
             "tipFormat": "• Nome\n• 10 Nome (Número + Nome)\n• 10 Nome 9 (Completo com Skill)",
             "tipDesc": "",
             "placeholder": "Nome 8\n10 Nome 9\nNome",
-            "generate": "Gerar"
+            "generate": "Gerar",
+            "formatName": "Apenas nome",
+            "formatNumName": "# + Nome",
+            "formatFull": "# + Nome + Skill"
         },
         "profiles": {
             "empty": "Vazio.",
@@ -412,7 +418,8 @@
             "addTo": "Add em",
             "addToQueue": "Add Fila",
             "globalBalance": "Balancear",
-            "restoreOrder": "Reset Ordem"
+            "restoreOrder": "Reset Ordem",
+            "randomTest": "Gerar Teste"
         },
         "location": {
             "courtA": "Quadra A",
@@ -516,7 +523,13 @@
         "delete": "Apagar",
         "analysis": "Ver",
         "importSuccess": "Importado!",
-        "importError": "Erro."
+        "importError": "Erro.",
+        "deleteAll": "Apagar Tudo",
+        "confirmDeleteAll": "Tem certeza que deseja apagar todo o histórico? Esta ação não pode ser desfeita.",
+        "deleteAllSuccess": "Histórico apagado",
+        "deleteMatch": "Excluir Partida",
+        "confirmDeleteMatch": "Tem certeza que deseja excluir esta partida?",
+        "deleteSuccess": "Partida excluída"
     },
     "history": {
         "setLabel": "S{setNumber}",

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="overflow-y: auto; overflow-x: hidden; position: static; height: auto; touch-action: pan-y;">
 
 <head>
   <meta charset="UTF-8" />
@@ -64,46 +64,10 @@
 </head>
 
 <body
-  class="text-slate-900 dark:text-slate-100 antialiased h-screen overflow-hidden selection:bg-indigo-500 selection:text-white">
+  class="text-slate-900 dark:text-slate-100 antialiased min-h-screen selection:bg-indigo-500 selection:text-white"
+  style="overflow-y: auto; overflow-x: hidden; position: static; height: auto; touch-action: pan-y;">
   <div class="bg-noise"></div>
-  <div id="root" class="h-full w-full flex flex-col relative z-10">
-    <!-- Loading Splash Screen -->
-    <style>
-      .splash-screen {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #020617;
-        z-index: 9999;
-        transition: opacity 0.5s ease-out;
-      }
-
-      .splash-content {
-        width: 100%;
-        height: 100%;
-        max-width: 500px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .splash-image {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-      }
-    </style>
-    <div id="splash-screen" class="splash-screen">
-      <div class="splash-content">
-        <img src="/splash.png" alt="VolleyScore Pro" class="splash-image" />
-      </div>
-    </div>
-  </div>
+  <div id="root" class="w-full relative z-10"></div>
   <script type="module" src="/src/index.tsx"></script>
 </body>
 

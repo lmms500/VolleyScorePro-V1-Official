@@ -29,7 +29,8 @@ export const useTutorial = (isStandalone: boolean, isDisabled: boolean = false) 
     const saved = localStorage.getItem(TUTORIAL_STORAGE_KEY);
     if (saved) {
       try {
-        setTutorialState(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        setTutorialState(parsed);
       } catch (e) {
         setTutorialState(DEFAULT_STATE);
       }
@@ -37,7 +38,9 @@ export const useTutorial = (isStandalone: boolean, isDisabled: boolean = false) 
         // First Launch Logic for 'main'
         // Only trigger if not disabled
         if (!isDisabled) {
-            setTimeout(() => setActiveTutorial('main'), 1000);
+            setTimeout(() => {
+              setActiveTutorial('main');
+            }, 1000);
         }
     }
     setIsLoaded(true);

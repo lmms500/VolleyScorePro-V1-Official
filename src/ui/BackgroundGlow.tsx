@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { TeamColor } from '@types';
 import { getHexFromColor } from '@lib/utils/colors';
 import { usePerformanceSafe } from '@contexts/PerformanceContext';
+import { getAnimationConfig } from '@lib/platform/animationConfig';
 
 interface BackgroundGlowProps {
   isSwapped: boolean;
@@ -17,16 +18,16 @@ interface BackgroundGlowProps {
 
 export const BackgroundGlow: React.FC<BackgroundGlowProps> = memo(({ isSwapped, isFullscreen, colorA = 'indigo', colorB = 'rose', lowPowerMode: lowPowerModeProp }) => {
   const { config: perf } = usePerformanceSafe();
+  const animConfig = getAnimationConfig();
 
   const hexA = getHexFromColor(colorA);
   const hexB = getHexFromColor(colorB);
 
-  // Determinamos a cor ativa para cada "Lado Físico" da tela
   const activeLeftColor = isSwapped ? hexB : hexA;
   const activeRightColor = isSwapped ? hexA : hexB;
 
-  // Resolve glow mode: prop override or from performance context
   const glowMode = lowPowerModeProp === true ? 'static' : perf.visual.backgroundGlow;
+  const glowBlur = animConfig.backgroundGlowBlur;
 
   // --- GRADIENT MODE (REDUZIR_MOVIMENTO) ---
   if (glowMode === 'gradient') {
@@ -57,22 +58,31 @@ export const BackgroundGlow: React.FC<BackgroundGlowProps> = memo(({ isSwapped, 
   }
 
   // --- ANIMATED MODE (NORMAL - GPU COMPOSITED) ---
+  const gpuLayerStyle = animConfig.useGPUTransform ? {
+    transform: 'translateZ(0)',
+    backfaceVisibility: 'hidden' as const
+  } : {};
+
+  const containmentStyle = animConfig.useContain ? {
+    contain: animConfig.containValue
+  } : {};
+
   return createPortal(
     <div
       className="fixed z-[-1] pointer-events-none select-none bg-transparent"
       aria-hidden="true"
-      style={{ inset: -150 }}
+      style={{ inset: -150, ...containmentStyle }}
     >
       {/* SPOTLIGHT ESQUERDO (Top-Left) */}
       <motion.div
         initial={false}
         animate={{ backgroundColor: activeLeftColor }}
         transition={{ duration: 0.8, ease: "easeInOut" }}
-        className={`absolute -top-[10%] -left-[10%] w-[70vmax] h-[70vmax] rounded-full will-change-[background-color] mix-blend-multiply dark:mix-blend-screen saturate-150 blur-[90px] ${isFullscreen ? 'opacity-80 dark:opacity-60' : 'opacity-40 dark:opacity-25'
+        className={`absolute -top-[10%] -left-[10%] w-[70vmax] h-[70vmax] rounded-full will-change-[background-color] mix-blend-multiply dark:mix-blend-screen saturate-150 ${isFullscreen ? 'opacity-80 dark:opacity-60' : 'opacity-40 dark:opacity-25'
           }`}
         style={{
-          transform: 'translateZ(0)',
-          backfaceVisibility: 'hidden'
+          filter: `blur(${glowBlur}px)`,
+          ...gpuLayerStyle
         }}
       />
 
@@ -81,11 +91,11 @@ export const BackgroundGlow: React.FC<BackgroundGlowProps> = memo(({ isSwapped, 
         initial={false}
         animate={{ backgroundColor: activeRightColor }}
         transition={{ duration: 0.8, ease: "easeInOut" }}
-        className={`absolute -bottom-[10%] -right-[10%] w-[70vmax] h-[70vmax] rounded-full will-change-[background-color] mix-blend-multiply dark:mix-blend-screen saturate-150 blur-[90px] ${isFullscreen ? 'opacity-80 dark:opacity-60' : 'opacity-40 dark:opacity-25'
+        className={`absolute -bottom-[10%] -right-[10%] w-[70vmax] h-[70vmax] rounded-full will-change-[background-color] mix-blend-multiply dark:mix-blend-screen saturate-150 ${isFullscreen ? 'opacity-80 dark:opacity-60' : 'opacity-40 dark:opacity-25'
           }`}
         style={{
-          transform: 'translateZ(0)',
-          backfaceVisibility: 'hidden'
+          filter: `blur(${glowBlur}px)`,
+          ...gpuLayerStyle
         }}
       />
     </div>,

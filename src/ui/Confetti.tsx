@@ -4,6 +4,7 @@ import { getHexFromColor } from '@lib/utils/colors';
 import { TeamColor } from '@types';
 import { useLayoutManager } from '@contexts/LayoutContext';
 import { usePerformanceSafe } from '@contexts/PerformanceContext';
+import { getMaxParticles, getAnimationConfig } from '@lib/platform/animationConfig';
 
 interface ConfettiProps {
   colors: TeamColor[];
@@ -162,7 +163,9 @@ export const Confetti: React.FC<ConfettiProps> = ({
 
     const init = () => {
       resize();
-      const count = intensity === 'high' ? (physicsVariant === 'ambient' ? 150 : 120) : 60;
+      const adaptiveMaxParticles = getMaxParticles();
+      const baseCount = intensity === 'high' ? (physicsVariant === 'ambient' ? 150 : 120) : 60;
+      const count = Math.min(baseCount, adaptiveMaxParticles);
       particles = [];
       for (let i = 0; i < count; i++) {
         particles.push(createParticle(

@@ -1,14 +1,14 @@
 import React, { useRef } from 'react';
 import { Share2, FileDown, Trophy, Umbrella, Zap, Target, Layers, Scale, ToggleLeft, ToggleRight, Users, ArrowLeftRight, Activity } from 'lucide-react';
-import { GameConfig } from '@types';
+import { GameConfig, GameModePreset } from '@types';
 import { SectionTitle, SettingItem, PresetButton } from './SettingsUI';
 import { parseJSONFile, exportActiveMatch } from '@lib/storage/io';
 import { useTranslation } from '@contexts/LanguageContext';
 import { useActions, useScore, useRoster } from '@contexts/GameContext';
 import { useNotification } from '@contexts/NotificationContext';
 import { GAME_MODE_PRESETS } from '@config/gameModes';
-import type { GameModePreset } from '@types';
 import { useCombinedGameState } from '@features/game/hooks/useCombinedGameState';
+import { ConfirmationModal } from '@features/game/modals/ConfirmationModal';
 
 interface MatchTabProps {
     localConfig: GameConfig;
@@ -34,6 +34,7 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
     const [selectedPreset, setSelectedPreset] = React.useState<GameModePreset>(
         localConfig.modeConfig?.preset || 'indoor-6v6'
     );
+    const [pendingConfigChange, setPendingConfigChange] = React.useState<{ action: () => void; warning: string } | null>(null);
 
     const handleExportGame = async () => {
         try {
@@ -61,23 +62,15 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
         }
     };
 
-    // Handler for changing mode preset
-    const handlePresetChange = (preset: GameModePreset) => {
-        const config = GAME_MODE_PRESETS[preset];
-        const newLimit = config.courtLayout.playersOnCourt;
-
-        // Use helper to get current limit safely
-        // Note: Assuming getCourtLayoutFromConfig is available or we use localConfig directly if compatible
+    // Wrapping configuration changes to check for warnings
+    const requestConfigChange = (newLimit: number, action: () => void) => {
         const currentLimit = localConfig.modeConfig?.courtLayout.playersOnCourt || (localConfig.mode === 'beach' ? 4 : 6);
-
-        const playersOnCourtCount = (rosterState.teamARoster.players.length) + (rosterState.teamBRoster.players.length);
+        const playersOnCourtCount = rosterState.teamARoster.players.length + rosterState.teamBRoster.players.length;
         const willDownsize = newLimit < currentLimit;
         const excessPlayers = Math.max(0, playersOnCourtCount - (newLimit * 2));
 
-        // Warning if match is in progress OR if downsizing will occur
         if (scoreState.currentSet > 0 || willDownsize) {
             let msg = t('settings.warningMessage');
-
             if (willDownsize && excessPlayers > 0) {
                 msg += `\n\n⚠️ ${t('settings.warnings.downsizing', { count: excessPlayers })}`;
             } else if (willDownsize) {
@@ -85,21 +78,45 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
             }
             msg += `\n\n${t('common.continue')}`;
 
-            const confirmChange = window.confirm(msg);
-            if (!confirmChange) return;
+            setPendingConfigChange({ action, warning: msg });
+            return;
         }
 
-        setSelectedPreset(preset);
-        setLocalConfig(prev => ({
-            ...prev,
-            mode: config.type,
-            modeConfig: config
-        }));
+        action();
     };
 
-    const setPresetFIVB = () => setLocalConfig(prev => ({ ...prev, mode: 'indoor', modeConfig: GAME_MODE_PRESETS['indoor-6v6'], maxSets: 5, pointsPerSet: 25, hasTieBreak: true, tieBreakPoints: 15, deuceType: 'standard', autoSwapSides: false }));
-    const setPresetBeach = () => setLocalConfig(prev => ({ ...prev, mode: 'beach', modeConfig: GAME_MODE_PRESETS['beach-4v4'], maxSets: 3, pointsPerSet: 21, hasTieBreak: true, tieBreakPoints: 15, deuceType: 'standard', autoSwapSides: true }));
-    const setPresetSegunda = () => setLocalConfig(prev => ({ ...prev, mode: 'indoor', modeConfig: GAME_MODE_PRESETS['indoor-6v6'], maxSets: 1, pointsPerSet: 15, hasTieBreak: false, tieBreakPoints: 15, deuceType: 'sudden_death_3pt', autoSwapSides: false }));
+    // Handler for changing mode preset via PlayerCountSelector
+    const handlePresetChange = (preset: GameModePreset) => {
+        const config = GAME_MODE_PRESETS[preset];
+        requestConfigChange(config.courtLayout.playersOnCourt, () => {
+            setSelectedPreset(preset);
+            setLocalConfig(prev => ({ ...prev, mode: config.type, modeConfig: config }));
+        });
+    };
+
+    const setPresetFIVB = () => {
+        const config = GAME_MODE_PRESETS['indoor-6v6'];
+        requestConfigChange(config.courtLayout.playersOnCourt, () => {
+            setSelectedPreset('indoor-6v6');
+            setLocalConfig(prev => ({ ...prev, mode: 'indoor', modeConfig: config, maxSets: 5, pointsPerSet: 25, hasTieBreak: true, tieBreakPoints: 15, deuceType: 'standard', autoSwapSides: false }));
+        });
+    };
+
+    const setPresetBeach = () => {
+        const config = GAME_MODE_PRESETS['beach-4v4'];
+        requestConfigChange(config.courtLayout.playersOnCourt, () => {
+            setSelectedPreset('beach-4v4');
+            setLocalConfig(prev => ({ ...prev, mode: 'beach', modeConfig: config, maxSets: 3, pointsPerSet: 21, hasTieBreak: true, tieBreakPoints: 15, deuceType: 'standard', autoSwapSides: true }));
+        });
+    };
+
+    const setPresetSegunda = () => {
+        const config = GAME_MODE_PRESETS['indoor-6v6'];
+        requestConfigChange(config.courtLayout.playersOnCourt, () => {
+            setSelectedPreset('indoor-6v6');
+            setLocalConfig(prev => ({ ...prev, mode: 'indoor', modeConfig: config, maxSets: 1, pointsPerSet: 15, hasTieBreak: false, tieBreakPoints: 15, deuceType: 'sudden_death_3pt', autoSwapSides: false }));
+        });
+    };
 
     const isFIVB = localConfig.mode === 'indoor' && localConfig.maxSets === 5 && localConfig.pointsPerSet === 25 && localConfig.hasTieBreak && localConfig.tieBreakPoints === 15 && localConfig.deuceType === 'standard';
     const isBeach = localConfig.mode === 'beach' && localConfig.maxSets === 3 && localConfig.pointsPerSet === 21 && localConfig.hasTieBreak && localConfig.tieBreakPoints === 15 && localConfig.deuceType === 'standard';
@@ -146,6 +163,18 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
     return (
         <div className="space-y-3 landscape:grid landscape:grid-cols-2 landscape:gap-4 landscape:space-y-0">
             <input type="file" ref={gameImportRef} className="hidden" accept=".vsg,.json" onChange={handleGameImport} />
+            <ConfirmationModal
+                isOpen={!!pendingConfigChange}
+                onClose={() => setPendingConfigChange(null)}
+                onConfirm={() => {
+                    if (pendingConfigChange) {
+                        pendingConfigChange.action();
+                        setPendingConfigChange(null);
+                    }
+                }}
+                title={t('settings.warningTitle') || 'Warning'}
+                message={pendingConfigChange?.warning || ''}
+            />
             {/* Left Col */}
             <div className="space-y-3">
                 <div>
@@ -175,16 +204,22 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
                                 <button onClick={() => {
                                     const newMode = 'indoor';
                                     const defaultPreset = 'indoor-6v6';
-                                    setLocalConfig(prev => ({ ...prev, mode: newMode, modeConfig: GAME_MODE_PRESETS[defaultPreset] }));
-                                    setSelectedPreset(defaultPreset);
+                                    const config = GAME_MODE_PRESETS[defaultPreset];
+                                    requestConfigChange(config.courtLayout.playersOnCourt, () => {
+                                        setSelectedPreset(defaultPreset);
+                                        setLocalConfig(prev => ({ ...prev, mode: newMode, modeConfig: config }));
+                                    });
                                 }} className={`flex flex-col items-center justify-center px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${localConfig.mode === 'indoor' ? 'bg-white dark:bg-white/10 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}`}>
                                     <span>{t('settings.rules.modes.indoor')}</span>
                                 </button>
                                 <button onClick={() => {
                                     const newMode = 'beach';
                                     const defaultPreset = 'beach-4v4';
-                                    setLocalConfig(prev => ({ ...prev, mode: newMode, modeConfig: GAME_MODE_PRESETS[defaultPreset] }));
-                                    setSelectedPreset(defaultPreset);
+                                    const config = GAME_MODE_PRESETS[defaultPreset];
+                                    requestConfigChange(config.courtLayout.playersOnCourt, () => {
+                                        setSelectedPreset(defaultPreset);
+                                        setLocalConfig(prev => ({ ...prev, mode: newMode, modeConfig: config }));
+                                    });
                                 }} className={`flex flex-col items-center justify-center px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase transition-all ${localConfig.mode === 'beach' ? 'bg-white dark:bg-white/10 shadow-sm text-orange-500' : 'text-slate-400'}`}>
                                     <span>{t('settings.rules.modes.beach')}</span>
                                 </button>

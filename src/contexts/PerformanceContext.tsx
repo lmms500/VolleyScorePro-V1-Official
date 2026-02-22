@@ -11,6 +11,7 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import { detectPerformanceMode, persistPerformanceMode, PerformanceMode } from '@lib/platform/deviceDetection';
 import { PERFORMANCE_CONFIGS, PerformanceModeConfig } from '../config/performanceModes';
+import { clearConfigCache } from '@lib/platform/animationConfig';
 
 interface PerformanceContextType {
     /** Current performance mode */
@@ -48,6 +49,7 @@ export const PerformanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const setMode = useCallback((newMode: PerformanceMode) => {
         setModeState(newMode);
         persistPerformanceMode(newMode);
+        clearConfigCache();
     }, []);
 
     const downgrade = useCallback(() => {
@@ -55,8 +57,9 @@ export const PerformanceProvider: React.FC<{ children: React.ReactNode }> = ({ c
             const next: PerformanceMode =
                 prev === 'NORMAL' ? 'ECONOMICO' :
                 prev === 'ECONOMICO' ? 'REDUZIR_MOVIMENTO' :
-                'REDUZIR_MOVIMENTO'; // Already at lowest
+                'REDUZIR_MOVIMENTO';
             persistPerformanceMode(next);
+            clearConfigCache();
             return next;
         });
     }, []);

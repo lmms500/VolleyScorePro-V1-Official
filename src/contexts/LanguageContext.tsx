@@ -2,7 +2,7 @@
 import React, { createContext, useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import { Preferences } from '@capacitor/preferences';
 
-type Language = 'en' | 'pt' | 'es';
+export type Language = 'en' | 'pt' | 'es';
 
 interface LanguageContextType {
   language: Language;

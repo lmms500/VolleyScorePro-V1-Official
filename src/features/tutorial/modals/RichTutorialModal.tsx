@@ -1,6 +1,6 @@
 
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { X, ChevronRight, Check, ChevronLeft, Pause, Play, Download } from 'lucide-react';
@@ -20,13 +20,14 @@ interface RichTutorialModalProps {
   isIOS?: boolean;
 }
 
+const WELCOME_LOCK_DURATION = 3;
+
 const overlayVariants = {
   hidden: { opacity: 0 },
   visible: { opacity: 1 },
   exit: { opacity: 0 }
 };
 
-// Added explicit Variants type and used 'as const' for transition types
 const modalVariants: Variants = {
   hidden: { scale: 0.95, opacity: 0, y: 20 },
   visible: { 
@@ -69,9 +70,8 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
   const [isPaused, setIsPaused] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
+  const [welcomeLockCountdown, setWelcomeLockCountdown] = useState(WELCOME_LOCK_DURATION);
 
-  // Filter steps: Only remove 'install' step if explicitly in Standalone/Native mode
-  // This ensures browser users (including iOS) see the prompt to install/add to home screen
   const steps = useMemo(() => {
       const rawSteps = TUTORIAL_SCENARIOS[tutorialKey] || [];
       if (tutorialKey === 'main' && isStandalone) {
@@ -89,6 +89,7 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
       setIsPaused(false);
       setIsReady(false);
       setCompletedSteps(new Set());
+      setWelcomeLockCountdown(WELCOME_LOCK_DURATION);
     }
   }, [isOpen, tutorialKey]);
 
@@ -99,6 +100,19 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
       }, 500); 
       return () => clearTimeout(timer);
   }, [currentStepIndex]);
+
+  useEffect(() => {
+    const isWelcomeStep = currentStep?.id === 'welcome' && currentStepIndex === 0;
+    
+    if (isWelcomeStep && welcomeLockCountdown > 0) {
+      const timer = setTimeout(() => {
+        setWelcomeLockCountdown(prev => prev - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [currentStep?.id, currentStepIndex, welcomeLockCountdown]);
+
+  const isWelcomeLocked = currentStep?.id === 'welcome' && currentStepIndex === 0 && welcomeLockCountdown > 0;
 
   if (!isOpen || !currentStep) return null;
 
@@ -179,7 +193,7 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
             initial="hidden"
             animate="visible"
             exit="exit"
-            onClick={handleSkip}
+            onClick={isWelcomeLocked ? undefined : handleSkip}
           />
 
           <motion.div
@@ -210,7 +224,12 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
 
               <button 
                 onClick={handleSkip}
-                className="p-2.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white bg-white/20 hover:bg-white/40 backdrop-blur-sm transition-colors"
+                disabled={isWelcomeLocked}
+                className={`p-2.5 rounded-full backdrop-blur-sm transition-all ${
+                  isWelcomeLocked 
+                    ? 'text-slate-300 dark:text-slate-600 bg-white/10 cursor-not-allowed' 
+                    : 'text-slate-400 hover:text-slate-600 dark:hover:text-white bg-white/20 hover:bg-white/40'
+                }`}
               >
                 <X size={18} />
               </button>
@@ -288,7 +307,7 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
                     </div>
 
                     {/* Footer Navigation (Fixed at bottom of right column) */}
-                    <div className="px-8 pb-8 pt-4 z-10 shrink-0 w-full mt-auto">
+                        <div className="px-8 pb-8 pt-4 z-10 shrink-0 w-full mt-auto">
                         <div className="flex gap-4">
                             {currentStepIndex > 0 ? (
                                 <button 
@@ -300,30 +319,50 @@ export const RichTutorialModal: React.FC<RichTutorialModalProps> = ({
                             ) : (
                                 <button 
                                     onClick={handleSkip}
-                                    className="p-4 rounded-2xl font-bold text-xs uppercase tracking-wider text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
+                                    disabled={isWelcomeLocked}
+                                    className={`p-4 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all ${
+                                      isWelcomeLocked
+                                        ? 'text-slate-300 dark:text-slate-600 cursor-not-allowed'
+                                        : 'text-slate-400 hover:text-slate-600 dark:hover:text-white'
+                                    }`}
                                 >
-                                    {t('tutorial.skip')}
+                                    {isWelcomeLocked ? welcomeLockCountdown : t('tutorial.skip')}
                                 </button>
                             )}
 
                             <button 
                                 onClick={handleNext}
-                                disabled={isNextButtonDisabled}
+                                disabled={isNextButtonDisabled || isWelcomeLocked}
                                 className={`
                                     flex-1 py-4 rounded-2xl font-black text-xs uppercase tracking-widest text-white shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95
-                                    ${isNextButtonDisabled
+                                    ${(isNextButtonDisabled || isWelcomeLocked)
                                       ? 'opacity-50 cursor-not-allowed bg-slate-300 dark:bg-slate-700'
                                       : `${colorTheme.halo.replace('bg-', 'bg-')} ${isStepCompleted ? 'animate-pulse' : ''}`
                                     }
                                 `}
                             >
-                                {currentStepIndex < steps.length - 1 ? (
+                                {isWelcomeLocked ? (
+                                    <>
+                                      <span className="text-base font-black">{welcomeLockCountdown}</span>
+                                      <span className="text-[10px] normal-case font-medium">seg</span>
+                                    </>
+                                ) : currentStepIndex < steps.length - 1 ? (
                                     <>{t('tutorial.next')} <ChevronRight size={18} strokeWidth={3} /></>
                                 ) : (
                                     isInstallStep ? getInstallButtonContent() : <>{t('common.done')} <Check size={18} strokeWidth={3} /></>
                                 )}
                             </button>
                         </div>
+                        
+                        {isWelcomeLocked && (
+                          <motion.p 
+                            className="text-center text-[10px] text-slate-400 dark:text-slate-500 mt-3"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                          >
+                            {t('tutorial.welcome.waitMessage')}
+                          </motion.p>
+                        )}
                     </div>
                 </div>
             </div>

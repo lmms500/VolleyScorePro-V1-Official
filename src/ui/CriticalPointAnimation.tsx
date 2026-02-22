@@ -1,7 +1,8 @@
 
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePerformanceSafe } from '@contexts/PerformanceContext';
+import { getAnimationConfig } from '@lib/platform/animationConfig';
 
 interface SuddenDeathOverlayProps {
   active: boolean;
@@ -16,24 +17,25 @@ interface SuddenDeathOverlayProps {
  */
 export const SuddenDeathOverlay: React.FC<SuddenDeathOverlayProps> = memo(({ active, lowGraphics: lowGraphicsProp }) => {
   const { config: perf, isLowGraphics } = usePerformanceSafe();
+  const animConfig = useMemo(() => getAnimationConfig(), []);
 
-  // Resolve: prop overrides context
   const isLow = lowGraphicsProp ?? isLowGraphics;
   const animationsEnabled = perf.animations.enabled;
 
   const overlayStyle = isLow
     ? {
-      // Lightweight version (static)
       background: 'radial-gradient(circle, transparent 50%, rgba(220, 38, 38, 0.3) 100%)',
       opacity: 0.6
     }
     : {
-      // High-end version base
       background: 'radial-gradient(circle, transparent 40%, rgba(153, 27, 27, 0.1) 70%, rgba(220, 38, 38, 0.4) 100%)',
       boxShadow: perf.visual.boxShadows !== 'none' ? 'inset 0 0 120px 20px rgba(185, 28, 28, 0.3)' : undefined,
       filter: perf.visual.gradients ? 'contrast(1.1) saturate(1.2)' : undefined,
-      ...(perf.gpu.willChange ? { willChange: 'opacity' as const } : {})
+      ...(animConfig.useWillChange ? { willChange: 'opacity' as const } : {}),
+      ...(animConfig.useContain ? { contain: animConfig.containValue } : {}),
     };
+
+  const pulseDuration = !animationsEnabled ? 0 : (isLow ? 0.3 : 4);
 
   if (!active) return null;
 
@@ -52,7 +54,7 @@ export const SuddenDeathOverlay: React.FC<SuddenDeathOverlayProps> = memo(({ act
             transition: { duration: 0.3 }
           }}
           transition={{
-            duration: !animationsEnabled ? 0 : (isLow ? 0.3 : 4),
+            duration: pulseDuration,
             repeat: !animationsEnabled ? 0 : (isLow ? 0 : Infinity),
             ease: "easeInOut",
             repeatType: "reverse"

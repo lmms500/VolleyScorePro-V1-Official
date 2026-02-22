@@ -2,9 +2,8 @@
 import React, { useMemo, useCallback, memo, useRef, lazy, useEffect, Suspense } from 'react';
 import { Modal } from '@ui/Modal';
 import { Player, TeamColor, PlayerRole, PlayerProfile } from '@types';
-import { List, Search, X, ListOrdered, Plus } from 'lucide-react';
+import { List, Search, X, ListOrdered, Plus, Sparkles } from 'lucide-react';
 import { DndContext, DragEndEvent, DragOverEvent, DragStartEvent, DragOverlay, closestCenter, useSensor, useSensors, KeyboardSensor, TouchSensor, MouseSensor } from '@dnd-kit/core';
-import { createPortal } from 'react-dom';
 import { useTranslation } from '@contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ProfileCreationModal } from './ProfileCreationModal';
@@ -36,6 +35,12 @@ interface TeamManagerModalProps {
 const SCROLL_EVENT = 'team-manager-scroll';
 const dispatchScrollEvent = () => { if (typeof globalThis !== 'undefined' && globalThis.window) globalThis.dispatchEvent(new Event(SCROLL_EVENT)); };
 
+const TEST_NAMES = [
+    'Lucas', 'Gabriel', 'Mateus', 'Enzo', 'Pedro', 'João', 'Felipe', 'Bruno',
+    'Thiago', 'Nicolas', 'Arthur', 'Leo', 'Vitor', 'Caio', 'Daniel', 'Marcos',
+    'Gustavo', 'Rafael', 'Diego', 'Rodrigo', 'Fernando', 'Ricardo', 'Andre', 'Luiz'
+];
+
 export const TeamManagerModal: React.FC<TeamManagerModalProps> = memo((props) => {
     const { t } = useTranslation();
     const { activeTutorial, triggerTutorial, completeTutorial, isLoaded } = useTutorial(false, props.developerMode);
@@ -60,6 +65,7 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = memo((props) =>
     // Local State
     const [activePlayer, setActivePlayer] = React.useState<Player | null>(null);
     const [showHeader, setShowHeader] = React.useState(true);
+    const [playerToDeleteId, setPlayerToDeleteId] = React.useState<string | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const lastScrollY = useRef(0);
 
@@ -99,6 +105,24 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = memo((props) =>
         dispatchScrollEvent();
     }, [showHeader]);
 
+    const generateRandomTestRoster = useCallback(() => {
+        const shuffled = [...TEST_NAMES].sort(() => Math.random() - 0.5);
+        const selected = shuffled.slice(0, 12);
+        const randomPlayers = selected.map(name => {
+            const num = Math.floor(Math.random() * 99) + 1;
+            const skill = Math.floor(Math.random() * 10) + 1;
+            return `${num} ${name} ${skill}`;
+        });
+        generateTeams(randomPlayers);
+        setActiveTab('roster');
+        showNotification({
+            mainText: t('teamManager.teamAdded'),
+            type: 'success',
+            subText: t('common.players') + ': 12'
+        });
+    }, [generateTeams, setActiveTab, showNotification, t]);
+
+
     const getTeamById = (id: string) => {
         if (id === courtA.id || id === `${courtA.id}_Reserves`) return courtA;
         if (id === courtB.id || id === `${courtB.id}_Reserves`) return courtB;
@@ -130,15 +154,9 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = memo((props) =>
     }, [addPlayer, showNotification, t]);
 
     const handleDeleteWithUndo = useCallback((playerId: string) => {
-        let player: Player | undefined;
-        const findIn = (list: Player[]) => list.find(p => p.id === playerId);
-        player = findIn(courtA.players) || findIn(courtA.reserves || []) || findIn(courtB.players) || findIn(courtB.reserves || []) || queue.flatMap(t => [...t.players, ...(t.reserves || [])]).find(p => p.id === playerId);
-        deletePlayer(playerId);
+        setPlayerToDeleteId(playerId);
         setActivePlayerMenu(null);
-        if (player) {
-            showNotification({ mainText: t('teamManager.playerRemoved'), type: 'info', subText: player.name, onUndo: undoRemovePlayer });
-        }
-    }, [courtA, courtB, queue, deletePlayer, undoRemovePlayer, t, showNotification, setActivePlayerMenu]);
+    }, [setActivePlayerMenu]);
 
     const executeProfileDelete = useCallback(() => {
         if (!profileToDeleteId) return;
@@ -203,7 +221,7 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = memo((props) =>
         movePlayer(activeId, sourceContainerId, targetContainerId, newIndex);
     };
 
-    return createPortal(
+    return (
         <Modal isOpen={props.isOpen} onClose={props.onClose} title="" showCloseButton={false} variant="immersive" zIndex={props.zIndex}>
             <Suspense fallback={null}>
                 {activeTutorial === 'manager' && (<RichTutorialModal isOpen={true} tutorialKey="manager" onClose={completeTutorial} />)}
@@ -213,7 +231,13 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = memo((props) =>
 
                     {/* STICKY HEADER - Otimizado para proximidade do notch */}
                     <div className="sticky top-0 z-50 pt-safe-top px-1 pointer-events-none">
-                        <motion.div initial={{ y: 0 }} animate={{ y: showHeader ? 0 : -100, opacity: showHeader ? 1 : 0 }} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="bg-transparent pb-2 pt-2 px-2 pointer-events-auto relative z-50">
+                        <motion.div 
+                            initial={false} 
+                            animate={{ y: showHeader ? 0 : -100 }} 
+                            transition={{ duration: 0.25, ease: [0.25, 1, 0.5, 1] }} 
+                            style={{ transform: 'translateZ(0)', willChange: 'transform' }}
+                            className={`bg-transparent pb-2 pt-2 px-2 pointer-events-auto relative z-50 transition-opacity duration-200 ${showHeader ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                        >
                             <div className="flex gap-2 mb-2">
                                 <div className="flex flex-1 bg-white/40 dark:bg-white/5 backdrop-blur-xl rounded-2xl p-1.5 gap-1 border border-white/50 dark:border-white/5 ring-1 ring-inset ring-white/10 dark:ring-white/5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]">
                                     <button onClick={() => setActiveTab('roster')} className={`flex-1 py-2 px-2 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all active:scale-95 ${activeTab === 'roster' ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/30 ring-1 ring-inset ring-white/10' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-white/10'}`}><List size={14} /> {t('teamManager.tabs.roster')}</button>
@@ -227,6 +251,10 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = memo((props) =>
                                     <div className="flex gap-2">
                                         <button onClick={() => setRotationMode('standard')} className={`px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase border transition-all active:scale-95 ${rotationMode === 'standard' ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white border-indigo-400/20 shadow-lg shadow-indigo-500/30 ring-1 ring-inset ring-white/10' : 'bg-white/40 dark:bg-white/5 backdrop-blur-sm border-white/60 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-white/10'}`}>{t('teamManager.modes.standard')}</button>
                                         <button onClick={() => setRotationMode('balanced')} className={`px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase border transition-all active:scale-95 ${rotationMode === 'balanced' ? 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-emerald-400/20 shadow-lg shadow-emerald-500/30 ring-1 ring-inset ring-white/10' : 'bg-white/40 dark:bg-white/5 backdrop-blur-sm border-white/60 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-white/10'}`}>{t('teamManager.modes.balanced')}</button>
+                                        <button onClick={generateRandomTestRoster} className="px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase border bg-amber-500/10 dark:bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-all active:scale-95 flex items-center gap-1">
+                                            <Sparkles size={10} strokeWidth={2.5} />
+                                            {t('teamManager.actions.randomTest')}
+                                        </button>
                                     </div>
                                     <div className={`flex gap-1`}>
                                         {hasDeletedPlayers && (<button onClick={undoRemovePlayer} className="flex items-center justify-center bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/60 dark:border-white/10 hover:bg-white/80 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 rounded-xl px-3 py-1.5 text-[9px] font-bold uppercase transition-all active:scale-95 ring-1 ring-inset ring-white/10 shadow-sm">{t('teamManager.undo')}</button>)}
@@ -315,6 +343,25 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = memo((props) =>
                 <ConfirmationModal isOpen={!!benchConfirmState} onClose={() => setBenchConfirmState(null)} title={t('teamManager.activateBenchTitle')} message={t('teamManager.activateBenchMsg')} confirmLabel={t('teamManager.btnActivateBench')} onConfirm={() => { if (benchConfirmState) { toggleTeamBench(benchConfirmState.teamId); movePlayer(benchConfirmState.playerId, benchConfirmState.sourceId, `${benchConfirmState.teamId}_Reserves`); } }} />
                 <ConfirmationModal isOpen={resetConfirmOpen} onClose={() => setResetConfirmOpen(false)} onConfirm={() => { resetRosters(); }} title={t('confirm.reset.title')} message={t('confirm.reset.message')} confirmLabel={t('confirm.reset.confirmButton')} icon={X} />
                 <ConfirmationModal isOpen={!!profileToDeleteId} onClose={() => setProfileToDeleteId(null)} onConfirm={executeProfileDelete} title={t('confirm.deleteProfile')} message={t('confirm.deleteProfileMsg')} confirmLabel={t('teamManager.menu.delete')} icon={X} />
+                <ConfirmationModal
+                    isOpen={!!playerToDeleteId}
+                    onClose={() => setPlayerToDeleteId(null)}
+                    title={t('teamManager.removePlayer') || 'Remove Player'}
+                    message={t('teamManager.confirmRemovePlayer') || 'Are you sure you want to remove this player from the team?'}
+                    confirmLabel={t('common.yes') || 'Yes'}
+                    onConfirm={() => {
+                        if (playerToDeleteId) {
+                            let player: Player | undefined;
+                            const findIn = (list: Player[]) => list.find(p => p.id === playerToDeleteId);
+                            player = findIn(courtA.players) || findIn(courtA.reserves || []) || findIn(courtB.players) || findIn(courtB.reserves || []) || queue.flatMap(t => [...t.players, ...(t.reserves || [])]).find(p => p.id === playerToDeleteId);
+                            deletePlayer(playerToDeleteId);
+                            if (player) {
+                                showNotification({ mainText: t('teamManager.playerRemoved'), type: 'info', subText: player.name, onUndo: undoRemovePlayer });
+                            }
+                        }
+                        setPlayerToDeleteId(null);
+                    }}
+                />
 
                 <AnimatePresence>
                     {activePlayerMenu && (
@@ -322,7 +369,6 @@ export const TeamManagerModal: React.FC<TeamManagerModalProps> = memo((props) =>
                     )}
                 </AnimatePresence>
             </DndContext>
-        </Modal>,
-        document.body
+        </Modal>
     );
 });

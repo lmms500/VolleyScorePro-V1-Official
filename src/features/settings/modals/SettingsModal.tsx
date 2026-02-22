@@ -92,10 +92,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = memo(({
                 {/* SMART NAVIGATION BAR (Collapsible) */}
                 <div className="sticky top-0 z-50 pt-safe-top px-2 pointer-events-none">
                     <motion.div
-                        initial={{ y: 0 }}
-                        animate={{ y: showHeader ? 0 : -100, opacity: showHeader ? 1 : 0 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        className="bg-transparent pb-2 pt-2 px-2 pointer-events-auto relative z-50"
+                        initial={false}
+                        animate={{ y: showHeader ? 0 : -100 }}
+                        transition={{ duration: 0.25, ease: [0.25, 1, 0.5, 1] }}
+                        style={{ transform: 'translateZ(0)', willChange: 'transform' }}
+                        className={`bg-transparent pb-2 pt-2 px-2 pointer-events-auto relative z-50 transition-opacity duration-200 ${showHeader ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                     >
                         <div className="flex gap-2">
                             {/* PREMIUM GLASS TAB CONTAINER */}
@@ -155,10 +156,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = memo(({
                         {activeTab === 'match' && (
                             <motion.div
                                 key="match"
-                                initial={{ opacity: 0, x: -12, scale: 0.98 }}
-                                animate={{ opacity: 1, x: 0, scale: 1 }}
-                                exit={{ opacity: 0, x: 12, scale: 0.98 }}
-                                transition={{ type: "spring", damping: 25, stiffness: 300, mass: 0.8 }}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 10 }}
+                                transition={{ duration: 0.2, ease: [0.25, 1, 0.5, 1] }}
+                                style={{ transform: 'translateZ(0)' }}
                             >
                                 <MatchTab localConfig={localConfig} setLocalConfig={setLocalConfig} onClose={onClose} setPendingRestart={setPendingRestart} />
                             </motion.div>
@@ -167,10 +169,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = memo(({
                         {activeTab === 'app' && (
                             <motion.div
                                 key="app"
-                                initial={{ opacity: 0, x: -12, scale: 0.98 }}
-                                animate={{ opacity: 1, x: 0, scale: 1 }}
-                                exit={{ opacity: 0, x: 12, scale: 0.98 }}
-                                transition={{ type: "spring", damping: 25, stiffness: 300, mass: 0.8 }}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 10 }}
+                                transition={{ duration: 0.2, ease: [0.25, 1, 0.5, 1] }}
+                                style={{ transform: 'translateZ(0)' }}
                             >
                                 <AppTab localConfig={localConfig} setLocalConfig={setLocalConfig} />
                             </motion.div>
@@ -179,10 +182,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = memo(({
                         {activeTab === 'audio' && (
                             <motion.div
                                 key="audio"
-                                initial={{ opacity: 0, x: -12, scale: 0.98 }}
-                                animate={{ opacity: 1, x: 0, scale: 1 }}
-                                exit={{ opacity: 0, x: 12, scale: 0.98 }}
-                                transition={{ type: "spring", damping: 25, stiffness: 300, mass: 0.8 }}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 10 }}
+                                transition={{ duration: 0.2, ease: [0.25, 1, 0.5, 1] }}
+                                style={{ transform: 'translateZ(0)' }}
                             >
                                 <AudioTab localConfig={localConfig} setLocalConfig={setLocalConfig} />
                             </motion.div>
@@ -191,10 +195,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = memo(({
                         {activeTab === 'system' && (
                             <motion.div
                                 key="system"
-                                initial={{ opacity: 0, x: -12, scale: 0.98 }}
-                                animate={{ opacity: 1, x: 0, scale: 1 }}
-                                exit={{ opacity: 0, x: 12, scale: 0.98 }}
-                                transition={{ type: "spring", damping: 25, stiffness: 300, mass: 0.8 }}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 10 }}
+                                transition={{ duration: 0.2, ease: [0.25, 1, 0.5, 1] }}
+                                style={{ transform: 'translateZ(0)' }}
                             >
                                 <SystemTab localConfig={localConfig} setLocalConfig={setLocalConfig} setPendingRestart={setPendingRestart} pendingRestart={pendingRestart} />
                             </motion.div>

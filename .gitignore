@@ -50,6 +50,10 @@ nul
 playwright-report/
 test-results/
 test_output.txt
+vitest_*.txt
+
+# External tools
+sonarqube-issues-export-to-excel/
 
 # History folder (contains old versions with potential secrets)
 .history/

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VolleyScore Pro - Splash Screen Generator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1e293b;
+      padding: 40px;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: white;
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 24px;
+    }
+    
+    .instructions {
+      color: #94a3b8;
+      text-align: center;
+      margin-bottom: 40px;
+      font-size: 14px;
+    }
+    
+    .splash-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      justify-items: center;
+    }
+    
+    .splash-item {
+      text-align: center;
+    }
+    
+    .splash-label {
+      color: #94a3b8;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+    
+    .splash-wrapper {
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>VolleyScore Pro - Splash Screens</h1>
+    <p class="instructions">Clique com botão direito em cada imagem → "Salvar imagem como..." para exportar como PNG</p>
+    
+    <div class="splash-grid" id="splashGrid"></div>
+  </div>
+
+  <script>
+    const splashConfigs = [
+      { name: 'ldpi', width: 240, height: 320 },
+      { name: 'mdpi', width: 320, height: 480 },
+      { name: 'hdpi', width: 480, height: 800 },
+      { name: 'xhdpi', width: 720, height: 1280 },
+      { name: 'xxhdpi', width: 1080, height: 1920 },
+      { name: 'xxxhdpi', width: 1440, height: 2560 },
+    ];
+
+    function createSplashSVG(width, height, isDark = true) {
+      const bgColor = isDark ? '#020617' : '#f8fafc';
+      const textColor = isDark ? '#f1f5f9' : '#1e293b';
+      const subTextColor = isDark ? '#64748b' : '#94a3b8';
+      const gradientStart = isDark ? '#818cf8' : '#6366f1';
+      const gradientMid = isDark ? '#a855f7' : '#8b5cf6';
+      const orb1 = isDark ? 'rgba(99,102,241,0.15)' : 'rgba(99,102,241,0.08)';
+      const orb2 = isDark ? 'rgba(168,85,247,0.12)' : 'rgba(168,85,247,0.06)';
+      
+      const logoSize = Math.min(width, height) * 0.25;
+      const logoX = width / 2;
+      const logoY = height / 2 - height * 0.05;
+      const textY = logoY + logoSize / 2 + height * 0.08;
+      const subTextY = textY + height * 0.04;
+
+      return `
+        <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="${gradientStart}"/>
+              <stop offset="50%" stop-color="${gradientMid}"/>
+              <stop offset="100%" stop-color="${gradientStart}"/>
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            <radialGradient id="orb1Grad" cx="30%" cy="30%">
+              <stop offset="0%" stop-color="${orb1}"/>
+              <stop offset="100%" stop-color="transparent"/>
+            </radialGradient>
+            <radialGradient id="orb2Grad" cx="70%" cy="70%">
+              <stop offset="0%" stop-color="${orb2}"/>
+              <stop offset="100%" stop-color="transparent"/>
+            </radialGradient>
+          </defs>
+          
+          <!-- Background -->
+          <rect width="100%" height="100%" fill="${bgColor}"/>
+          
+          <!-- Gradient orbs -->
+          <ellipse cx="${width * 0.25}" cy="${height * 0.3}" rx="${width * 0.4}" ry="${height * 0.3}" fill="url(#orb1Grad)"/>
+          <ellipse cx="${width * 0.75}" cy="${height * 0.7}" rx="${width * 0.35}" ry="${height * 0.25}" fill="url(#orb2Grad)"/>
+          
+          <!-- Volleyball Logo -->
+          <g transform="translate(${logoX - logoSize/2}, ${logoY - logoSize/2})">
+            <!-- Outer circle -->
+            <circle cx="${logoSize/2}" cy="${logoSize/2}" r="${logoSize * 0.45}" 
+                    fill="none" stroke="url(#logoGradient)" stroke-width="${logoSize * 0.025}" filter="url(#glow)"/>
+            
+            <!-- Inner circle -->
+            <circle cx="${logoSize/2}" cy="${logoSize/2}" r="${logoSize * 0.38}" 
+                    fill="none" stroke="url(#logoGradient)" stroke-width="${logoSize * 0.015}" opacity="0.4"/>
+            
+            <!-- Vertical curved line -->
+            <path d="M${logoSize/2} ${logoSize * 0.08} Q${logoSize * 0.85} ${logoSize * 0.35} ${logoSize/2} ${logoSize/2} Q${logoSize * 0.15} ${logoSize * 0.65} ${logoSize/2} ${logoSize * 0.92}"
+                  fill="none" stroke="url(#logoGradient)" stroke-width="${logoSize * 0.025}" stroke-linecap="round"/>
+            
+            <!-- Horizontal curved line -->
+            <path d="M${logoSize * 0.08} ${logoSize/2} Q${logoSize * 0.35} ${logoSize * 0.15} ${logoSize/2} ${logoSize/2} Q${logoSize * 0.65} ${logoSize * 0.85} ${logoSize * 0.92} ${logoSize/2}"
+                  fill="none" stroke="url(#logoGradient)" stroke-width="${logoSize * 0.025}" stroke-linecap="round"/>
+            
+            <!-- Top arc -->
+            <path d="M${logoSize * 0.2} ${logoSize * 0.18} Q${logoSize/2} ${logoSize * 0.4} ${logoSize * 0.8} ${logoSize * 0.18}"
+                  fill="none" stroke="url(#logoGradient)" stroke-width="${logoSize * 0.018}" stroke-linecap="round" opacity="0.5"/>
+            
+            <!-- Bottom arc -->
+            <path d="M${logoSize * 0.2} ${logoSize * 0.82} Q${logoSize/2} ${logoSize * 0.6} ${logoSize * 0.8} ${logoSize * 0.82}"
+                  fill="none" stroke="url(#logoGradient)" stroke-width="${logoSize * 0.018}" stroke-linecap="round" opacity="0.5"/>
+            
+            <!-- Center dot -->
+            <circle cx="${logoSize/2}" cy="${logoSize/2}" r="${logoSize * 0.05}" fill="url(#logoGradient)"/>
+            <circle cx="${logoSize/2}" cy="${logoSize/2}" r="${logoSize * 0.025}" fill="white" opacity="0.8"/>
+          </g>
+          
+          <!-- Title Text -->
+          <text x="${width/2}" y="${textY}" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="${height * 0.045}">
+            <tspan fill="url(#logoGradient)">VolleyScore</tspan>
+            <tspan fill="${textColor"> Pro</tspan>
+          </text>
+          
+          <!-- Subtitle -->
+          <text x="${width/2}" y="${subTextY}" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="500" font-size="${height * 0.018}" fill="${subTextColor}" letter-spacing="0.15em">
+            PLACAR PROFISSIONAL
+          </text>
+        </svg>
+      `;
+    }
+
+    function svgToDataURL(svg) {
+      return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+    }
+
+    function renderSplashScreens() {
+      const grid = document.getElementById('splashGrid');
+      
+      splashConfigs.forEach(config => {
+        const item = document.createElement('div');
+        item.className = 'splash-item';
+        
+        const label = document.createElement('div');
+        label.className = 'splash-label';
+        label.textContent = `${config.name} (${config.width}x${config.height})`;
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = 'splash-wrapper';
+        wrapper.style.width = Math.min(config.width / 2, 300) + 'px';
+        wrapper.style.height = (Math.min(config.width / 2, 300) * config.height / config.width) + 'px';
+        
+        const img = document.createElement('img');
+        const svg = createSplashSVG(config.width, config.height, true);
+        img.src = svgToDataURL(svg);
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.alt = `Splash ${config.name}`;
+        
+        wrapper.appendChild(img);
+        item.appendChild(label);
+        item.appendChild(wrapper);
+        grid.appendChild(item);
+      });
+    }
+
+    renderSplashScreens();
+  </script>
+</body>
+</html>

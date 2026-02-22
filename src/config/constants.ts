@@ -91,8 +91,8 @@ export const PLAYERS_PER_TEAM = 6;
 export const FEATURE_FLAGS = {
   // Real-time Broadcasting (VolleyLink Live)
   // Disabled for initial PlayStore release to focus on core functionality
-  ENABLE_LIVE_SYNC: false,
-  ENABLE_BROADCAST_OVERLAY: false,
+  ENABLE_LIVE_SYNC: true,
+  ENABLE_BROADCAST_OVERLAY: true,
 
   // Artificial Intelligence / Gemini Integration
   // Fallback: when local parser returns unknown/low-confidence, tries Gemini

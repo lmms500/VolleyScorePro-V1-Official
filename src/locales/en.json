@@ -1,4 +1,134 @@
 {
+    "landing": {
+        "brand": {
+            "name": "VolleyScore Pro",
+            "tagline": "Professional Scoring"
+        },
+        "nav": {
+            "features": "Features",
+            "demo": "Demo",
+            "about": "About",
+            "roadmap": "Roadmap",
+            "openApp": "Open App",
+            "backToTop": "Back to top"
+        },
+        "hero": {
+            "title": "VolleyScore",
+            "subtitle": "Pro",
+            "description": "Smart volleyball scoring with advanced stats, tactical court, and voice commands. Perfect for coaches, referees, and enthusiasts.",
+            "cta": "Get Started",
+            "install": "Install App",
+            "installed": "Installed",
+            "pills": {
+                "pwa": "PWA",
+                "offline": "Offline",
+                "voiceAI": "Voice AI",
+                "multiLang": "Multi-lang"
+            }
+        },
+        "features": {
+            "title": "Professional Features",
+            "subtitle": "Everything you need to manage volleyball matches with precision and style.",
+            "highlight": "Free & Open Source",
+            "smartScoreboard": {
+                "title": "Smart Scoreboard",
+                "description": "One-tap scoring. Undo/redo, multiple game modes, Indoor & Beach support."
+            },
+            "stats": {
+                "title": "Advanced Statistics",
+                "description": "Scout mode with kill, block, ace tracking. CSV/JSON export and MVP detection."
+            },
+            "court": {
+                "title": "Tactical Court",
+                "description": "Position visualization, drag & drop formations, auto rotations and substitutions."
+            },
+            "broadcast": {
+                "title": "VolleyLink Live",
+                "description": "Broadcast matches in real-time. OBS-compatible overlay for streaming."
+            },
+            "voice": {
+                "title": "Voice Commands",
+                "description": "Hands-free control with AI. Portuguese, English, and Spanish support."
+            },
+            "sync": {
+                "title": "Cloud Sync",
+                "description": "Google Sign-In, automatic backup, multi-device sync."
+            }
+        },
+        "demo": {
+            "title": "See It In Action",
+            "subtitle": "Intuitive interface designed for maximum efficiency during matches.",
+            "scoreboard": "Main Scoreboard",
+            "scoreboardDesc": "Clean and responsive interface",
+            "court": "Tactical Court",
+            "courtDesc": "Manage formations visually",
+            "stats": "Statistics",
+            "statsDesc": "Detailed performance analysis",
+            "note": "Real screenshots coming soon"
+        },
+        "about": {
+            "title": "Our Story",
+            "paragraph1": "VolleyScore Pro was born from a real need: a volleyball scoreboard that was simple, complete, and worked anywhere. As a coach and volleyball enthusiast, I needed a tool that let me focus on the game, not the technology.",
+            "paragraph2": "Developed by a single person with lots of coffee and dedication, the app evolved from a simple point counter to a complete platform with advanced statistics, live broadcasting, and voice commands. All while keeping the simplicity that makes volleyball so special.",
+            "paragraph3": "Today, VolleyScore Pro is used by coaches, referees, and enthusiasts in over 50 countries. Every feedback received helps make the app better. This project is a labor of love for the sport.",
+            "highlight1": "Made with love",
+            "highlight2": "Always free",
+            "highlight3": "50+ countries",
+            "highlight4": "Active community",
+            "signature": "— Developed by a volleyball enthusiast"
+        },
+        "roadmap": {
+            "title": "Roadmap",
+            "subtitle": "New features and improvements in continuous development.",
+            "inProgress": "In Progress",
+            "moreComing": "More amazing features coming!",
+            "viewGithub": "View on GitHub",
+            "q1_2026": {
+                "title": "v2.0 Launch",
+                "item1": "Redesigned Neo-Glass interface",
+                "item2": "VolleyLink Live broadcasting",
+                "item3": "Voice commands with Gemini AI"
+            },
+            "q2_2026": {
+                "title": "Advanced Analytics",
+                "item1": "Detailed statistics dashboard",
+                "item2": "Professional PDF export"
+            },
+            "q3_2026": {
+                "title": "iOS App Store",
+                "item1": "Native iOS application",
+                "item2": "Apple Watch integration"
+            },
+            "future": {
+                "title": "Future Vision",
+                "item1": "AI for automatic tactical analysis",
+                "item2": "Unlimited cloud history"
+            }
+        },
+        "footer": {
+            "tagline": "Professional volleyball scoring with stats, tactical court, and live broadcasting.",
+            "version": "v2.0.0",
+            "product": "Product",
+            "features": "Features",
+            "pricing": "Pricing",
+            "changelog": "Changelog",
+            "roadmap": "Roadmap",
+            "support": "Support",
+            "helpCenter": "Help Center",
+            "contact": "Contact",
+            "feedback": "Feedback",
+            "bugs": "Report Bugs",
+            "legal": "Legal",
+            "privacy": "Privacy",
+            "terms": "Terms",
+            "ctaTitle": "Ready to get started?",
+            "ctaSubtitle": "Try VolleyScore Pro for free right now.",
+            "ctaButton": "Open App",
+            "copyright": "© 2026 VolleyScore Pro. All rights reserved.",
+            "madeWith": "Made with ",
+            "forVolleyball": " for volleyball"
+        }
+    },
     "app": {
         "loading": "Loading..."
     },
@@ -336,6 +466,8 @@
         "movedToBench": "To Bench",
         "movedToBenchSub": "Roster Full",
         "playerRemoved": "Removed",
+        "removePlayer": "Remove Player",
+        "confirmRemovePlayer": "Are you sure you want to remove this player from the team?",
         "undo": "UNDO",
         "activateBenchTitle": "Use Bench?",
         "activateBenchMsg": "Bench is disabled.",
@@ -351,6 +483,7 @@
         "resetConfirm": "Reset this team? This will clear the name and remove all players.",
         "resetTeam": "Reset Team",
         "teamReset": "Team Reset",
+        "confirmResetTeam": "Are you sure you want to reset this team? All players and the logo will be removed.",
         "teamAdded": "Team Added",
         "newTeam": "New Team",
         "queueHint": "Add teams to rotation",
@@ -395,10 +528,13 @@
         },
         "batch": {
             "title": "Import List",
-            "desc": "Paste a list of names (one per line). The system automatically detects numbers and skill level.",
-            "tipTitle": "Tip:",
-            "tipFormat": "Formats: \"Name 8\" or \"10 Name 8\" (Number Name Skill).",
+            "desc": "Paste a list of players to add automatically. Each line creates a player. You can include number and skill level (1-10) along with the name.",
+            "tipTitle": "Smart Formats:",
+            "tipFormat": "• Name\n• 10 Name (Number + Name)\n• 10 Name 9 (Full with Skill)",
             "tipDesc": "",
+            "formatName": "Name only",
+            "formatNumName": "# + Name",
+            "formatFull": "# + Name + Skill",
             "placeholder": "Name 8\n10 Name 9\nName",
             "generate": "Generate"
         },
@@ -412,7 +548,8 @@
             "addTo": "Add to",
             "addToQueue": "Add Queue",
             "globalBalance": "Balance",
-            "restoreOrder": "Reset Order"
+            "restoreOrder": "Reset Order",
+            "randomTest": "Random Test"
         },
         "location": {
             "courtA": "Court A",
@@ -515,7 +652,13 @@
         "delete": "Delete",
         "analysis": "View",
         "importSuccess": "Imported!",
-        "importError": "Invalid file."
+        "importError": "Invalid file.",
+        "deleteAll": "Clear All",
+        "confirmDeleteAll": "Are you sure you want to delete all match history? This action cannot be undone.",
+        "deleteAllSuccess": "History cleared",
+        "deleteMatch": "Delete Match",
+        "confirmDeleteMatch": "Are you sure you want to delete this match?",
+        "deleteSuccess": "Match deleted"
     },
     "history": {
         "setLabel": "S{setNumber}",
@@ -525,36 +668,36 @@
         "scorecard": "Scorecard"
     },
     "voice": {
-        "title": "Voice",
-        "intro": "Say Name or Team.",
+        "title": "Voice Commands",
+        "intro": "Speak naturally to control the scoreboard. Say the team or player name to score points. Use specific commands for actions like ace, block, and timeout.",
         "thinking": "...",
         "processing": "AI...",
         "sections": {
-            "basic": "Basic",
-            "stats": "Stats",
-            "controls": "Control"
+            "basic": "Basic Scoring",
+            "stats": "Detailed Stats",
+            "controls": "Game Controls"
         },
         "commands": {
-            "pointA": "Point A",
-            "pointA_desc": "Home score",
-            "pointDynamic": "Point [Team]",
-            "pointDynamic_desc": "By name",
-            "remove": "Remove",
-            "remove_desc": "Undo point",
-            "pointPlayer": "Point John",
-            "pointPlayer_desc": "Generic",
-            "ace": "Ace John",
-            "ace_desc": "Ace",
-            "block": "Block Peter",
-            "block_desc": "Block",
-            "attack": "Attack Luke",
-            "attack_desc": "Kill",
-            "undo": "Undo",
-            "undo_desc": "Back",
-            "timeout": "Timeout",
-            "timeout_desc": "Pause",
-            "serve": "Serve",
-            "serve_desc": "Switch"
+            "pointA": "Point A or Point Home",
+            "pointA_desc": "Scores a point for the home team (Team A)",
+            "pointDynamic": "Point [Team Name]",
+            "pointDynamic_desc": "Scores using the team name (ex: Point Blue)",
+            "remove": "Remove or Undo",
+            "remove_desc": "Removes the last scored point",
+            "pointPlayer": "Point [Player Name]",
+            "pointPlayer_desc": "Scores a generic point for the player",
+            "ace": "Ace [Name]",
+            "ace_desc": "Records an ace (direct serve) for the player",
+            "block": "Block [Name]",
+            "block_desc": "Records a block for the player",
+            "attack": "Attack [Name] or Kill [Name]",
+            "attack_desc": "Records an attack kill for the player",
+            "undo": "Undo or Back",
+            "undo_desc": "Undoes the last action",
+            "timeout": "Timeout or Time",
+            "timeout_desc": "Calls timeout for the current team",
+            "serve": "Serve or Switch",
+            "serve_desc": "Switches serve to the other team"
         }
     },
     "tutorial": {
@@ -564,7 +707,8 @@
         "start": "Start",
         "welcome": {
             "title": "VolleyScore Pro",
-            "desc": "Your professional scoring companion. Intuitive gestures, voice control, and elite statistics for every match."
+            "desc": "Your professional scoring companion. Intuitive gestures, voice control, and elite statistics for every match.",
+            "waitMessage": "Please wait a moment..."
         },
         "about": {
             "title": "Made with Dedication",
@@ -599,31 +743,31 @@
         "manager": {
             "intro": {
                 "title": "Team Manager",
-                "desc": "Your command center for organizing lineups, managing reserves, and automating rotations."
+                "desc": "Your command center. Organize lineups, manage reserves, and queue teams for automatic rotation."
             },
             "structure": {
                 "title": "Drag & Drop",
-                "desc": "Drag players between Court, Bench, and Queue. Active players play; excess forms the Bench."
+                "desc": "Drag players between Court, Bench, and Queue. Tap and hold a player, then drag to the desired area."
             },
             "subs": {
                 "title": "Quick Substitutions",
-                "desc": "Tap 'Swap', select who goes out (Court) and who comes in (Bench). Confirm and done."
+                "desc": "Tap the Swap button. First select the player leaving (Court), then the one entering (Bench). Confirm to finish."
             },
             "profiles": {
                 "title": "Player Profiles",
-                "desc": "Link players to Profiles to track career statistics across different matches."
+                "desc": "Create profiles with photo, number, and skill level. Link to players to accumulate stats across matches."
             },
             "rotation": {
-                "title": "Auto Rotation",
-                "desc": "Use 'Standard' for winner-stays or 'Balanced' for skill-leveled teams."
+                "title": "Team Rotation",
+                "desc": "When a team wins and leaves, the next in queue enters. The system loans players from the previous team to complete the incoming team. In Balanced mode, AI picks specific players to equalize skill levels."
             },
             "balance": {
                 "title": "Skill Balance",
-                "desc": "Assign skill levels (1-10) to players. AI generates fair teams automatically."
+                "desc": "Assign skill levels from 1 to 10 for each player. When generating balanced teams, AI distributes players so both teams have similar skill levels."
             },
             "batch": {
                 "title": "Batch Import",
-                "desc": "Paste a list of names in the 'Import' tab. Use 'Name 8' to set skill level."
+                "desc": "Paste a list of names (one per line) in the Import tab. Format: 'Name' or 'Name 8' (with skill level) or '10 Name 8' (with number and level)."
             },
             "rosterDesc": "Manage players.",
             "rotationDesc": "Auto rotations."
