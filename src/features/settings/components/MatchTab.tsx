@@ -63,13 +63,15 @@ export const MatchTab: React.FC<MatchTabProps> = ({ localConfig, setLocalConfig,
     };
 
     // Wrapping configuration changes to check for warnings
+    const hasMatchStarted = scoreState.scoreA > 0 || scoreState.scoreB > 0 || scoreState.setsA > 0 || scoreState.setsB > 0;
+
     const requestConfigChange = (newLimit: number, action: () => void) => {
         const currentLimit = localConfig.modeConfig?.courtLayout.playersOnCourt || (localConfig.mode === 'beach' ? 4 : 6);
         const playersOnCourtCount = rosterState.teamARoster.players.length + rosterState.teamBRoster.players.length;
         const willDownsize = newLimit < currentLimit;
         const excessPlayers = Math.max(0, playersOnCourtCount - (newLimit * 2));
 
-        if (scoreState.currentSet > 0 || willDownsize) {
+        if (hasMatchStarted || willDownsize) {
             let msg = t('settings.warningMessage');
             if (willDownsize && excessPlayers > 0) {
                 msg += `\n\n⚠️ ${t('settings.warnings.downsizing', { count: excessPlayers })}`;

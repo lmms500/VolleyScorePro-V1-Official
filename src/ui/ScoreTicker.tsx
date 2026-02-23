@@ -46,12 +46,17 @@ export const ScoreTicker: React.FC<ScoreTickerProps> = memo(({ value, className,
           key={value}
           initial={{ 
             opacity: 0, 
-            ...(config.modalUseScale && { scale: 0.8 }), 
-            y: direction * 20 
+            scale: 0.5, 
+            y: direction * 25 
           }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 1.2, position: 'absolute' }}
-          transition={{ duration: transitionDuration, ease: "easeOut" }}
+          exit={{ opacity: 0, scale: 0.8, position: 'absolute' }}
+          transition={{ 
+            type: "spring",
+            stiffness: 260,
+            damping: 18,
+            mass: 0.8
+          }}
           data-testid="score-value"
           className="text-center leading-none origin-center absolute inset-0 flex items-center justify-center"
           style={{

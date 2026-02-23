@@ -65,8 +65,8 @@ const ControlButton = memo(({ onClick, disabled, icon: Icon, active = false, tit
                 className={`
                     relative
                     flex items-center justify-center
-                    w-9 h-9 sm:w-10 sm:h-10
-                    rounded-xl
+                    w-11 h-11 sm:w-12 sm:h-12
+                    rounded-xl sm:rounded-2xl
                     transition-colors duration-300
                     focus:outline-none focus-visible:ring-0
                     ${active
@@ -78,7 +78,7 @@ const ControlButton = memo(({ onClick, disabled, icon: Icon, active = false, tit
                 aria-label={title || ''}
                 title={title}
             >
-                <Icon size={18} strokeWidth={1.75} />
+                <Icon size={22} strokeWidth={1.75} />
             </motion.button>
             {badge && (
                 <motion.div
@@ -135,8 +135,8 @@ export const Controls: React.FC<ControlsProps> = memo(({
                     shadow-[0_8px_32px_rgba(0,0,0,0.3),0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_0_rgba(255,255,255,0.1)]
                     
                     /* Floating Look */
-                    rounded-2xl
-                    px-2 py-2
+                    rounded-2xl sm:rounded-[20px]
+                    px-3 py-3
                     
                     /* Layout Responsivo */
                     max-w-fit

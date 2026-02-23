@@ -139,6 +139,7 @@ const TeamInfoSmart = memo<{
         flex flex-col items-center justify-center relative min-w-0 flex-1 h-full py-1 px-1
         ${hudContainer}
         min-h-[50px]
+        isolate
       `}
     >
       <div
@@ -147,9 +148,9 @@ const TeamInfoSmart = memo<{
       >
 
         {/* Name & Badge Container */}
-        <div className={`flex flex-col ${align === 'right' ? 'items-start' : 'items-end'} min-w-0 flex-1`}>
+        <div className={`flex flex-col ${align === 'right' ? 'items-start' : 'items-end'} min-w-0 flex-1 isolate`}>
           <div className={`flex items-center gap-2 ${align === 'right' ? 'flex-row-reverse' : ''}`}>
-            <span className={`text-lg sm:text-xl font-black uppercase tracking-tighter transition-colors truncate block leading-tight py-0.5 ${theme.text} dark:text-white ${hudText}`}>
+            <span className={`text-lg sm:text-xl font-black uppercase tracking-tighter transition-colors truncate block leading-tight py-0.5 ${theme.text} dark:text-white ${hudText} contain-[layout_paint]`}>
               {name}
             </span>
             {logo && (
@@ -210,45 +211,16 @@ const TeamInfoSmart = memo<{
   );
 });
 
-const CenterDisplayStealth = memo<{
+const TimerDisplay = memo<{
   isTimerRunning: boolean;
-  onToggleTimer: () => void;
-  onResetTimer: () => void;
   currentSet: number;
   isTieBreak: boolean;
-  inSuddenDeath: boolean;
-  isDeuce: boolean;
-}>(({ currentSet, isTieBreak, inSuddenDeath, isDeuce, isTimerRunning, onToggleTimer, onResetTimer }) => {
+  onToggleTimer: () => void;
+  onResetTimer: () => void;
+}>(({ isTimerRunning, currentSet, isTieBreak, onToggleTimer, onResetTimer }) => {
   const { t } = useTranslation();
-  // Use specialized hook
   const { seconds } = useTimerValue();
-
-  // Handlers come from props now to avoid hook duplication
-  // isTimerRunning comes from props
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  let key = 'timer';
-  let content = null;
-
-  const StatusPill = ({ icon: Icon, text, badgeColor, animateIcon }: { icon: React.ElementType; text: string; badgeColor: 'red' | 'amber' | 'emerald' | 'indigo' | 'rose' | 'neutral'; animateIcon: React.ComponentProps<typeof motion.div>['animate'] }) => (
-    <div className={`flex flex-col items-center justify-center gap-0.5 w-full h-full`}>
-      <motion.div
-        animate={animateIcon}
-        transition={{ duration: 1.5, repeat: Infinity }}
-      >
-        <Badge
-          variant="status"
-          color={badgeColor}
-          size="sm"
-          glow
-          className="flex items-center gap-1.5 px-3 py-1.5"
-        >
-          <Icon size={16} strokeWidth={3} />
-          <span className="text-[9px] font-black uppercase tracking-wider">{text}</span>
-        </Badge>
-      </motion.div>
-    </div>
-  );
 
   const handlePointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
@@ -257,7 +229,7 @@ const CenterDisplayStealth = memo<{
     }, 800);
   };
 
-  const handlePointerUp = (e: React.PointerEvent) => {
+  const handlePointerUp = () => {
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
@@ -272,6 +244,93 @@ const CenterDisplayStealth = memo<{
     }
   };
 
+  return (
+    <button
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerLeave}
+      className="flex flex-col items-center justify-center group w-full h-full gap-0.5 touch-none active:scale-95"
+      style={{
+        willChange: 'transform, opacity',
+        transform: 'translateZ(0)',
+      }}
+    >
+      <span
+        className={`
+          font-mono text-2xl font-black tabular-nums leading-none tracking-tight 
+          transition-opacity duration-300 text-slate-800 dark:text-white ${hudText}
+          ${isTimerRunning ? 'opacity-100' : 'opacity-60 dark:opacity-70'}
+        `}
+        style={{
+          willChange: 'opacity',
+          transform: 'translateZ(0)',
+        }}
+      >
+        {formatTime(seconds)}
+      </span>
+      <span
+        className={`text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1 ${isTieBreak ? 'text-amber-500 dark:text-amber-400' : 'text-slate-400 dark:text-slate-300'} ${hudText}`}
+        style={{
+          willChange: 'opacity',
+          transform: 'translateZ(0)',
+        }}
+      >
+        {isTieBreak ? 'TIE BREAK' : `SET ${currentSet}`}
+      </span>
+    </button>
+  );
+});
+
+TimerDisplay.displayName = 'TimerDisplay';
+
+const timerDisplayPropsAreEqual = (prev: { isTimerRunning: boolean; currentSet: number; isTieBreak: boolean; onToggleTimer: () => void; onResetTimer: () => void }, next: { isTimerRunning: boolean; currentSet: number; isTieBreak: boolean; onToggleTimer: () => void; onResetTimer: () => void }) => {
+  return (
+    prev.isTimerRunning === next.isTimerRunning &&
+    prev.currentSet === next.currentSet &&
+    prev.isTieBreak === next.isTieBreak
+  );
+};
+
+const MemoizedTimerDisplay = memo(TimerDisplay, timerDisplayPropsAreEqual) as typeof TimerDisplay;
+
+const StatusPill = ({ icon: Icon, text, badgeColor, animateIcon }: { icon: React.ElementType; text: string; badgeColor: 'red' | 'amber' | 'emerald' | 'indigo' | 'rose' | 'neutral'; animateIcon: React.ComponentProps<typeof motion.div>['animate'] }) => (
+  <div className={`flex flex-col items-center justify-center gap-0.5 w-full h-full`}>
+    <motion.div
+      animate={animateIcon}
+      transition={{ duration: 1.5, repeat: Infinity }}
+      style={{
+        willChange: 'transform',
+        transform: 'translateZ(0)',
+      }}
+    >
+      <Badge
+        variant="status"
+        color={badgeColor}
+        size="sm"
+        glow
+        className="flex items-center gap-1.5 px-3 py-1.5"
+      >
+        <Icon size={16} strokeWidth={3} />
+        <span className="text-[9px] font-black uppercase tracking-wider">{text}</span>
+      </Badge>
+    </motion.div>
+  </div>
+);
+
+const CenterDisplayStealth = memo<{
+  isTimerRunning: boolean;
+  onToggleTimer: () => void;
+  onResetTimer: () => void;
+  currentSet: number;
+  isTieBreak: boolean;
+  inSuddenDeath: boolean;
+  isDeuce: boolean;
+}>(({ currentSet, isTieBreak, inSuddenDeath, isDeuce, isTimerRunning, onToggleTimer, onResetTimer }) => {
+  const { t } = useTranslation();
+
+  let key = 'timer';
+  let content = null;
+
   if (inSuddenDeath) {
     key = 'sudden-death';
     content = <StatusPill icon={Skull} text={t('status.sudden_death')} badgeColor="red" animateIcon={{ scale: [1, 1.15, 1], rotate: [0, 5, -5, 0] }} />;
@@ -285,29 +344,13 @@ const CenterDisplayStealth = memo<{
     />;
   } else {
     content = (
-      <button
-        onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
-        onPointerLeave={handlePointerLeave}
-        className="flex flex-col items-center justify-center group w-full h-full gap-0.5 touch-none active:scale-95 transition-transform"
-      >
-        <motion.span
-          layout
-          className={`
-                font-mono text-2xl font-black tabular-nums leading-none tracking-tight 
-                transition-all duration-300 text-slate-800 dark:text-white ${hudText}
-                ${isTimerRunning ? 'opacity-100' : 'opacity-60 dark:opacity-70'}
-            `}
-        >
-          {formatTime(seconds)}
-        </motion.span>
-        <motion.span
-          layout
-          className={`text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1 ${isTieBreak ? 'text-amber-500 dark:text-amber-400' : 'text-slate-400 dark:text-slate-300'} ${hudText}`}
-        >
-          {isTieBreak ? 'TIE BREAK' : `SET ${currentSet}`}
-        </motion.span>
-      </button>
+      <MemoizedTimerDisplay
+        isTimerRunning={isTimerRunning}
+        currentSet={currentSet}
+        isTieBreak={isTieBreak}
+        onToggleTimer={onToggleTimer}
+        onResetTimer={onResetTimer}
+      />
     );
   }
 
@@ -316,11 +359,15 @@ const CenterDisplayStealth = memo<{
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={key}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.8 }}
-          transition={{ duration: 0.25, ease: "backOut" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
           className="w-full flex justify-center h-full"
+          style={{
+            willChange: 'opacity',
+            transform: 'translateZ(0)',
+          }}
         >
           {content}
         </motion.div>
@@ -328,6 +375,18 @@ const CenterDisplayStealth = memo<{
     </div>
   );
 });
+
+const centerDisplayPropsAreEqual = (prev: { isTimerRunning: boolean; onToggleTimer: () => void; onResetTimer: () => void; currentSet: number; isTieBreak: boolean; inSuddenDeath: boolean; isDeuce: boolean }, next: { isTimerRunning: boolean; onToggleTimer: () => void; onResetTimer: () => void; currentSet: number; isTieBreak: boolean; inSuddenDeath: boolean; isDeuce: boolean }) => {
+  return (
+    prev.isTimerRunning === next.isTimerRunning &&
+    prev.currentSet === next.currentSet &&
+    prev.isTieBreak === next.isTieBreak &&
+    prev.inSuddenDeath === next.inSuddenDeath &&
+    prev.isDeuce === next.isDeuce
+  );
+};
+
+const MemoizedCenterDisplayStealth = memo(CenterDisplayStealth, centerDisplayPropsAreEqual) as typeof CenterDisplayStealth;
 
 // --- MAIN COMPONENT ---
 
@@ -415,7 +474,7 @@ export const FloatingTopBar: React.FC = memo(() => {
           {/* Center Divider / Timer */}
           <div className="shrink-0 z-10 flex items-center mx-1">
             <div className={`w-[90px] h-full flex justify-center items-center min-h-[50px] ${hudContainer}`}>
-              <CenterDisplayStealth
+              <MemoizedCenterDisplayStealth
                 isTimerRunning={isRunning}
                 onToggleTimer={handleToggleTimer}
                 onResetTimer={handleResetTimer}

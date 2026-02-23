@@ -1,6 +1,6 @@
 
-import React, { memo, useCallback } from 'react';
-import { TeamId, SkillType } from '@types';
+import React, { memo, useCallback, useMemo } from 'react';
+import { TeamId, SkillType, Team } from '@types';
 import { useActions, useScore, useRoster } from '@contexts/GameContext';
 import { useTranslation } from '@contexts/LanguageContext';
 import { useGameAudio } from '@features/game/hooks/useGameAudio';

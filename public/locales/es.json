@@ -4,6 +4,10 @@
             "name": "VolleyScore Pro",
             "tagline": "Marcador Profesional"
         },
+        "music": {
+            "play": "Reproducir música",
+            "pause": "Pausar música"
+        },
         "nav": {
             "features": "Características",
             "demo": "Demostración",
@@ -547,7 +551,8 @@
             "addTo": "Añadir a",
             "addToQueue": "Añadir Cola",
             "globalBalance": "Balancear",
-            "restoreOrder": "Reiniciar Orden"
+            "restoreOrder": "Reiniciar Orden",
+            "randomTest": "Prueba Aleatoria"
         },
         "location": {
             "courtA": "Cancha A",

@@ -4,6 +4,10 @@
             "name": "VolleyScore Pro",
             "tagline": "Placar Profissional"
         },
+        "music": {
+            "play": "Reproduzir música",
+            "pause": "Pausar música"
+        },
         "nav": {
             "features": "Recursos",
             "demo": "Demonstração",
@@ -549,7 +553,8 @@
             "addTo": "Add em",
             "addToQueue": "Add Fila",
             "globalBalance": "Balancear",
-            "restoreOrder": "Reset Ordem"
+            "restoreOrder": "Reset Ordem",
+            "randomTest": "Gerar Teste"
         },
         "location": {
             "courtA": "Quadra A",

@@ -47,13 +47,13 @@ const TimeoutControl = memo(({ onTimeout, count = 0, theme, color }: { onTimeout
             onClick={() => { if (!isExhausted) onTimeout(); }}
             disabled={isExhausted}
             className={`
-                flex flex-col items-center justify-center gap-1 p-1.5 rounded-xl border transition-all active:scale-95 h-10 w-10
+                flex flex-col items-center justify-center gap-1 p-1.5 rounded-xl border transition-all active:scale-95 h-12 w-12 sm:h-14 sm:w-14
                 ${isExhausted
                     ? 'bg-slate-100/50 dark:bg-white/5 border-transparent opacity-40 cursor-not-allowed'
                     : 'bg-white/50 dark:bg-black/20 backdrop-blur-md border-white/40 dark:border-white/10 hover:border-white/70 dark:hover:border-white/20 shadow-[0_4px_12px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] ring-1 ring-inset ring-white/20'}
             `}
         >
-            <Timer size={14} className={isExhausted ? "text-slate-400" : theme.text} strokeWidth={2.5} />
+            <Timer size={18} className={isExhausted ? "text-slate-400" : theme.text} strokeWidth={2.5} />
             <div className="flex gap-0.5">
                 <div
                     className={`w-1.5 h-1.5 rounded-full transition-all ${count >= 1 ? 'bg-slate-400 dark:bg-slate-500 opacity-40' : 'ring-2 ring-white/30'}`}
@@ -122,11 +122,11 @@ export const CourtHeader: React.FC<CourtHeaderProps> = memo(({
                                 </div>
                             )}
                         </div>
-                        <div className={`flex items-center ${compact ? 'gap-1' : 'gap-2'}`}>
-                            <div className={`flex items-center bg-white/50 dark:bg-slate-800/40 rounded-xl p-1 border border-white/40 dark:border-white/10 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] ring-1 ring-inset ring-white/20 ${compact ? 'gap-1' : 'gap-2'}`}>
-                                <button onClick={() => onScore('A', -1)} className={`${compact ? 'w-7 h-7' : 'w-8 h-8'} rounded-lg bg-slate-100/80 dark:bg-white/5 hover:bg-slate-200/80 dark:hover:bg-white/10 flex items-center justify-center text-slate-400 transition-colors`}><Minus size={compact ? 10 : 12} strokeWidth={3} /></button>
-                                <span className={`${compact ? 'text-2xl min-w-[24px]' : 'text-3xl min-w-[32px]'} font-black tabular-nums leading-none text-center bg-gradient-to-br from-slate-800 to-slate-600 dark:from-white dark:to-slate-200 bg-clip-text text-transparent`}>{scoreA}</span>
-                                <button onClick={() => onScore('A', 1)} className={`${compact ? 'w-7 h-7' : 'w-8 h-8'} rounded-lg ${themeA.bg} hover:${themeA.bg.replace('/20', '/35')} flex items-center justify-center ${themeA.text} ${themeA.textDark} border border-white/10 shadow-sm`}><Plus size={compact ? 10 : 12} strokeWidth={3} /></button>
+                        <div className={`flex items-center ${compact ? 'gap-1.5' : 'gap-2'}`}>
+                            <div className={`flex items-center bg-white/50 dark:bg-slate-800/40 rounded-xl p-1 border border-white/40 dark:border-white/10 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] ring-1 ring-inset ring-white/20 ${compact ? 'gap-1.5' : 'gap-2'}`}>
+                                <button onClick={() => onScore('A', -1)} className={`${compact ? 'w-9 h-9' : 'w-10 h-10'} rounded-lg bg-slate-100/80 dark:bg-white/5 hover:bg-slate-200/80 dark:hover:bg-white/10 flex items-center justify-center text-slate-400 transition-colors`}><Minus size={compact ? 14 : 16} strokeWidth={3} /></button>
+                                <span className={`${compact ? 'text-3xl min-w-[32px]' : 'text-4xl min-w-[40px]'} font-black tabular-nums leading-none text-center bg-gradient-to-br from-slate-800 to-slate-600 dark:from-white dark:to-slate-200 bg-clip-text text-transparent`}>{scoreA}</span>
+                                <button onClick={() => onScore('A', 1)} className={`${compact ? 'w-9 h-9' : 'w-10 h-10'} rounded-lg ${themeA.bg} hover:${themeA.bg.replace('/20', '/35')} flex items-center justify-center ${themeA.text} ${themeA.textDark} border border-white/10 shadow-sm`}><Plus size={compact ? 14 : 16} strokeWidth={3} /></button>
                             </div>
                             <TimeoutControl onTimeout={onTimeoutA} count={timeoutsA} theme={themeA} color={teamA.color} />
                         </div>
@@ -169,11 +169,11 @@ export const CourtHeader: React.FC<CourtHeaderProps> = memo(({
                                 </div>
                             )}
                         </div>
-                        <div className={`flex items-center flex-row-reverse ${compact ? 'gap-1' : 'gap-2'}`}>
-                            <div className={`flex items-center bg-white/50 dark:bg-slate-800/40 rounded-xl p-1 border border-white/40 dark:border-white/10 flex-row-reverse backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] ring-1 ring-inset ring-white/20 ${compact ? 'gap-1' : 'gap-2'}`}>
-                                <button onClick={() => onScore('B', -1)} className={`${compact ? 'w-7 h-7' : 'w-8 h-8'} rounded-lg bg-slate-100/80 dark:bg-white/5 hover:bg-slate-200/80 dark:hover:bg-white/10 flex items-center justify-center text-slate-400 transition-colors`}><Minus size={compact ? 10 : 12} strokeWidth={3} /></button>
-                                <span className={`${compact ? 'text-2xl min-w-[24px]' : 'text-3xl min-w-[32px]'} font-black tabular-nums leading-none text-center bg-gradient-to-br from-slate-800 to-slate-600 dark:from-white dark:to-slate-200 bg-clip-text text-transparent`}>{scoreB}</span>
-                                <button onClick={() => onScore('B', 1)} className={`${compact ? 'w-7 h-7' : 'w-8 h-8'} rounded-lg ${themeB.bg} hover:${themeB.bg.replace('/20', '/35')} flex items-center justify-center ${themeB.text} ${themeB.textDark} border border-white/10 shadow-sm`}><Plus size={compact ? 10 : 12} strokeWidth={3} /></button>
+                        <div className={`flex items-center flex-row-reverse ${compact ? 'gap-1.5' : 'gap-2'}`}>
+                            <div className={`flex items-center bg-white/50 dark:bg-slate-800/40 rounded-xl p-1 border border-white/40 dark:border-white/10 flex-row-reverse backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] ring-1 ring-inset ring-white/20 ${compact ? 'gap-1.5' : 'gap-2'}`}>
+                                <button onClick={() => onScore('B', -1)} className={`${compact ? 'w-9 h-9' : 'w-10 h-10'} rounded-lg bg-slate-100/80 dark:bg-white/5 hover:bg-slate-200/80 dark:hover:bg-white/10 flex items-center justify-center text-slate-400 transition-colors`}><Minus size={compact ? 14 : 16} strokeWidth={3} /></button>
+                                <span className={`${compact ? 'text-3xl min-w-[32px]' : 'text-4xl min-w-[40px]'} font-black tabular-nums leading-none text-center bg-gradient-to-br from-slate-800 to-slate-600 dark:from-white dark:to-slate-200 bg-clip-text text-transparent`}>{scoreB}</span>
+                                <button onClick={() => onScore('B', 1)} className={`${compact ? 'w-9 h-9' : 'w-10 h-10'} rounded-lg ${themeB.bg} hover:${themeB.bg.replace('/20', '/35')} flex items-center justify-center ${themeB.text} ${themeB.textDark} border border-white/10 shadow-sm`}><Plus size={compact ? 14 : 16} strokeWidth={3} /></button>
                             </div>
                             <TimeoutControl onTimeout={onTimeoutB} count={timeoutsB} theme={themeB} color={teamB.color} />
                         </div>

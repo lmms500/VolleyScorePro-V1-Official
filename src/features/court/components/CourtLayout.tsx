@@ -14,6 +14,7 @@ import { CourtFooter } from '@features/court/components/CourtFooter';
 import BeachSandTexture from '@features/court/components/BeachSandTexture';
 import { useElementSize } from '@features/game/hooks/useElementSize';
 import { autoPositionPlayersByRole } from '@lib/utils/courtPositioning';
+import { courtPlayerTransitionSmooth } from '@lib/utils/animations';
 
 interface CourtLayoutProps {
     teamA: Team;
@@ -258,7 +259,7 @@ export const CourtLayout: React.FC<CourtLayoutProps> = ({
         <div className={`
             relative flex rounded-3xl ${courtBgClass} dark:bg-slate-900/40 backdrop-blur-md border border-white/40 dark:border-white/10 p-0 overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25),inset_0_1px_0_0_rgba(255,255,255,0.15)] ring-1 ring-inset ring-white/10
             ${isVertical
-                ? 'h-full max-h-full w-auto max-w-full aspect-[1/1.8] flex-col mx-auto'
+                ? 'h-[85%] max-h-[85vh] w-auto max-w-full aspect-[1/1.8] flex-col mx-auto'
                 : 'w-full max-w-4xl max-h-[58vh] aspect-[1.8/1] flex-row mx-2'
             }
         `}>
@@ -363,7 +364,7 @@ export const CourtLayout: React.FC<CourtLayoutProps> = ({
             </div>
 
             {createPortal(
-                <DragOverlay dropAnimation={{ duration: 250, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }} zIndex={1000}>
+                <DragOverlay dropAnimation={{ duration: 400, easing: 'cubic-bezier(0.25, 1, 0.5, 1)' }} zIndex={1000}>
                     {activeDragPlayer ? (
                         <div className="w-20 h-20 flex flex-col items-center justify-center pointer-events-none">
                             <div className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center bg-gradient-to-br ${dragTheme.gradient.replace('/15', '').replace('to-transparent', 'to-black/20')} border-2 border-white/40 ring-4 ring-white/20 backdrop-blur-xl`}>

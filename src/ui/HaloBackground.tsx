@@ -67,10 +67,10 @@ const glowVariants = {
 
 // Flash animation (one-shot)
 const flashVariants = {
-    initial: { opacity: 0, scale: 0.8 },
+    initial: { opacity: 0, scale: 1 },
     animate: {
-        opacity: [0, 0.8, 0],
-        scale: [0.9, 1.5, 1.3],
+        opacity: [0, 0.85, 0],
+        scale: [1, 1.5, 1.2],
         transition: {
             duration: 0.6,
             ease: "easeOut"
@@ -146,9 +146,10 @@ export const HaloBackground: React.FC<HaloBackgroundProps> = memo(({
                     x: '-50%',
                     y: '-50%',
                     // Using em units allows the glow to scale with the fontSize set above
-                    boxShadow: `0 0 0.5em 0.4em ${glowHex}, 0 0 1em 0.8em ${glowHex}66`,
+                    boxShadow: `0 0 0.5em 0.4em ${glowHex}, 0 0 0.9em 0.7em ${glowHex}88`,
                     willChange: "transform, opacity",
                     transform: "translateZ(0)",
+                    contain: 'strict',
                 }}
             />
 
@@ -171,7 +172,7 @@ export const HaloBackground: React.FC<HaloBackgroundProps> = memo(({
                                 left: '50%',
                                 x: '-50%',
                                 y: '-50%',
-                                boxShadow: `0 0 0.8em 0.6em ${glowHex}, 0 0 1.5em 1em ${glowHex}44`,
+                                boxShadow: `0 0 0.7em 0.5em ${glowHex}, 0 0 1.2em 0.9em ${glowHex}55`,
                                 willChange: "transform, opacity",
                                 transform: "translateZ(0)",
                             }}

@@ -32,11 +32,55 @@ export class VoiceRecognitionService {
   private pendingInterim: string = '';
   private finalResultTimer: any = null;
 
+  private hasPermission: boolean = false;
+  private availabilityChecked: boolean = false;
+  private isAvailableNative: boolean = false;
+
   private constructor() {
     this.isNative = Capacitor.isNativePlatform();
     if (!this.isNative) {
       this.initWebEngine();
     }
+  }
+
+  public async checkAvailability(): Promise<boolean> {
+    if (this.isNative) {
+      try {
+        const { available } = await SpeechRecognition.available();
+        this.isAvailableNative = available;
+        this.availabilityChecked = true;
+        return available;
+      } catch {
+        this.isAvailableNative = false;
+        this.availabilityChecked = true;
+        return false;
+      }
+    }
+    return !!this.webRecognition;
+  }
+
+  public async requestPermissions(): Promise<boolean> {
+    if (this.isNative) {
+      try {
+        const status = await SpeechRecognition.requestPermissions();
+        this.hasPermission = status.speechRecognition === 'granted';
+        return this.hasPermission;
+      } catch {
+        this.hasPermission = false;
+        return false;
+      }
+    }
+    this.hasPermission = true;
+    return true;
+  }
+
+  public async ensureReady(): Promise<{ available: boolean; hasPermission: boolean }> {
+    const available = await this.checkAvailability();
+    if (!available) {
+      return { available: false, hasPermission: false };
+    }
+    const hasPermission = await this.requestPermissions();
+    return { available: true, hasPermission };
   }
 
   private initWebEngine() {
@@ -84,21 +128,21 @@ export class VoiceRecognitionService {
     return !!this.webRecognition;
   }
 
-  public async requestPermissions(): Promise<boolean> {
-    if (this.isNative) {
-      try {
-        const status = await SpeechRecognition.requestPermissions();
-        return status.speechRecognition === 'granted';
-      } catch {
-        return false;
-      }
-    }
-    return true;
-  }
-
   public async start(language: string) {
     this.intendedState = true;
     this.restartAttempts = 0;
+
+    const ready = await this.ensureReady();
+    if (!ready.available) {
+      console.warn('[VoiceService] Speech recognition not available on this device');
+      this.handleError('generic');
+      return;
+    }
+    if (!ready.hasPermission) {
+      console.warn('[VoiceService] Microphone permission not granted');
+      this.handleError('permission');
+      return;
+    }
 
     const langMap: Record<string, string> = {
       pt: 'pt-BR',
@@ -147,10 +191,16 @@ export class VoiceRecognitionService {
       console.warn('[VoiceService] Native Error:', e);
       this.updateStatus(false);
       this.clearDeadStateTimer();
-      const err = e as { message?: string };
-      if (!err.message?.includes('canceled')) {
-        this.handleError('generic');
+      const err = e as { message?: string; error?: string };
+      const errorMsg = err.message || err.error || '';
+      if (errorMsg.includes('canceled') || errorMsg.includes('not allowed')) {
+        return;
       }
+      if (errorMsg.includes('permission') || errorMsg.includes('denied')) {
+        this.handleError('permission');
+        return;
+      }
+      this.handleError('generic');
     }
   }
 

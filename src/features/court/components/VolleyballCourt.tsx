@@ -4,6 +4,7 @@ import { resolveTheme, getHexFromColor } from '@lib/utils/colors';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { motion } from 'framer-motion';
 import { isEmptySlot } from '@config/gameModes';
+import { courtPlayerPositionTransition, courtServeRingTransition } from '@lib/utils/animations';
 
 interface VolleyballCourtProps {
     players: Player[];
@@ -35,7 +36,7 @@ const ZoneMarker = memo(({ index, visualZone, teamId }: { index: number, visualZ
         <div
             ref={setNodeRef}
             className={`
-                absolute inset-0 flex items-center justify-center rounded-3xl transition-all duration-300
+                absolute inset-0 flex items-center justify-center rounded-3xl transition-all duration-500 ease-out
                 ${isOver ? 'bg-white/20 ring-4 ring-white/40 scale-105 shadow-[0_0_30px_rgba(255,255,255,0.3)] z-10 backdrop-blur-sm' : 'opacity-0'}
             `}
         >
@@ -88,13 +89,9 @@ const DraggablePlayer = memo(({ player, index, teamId, side, teamColor, isServer
 
     return (
         <motion.div
-            layoutId={nameRotation ? undefined : player.id}
-            layout={nameRotation ? false : "position"}
-            transition={{ 
-                type: "tween", 
-                duration: 0.2, 
-                ease: [0.25, 1, 0.5, 1] 
-            }}
+            layoutId={player.id}
+            layout="position"
+            transition={courtPlayerPositionTransition}
             ref={setNodeRef}
             {...listeners}
             {...attributes}
@@ -114,18 +111,14 @@ const DraggablePlayer = memo(({ player, index, teamId, side, teamColor, isServer
             {/* Server Indicator Ring - Ciano para máximo contraste em areia e quadra */}
             {isServer && (
                 <motion.div
-                    layoutId={nameRotation ? undefined : `serve-ring-${teamId}`}
+                    layoutId={`serve-ring-${teamId}`}
                     className="absolute -inset-2.5 rounded-full border-[4px] border-dashed border-cyan-400 animate-[spin_6s_linear_infinite]"
                     style={{
                         boxShadow: '0 0 20px rgba(34, 211, 238, 0.7), 0 0 40px rgba(34, 211, 238, 0.4)',
                         transform: 'translateZ(0)',
                         willChange: 'transform'
                     }}
-                    transition={{ 
-                        type: "tween", 
-                        duration: 0.2, 
-                        ease: [0.25, 1, 0.5, 1] 
-                    }}
+                    transition={courtServeRingTransition}
                 />
             )}
 
@@ -145,7 +138,7 @@ const DraggablePlayer = memo(({ player, index, teamId, side, teamColor, isServer
 
             {/* Main Token Body */}
             <div className={`
-                w-full h-full rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.3)] flex items-center justify-center relative overflow-hidden z-10 transition-transform duration-200 group-hover:scale-110
+                w-full h-full rounded-full shadow-[0_4px_10px_rgba(0,0,0,0.3)] flex items-center justify-center relative overflow-hidden z-10 transition-transform duration-300 ease-out group-hover:scale-110
                 border ${isMVP ? 'border-amber-400' : 'border-white/40'}
                 ring-1 ring-black/10 dark:ring-white/10
                 ${isMVP ? 'shadow-[0_0_20px_rgba(255,255,255,0.5)]' : ''}
@@ -166,7 +159,7 @@ const DraggablePlayer = memo(({ player, index, teamId, side, teamColor, isServer
 
             {/* Name Label */}
             <div
-                className={`absolute ${positionClass} backdrop-blur-md px-2.5 py-0.5 rounded-full border shadow-xl max-w-[200%] transition-opacity duration-200
+                className={`absolute ${positionClass} backdrop-blur-md px-2.5 py-0.5 rounded-full border shadow-xl max-w-[200%] transition-opacity duration-300 ease-out
                          ${isMVP ? 'bg-amber-500/95 dark:bg-amber-500/90 border-amber-300' : `border-white/20`}
                          ${isGlobalDragging ? 'opacity-0' : 'opacity-100'}
                          ${isMVP ? 'shadow-[0_0_15px_rgba(251,191,36,0.5)]' : ''}

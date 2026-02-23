@@ -16,6 +16,14 @@ class AudioService {
   private readonly DEFAULT_VOLUME = 0.8;
   private readonly DUCKED_VOLUME = 0.1;
 
+  // Voice Pooling - Prevents audio crackling on Android when multiple sounds play simultaneously
+  private activeVoices: Set<{ stop: () => void }> = new Set();
+  private readonly MAX_VOICES = 8;
+
+  // Debounce for rapid score sounds
+  private lastScoreTime = 0;
+  private readonly SCORE_DEBOUNCE_MS = 50;
+
   private constructor() {
     this.setupLifecycleListeners();
     this.setupUnlockListener();
@@ -90,11 +98,42 @@ class AudioService {
     this.dynamicsCompressor.threshold.value = -12;
     this.dynamicsCompressor.knee.value = 40;
     this.dynamicsCompressor.ratio.value = 12;
-    this.dynamicsCompressor.attack.value = 0;
+    // FIX: Changed from 0 to 0.003 (3ms) to prevent audio artifacts
+    // when multiple sounds collide on Android
+    this.dynamicsCompressor.attack.value = 0.003;
     this.dynamicsCompressor.release.value = 0.25;
 
     this.masterGain.connect(this.dynamicsCompressor);
     this.dynamicsCompressor.connect(this.ctx.destination);
+  }
+
+  /**
+   * Limits the number of concurrent voices to prevent audio crackling.
+   * Removes oldest voice when limit is reached.
+   */
+  private limitVoices() {
+    if (this.activeVoices.size >= this.MAX_VOICES) {
+      const oldest = this.activeVoices.values().next().value;
+      if (oldest) {
+        try {
+          oldest.stop();
+        } catch {
+          // Voice may have already stopped
+        }
+        this.activeVoices.delete(oldest);
+      }
+    }
+  }
+
+  /**
+   * Tracks a voice for pooling and auto-cleanup.
+   */
+  private trackVoice(voice: { stop: () => void }) {
+    this.activeVoices.add(voice);
+    // Auto-cleanup after voice naturally ends
+    setTimeout(() => {
+      this.activeVoices.delete(voice);
+    }, 2000);
   }
 
   private setupStateListener() {
@@ -193,7 +232,15 @@ class AudioService {
   }
 
   public playScore(lowGraphics: boolean) {
+    // FIX: Debounce to prevent crackling when multiple points are added rapidly
+    const now = Date.now();
+    if (now - this.lastScoreTime < this.SCORE_DEBOUNCE_MS) return;
+    this.lastScoreTime = now;
+
     this.safePlay((ctx, t) => {
+      // FIX: Voice pooling to limit concurrent sounds
+      this.limitVoices();
+
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';
@@ -205,6 +252,9 @@ class AudioService {
       gain.connect(this.masterGain!);
       osc.start(t);
       osc.stop(t + 0.6);
+
+      // FIX: Track voice for pooling
+      this.trackVoice(osc);
     });
   }
 

@@ -1,13 +1,13 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useRef } from 'react';
+import { motion, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
 import { useTranslation } from '@contexts/LanguageContext';
 import { GlassSurface } from '@ui/GlassSurface';
-import { 
-  Target, 
-  BarChart3, 
-  Layout, 
-  Radio, 
-  Mic, 
+import {
+  Target,
+  BarChart3,
+  Layout,
+  Radio,
+  Mic,
   Cloud,
   Zap
 } from 'lucide-react';
@@ -21,8 +21,124 @@ const iconMap = {
   cloud: Cloud,
 };
 
+interface FeatureCardProps {
+  icon: string;
+  title: string;
+  description: string;
+  gradient: string;
+  index: number;
+}
+
+const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, gradient, index }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"]
+  });
+
+  const rotateX = useTransform(scrollYProgress, [0, 1], [3, 0]);
+  const rotateY = useTransform(scrollYProgress, [0, 1], [-3, 0]);
+
+  const springX = useSpring(x, { stiffness: 300, damping: 30 });
+  const springY = useSpring(y, { stiffness: 300, damping: 30 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    x.set((e.clientX - centerX) / 12);
+    y.set((e.clientY - centerY) / 12);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
+  const Icon = iconMap[icon as keyof typeof iconMap];
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ delay: index * 0.1, duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ perspective: 1000 }}
+      className="group"
+    >
+      <motion.div
+        style={{
+          rotateX: springX,
+          rotateY: springY,
+          transformStyle: "preserve-3d"
+        }}
+      >
+        <GlassSurface
+          intensity="medium"
+          className="p-6 sm:p-8 rounded-2xl h-full cursor-pointer relative overflow-hidden"
+        >
+          {/* Gradient Glow Background */}
+          <motion.div
+            className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none`}
+            style={{ transform: "translateZ(-10px)" }}
+          />
+
+          {/* Icon with Glow */}
+          <motion.div
+            className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-4 sm:mb-6 shadow-lg`}
+            whileHover={{ scale: 1.1 }}
+            transition={{ type: "spring", stiffness: 400, damping: 15 }}
+          >
+            <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+            <motion.div
+              className="absolute inset-0 rounded-xl bg-white/30 blur-xl"
+              animate={{ opacity: [0, 0.5, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          </motion.div>
+
+          {/* Content */}
+          <div className="relative z-10">
+            <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3 group-hover:text-white/90 transition-colors">
+              {title}
+            </h3>
+            <p className="text-white/60 text-sm sm:text-base leading-relaxed">
+              {description}
+            </p>
+          </div>
+
+          {/* Corner Accent */}
+          <motion.div
+            className={`absolute -top-10 -right-10 w-20 h-20 bg-gradient-to-br ${gradient} opacity-20 blur-2xl`}
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.1, 0.3, 0.1]
+            }}
+            transition={{ duration: 3, repeat: Infinity }}
+          />
+        </GlassSurface>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 export const Features: React.FC = () => {
   const { t } = useTranslation();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end end"]
+  });
+
+  const headerOpacity = useTransform(scrollYProgress, [0, 0.3], [0, 1]);
+  const headerY = useTransform(scrollYProgress, [0, 0.3], [30, 0]);
 
   const features = [
     {
@@ -63,92 +179,72 @@ export const Features: React.FC = () => {
     },
   ];
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  };
-
   return (
-    <section id="features" className="py-20 sm:py-32 px-4">
-      <div className="max-w-7xl mx-auto">
+    <section id="features" className="py-20 sm:py-32 px-4 relative" ref={containerRef}>
+      {/* Background Gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-indigo-950/10 to-slate-950 pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto relative">
         {/* Section Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          style={{ opacity: headerOpacity, y: headerY }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
           className="text-center mb-12 sm:mb-16"
         >
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
+          <motion.h2
+            className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1, duration: 0.6 }}
+          >
             <span className="bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
               {t('landing.features.title')}
             </span>
-          </h2>
-          <p className="text-white/50 text-lg max-w-2xl mx-auto">
+          </motion.h2>
+          <motion.p
+            className="text-white/50 text-lg max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+          >
             {t('landing.features.subtitle')}
-          </p>
+          </motion.p>
         </motion.div>
 
         {/* Features Grid */}
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
-        >
-          {features.map((feature, index) => {
-            const Icon = iconMap[feature.icon as keyof typeof iconMap];
-            return (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                whileHover={{ y: -5, scale: 1.02 }}
-                className="group"
-              >
-                <GlassSurface
-                  intensity="medium"
-                  className="p-6 sm:p-8 rounded-2xl h-full cursor-pointer"
-                >
-                  {/* Icon */}
-                  <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br ${feature.gradient} flex items-center justify-center mb-4 sm:mb-6 shadow-lg group-hover:scale-110 transition-transform`}>
-                    <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-                  </div>
-
-                  {/* Content */}
-                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3">
-                    {feature.title}
-                  </h3>
-                  <p className="text-white/60 text-sm sm:text-base leading-relaxed">
-                    {feature.description}
-                  </p>
-
-                  {/* Hover Glow */}
-                  <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity pointer-events-none`} />
-                </GlassSurface>
-              </motion.div>
-            );
-          })}
-        </motion.div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {features.map((feature, index) => (
+            <FeatureCard
+              key={index}
+              icon={feature.icon}
+              title={feature.title}
+              description={feature.description}
+              gradient={feature.gradient}
+              index={index}
+            />
+          ))}
+        </div>
 
         {/* Bottom Highlight */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.5 }}
           className="mt-12 sm:mt-16 text-center"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500/10 to-rose-500/10 border border-white/10 rounded-full">
-            <Zap className="w-4 h-4 text-amber-400" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500/10 to-rose-500/10 border border-white/10 rounded-full hover:border-white/20 transition-colors cursor-default">
+            <motion.div
+              animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <Zap className="w-4 h-4 text-amber-400" />
+            </motion.div>
             <span className="text-white/70 text-sm">{t('landing.features.highlight')}</span>
           </div>
         </motion.div>

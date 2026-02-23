@@ -26,23 +26,23 @@ const RotationControls = memo(({
         <span className="text-[8px] sm:text-[9px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-300 bg-white/40 dark:bg-white/10 border border-white/30 dark:border-white/10 px-2 sm:px-2.5 py-0.5 rounded-full backdrop-blur-md mb-0.5 sm:mb-1 shadow-sm">
             {teamName}
         </span>
-        <div className="flex gap-1 sm:gap-1.5">
-            <button onClick={onRotateCounter} className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/15 border border-white/30 dark:border-white/10 flex items-center justify-center backdrop-blur-md active:scale-95 transition-all text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white shadow-[0_4px_12px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] hover:shadow-lg">
-                <RotateCcw size={16} strokeWidth={2.5} />
+        <div className="flex gap-1.5 sm:gap-2">
+            <button onClick={onRotateCounter} className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/15 border border-white/30 dark:border-white/10 flex items-center justify-center backdrop-blur-md active:scale-95 transition-all text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white shadow-[0_4px_12px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] hover:shadow-lg">
+                <RotateCcw size={20} strokeWidth={2.5} />
             </button>
-            <button onClick={onRotateClockwise} className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${theme.bg} hover:${theme.bg.replace('/20', '/35')} border ${theme.border} flex items-center justify-center backdrop-blur-md active:scale-95 transition-all ${theme.text} dark:${theme.textDark} shadow-[0_4px_12px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] hover:shadow-lg border-white/20`}>
-                <RotateCw size={16} strokeWidth={2.5} />
+            <button onClick={onRotateClockwise} className={`w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl ${theme.bg} hover:${theme.bg.replace('/20', '/35')} border ${theme.border} flex items-center justify-center backdrop-blur-md active:scale-95 transition-all ${theme.text} dark:${theme.textDark} shadow-[0_4px_12px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] hover:shadow-lg border-white/20`}>
+                <RotateCw size={20} strokeWidth={2.5} />
             </button>
-            <button onClick={onSubstitute} className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/15 border border-white/30 dark:border-white/10 flex items-center justify-center backdrop-blur-md active:scale-95 transition-all text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white shadow-[0_4px_12px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] hover:shadow-lg">
-                <ArrowRightLeft size={16} strokeWidth={2.5} />
+            <button onClick={onSubstitute} className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-white/50 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/15 border border-white/30 dark:border-white/10 flex items-center justify-center backdrop-blur-md active:scale-95 transition-all text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white shadow-[0_4px_12px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] hover:shadow-lg">
+                <ArrowRightLeft size={20} strokeWidth={2.5} />
             </button>
             {onAutoPosition && (
                 <button
                     onClick={onAutoPosition}
                     title="Auto-posicionar por função"
-                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 flex items-center justify-center backdrop-blur-md active:scale-95 transition-all text-violet-500 dark:text-violet-400 shadow-[0_4px_12px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] hover:shadow-lg"
+                    className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 flex items-center justify-center backdrop-blur-md active:scale-95 transition-all text-violet-500 dark:text-violet-400 shadow-[0_4px_12px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.4)] hover:shadow-lg"
                 >
-                    <Wand2 size={16} strokeWidth={2.5} />
+                    <Wand2 size={20} strokeWidth={2.5} />
                 </button>
             )}
         </div>
@@ -71,10 +71,10 @@ export const CourtFooter: React.FC<CourtFooterProps> = memo(({
             />
 
             {!hideNavButtons && (
-                <div className="absolute left-1/2 -translate-x-1/2 bottom-0 flex gap-1 p-1.5 bg-white/60 dark:bg-white/10 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.4)] mb-0.5">
-                    <button onClick={onOpenManager} className="w-10 h-10 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white transition-all active:scale-90 rounded-xl hover:bg-white/50 dark:hover:bg-white/10"><Users size={18} /></button>
-                    <button onClick={onOpenHistory} className="w-10 h-10 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white transition-all active:scale-90 rounded-xl hover:bg-white/50 dark:hover:bg-white/10"><History size={18} /></button>
-                    <button onClick={onOpenSettings} className="w-10 h-10 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white transition-all active:scale-90 rounded-xl hover:bg-white/50 dark:hover:bg-white/10"><Settings size={18} /></button>
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-0 flex gap-1.5 p-1.5 bg-white/60 dark:bg-white/10 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.4)] mb-0.5">
+                    <button onClick={onOpenManager} className="w-12 h-12 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white transition-all active:scale-90 rounded-xl hover:bg-white/50 dark:hover:bg-white/10"><Users size={22} /></button>
+                    <button onClick={onOpenHistory} className="w-12 h-12 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white transition-all active:scale-90 rounded-xl hover:bg-white/50 dark:hover:bg-white/10"><History size={22} /></button>
+                    <button onClick={onOpenSettings} className="w-12 h-12 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white transition-all active:scale-90 rounded-xl hover:bg-white/50 dark:hover:bg-white/10"><Settings size={22} /></button>
                 </div>
             )}
 

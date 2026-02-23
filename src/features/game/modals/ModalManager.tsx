@@ -111,7 +111,7 @@ export const ModalManager: React.FC<ModalManagerProps> = memo(({
           isOpen={true}
           onClose={closeModal}
           config={config}
-          isMatchActive={scoreA > 0 || scoreB > 0}
+          isMatchActive={scoreA > 0 || scoreB > 0 || setsA > 0 || setsB > 0}
           onSave={(newConfig, reset) => { applySettings(newConfig, reset); }}
           zIndex={overlayZIndex}
         />

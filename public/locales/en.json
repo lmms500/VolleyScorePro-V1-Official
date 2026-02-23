@@ -4,6 +4,10 @@
             "name": "VolleyScore Pro",
             "tagline": "Professional Scoring"
         },
+        "music": {
+            "play": "Play music",
+            "pause": "Pause music"
+        },
         "nav": {
             "features": "Features",
             "demo": "Demo",
@@ -549,7 +553,8 @@
             "addTo": "Add to",
             "addToQueue": "Add Queue",
             "globalBalance": "Balance",
-            "restoreOrder": "Reset Order"
+            "restoreOrder": "Reset Order",
+            "randomTest": "Random Test"
         },
         "location": {
             "courtA": "Court A",

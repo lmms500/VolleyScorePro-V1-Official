@@ -38,6 +38,8 @@ export interface DomainConflictState {
   rawText: string;
 }
 
+export type VoiceErrorType = 'permission' | 'network' | 'unavailable' | null;
+
 interface UseVoiceControlProps {
   enabled: boolean;
   pushToTalkMode: boolean;
@@ -101,6 +103,7 @@ export const useVoiceControl = ({
   const [isListening, setIsListening] = useState(false);
   const [isProcessingAI, setIsProcessingAI] = useState(false);
   const [visualFeedback, setVisualFeedback] = useState<string>('');
+  const [voiceError, setVoiceError] = useState<VoiceErrorType>(null);
 
   const [pendingIntent, setPendingIntent] = useState<VoiceCommandIntent | null>(null);
   const [domainConflict, setDomainConflict] = useState<DomainConflictState | null>(null);
@@ -391,8 +394,33 @@ export const useVoiceControl = ({
     recognitionService.setCallbacks(
       (text, isFinal) => bufferRef.current?.push(text, isFinal),
       (text) => setVisualFeedback(text),
-      (err) => console.error('[VoiceControl] Recognition Error:', err),
-      (status) => setIsListening(status),
+      (err) => {
+        console.error('[VoiceControl] Recognition Error:', err);
+        setVoiceError(err === 'permission' ? 'permission' : err === 'network' ? 'network' : 'unavailable');
+        if (err === 'permission') {
+          if (showNotificationRef.current) {
+            showNotificationRef.current({
+              type: 'error',
+              mainText: 'Permissão de microfone negada',
+              duration: 3000,
+            });
+          }
+        } else if (err === 'generic') {
+          if (showNotificationRef.current) {
+            showNotificationRef.current({
+              type: 'error',
+              mainText: 'Erro no reconhecimento de voz',
+              duration: 3000,
+            });
+          }
+        }
+      },
+      (status) => {
+        setIsListening(status);
+        if (!status) {
+          setVoiceError(null);
+        }
+      },
     );
 
     return () => {
@@ -432,6 +460,7 @@ export const useVoiceControl = ({
     isListening,
     isProcessingAI,
     visualFeedback,
+    voiceError,
     toggleListening,
     startListening,
     stopListening,

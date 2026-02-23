@@ -12,9 +12,11 @@ import { FullscreenMenuDrawer } from '@features/game/components/FullscreenMenuDr
 import { ScoreCardFullscreen } from '@features/game/components/ScoreCardFullscreen';
 import { TeamId } from '@types';
 import type { GameHandlers } from '@features/game/hooks/useGameHandlers';
+import type { VoiceErrorType } from '@features/voice/hooks/useVoiceControl';
 
 interface VoiceState {
     isListening: boolean;
+    voiceError?: VoiceErrorType;
     toggleListening: () => void;
     startListening?: () => void;
     stopListening?: () => void;

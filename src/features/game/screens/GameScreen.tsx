@@ -135,6 +135,7 @@ export const GameScreen: React.FC = () => {
     // --- VOICE CONTROL ---
     const {
         isListening,
+        voiceError,
         toggleListening,
         startListening,
         stopListening,
@@ -193,6 +194,7 @@ export const GameScreen: React.FC = () => {
     // Voice state object (passed to layouts) - MEMOIZED to prevent re-renders
     const voiceState = useMemo(() => ({
         isListening,
+        voiceError,
         toggleListening,
         startListening,
         stopListening,
@@ -206,7 +208,7 @@ export const GameScreen: React.FC = () => {
         commandHistory,
         isPushToTalkMode: config.pushToTalkMode ?? false,
     }), [
-        isListening, toggleListening, startListening, stopListening,
+        isListening, voiceError, toggleListening, startListening, stopListening,
         pendingIntent, confirmPendingIntent, cancelPendingIntent,
         domainConflict, resolveDomainConflict, cancelDomainConflict,
         visualFeedback, commandHistory, config.pushToTalkMode,

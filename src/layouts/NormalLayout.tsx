@@ -8,6 +8,7 @@ import { Controls } from '@features/game/components/Controls';
 import { FEATURE_FLAGS } from '@config/constants';
 import { TeamId } from '@types';
 import type { GameHandlers } from '@features/game/hooks/useGameHandlers';
+import type { VoiceErrorType } from '@features/voice/hooks/useVoiceControl';
 import { useHorizontalPages } from '@features/game/hooks/useHorizontalPages';
 import { HorizontalPagesContainer } from './HorizontalPagesContainer';
 import { PageIndicator } from '../ui/PageIndicator';
@@ -17,6 +18,7 @@ const CourtPage = lazy(() => import('./CourtPage').then(m => ({ default: m.Court
 
 interface VoiceState {
     isListening: boolean;
+    voiceError?: VoiceErrorType;
     toggleListening: () => void;
     startListening?: () => void;
     stopListening?: () => void;

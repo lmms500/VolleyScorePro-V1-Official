@@ -92,7 +92,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
 
     return (
         <motion.div
-            layout
+            layout="position"
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             className={`
             flex flex-col flex-1 relative h-full select-none
@@ -126,8 +126,8 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                         ))}
                     </div>
 
-                    <motion.div
-                        layout
+                    {/* FIX: Removed layout prop to prevent flickering on score changes */}
+                    <div
                         className="flex items-center justify-center gap-3 cursor-pointer px-4 py-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors max-w-full"
                         onClick={(e) => { e.stopPropagation(); onSetServer(); haptics.impact('light'); }}
                     >
@@ -136,8 +136,8 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                                 <TeamLogo src={team.logo} alt="" className="w-full h-full object-contain drop-shadow-md" />
                             </div>
                         )}
-                        <div className="flex items-center gap-2 min-w-0">
-                            <h2 className="font-black uppercase text-center text-xl md:text-2xl text-slate-900 dark:text-white tracking-tighter truncate leading-tight py-1">
+                        <div className="flex items-center gap-2 min-w-0 isolate">
+                            <h2 className="font-black uppercase text-center text-xl md:text-2xl text-slate-900 dark:text-white tracking-tighter truncate leading-tight py-1 contain-[layout_paint]">
                                 {team?.name || ''}
                             </h2>
                             {isServing && (
@@ -152,7 +152,7 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
                                 </motion.div>
                             )}
                         </div>
-                    </motion.div>
+                    </div>
 
                     <div className="h-8 w-full flex items-center justify-center">
                         <AnimatePresence mode="wait">
