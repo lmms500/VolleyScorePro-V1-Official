@@ -206,7 +206,7 @@ export const CourtModal: React.FC<CourtModalProps> = ({
             <ScoutModal isOpen={scoutModalState.isOpen} onClose={() => setScoutModalState({ ...scoutModalState, isOpen: false })} team={scoutModalState.teamId === 'A' ? teamA : teamB} colorTheme={scoutModalState.teamId === 'A' ? teamA.color : teamB.color} onConfirm={handleScoutConfirm} initialPlayerId={scoutModalState.preSelectedPlayerId} zIndex="z-[110]" />
 
             <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
-                <div className="relative w-full h-full text-slate-900 dark:text-white flex flex-col overflow-hidden select-none z-10">
+                <div className="relative w-full h-full text-slate-900 dark:text-white flex flex-col overflow-visible select-none z-10">
 
                     <CourtHeader
                         teamA={leftTeam} teamB={rightTeam}
@@ -225,7 +225,7 @@ export const CourtModal: React.FC<CourtModalProps> = ({
 
                     <LayoutGroup id="court-modal-layout">
                         <div className="flex-1 flex items-center justify-center relative w-full min-h-0 py-2 overflow-visible">
-                            <div className={`relative w-full max-w-4xl max-h-[58vh] aspect-[1.8/1] flex shadow-[0_25px_50px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.15)] ring-1 ring-inset ring-white/10 rounded-3xl ${courtBgClass} dark:bg-slate-900/40 backdrop-blur-md border border-white/40 dark:border-white/10 p-0 mx-2 overflow-hidden`}>
+                            <div className={`relative w-full max-w-4xl max-h-[58vh] aspect-[1.8/1] flex shadow-[0_25px_50px_rgba(0,0,0,0.4),inset_0_1px_0_0_rgba(255,255,255,0.15)] ring-1 ring-inset ring-white/10 rounded-3xl ${courtBgClass} dark:bg-slate-900/40 backdrop-blur-md border border-white/40 dark:border-white/10 p-0 mx-2 overflow-visible`}>
                                 <div className="absolute inset-0 z-0 rounded-3xl overflow-hidden">
                                     {isBeach ? (
                                         <BeachSandTexture />

@@ -1,7 +1,8 @@
-import React, { memo, useEffect, useState, useRef, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { memo, useEffect, useRef, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { usePerformanceSafe } from '@contexts/PerformanceContext';
 import { getHexFromColor } from '@lib/utils/colors';
+import { getAnimationConfig } from '@lib/platform/animationConfig';
 
 export type HaloMode = 'idle' | 'serving' | 'lastScorer' | 'critical';
 
@@ -38,6 +39,8 @@ const hexColorMap: Record<string, string> = {
 };
 
 // Variants for the permanent glow layer
+const isAndroidPlatform = getAnimationConfig().isAndroid;
+
 const glowVariants = {
     idle: {
         opacity: 0,
@@ -54,29 +57,22 @@ const glowVariants = {
         scale: 1.2,
         transition: { duration: 0.5, ease: "easeOut" }
     },
-    critical: {
-        opacity: [0.8, 1, 0.8],
-        scale: [1.1, 1.3, 1.1],
-        transition: {
-            duration: 2,
-            repeat: Infinity,
-            ease: "easeInOut"
+    critical: isAndroidPlatform
+        ? {
+            // Android: single pulse, no infinite loop (saves GPU tile rasterization)
+            opacity: 0.9,
+            scale: 1.2,
+            transition: { duration: 0.5, ease: "easeOut" }
         }
-    }
-};
-
-// Flash animation (one-shot)
-const flashVariants = {
-    initial: { opacity: 0, scale: 1 },
-    animate: {
-        opacity: [0, 0.85, 0],
-        scale: [1, 1.5, 1.2],
-        transition: {
-            duration: 0.6,
-            ease: "easeOut"
+        : {
+            opacity: [0.8, 1, 0.8],
+            scale: [1.1, 1.3, 1.1],
+            transition: {
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+            }
         }
-    },
-    exit: { opacity: 0 }
 };
 
 export const HaloBackground: React.FC<HaloBackgroundProps> = memo(({
@@ -89,22 +85,22 @@ export const HaloBackground: React.FC<HaloBackgroundProps> = memo(({
 }) => {
     const { config: perf } = usePerformanceSafe();
 
-    // Track flash trigger - fires when score INCREASES
-    const [showFlash, setShowFlash] = useState(false);
+    // Flash via Web Animations API — no state change, no React re-render
+    const flashRef = useRef<HTMLDivElement>(null);
     const prevScoreRef = useRef<number>(score);
 
     useEffect(() => {
-        // Trigger flash ONLY when score increases
-        // Strict check to avoid unwanted flashes on mount or re-renders
-        if (score > prevScoreRef.current) {
-            setShowFlash(true);
-            const timer = setTimeout(() => setShowFlash(false), 700);
-            return () => clearTimeout(timer);
+        if (score > prevScoreRef.current && flashRef.current) {
+            // Trigger flash imperatively — zero React overhead
+            flashRef.current.animate(
+                [
+                    { opacity: 0, transform: 'translate(-50%, -50%) scale(1)' },
+                    { opacity: 0.85, transform: 'translate(-50%, -50%) scale(1.5)' },
+                    { opacity: 0, transform: 'translate(-50%, -50%) scale(1.2)' },
+                ],
+                { duration: 600, easing: 'ease-out', fill: 'forwards' }
+            );
         }
-    }, [score]);
-
-    // Update ref separately to ensure it doesn't block the effect check
-    useEffect(() => {
         prevScoreRef.current = score;
     }, [score]);
 
@@ -153,32 +149,22 @@ export const HaloBackground: React.FC<HaloBackgroundProps> = memo(({
                 }}
             />
 
-            {/* Layer 2: Flash Effect (one-shot on score) - skip in ECONOMICO for perf */}
+            {/* Layer 2: Flash Effect (one-shot on score via Web Animations API) */}
             {perf.animations.complexTransitions && (
-                <AnimatePresence>
-                    {showFlash && (
-                        <motion.div
-                            key="flash"
-                            className="absolute pointer-events-none"
-                            variants={flashVariants}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            style={{
-                                width: 0,
-                                height: 0,
-                                fontSize: size || '1em',
-                                top: '50%',
-                                left: '50%',
-                                x: '-50%',
-                                y: '-50%',
-                                boxShadow: `0 0 0.7em 0.5em ${glowHex}, 0 0 1.2em 0.9em ${glowHex}55`,
-                                willChange: "transform, opacity",
-                                transform: "translateZ(0)",
-                            }}
-                        />
-                    )}
-                </AnimatePresence>
+                <div
+                    ref={flashRef}
+                    className="absolute pointer-events-none"
+                    style={{
+                        width: 0,
+                        height: 0,
+                        opacity: 0,
+                        fontSize: size || '1em',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%) scale(1)',
+                        boxShadow: `0 0 0.7em 0.5em ${glowHex}, 0 0 1.2em 0.9em ${glowHex}55`,
+                    }}
+                />
             )}
         </div>
     );

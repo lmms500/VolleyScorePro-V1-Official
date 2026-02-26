@@ -5,7 +5,7 @@ import { VoiceRecognitionService } from '../services/VoiceRecognitionService';
 import { VoiceCommandParser, VoiceContext } from '../services/VoiceCommandParser';
 import { GeminiCommandService } from '../services/GeminiCommandService';
 import { CommandBuffer } from '../services/CommandBuffer';
-import { getCommandDeduplicator, resetCommandDeduplicator } from '../services/CommandDeduplicator';
+import { getCommandDeduplicator } from '../services/CommandDeduplicator';
 import { FEATURE_FLAGS } from '@config/constants';
 import { audioService } from '@lib/audio/AudioService';
 
@@ -129,6 +129,8 @@ export const useVoiceControl = ({
 
   const geminiService = useRef(GeminiCommandService.getInstance()).current;
   const recognitionService = useRef(VoiceRecognitionService.getInstance()).current;
+
+
   const bufferRef = useRef<CommandBuffer | null>(null);
   const deduplicatorRef = useRef(getCommandDeduplicator());
   const pendingIntentRef = useRef<VoiceCommandIntent | null>(pendingIntent);
@@ -324,15 +326,27 @@ export const useVoiceControl = ({
         if (showNotificationRef.current) {
           showNotificationRef.current({
             type: 'error',
-            mainText: 'Comando não reconhecido',
-            duration: 2000,
+            subText: 'Comando não reconhecido',
+            mainText: `"${transcript}"`,
           });
         }
       }
       return;
     }
 
-    if (!localIntent || localIntent.type === 'unknown') return;
+    if (!localIntent || localIntent.type === 'unknown') {
+      if (isFinal && transcript.trim().length > 0) {
+        audioService.playVoiceBeep('error');
+        if (showNotificationRef.current) {
+          showNotificationRef.current({
+            type: 'error',
+            subText: 'Comando não reconhecido',
+            mainText: `"${transcript}"`,
+          });
+        }
+      }
+      return;
+    }
 
 
     if (localIntent.domainConflict) {

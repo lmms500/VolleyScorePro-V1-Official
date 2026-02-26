@@ -1,5 +1,6 @@
 package com.volleyscore.pro2;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -30,8 +31,9 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        // CRITICAL: Register plugin BEFORE super.onCreate() for Capacitor 4+
+        // CRITICAL: Register plugins BEFORE super.onCreate() for Capacitor 4+
         registerPlugin(SystemUiPlugin.class);
+        registerPlugin(VoiceRecognitionPlugin.class);
         
         super.onCreate(savedInstanceState);
 
@@ -125,5 +127,6 @@ public class MainActivity extends BridgeActivity {
             controller.hide(WindowInsetsCompat.Type.systemBars());
         }
     }
+
 }
 

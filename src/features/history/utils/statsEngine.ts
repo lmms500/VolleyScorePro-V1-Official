@@ -10,6 +10,7 @@ export interface StatsDelta {
   aces: number;
   mvpScore: number;
   mvpCount: number;
+  experience: number;
 }
 
 /**
@@ -40,7 +41,8 @@ export const calculateMatchDeltas = (
         blocks: 0,
         aces: 0,
         mvpScore: 0,
-        mvpCount: 0
+        mvpCount: 0,
+        experience: 100 // XP base por participação
       });
     }
     return deltas.get(id)!;
@@ -51,6 +53,7 @@ export const calculateMatchDeltas = (
     const d = getDelta(profileId);
     if (winnerTeamId && teamId === winnerTeamId) {
       d.matchesWon = 1;
+      d.experience += 50; // Bônus de vitória
     }
   });
 
@@ -71,19 +74,23 @@ export const calculateMatchDeltas = (
 
       d.totalPoints += 1;
       d.mvpScore += 1;
+      d.experience += 10; // XP por ponto
 
       switch (log.skill) {
         case 'attack':
           d.attacks += 1;
           d.mvpScore += 0.5;
+          d.experience += 5;
           break;
         case 'block':
           d.blocks += 1;
           d.mvpScore += 1.0;
+          d.experience += 15;
           break;
         case 'ace':
           d.aces += 1;
           d.mvpScore += 1.0;
+          d.experience += 15;
           break;
       }
     }
@@ -101,6 +108,7 @@ export const calculateMatchDeltas = (
     deltas.forEach((delta) => {
       if (delta.mvpScore === maxScore) {
         delta.mvpCount = 1;
+        delta.experience += 100; // Bônus de MVP
       }
     });
   }
@@ -116,8 +124,14 @@ export const mergeStats = (current: ProfileStats | undefined, delta: StatsDelta)
     attacks: 0,
     blocks: 0,
     aces: 0,
-    mvpCount: 0
+    mvpCount: 0,
+    experience: 0,
+    level: 1
   };
+
+  const newExperience = (base.experience || 0) + delta.experience;
+  // Fórmula de Level: 500 XP por nível
+  const newLevel = Math.floor(newExperience / 500) + 1;
 
   return {
     matchesPlayed: base.matchesPlayed + delta.matchesPlayed,
@@ -126,6 +140,8 @@ export const mergeStats = (current: ProfileStats | undefined, delta: StatsDelta)
     attacks: base.attacks + delta.attacks,
     blocks: base.blocks + delta.blocks,
     aces: base.aces + delta.aces,
-    mvpCount: (base.mvpCount || 0) + (delta.mvpCount || 0)
+    mvpCount: (base.mvpCount || 0) + (delta.mvpCount || 0),
+    experience: newExperience,
+    level: newLevel
   };
 };

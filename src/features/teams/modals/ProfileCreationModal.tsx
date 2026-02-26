@@ -56,19 +56,22 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
 
             // Avatar Hydration Logic
             if (initialAvatar) {
-                // Heuristic: If it matches a known emoji in our list, it's an emoji (safest).
-                // Generic fallback: If length > 2, assume emoji. If length <= 2 and looks like text, text.
+                const isUrl = initialAvatar.startsWith('http') || initialAvatar.length > 30;
                 const allEmojis = Object.values(EMOJI_CATEGORIES).flat();
-                const isEmoji = allEmojis.includes(initialAvatar) || (initialAvatar.length > 2) || (/\p{Emoji}/u.test(initialAvatar));
+                const isEmoji = allEmojis.includes(initialAvatar) || (initialAvatar.length > 2 && !isUrl) || (/\p{Emoji}/u.test(initialAvatar));
 
-                if (isEmoji) {
+                if (isUrl) {
+                    setMode('emoji'); // Usamos o preview de emoji para mostrar a imagem por enquanto
+                    setSelectedEmoji(initialAvatar);
+                } else if (isEmoji) {
                     setMode('emoji');
                     setSelectedEmoji(initialAvatar);
                 } else {
                     setMode('text');
                     setCustomText(initialAvatar);
                 }
-            } else {
+            }
+            else {
                 // Default if no avatar provided
                 if (initialName && !customText) {
                     setCustomText(getInitials(initialName));
@@ -144,7 +147,15 @@ export const ProfileCreationModal: React.FC<ProfileCreationModalProps> = ({
                                 className="relative group transition-transform active:scale-95 shrink-0 mt-1"
                             >
                                 <div className="w-24 h-24 rounded-[1.5rem] bg-white/60 dark:bg-white/5 backdrop-blur-sm flex items-center justify-center text-5xl shadow-[0_4px_16px_rgba(0,0,0,0.08),inset_0_1px_0_0_rgba(255,255,255,0.2)] border border-white/60 dark:border-white/10 overflow-hidden relative ring-1 ring-inset ring-white/10">
-                                    {mode === 'emoji' ? selectedEmoji : (customText || getInitials(name))}
+                                    {mode === 'emoji' ? (
+                                        selectedEmoji.startsWith('http') || selectedEmoji.length > 30 ? (
+                                            <img src={selectedEmoji} alt="Avatar" className="w-full h-full object-cover" />
+                                        ) : (
+                                            selectedEmoji
+                                        )
+                                    ) : (
+                                        customText || getInitials(name)
+                                    )}
 
                                     {/* Edit Overlay Hint */}
                                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">

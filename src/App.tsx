@@ -24,6 +24,7 @@ import { GameScreen } from '@features/game/screens';
 import { LandingPage } from '@pages/LandingPage';
 import { Capacitor } from '@capacitor/core';
 import { SplashScreen } from '@capacitor/splash-screen';
+import { ProfileSyncManager } from '@features/teams/components/ProfileSyncManager';
 
 function App() {
     const [showApp, setShowApp] = useState(false);
@@ -114,6 +115,7 @@ function App() {
                     <ResponsiveProvider>
                         <ErrorBoundary>
                             <AuthProvider>
+                                <ProfileSyncManager />
                                 <TimerProvider>
                                     <GameProvider>
                                         <ModalProvider>

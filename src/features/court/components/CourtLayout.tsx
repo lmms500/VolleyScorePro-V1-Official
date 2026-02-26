@@ -255,9 +255,10 @@ export const CourtLayout: React.FC<CourtLayoutProps> = ({
     const isVertical = courtRotation === 90 || courtRotation === -90 || courtRotation === 270 || courtRotation === -270;
 
     // Standard courtelement (shared between rotated and non-rotated)
+    // Note: overflow-visible allows MVP glow, server ring, and player names to extend beyond court bounds
     const courtVisualization = (
         <div className={`
-            relative flex rounded-3xl ${courtBgClass} dark:bg-slate-900/40 backdrop-blur-md border border-white/40 dark:border-white/10 p-0 overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25),inset_0_1px_0_0_rgba(255,255,255,0.15)] ring-1 ring-inset ring-white/10
+            relative flex rounded-3xl ${courtBgClass} dark:bg-slate-900/40 backdrop-blur-md border border-white/40 dark:border-white/10 p-0 overflow-visible shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25),inset_0_1px_0_0_rgba(255,255,255,0.15)] ring-1 ring-inset ring-white/10
             ${isVertical
                 ? 'h-[85%] max-h-[85vh] w-auto max-w-full aspect-[1/1.8] flex-col mx-auto'
                 : 'w-full max-w-4xl max-h-[58vh] aspect-[1.8/1] flex-row mx-2'

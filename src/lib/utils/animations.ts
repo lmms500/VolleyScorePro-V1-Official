@@ -460,6 +460,20 @@ export const courtServeRingTransition: Transition = {
   ease: [0.25, 0.1, 0.25, 1]
 };
 
+// --- MVP & SERVER COURT ANIMATIONS (v2 - Redesigned) ---
+
+export const courtMVPGlowTransition: Transition = {
+  type: "spring",
+  stiffness: 200,
+  damping: 20
+};
+
+export const courtServerRingTransitionV2: Transition = {
+  type: "spring",
+  stiffness: 150,
+  damping: 18
+};
+
 // --- PREMIUM LANDING PAGE ANIMATIONS ---
 
 export const premiumSpring: Transition = {

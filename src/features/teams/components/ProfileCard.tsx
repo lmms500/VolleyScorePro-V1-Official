@@ -49,8 +49,16 @@ export const ProfileCard = memo(({ profile, onDelete, onAddToGame, status, onEdi
         <div className={`relative flex flex-col p-3 rounded-2xl transition-all duration-300 border ${status ? 'bg-slate-50/50 dark:bg-white/5 opacity-70 border-dashed border-white/20 dark:border-white/5' : 'bg-gradient-to-b from-slate-50 to-slate-100 dark:from-white/5 dark:to-white/[0.02] border-white/40 dark:border-white/10 shadow-lg shadow-black/5 dark:shadow-black/20 ring-1 ring-black/5 dark:ring-white/5 backdrop-blur-md hover:shadow-xl hover:border-indigo-500/30 after:absolute after:inset-x-0 after:top-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-white/50 after:to-transparent after:rounded-t-2xl'} group`}>
             <div className="flex items-center gap-3">
                 <div className="relative">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg bg-slate-100 dark:bg-black/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ring-1 ring-inset ring-black/5 dark:ring-white/5 border border-white/50 dark:border-white/5">
-                        {profile.avatar || '👤'}
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg bg-slate-100 dark:bg-black/20 shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)] ring-1 ring-inset ring-black/5 dark:ring-white/5 border border-white/50 dark:border-white/5 overflow-hidden">
+                        {profile.avatar ? (
+                            profile.avatar.startsWith('http') || profile.avatar.length > 30 ? (
+                                <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" />
+                            ) : (
+                                <span className="text-base">{profile.avatar}</span>
+                            )
+                        ) : (
+                            <User size={20} className="opacity-40" />
+                        )}
                     </div>
                     {status && (<div className="absolute -bottom-1 -right-1 w-4 h-4 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full border-2 border-white dark:border-slate-800 shadow-sm shadow-emerald-500/30" />)}
                 </div>

@@ -4,7 +4,7 @@ import { resolveTheme, getHexFromColor } from '@lib/utils/colors';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { motion } from 'framer-motion';
 import { isEmptySlot } from '@config/gameModes';
-import { courtPlayerPositionTransition, courtServeRingTransition } from '@lib/utils/animations';
+import { courtPlayerPositionTransition, courtServeRingTransition, courtMVPGlowTransition, courtServerRingTransitionV2 } from '@lib/utils/animations';
 
 interface VolleyballCourtProps {
     players: Player[];
@@ -89,7 +89,7 @@ const DraggablePlayer = memo(({ player, index, teamId, side, teamColor, isServer
 
     return (
         <motion.div
-            layoutId={player.id}
+            layoutId={`${teamId}-player-${player.id}`}
             layout="position"
             transition={courtPlayerPositionTransition}
             ref={setNodeRef}
@@ -105,35 +105,114 @@ const DraggablePlayer = memo(({ player, index, teamId, side, teamColor, isServer
             style={{
                 touchAction: 'none',
                 transform: 'translateZ(0)',
-                willChange: isDragging ? 'transform, opacity' : 'transform'
+                willChange: isDragging ? 'transform, opacity' : 'transform',
+                contain: 'layout style',
+                overflow: 'visible'
             }}
         >
-            {/* Server Indicator Ring - Ciano para máximo contraste em areia e quadra */}
+            {/* Server Indicator Ring - Nova animação v2 com Framer Motion */}
             {isServer && (
                 <motion.div
                     layoutId={`serve-ring-${teamId}`}
-                    className="absolute -inset-2.5 rounded-full border-[4px] border-dashed border-cyan-400 animate-[spin_6s_linear_infinite]"
-                    style={{
-                        boxShadow: '0 0 20px rgba(34, 211, 238, 0.7), 0 0 40px rgba(34, 211, 238, 0.4)',
-                        transform: 'translateZ(0)',
-                        willChange: 'transform'
+                    className="absolute -inset-3 rounded-full z-30 pointer-events-none"
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ 
+                        scale: 1, 
+                        opacity: 1,
+                        rotate: 360
                     }}
-                    transition={courtServeRingTransition}
-                />
-            )}
-
-            {/* MVP Glow - Branco com dourado interno para visibilidade universal */}
-            {isMVP && (
-                <>
-                    <div
-                        className="absolute -inset-1 rounded-full animate-pulse z-0"
+                    exit={{ scale: 0.8, opacity: 0 }}
+                    transition={courtServerRingTransitionV2}
+                    style={{
+                        willChange: 'transform, opacity',
+                    }}
+                >
+                    {/* Anel rotativo contínuo */}
+                    <motion.div
+                        className="absolute inset-0 rounded-full border-[3px] border-dashed border-cyan-400"
+                        animate={{ rotate: -360 }}
+                        transition={{ 
+                            duration: 8, 
+                            repeat: Infinity, 
+                            ease: "linear" 
+                        }}
                         style={{
-                            boxShadow: '0 0 25px rgba(255, 255, 255, 0.8), 0 0 50px rgba(251, 191, 36, 0.5), inset 0 0 15px rgba(251, 191, 36, 0.3)'
+                            boxShadow: '0 0 15px rgba(34, 211, 238, 0.6), 0 0 30px rgba(34, 211, 238, 0.3), inset 0 0 10px rgba(34, 211, 238, 0.2)'
                         }}
                     />
-                    <div className="absolute inset-0 rounded-full ring-4 ring-white/90 z-0" />
-                    <div className="absolute inset-0 rounded-full ring-2 ring-inset ring-amber-400 z-0" />
-                </>
+                    {/* Segundo anel para mais brilho */}
+                    <motion.div
+                        className="absolute inset-1 rounded-full border border-cyan-300/50"
+                        animate={{ 
+                            scale: [1, 1.1, 1],
+                            opacity: [0.5, 0.8, 0.5]
+                        }}
+                        transition={{ 
+                            duration: 2, 
+                            repeat: Infinity, 
+                            ease: "easeInOut" 
+                        }}
+                    />
+                </motion.div>
+            )}
+
+            {/* MVP Glow - Nova animação v2 com Framer Motion */}
+            {isMVP && (
+                <motion.div
+                    className="absolute -inset-2 rounded-full z-30 pointer-events-none"
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ 
+                        scale: [1, 1.1, 1],
+                        opacity: 1
+                    }}
+                    exit={{ scale: 0.8, opacity: 0 }}
+                    transition={courtMVPGlowTransition}
+                    style={{ willChange: 'transform, opacity' }}
+                >
+                    {/* Brilho principal pulsante */}
+                    <motion.div
+                        className="absolute inset-0 rounded-full"
+                        animate={{ 
+                            boxShadow: [
+                                '0 0 20px rgba(255, 255, 255, 0.7), 0 0 40px rgba(251, 191, 36, 0.4), inset 0 0 15px rgba(251, 191, 36, 0.2)',
+                                '0 0 30px rgba(255, 255, 255, 0.9), 0 0 60px rgba(251, 191, 36, 0.6), inset 0 0 20px rgba(251, 191, 36, 0.3)',
+                                '0 0 20px rgba(255, 255, 255, 0.7), 0 0 40px rgba(251, 191, 36, 0.4), inset 0 0 15px rgba(251, 191, 36, 0.2)'
+                            ]
+                        }}
+                        transition={{ 
+                            duration: 1.5, 
+                            repeat: Infinity, 
+                            ease: "easeInOut" 
+                        }}
+                    />
+                    {/* Anel branco externo */}
+                    <motion.div
+                        className="absolute inset-0 rounded-full ring-4 ring-white/80"
+                        animate={{ 
+                            scale: [1, 1.05, 1],
+                            opacity: [0.8, 1, 0.8]
+                        }}
+                        transition={{ 
+                            duration: 1.5, 
+                            repeat: Infinity, 
+                            ease: "easeInOut" 
+                        }}
+                    />
+                    {/* Anel dourado interno */}
+                    <motion.div
+                        className="absolute inset-1 rounded-full ring-2 ring-amber-400/70"
+                        animate={{ 
+                            scale: [1, 1.1, 1],
+                            opacity: [0.6, 1, 0.6]
+                        }}
+                        transition={{ 
+                            duration: 1.5, 
+                            repeat: Infinity, 
+                            ease: "easeInOut",
+                            delay: 0.2
+                        }}
+                    />
+                </motion.div>
             )}
 
             {/* Main Token Body */}
@@ -252,7 +331,7 @@ export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
 
             {/* Players Grid */}
             <div className={`
-                relative z-10 w-full h-full grid gap-2 sm:gap-4 ${gridRowsClass} ${gridColsClass}
+                relative z-10 w-full h-full grid gap-2 sm:gap-4 overflow-visible ${gridRowsClass} ${gridColsClass}
                 ${isPortrait
                     ? (side === 'left' ? 'pb-8 pt-4 lg:pb-12 lg:pt-6' : 'pt-8 pb-4 lg:pt-12 lg:pb-6')
                     : (side === 'left' ? 'pr-8 pl-4 lg:pr-12 lg:pl-6' : 'pl-8 pr-4 lg:pl-12 lg:pr-6')
@@ -262,7 +341,7 @@ export const VolleyballCourt: React.FC<VolleyballCourtProps> = ({
                     if (isEmptySlot(arrayIndex)) return <div key={`zone-${gridPosition}`} className="relative" />;
 
                     return (
-                        <div key={`zone-${arrayIndex}`} className="relative flex items-center justify-center">
+                        <div key={`zone-${arrayIndex}`} className="relative flex items-center justify-center overflow-visible">
 
                             {/* Watermark Zone Number */}
                             <div

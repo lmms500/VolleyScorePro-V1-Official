@@ -5,15 +5,14 @@ import { useTranslation } from '@contexts/LanguageContext';
 import { downloadJSON, exportMatchesToCSV, parseJSONFile } from '@lib/storage/io';
 import {
     Search, Clock, Trash2, ChevronDown, ChevronUp,
-    Download, Upload, Filter, AlertCircle, BarChart2, Crown, Calendar, SortDesc, Check, FileSpreadsheet, FileJson, PieChart, FolderOpen, X, Users, Globe, Radio
+    Download, Upload, Filter, BarChart2, Crown, SortDesc, Check, FileSpreadsheet, FileJson, PieChart, FolderOpen, X, Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '@ui/Button';
 import { MatchDetail } from './MatchDetail';
 import { resolveTheme } from '@lib/utils/colors';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { ConfirmationModal } from '@features/game/modals/ConfirmationModal';
-// import { GlobalLeaderboard } from '@/components/Social/GlobalLeaderboard'; // DISABLED - Global tab hidden
+import { GlobalLeaderboard } from '@features/social/components/GlobalLeaderboard';
 import { useActions } from '@contexts/GameContext'; // UPDATED: useActions only
 import { useNotification } from '@contexts/NotificationContext';
 import { SyncEngine } from '@features/broadcast/services/SyncEngine';
@@ -162,8 +161,7 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
     const { setState } = useActions(); // UPDATED: useActions
     const { showNotification } = useNotification();
 
-    // TAB NAVIGATION - DISABLED (Local only)
-    // const [activeTab, setActiveTab] = useState<'local' | 'global'>('local');
+    const [activeTab, setActiveTab] = useState<'local' | 'global'>('local');
 
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState<FilterType>('all');
@@ -346,58 +344,89 @@ export const HistoryList: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
                             animate={{ y: showHeader ? 0 : -120 }}
                             transition={{ duration: 0.25, ease: [0.25, 1, 0.5, 1] }}
                             style={{ transform: 'translateZ(0)', willChange: 'transform' }}
-                            className={`bg-transparent pb-2 pt-2 px-2 pointer-events-auto flex flex-col gap-2 relative z-50 transition-opacity duration-200 ${showHeader ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                            className={`bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl pb-2 pt-2 px-2 pointer-events-auto flex flex-col gap-2 relative z-50 transition-opacity duration-200 border-b border-black/5 dark:border-white/5 shadow-sm ${showHeader ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
                         >
-                            {/* TAB SELECTOR - DISABLED (Local only) */}
+                            {/* TAB SELECTOR */}
+                            <div className="flex gap-1 p-1 bg-slate-100 dark:bg-black/40 rounded-xl mx-0.5">
+                                <button
+                                    onClick={() => setActiveTab('local')}
+                                    className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${activeTab === 'local' ? 'bg-white dark:bg-slate-800 text-indigo-500 shadow-sm ring-1 ring-inset ring-black/5 dark:ring-white/10' : 'text-slate-500'}`}
+                                >
+                                    <Clock size={14} /> {t('historyList.tabs.local') || 'Local'}
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('global')}
+                                    className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase transition-all flex items-center justify-center gap-2 ${activeTab === 'global' ? 'bg-white dark:bg-slate-800 text-indigo-500 shadow-sm ring-1 ring-inset ring-black/5 dark:ring-white/10' : 'text-slate-500'}`}
+                                >
+                                    <Globe size={14} /> {t('historyList.tabs.global') || 'Global'}
+                                </button>
+                            </div>
 
-                            {/* LOCAL CONTROLS ONLY */}
-                            <motion.div key="local-controls" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-2">
-                                <div className="flex gap-2 items-center">
-                                    <div className="relative flex-1 group">
-                                        <div className="absolute inset-0 bg-white/60 dark:bg-white/5 backdrop-blur-md border border-white/60 dark:border-white/10 rounded-xl ring-1 ring-inset ring-white/10 dark:ring-white/5 group-focus-within:ring-2 group-focus-within:ring-indigo-500/40 shadow-[0_1px_2px_rgba(0,0,0,0.05),inset_0_1px_0_0_rgba(255,255,255,0.15)] transition-all"></div>
-                                        <div className="absolute left-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-md bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-sm">
-                                            <Search className="text-white" size={11} strokeWidth={2.5} />
+                            {activeTab === 'local' ? (
+                                <motion.div key="local-controls" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col gap-2">
+                                    <div className="flex gap-2 items-center">
+                                        <div className="relative flex-1 group">
+                                            <div className="absolute inset-0 bg-slate-100/50 dark:bg-white/5 rounded-xl ring-1 ring-inset ring-black/5 dark:ring-white/5 group-focus-within:ring-2 group-focus-within:ring-indigo-500/40 transition-all"></div>
+                                            <div className="absolute left-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-md bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-sm">
+                                                <Search className="text-white" size={11} strokeWidth={2.5} />
+                                            </div>
+                                            <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('historyList.searchPlaceholder')} className="relative w-full bg-transparent border-none rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-slate-800 dark:text-white focus:outline-none" />
                                         </div>
-                                        <input value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t('historyList.searchPlaceholder')} className="relative w-full bg-transparent border-none rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-slate-800 dark:text-white focus:outline-none" />
+                                        {onClose && <button onClick={onClose} className="w-10 h-9 flex items-center justify-center bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl shadow-lg shadow-red-500/30 ring-1 ring-inset ring-white/10 shrink-0 active:scale-95 transition-all group/close"><X size={16} strokeWidth={3} className="group-hover/close:rotate-90 transition-transform duration-300" /></button>}
+                                    </div>
+                                    <div className="flex gap-2 items-center">
+                                        <div className="grid grid-cols-2 gap-2 flex-1"><CustomSelect value={filterType} onChange={(val) => setFilterType(val as any)} options={filterOptions} icon={<Filter size={12} />} /><CustomSelect value={sortOrder} onChange={(val) => setSortOrder(val as any)} options={sortOptions} icon={<SortDesc size={12} />} /></div>
+                                        <div className="flex gap-1 shrink-0">
+                                            <button onClick={handleClearAll} className="p-2.5 rounded-xl bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/20 ring-1 ring-inset ring-white/10 active:scale-95 transition-all" title={t('historyList.deleteAll') || 'Clear All'}>
+                                                <Trash2 size={16} />
+                                            </button>
+                                            <button onClick={() => setShowStats(true)} className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/20 ring-1 ring-inset ring-white/10 active:scale-95 transition-all">
+                                                <PieChart size={16} />
+                                            </button>
+                                            <ExportMenu onExportJSON={handleExportJSON} onExportCSV={handleExportCSV} />
+                                            <button onClick={handleImportClick} className="p-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10 text-slate-500 shadow-sm ring-1 ring-inset ring-white/10 dark:ring-white/5 hover:bg-white/80 dark:hover:bg-white/10 active:scale-95 transition-all">
+                                                <Download size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ) : (
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                                            <Globe size={16} />
+                                        </div>
+                                        <span className="text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Ranking Global</span>
                                     </div>
                                     {onClose && <button onClick={onClose} className="w-10 h-9 flex items-center justify-center bg-gradient-to-br from-red-500 to-red-600 text-white rounded-xl shadow-lg shadow-red-500/30 ring-1 ring-inset ring-white/10 shrink-0 active:scale-95 transition-all group/close"><X size={16} strokeWidth={3} className="group-hover/close:rotate-90 transition-transform duration-300" /></button>}
                                 </div>
-                                <div className="flex gap-2 items-center">
-                                    <div className="grid grid-cols-2 gap-2 flex-1"><CustomSelect value={filterType} onChange={(val) => setFilterType(val as any)} options={filterOptions} icon={<Filter size={12} />} /><CustomSelect value={sortOrder} onChange={(val) => setSortOrder(val as any)} options={sortOptions} icon={<SortDesc size={12} />} /></div>
-                                    <div className="flex gap-1 shrink-0">
-                                        <button onClick={handleClearAll} className="p-2.5 rounded-xl bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/20 ring-1 ring-inset ring-white/10 active:scale-95 transition-all" title={t('historyList.deleteAll') || 'Clear All'}>
-                                            <Trash2 size={16} />
-                                        </button>
-                                        <button onClick={() => setShowStats(true)} className="p-2.5 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-lg shadow-indigo-500/20 ring-1 ring-inset ring-white/10 active:scale-95 transition-all">
-                                            <PieChart size={16} />
-                                        </button>
-                                        <ExportMenu onExportJSON={handleExportJSON} onExportCSV={handleExportCSV} />
-                                        <button onClick={handleImportClick} className="p-2.5 rounded-xl bg-white/60 dark:bg-white/5 border border-white/50 dark:border-white/10 text-slate-500 shadow-sm ring-1 ring-inset ring-white/10 dark:ring-white/5 hover:bg-white/80 dark:hover:bg-white/10 active:scale-95 transition-all">
-                                            <Download size={16} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </motion.div>
+                            )}
                         </motion.div>
                     </div>
 
                     <div className="flex-1 min-w-0 bg-transparent px-1 pb-safe-bottom pt-1 min-h-0 flex flex-col">
-                        {/* LOCAL HISTORY ONLY */}
-                        {filteredMatches.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-64 text-slate-400 opacity-60"><div className="p-4 bg-slate-100 dark:bg-white/5 rounded-full mb-3 border border-slate-200"><FolderOpen size={32} strokeWidth={1} /></div><h3 className="text-xs font-black uppercase tracking-widest">{t('historyList.empty')}</h3></div>
+                        {/* CONTENT AREA */}
+                        {activeTab === 'local' ? (
+                            filteredMatches.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center h-64 text-slate-400 opacity-60"><div className="p-4 bg-slate-100 dark:bg-white/5 rounded-full mb-3 border border-slate-200"><FolderOpen size={32} strokeWidth={1} /></div><h3 className="text-xs font-black uppercase tracking-widest">{t('historyList.empty')}</h3></div>
+                            ) : (
+                                <Virtuoso
+                                    ref={virtuosoRef}
+                                    style={{ height: '100%', width: '100%', flex: 1 }}
+                                    data={filteredMatches}
+                                    itemContent={rowRenderer}
+                                    onScroll={(e) => handleScroll((e.target as HTMLElement).scrollTop)}
+                                    components={{
+                                        // SPACING HEADER: Ensures first item is not hidden behind the fixed header
+                                        Header: () => <div className="h-32" />,
+                                        Footer: () => <div className="h-24" /> // Spacing for fab/bottom nav
+                                    }}
+                                />
+                            )
                         ) : (
-                            <Virtuoso
-                                ref={virtuosoRef}
-                                style={{ height: '100%', width: '100%', flex: 1 }}
-                                data={filteredMatches}
-                                itemContent={rowRenderer}
-                                onScroll={(e) => handleScroll((e.target as HTMLElement).scrollTop)}
-                                components={{
-                                    // SPACING HEADER: Ensures first item is not hidden behind the fixed header
-                                    Header: () => <div className="h-32" />,
-                                    Footer: () => <div className="h-24" /> // Spacing for fab/bottom nav
-                                }}
-                            />
+                            <div className="pt-24 h-full overflow-y-auto no-scrollbar">
+                                <GlobalLeaderboard onJoinMatch={onJoinPublicMatch} />
+                            </div>
                         )}
                     </div>
                 </div>

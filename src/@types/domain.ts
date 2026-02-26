@@ -77,10 +77,14 @@ export interface ProfileStats {
   blocks: number;
   aces: number;
   mvpCount: number;
+  // Gamificação
+  experience: number;
+  level: number;
 }
 
 export interface PlayerProfile {
   id: PlayerId;
+  firebaseUid?: string; // Vinclulação com Firebase Auth
   name: string;
   skillLevel: number;
   number?: string;
@@ -89,8 +93,9 @@ export interface PlayerProfile {
   stats?: ProfileStats;
   createdAt: number;
   lastUpdated: number;
-  // Adicionado para suportar compartilhamento em rankings globais
   isPublic?: boolean;
+  friends?: string[]; // Lista de UIDs de amigos
+  achievements?: string[]; // IDs de conquistas alcançadas
 }
 
 export interface GameConfig {

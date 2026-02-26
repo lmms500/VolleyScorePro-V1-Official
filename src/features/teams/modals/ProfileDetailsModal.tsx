@@ -99,8 +99,16 @@ export const ProfileDetailsModal: React.FC<ProfileDetailsModalProps> = ({
                                 {/* Background Pattern */}
                                 <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4yKSIvPjwvc3ZnPg==')] [mask-image:linear-gradient(to_bottom,black,transparent)]" />
 
-                                <div className="relative z-10 w-28 h-28 rounded-[2rem] bg-white/20 backdrop-blur-md shadow-inner border border-white/30 flex items-center justify-center text-6xl mb-5 ring-4 ring-white/10">
-                                    {profile.avatar || '👤'}
+                                <div className="relative z-10 w-28 h-28 rounded-[2rem] bg-white/20 backdrop-blur-md shadow-inner border border-white/30 flex items-center justify-center text-6xl mb-5 ring-4 ring-white/10 overflow-hidden">
+                                    {profile.avatar ? (
+                                        profile.avatar.startsWith('http') || profile.avatar.length > 30 ? (
+                                            <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <span className="text-4xl">{profile.avatar}</span>
+                                        )
+                                    ) : (
+                                        '👤'
+                                    )}
                                 </div>
 
                                 <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tight leading-none text-center drop-shadow-md break-words max-w-full">

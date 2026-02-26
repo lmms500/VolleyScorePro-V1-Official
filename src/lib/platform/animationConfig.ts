@@ -68,18 +68,18 @@ const HIGH_END_CONFIG: AnimationConfig = {
 };
 
 const ANDROID_CONFIG: AnimationConfig = {
-  backdropBlur: 'md',
-  blurRadius: 12,
+  backdropBlur: 'sm',
+  blurRadius: 8,
   modalDuration: 250,
   modalUseSpring: false,
   modalUseScale: true,
   modalUseFilterBlur: false,
-  useWillChange: true,
-  useGPUTransform: true,
+  useWillChange: false,
+  useGPUTransform: false,
   useContain: true,
   containValue: 'content',
-  maxParticles: 60,
-  backgroundGlowBlur: 50,
+  maxParticles: 40,
+  backgroundGlowBlur: 35,
   isAndroid: true,
   isLowEnd: false,
 };

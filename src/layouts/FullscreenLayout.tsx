@@ -1,8 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { LayoutGroup, motion } from 'framer-motion';
 import { Minimize2 } from 'lucide-react';
-import { useScore, useRoster, useActions } from '@contexts/GameContext';
-import { useTimerControls } from '@contexts/TimerContext';
+import { useScore, useRoster } from '@contexts/GameContext';
 import { useModals } from '@contexts/ModalContext';
 import { useHudMeasure } from '@features/game/hooks/useHudMeasure';
 import { MeasuredFullscreenHUD } from '@features/game/components/MeasuredFullscreenHUD';
@@ -64,32 +63,23 @@ export const FullscreenLayout: React.FC<FullscreenLayoutProps> = ({
         scoreB,
         setsA,
         setsB,
-        currentSet,
         servingTeam,
         isMatchPointA,
         isMatchPointB,
         isSetPointA,
         isSetPointB,
-        isDeuce,
-        inSuddenDeath,
-        isTieBreak,
         swappedSides,
-        timeoutsA,
-        timeoutsB,
         lastScorerTeam
     } = useScore();
 
     const {
         teamARoster,
         teamBRoster,
-        teamAName,
-        teamBName,
         config,
         canUndo,
         syncRole
     } = useRoster();
 
-    const { setState, setServer, useTimeout } = useActions();
     const { activeModal, closeModal, openModal } = useModals();
 
     // --- DERIVED STATE ---
@@ -111,7 +101,7 @@ export const FullscreenLayout: React.FC<FullscreenLayoutProps> = ({
     // --- HUD MEASUREMENT (anteriormente no GameScreen) ---
     // enabled: não precisa checar isFullscreen (sempre true neste layout)
     const hudPlacement = useHudMeasure({
-        enabled: !config.voiceControlEnabled,
+        enabled: true,
         maxSets: config.maxSets
     });
 

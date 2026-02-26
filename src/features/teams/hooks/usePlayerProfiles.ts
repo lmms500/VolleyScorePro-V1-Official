@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { PlayerProfile, PlayerRole, ProfileStats } from '@types';
+import { PlayerProfile, PlayerRole } from '@types';
 import { SecureStorage } from '@lib/storage/SecureStorage';
 import { mergeStats, StatsDelta } from '@features/history/utils/statsEngine';
 import { v4 as uuidv4 } from 'uuid';
@@ -35,7 +35,7 @@ export const usePlayerProfiles = () => {
   const findProfileByName = useCallback((name: string): PlayerProfile | undefined => {
     const search = name.trim().toLowerCase();
     for (const profile of profiles.values()) {
-        if (profile.name.toLowerCase() === search) return profile;
+      if (profile.name.toLowerCase() === search) return profile;
     }
     return undefined;
   }, [profiles]);
@@ -44,27 +44,52 @@ export const usePlayerProfiles = () => {
    * Smart Upsert
    */
   // Adicionado isPublic aos extras para permitir persistência de visibilidade em rankings
-  const upsertProfile = useCallback((name: string, skillLevel: number, id?: string, extras?: { number?: string, avatar?: string, role?: PlayerRole, isPublic?: boolean }): PlayerProfile => {
+  const upsertProfile = useCallback((name: string, skillLevel: number, id?: string, extras?: { number?: string, avatar?: string, role?: PlayerRole, isPublic?: boolean, firebaseUid?: string, friends?: string[] }): PlayerProfile => {
     const cleanName = name.trim();
     const now = Date.now();
     let existing: PlayerProfile | undefined;
-    
+
     if (id) {
-        existing = profiles.get(id);
+      existing = profiles.get(id);
     } else {
+      // Tenta encontrar por firebaseUid primeiro, se fornecido
+      if (extras?.firebaseUid) {
+        for (const p of profiles.values()) {
+          if (p.firebaseUid === extras.firebaseUid) {
+            existing = p;
+            break;
+          }
+        }
+      }
+
+      // Se não achou por UID, tenta por nome
+      if (!existing) {
         existing = findProfileByName(cleanName);
+      }
     }
-    
+
     const newProfile: PlayerProfile = {
       id: existing?.id || uuidv4(),
       name: cleanName,
       skillLevel: Math.min(10, Math.max(1, skillLevel)),
       number: extras?.number !== undefined ? extras.number : existing?.number,
-      avatar: extras?.avatar !== undefined ? extras.avatar : existing?.avatar,
-      role: extras?.role !== undefined ? extras.role : existing?.role,
+      avatar: extras?.avatar ?? existing?.avatar,
+      role: extras?.role ?? existing?.role,
+      firebaseUid: extras?.firebaseUid ?? existing?.firebaseUid,
+      friends: extras?.friends ?? existing?.friends ?? [],
       // Preservar flag de visibilidade pública se fornecida
-      isPublic: extras?.isPublic !== undefined ? extras.isPublic : existing?.isPublic,
-      stats: existing?.stats, 
+      isPublic: extras?.isPublic ?? existing?.isPublic,
+      stats: existing?.stats || {
+        matchesPlayed: 0,
+        matchesWon: 0,
+        totalPoints: 0,
+        attacks: 0,
+        blocks: 0,
+        aces: 0,
+        mvpCount: 0,
+        experience: 0,
+        level: 1
+      },
       createdAt: existing?.createdAt || now,
       lastUpdated: now
     };
@@ -87,7 +112,7 @@ export const usePlayerProfiles = () => {
         const profile = next.get(profileId);
         if (profile) {
           const newStats = mergeStats(profile.stats, delta);
-          
+
           next.set(profileId, {
             ...profile,
             stats: newStats,
@@ -104,45 +129,45 @@ export const usePlayerProfiles = () => {
   const deleteProfile = useCallback((id: string): PlayerProfile | undefined => {
     const profileToDelete = profiles.get(id);
     if (profileToDelete) {
-        setProfiles(prev => {
-          const next = new Map(prev);
-          next.delete(id);
-          return next;
-        });
+      setProfiles(prev => {
+        const next = new Map(prev);
+        next.delete(id);
+        return next;
+      });
     }
     return profileToDelete;
   }, [profiles]);
 
   // NEW: Merge Profiles from Cloud
   const mergeProfiles = useCallback((remoteProfiles: PlayerProfile[]) => {
-      setProfiles(prev => {
-          // Explicit generic typing ensures 'next' is Map<string, PlayerProfile>
-          const next = new Map<string, PlayerProfile>(prev);
-          let changes = false;
-          
-          remoteProfiles.forEach(remote => {
-              const local = next.get(remote.id);
-              // Simple Merge: If remote is newer or local doesn't exist, take remote.
-              if (!local) {
-                  next.set(remote.id, remote);
-                  changes = true;
-              } else {
-                  // Conflict resolution based on lastUpdated timestamp
-                  if ((remote.lastUpdated || 0) > (local.lastUpdated || 0)) {
-                      next.set(remote.id, remote);
-                      changes = true;
-                  }
-              }
-          });
-          
-          return changes ? next : prev;
+    setProfiles(prev => {
+      // Explicit generic typing ensures 'next' is Map<string, PlayerProfile>
+      const next = new Map<string, PlayerProfile>(prev);
+      let changes = false;
+
+      remoteProfiles.forEach(remote => {
+        const local = next.get(remote.id);
+        // Simple Merge: If remote is newer or local doesn't exist, take remote.
+        if (!local) {
+          next.set(remote.id, remote);
+          changes = true;
+        } else {
+          // Conflict resolution based on lastUpdated timestamp
+          if ((remote.lastUpdated || 0) > (local.lastUpdated || 0)) {
+            next.set(remote.id, remote);
+            changes = true;
+          }
+        }
       });
+
+      return changes ? next : prev;
+    });
   }, []);
 
   const getProfile = useCallback((id: string) => profiles.get(id), [profiles]);
 
   return {
-    profiles, 
+    profiles,
     upsertProfile,
     deleteProfile,
     findProfileByName,
