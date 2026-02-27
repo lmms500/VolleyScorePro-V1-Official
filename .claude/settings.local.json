@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git -C \"c:/Dev/VolleyScore-Pro\" ls-files \"*.tsx\")"
+      "Bash(git -C \"c:/Dev/VolleyScore-Pro\" ls-files \"*.tsx\")",
+      "WebFetch(domain:skillsmp.com)",
+      "Bash(curl -sL https://raw.githubusercontent.com/anthropics/skills/main/skills/skill-creator/SKILL.md)"
     ]
   }
 }
