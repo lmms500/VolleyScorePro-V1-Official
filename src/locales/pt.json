@@ -766,5 +766,17 @@
         "projection": "Projeção Futura (Predictive AI)",
         "nextSteps": "Próximos Passos",
         "downloadReport": "Baixar Relatório Técnico"
+    },
+    "officialMatch": {
+        "badge": "Partida Oficial",
+        "validated": "Partida validada",
+        "casual": "Partida casual",
+        "insufficient": "Jogadores insuficientes",
+        "submittedToGlobal": "Resultados enviados ao ranking global!",
+        "playersNeeded": "{count} jogadores necessários",
+        "checkIn": "Fazer Check-in",
+        "checkedIn": "Check-in feito",
+        "participants": "Participantes",
+        "officialMode": "Modo Oficial"
     }
 }

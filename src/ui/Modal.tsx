@@ -1,10 +1,11 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { overlayVariants } from '@lib/utils/animations';
 import { GlassSurface } from './GlassSurface';
+import { getAnimationConfig } from '@lib/platform/animationConfig';
 
 interface ModalProps {
   isOpen: boolean;
@@ -20,54 +21,55 @@ interface ModalProps {
   footer?: React.ReactNode;
 }
 
-const fullscreenVariants: Variants = {
-  hidden: {
-    y: "100%",
-    opacity: 0,
-    transition: { duration: 0.25, ease: [0.32, 0, 0.67, 0] }
-  },
-  visible: {
-    y: "0%",
-    opacity: 1,
-    transition: {
-      type: "spring",
-      damping: 32,
-      stiffness: 280,
-      mass: 0.7
-    }
-  },
-  exit: {
-    y: "100%",
-    opacity: 0,
-    transition: { duration: 0.2, ease: [0.32, 0, 0.67, 0] }
-  }
-};
+const easeOut = [0.32, 0, 0.67, 0] as const;
+const easeSmooth = [0.25, 1, 0.5, 1] as const;
 
-const floatingVariants: Variants = {
-  hidden: {
-    opacity: 0,
-    scale: 0.96,
-    y: 8,
-    transition: { duration: 0.2, ease: [0.25, 1, 0.5, 1] }
-  },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: {
-      type: "spring",
-      damping: 28,
-      stiffness: 320,
-      mass: 0.6
+function buildFullscreenVariants(useSpring: boolean): Variants {
+  return {
+    hidden: {
+      y: "100%",
+      opacity: 0,
+      transition: { duration: 0.25, ease: easeOut }
+    },
+    visible: {
+      y: "0%",
+      opacity: 1,
+      transition: useSpring
+        ? { type: "spring", damping: 32, stiffness: 280, mass: 0.7 }
+        : { duration: 0.25, ease: easeSmooth }
+    },
+    exit: {
+      y: "100%",
+      opacity: 0,
+      transition: { duration: 0.2, ease: easeOut }
     }
-  },
-  exit: {
-    opacity: 0,
-    scale: 0.96,
-    y: 8,
-    transition: { duration: 0.15, ease: [0.32, 0, 0.67, 0] }
-  }
-};
+  };
+}
+
+function buildFloatingVariants(useSpring: boolean): Variants {
+  return {
+    hidden: {
+      opacity: 0,
+      scale: 0.96,
+      y: 8,
+      transition: { duration: 0.2, ease: easeSmooth }
+    },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: useSpring
+        ? { type: "spring", damping: 28, stiffness: 320, mass: 0.6 }
+        : { duration: 0.2, ease: easeSmooth }
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.96,
+      y: 8,
+      transition: { duration: 0.15, ease: easeOut }
+    }
+  };
+}
 
 export const Modal: React.FC<ModalProps> = ({
   isOpen,
@@ -95,10 +97,16 @@ export const Modal: React.FC<ModalProps> = ({
     }
   };
 
-  if (!mounted) return null;
-
   const isImmersive = variant === 'immersive';
   const isFullscreen = variant === 'fullscreen';
+
+  const animConfig = getAnimationConfig();
+  const activeVariants = useMemo(() => {
+    const useSpring = animConfig.modalUseSpring;
+    return (isImmersive || isFullscreen) ? buildFullscreenVariants(useSpring) : buildFloatingVariants(useSpring);
+  }, [isImmersive, isFullscreen, animConfig.modalUseSpring]);
+
+  if (!mounted) return null;
 
   let containerClasses = "";
   let contentLayoutClasses = "";
@@ -119,8 +127,6 @@ export const Modal: React.FC<ModalProps> = ({
     roundedClasses = "rounded-[2.5rem] landscape:rounded-2xl";
     intensity = 'high';
   }
-
-  const activeVariants = (isImmersive || isFullscreen) ? fullscreenVariants : floatingVariants;
   const shouldRenderHeader = !isImmersive && (title || showCloseButton);
 
   return createPortal(

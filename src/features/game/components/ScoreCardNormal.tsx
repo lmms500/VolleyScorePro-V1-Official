@@ -14,7 +14,7 @@ import { normalize, hp } from '@lib/utils/responsive';
 import { HaloPortal } from '@ui/HaloPortal';
 import { useScoreCardLogic } from '@features/game/hooks/useScoreCardLogic';
 import { usePerformanceSafe } from '@contexts/PerformanceContext';
-import { useResponsive } from '@contexts/ResponsiveContext';
+
 
 interface ScoreCardNormalProps {
     teamId: TeamId;
@@ -50,7 +50,6 @@ export const ScoreCardNormal: React.FC<ScoreCardNormalProps> = memo(({
 }) => {
     const { t } = useTranslation();
     const { config: perf } = usePerformanceSafe();
-    const { resizeKey } = useResponsive();
 
     const {
         showScout,

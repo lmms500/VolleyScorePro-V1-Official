@@ -86,6 +86,34 @@ service cloud.firestore {
         allow create: if isAuthenticated() && spectatorId == request.auth.uid;
         allow delete: if isAuthenticated() && spectatorId == request.auth.uid;
       }
+
+      // Subcoleção de Participants - jogadores com check-in para partidas oficiais
+      // Cada jogador cria/deleta seu próprio check-in documento
+      match /participants/{participantId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated() && participantId == request.auth.uid;
+        allow update: if isAuthenticated() && participantId == request.auth.uid;
+        allow delete: if isAuthenticated() && (
+          participantId == request.auth.uid ||  // Jogador pode sair
+          resource.data.hostUid == request.auth.uid  // Host pode remover
+        );
+      }
+    }
+
+    // Global Matches - Histórico global de partidas oficiais (validadas)
+    // Apenas partidas com check-in suficiente são submetidas aqui
+    match /global_matches/{matchId} {
+      // Público: qualquer pessoa pode ler o histórico global
+      allow read: if true;
+      
+      // Apenas usuários autenticados podem submeter partidas oficiais
+      // Imutável após criação (sem update/delete)
+      allow create: if isAuthenticated() &&
+                    request.resource.data.submittedBy == request.auth.uid &&
+                    request.resource.data.participantCount >= 4;  // Mínimo 2v2
+
+      // Partidas oficiais são imutáveis
+      allow update, delete: if false;
     }
   }
 }

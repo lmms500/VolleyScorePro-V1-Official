@@ -1,5 +1,5 @@
 
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { TeamColor } from '@types';
@@ -28,6 +28,20 @@ export const BackgroundGlow: React.FC<BackgroundGlowProps> = memo(({ isSwapped, 
 
   const glowMode = lowPowerModeProp === true ? 'static' : perf.visual.backgroundGlow;
   const glowBlur = animConfig.backgroundGlowBlur;
+
+  // Memoize styles before early returns to respect hook rules
+  const spotlightStyle = useMemo(() => ({
+    filter: `blur(${glowBlur}px)`,
+    ...(animConfig.useGPUTransform ? {
+      transform: 'translateZ(0)',
+      backfaceVisibility: 'hidden' as const,
+    } : {}),
+  }), [glowBlur, animConfig.useGPUTransform]);
+
+  const containerStyle = useMemo(() => ({
+    inset: -150,
+    ...(animConfig.useContain ? { contain: animConfig.containValue } : {}),
+  }), [animConfig.useContain, animConfig.containValue]);
 
   // --- GRADIENT MODE (REDUZIR_MOVIMENTO) ---
   if (glowMode === 'gradient') {
@@ -58,32 +72,21 @@ export const BackgroundGlow: React.FC<BackgroundGlowProps> = memo(({ isSwapped, 
   }
 
   // --- ANIMATED MODE (NORMAL - GPU COMPOSITED) ---
-  const gpuLayerStyle = animConfig.useGPUTransform ? {
-    transform: 'translateZ(0)',
-    backfaceVisibility: 'hidden' as const
-  } : {};
-
-  const containmentStyle = animConfig.useContain ? {
-    contain: animConfig.containValue
-  } : {};
+  const opacityClass = isFullscreen ? 'opacity-80 dark:opacity-60' : 'opacity-40 dark:opacity-25';
 
   return createPortal(
     <div
       className="fixed z-[-1] pointer-events-none select-none bg-transparent"
       aria-hidden="true"
-      style={{ inset: -150, ...containmentStyle }}
+      style={containerStyle}
     >
       {/* SPOTLIGHT ESQUERDO (Top-Left) */}
       <motion.div
         initial={false}
         animate={{ backgroundColor: activeLeftColor }}
         transition={{ duration: 0.8, ease: "easeInOut" }}
-        className={`absolute -top-[10%] -left-[10%] w-[70vmax] h-[70vmax] rounded-full will-change-[background-color] mix-blend-multiply dark:mix-blend-screen saturate-150 ${isFullscreen ? 'opacity-80 dark:opacity-60' : 'opacity-40 dark:opacity-25'
-          }`}
-        style={{
-          filter: `blur(${glowBlur}px)`,
-          ...gpuLayerStyle
-        }}
+        className={`absolute -top-[10%] -left-[10%] w-[70vmax] h-[70vmax] rounded-full saturate-150 ${opacityClass}`}
+        style={spotlightStyle}
       />
 
       {/* SPOTLIGHT DIREITO (Bottom-Right) */}
@@ -91,12 +94,8 @@ export const BackgroundGlow: React.FC<BackgroundGlowProps> = memo(({ isSwapped, 
         initial={false}
         animate={{ backgroundColor: activeRightColor }}
         transition={{ duration: 0.8, ease: "easeInOut" }}
-        className={`absolute -bottom-[10%] -right-[10%] w-[70vmax] h-[70vmax] rounded-full will-change-[background-color] mix-blend-multiply dark:mix-blend-screen saturate-150 ${isFullscreen ? 'opacity-80 dark:opacity-60' : 'opacity-40 dark:opacity-25'
-          }`}
-        style={{
-          filter: `blur(${glowBlur}px)`,
-          ...gpuLayerStyle
-        }}
+        className={`absolute -bottom-[10%] -right-[10%] w-[70vmax] h-[70vmax] rounded-full saturate-150 ${opacityClass}`}
+        style={spotlightStyle}
       />
     </div>,
     document.body

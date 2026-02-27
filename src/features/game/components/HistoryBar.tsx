@@ -120,9 +120,9 @@ const ScoreTickerSimple = memo(({ value, color }: { value: number, color: TeamCo
     <AnimatePresence mode="popLayout" initial={false}>
       <motion.span
         key={value}
-        initial={{ y: 5, opacity: 0, filter: 'blur(2px)' }}
-        animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
-        exit={{ y: -5, opacity: 0, filter: 'blur(2px)' }}
+        initial={{ y: 5, opacity: 0, scale: 0.95 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: -5, opacity: 0, scale: 0.95 }}
         className={`${theme.text} ${theme.textDark} transition-colors duration-300`}
       >
         {value}

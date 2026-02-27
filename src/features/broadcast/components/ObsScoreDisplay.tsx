@@ -13,9 +13,9 @@ const ScoreTicker = memo(({ value, hex }: { value: number; hex: string }) => (
         <AnimatePresence mode="popLayout" initial={false}>
             <motion.span
                 key={value}
-                initial={{ y: 40, opacity: 0, filter: 'blur(8px)' }}
-                animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
-                exit={{ y: -40, opacity: 0, filter: 'blur(8px)' }}
+                initial={{ y: 40, opacity: 0, scale: 0.9 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                exit={{ y: -40, opacity: 0, scale: 0.9 }}
                 transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 className="absolute font-black text-8xl tabular-nums tracking-tighter"
                 style={{ color: hex }}

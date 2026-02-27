@@ -150,7 +150,7 @@ export const FullscreenMenuDrawer: React.FC<FullscreenMenuDrawerProps> = memo(({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xl z-[65]"
+            className="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-[65]"
             onClick={onClose}
             style={{ touchAction: 'manipulation' }}
           />

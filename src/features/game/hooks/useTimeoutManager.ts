@@ -5,7 +5,7 @@
  * AGORA CONSOME CONTEXTS INTERNAMENTE - sem parâmetros.
  */
 
-import { useRef, useEffect, useCallback } from 'react';
+import { useRef, useEffect, useCallback, useMemo } from 'react';
 import { useActiveTimeout } from './useActiveTimeout';
 import { useScore, useActions } from '@contexts/GameContext';
 import { useModals } from '@contexts/ModalContext';
@@ -77,7 +77,7 @@ export function useTimeoutManager(): TimeoutManagerReturn {
         openModal('court');
     }, [minimizeTimeout, openModal]);
 
-    return {
+    return useMemo(() => ({
         activeTimeoutTeam,
         timeoutSeconds,
         isTimeoutMinimized,
@@ -87,5 +87,9 @@ export function useTimeoutManager(): TimeoutManagerReturn {
         maximizeTimeout,
         handleTimeoutUndo,
         handleTacticalBoard
-    };
+    }), [
+        activeTimeoutTeam, timeoutSeconds, isTimeoutMinimized,
+        startTimeout, stopTimeout, minimizeTimeout, maximizeTimeout,
+        handleTimeoutUndo, handleTacticalBoard
+    ]);
 }

@@ -41,22 +41,20 @@ export const ScoreTicker: React.FC<ScoreTickerProps> = memo(({ value, className,
         WebkitBackfaceVisibility: config.useGPUTransform ? 'hidden' : undefined
       }}
     >
-      <AnimatePresence mode="popLayout" initial={false}>
+      <AnimatePresence mode="wait" initial={false}>
         <motion.span
           key={value}
-          initial={{ 
-            opacity: 0, 
-            scale: 0.5, 
-            y: direction * 25 
+          initial={{
+            opacity: 0,
+            scale: 0.5,
+            y: direction * 20
           }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.8, position: 'absolute' }}
-          transition={{ 
-            type: "spring",
-            stiffness: 260,
-            damping: 18,
-            mass: 0.8
-          }}
+          exit={{ opacity: 0, scale: 0.85 }}
+          transition={config.isAndroid || config.isLowEnd
+            ? { duration: transitionDuration, ease: [0.25, 1, 0.5, 1] }
+            : { type: "spring", stiffness: 300, damping: 24, mass: 0.5 }
+          }
           data-testid="score-value"
           className="text-center leading-none origin-center absolute inset-0 flex items-center justify-center"
           style={{
@@ -64,7 +62,6 @@ export const ScoreTicker: React.FC<ScoreTickerProps> = memo(({ value, className,
             WebkitBackfaceVisibility: "hidden",
             height: '100%',
             width: '100%',
-            transformStyle: 'preserve-3d',
           }}
         >
           {value}

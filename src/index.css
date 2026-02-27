@@ -367,59 +367,51 @@ html:-moz-full-screen {
   pointer-events: none;
 }
 
-/* Ticker Animations (Hardware Accelerated) */
+/* Ticker Animations (Hardware Accelerated — no filter:blur, causes Android flicker) */
 @keyframes score-enter-up {
   0% {
-    transform: translate3d(0, 100%, 0);
+    transform: translate3d(0, 100%, 0) scale(0.9);
     opacity: 0;
-    filter: blur(4px);
   }
 
   100% {
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0) scale(1);
     opacity: 1;
-    filter: blur(0);
   }
 }
 
 @keyframes score-enter-down {
   0% {
-    transform: translate3d(0, -100%, 0);
+    transform: translate3d(0, -100%, 0) scale(0.9);
     opacity: 0;
-    filter: blur(4px);
   }
 
   100% {
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0) scale(1);
     opacity: 1;
-    filter: blur(0);
   }
 }
 
 @keyframes score-exit-up {
   0% {
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0) scale(1);
     opacity: 1;
-    filter: blur(0);
   }
 
   100% {
-    transform: translate3d(0, -100%, 0);
+    transform: translate3d(0, -100%, 0) scale(0.9);
     opacity: 0;
-    filter: blur(4px);
   }
 }
 
 @keyframes score-exit-down {
   0% {
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0) scale(1);
     opacity: 1;
-    filter: blur(0);
   }
 
   100% {
-    transform: translate3d(0, 100%, 0);
+    transform: translate3d(0, 100%, 0) scale(0.9);
     opacity: 0;
-    filter: blur(4px);
   }
 }

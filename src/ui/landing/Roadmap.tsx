@@ -82,7 +82,7 @@ export const Roadmap: React.FC = () => {
           dot: 'bg-indigo-500 shadow-indigo-500/50',
           line: 'bg-gradient-to-b from-indigo-500 to-purple-500',
           badge: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
-          icon: <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.5, repeat: Infinity }} className="w-2 h-2 rounded-full bg-indigo-400" />,
+          icon: <div className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />,
         };
       case 'upcoming':
         return {
@@ -98,30 +98,8 @@ export const Roadmap: React.FC = () => {
     <section id="roadmap" className="py-20 sm:py-32 px-4 relative overflow-hidden" ref={containerRef}>
       {/* Background Effects */}
       <div className="absolute inset-0 pointer-events-none">
-        <motion.div
-          className="absolute top-1/4 left-0 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl"
-          animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 20, 0],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-        <motion.div
-          className="absolute bottom-1/4 right-0 w-72 h-72 bg-rose-500/10 rounded-full blur-3xl"
-          animate={{
-            scale: [1, 1.3, 1],
-            x: [0, -20, 0],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
+        <div className="absolute top-1/4 left-0 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-0 w-72 h-72 bg-rose-500/10 rounded-full blur-3xl animate-pulse" />
       </div>
 
       <div className="max-w-5xl mx-auto relative">
@@ -186,11 +164,7 @@ export const Roadmap: React.FC = () => {
                   </motion.div>
                   {/* Pulse ring for current */}
                   {item.status === 'current' && (
-                    <motion.div
-                      className="absolute inset-0 rounded-full bg-indigo-500/50"
-                      animate={{ scale: [1, 2], opacity: [0.5, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                    />
+                    <div className="absolute inset-0 rounded-full bg-indigo-500/50 animate-ping" />
                   )}
                 </div>
 
@@ -206,14 +180,10 @@ export const Roadmap: React.FC = () => {
                         {item.quarter} {item.year}
                       </span>
                       {item.status === 'current' && (
-                        <motion.span
-                          className="px-2 py-0.5 text-xs bg-indigo-500/30 text-indigo-300 rounded-full flex items-center gap-1"
-                          animate={{ opacity: [0.7, 1, 0.7] }}
-                          transition={{ duration: 2, repeat: Infinity }}
-                        >
+                        <span className="px-2 py-0.5 text-xs bg-indigo-500/30 text-indigo-300 rounded-full flex items-center gap-1 animate-pulse">
                           <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
                           {t('landing.roadmap.inProgress')}
-                        </motion.span>
+                        </span>
                       )}
                     </div>
 

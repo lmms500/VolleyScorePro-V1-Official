@@ -4,6 +4,7 @@ import { HudPlacement } from '@features/game/hooks/useHudMeasure';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { TeamColor } from '@types';
 import { resolveTheme } from '@lib/utils/colors';
+import { getAnimationConfig } from '@lib/platform/animationConfig';
 
 interface MeasuredFullscreenHUDProps {
   placement: HudPlacement;
@@ -13,33 +14,39 @@ interface MeasuredFullscreenHUDProps {
   colorRight: TeamColor;
 }
 
-const flipVariants: Variants = {
-  initial: (direction: number) => ({ 
-    rotateY: direction > 0 ? -90 : 90, 
-    z: -100,
-    opacity: 0,
-    scale: 0.9
-  }),
-  animate: { 
-    rotateY: 0, 
-    z: 0,
-    opacity: 1, 
-    scale: 1,
-    transition: { 
-      type: "spring", 
-      stiffness: 200, 
-      damping: 25,
-      mass: 1.2
-    } 
-  },
-  exit: (direction: number) => ({ 
-    rotateY: direction > 0 ? 90 : -90, 
-    z: -100,
-    opacity: 0, 
-    scale: 0.9,
-    transition: { duration: 0.3, ease: "easeInOut" } 
-  })
-};
+const animConfig = getAnimationConfig();
+
+// Use 2D transitions on Android/low-end instead of 3D rotateY (causes GPU texture thrashing)
+const flipVariants: Variants = animConfig.isAndroid || animConfig.isLowEnd
+  ? {
+    initial: { opacity: 0, scale: 0.85, y: 10 },
+    animate: {
+      opacity: 1, scale: 1, y: 0,
+      transition: { duration: 0.25, ease: [0.25, 1, 0.5, 1] }
+    },
+    exit: {
+      opacity: 0, scale: 0.85, y: -10,
+      transition: { duration: 0.2, ease: [0.32, 0, 0.67, 0] }
+    }
+  }
+  : {
+    initial: (direction: number) => ({
+      rotateY: direction > 0 ? -90 : 90,
+      z: -100,
+      opacity: 0,
+      scale: 0.9
+    }),
+    animate: {
+      rotateY: 0, z: 0, opacity: 1, scale: 1,
+      transition: { type: "spring", stiffness: 200, damping: 25, mass: 0.8 }
+    },
+    exit: (direction: number) => ({
+      rotateY: direction > 0 ? 90 : -90,
+      z: -100,
+      opacity: 0, scale: 0.9,
+      transition: { duration: 0.3, ease: "easeInOut" }
+    })
+  };
 
 const SetNumber = memo(({ value, color }: { value: number, color: TeamColor }) => {
     const theme = resolveTheme(color);
@@ -75,11 +82,11 @@ export const MeasuredFullscreenHUD: React.FC<MeasuredFullscreenHUDProps> = memo(
             transform: `translate(-50%, -50%) scale(${placement.scale})`,
             zIndex: 40,
             pointerEvents: 'none',
-            perspective: '1200px'
-        }} 
+            perspective: animConfig.isAndroid || animConfig.isLowEnd ? undefined : '1200px'
+        }}
         className="flex items-center justify-center origin-center"
     >
-        <AnimatePresence mode="popLayout" initial={false}>
+        <AnimatePresence mode="wait" initial={false}>
             <motion.div
                 key={layoutKey}
                 variants={flipVariants}
@@ -87,7 +94,7 @@ export const MeasuredFullscreenHUD: React.FC<MeasuredFullscreenHUDProps> = memo(
                 animate="animate"
                 exit="exit"
                 className="relative"
-                style={{ transformStyle: 'preserve-3d' }}
+                style={animConfig.isAndroid || animConfig.isLowEnd ? undefined : { transformStyle: 'preserve-3d' }}
             >
                 <div className="relative flex items-center justify-center gap-0 px-6 py-2 rounded-[2rem] bg-slate-900/40 dark:bg-black/60 backdrop-blur-3xl border border-white/20 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)] ring-1 ring-inset ring-white/10">
                     <SetNumber value={setsLeft} color={colorLeft} />

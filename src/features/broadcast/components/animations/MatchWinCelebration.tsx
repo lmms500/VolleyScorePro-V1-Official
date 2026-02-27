@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { TeamId, GameState } from '@types';
 import { getHexFromColor } from '@lib/utils/colors';
 import { Trophy, Crown, Sparkles } from 'lucide-react';
+import { getMaxParticles, getAnimationConfig } from '@lib/platform/animationConfig';
 
 interface MatchWinCelebrationProps {
   trigger: boolean;
@@ -91,6 +92,9 @@ export const MatchWinCelebration: React.FC<MatchWinCelebrationProps> = ({
   const setsLost = teamId === 'A' ? state.setsB : state.setsA;
 
   const confettiColors = [teamColor, '#fbbf24', '#f97316', '#06b6d4', '#a855f7'];
+  const confettiCount = Math.min(50, getMaxParticles());
+  const animConfig = getAnimationConfig();
+  const skipInfinite = animConfig.isAndroid || animConfig.isLowEnd;
 
   return (
     <AnimatePresence>
@@ -104,7 +108,7 @@ export const MatchWinCelebration: React.FC<MatchWinCelebrationProps> = ({
         >
           <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-black/90" />
 
-          {[...Array(50)].map((_, i) => (
+          {[...Array(confettiCount)].map((_, i) => (
             <ConfettiPiece
               key={i}
               delay={0.1 + Math.random() * 0.5}
@@ -127,11 +131,11 @@ export const MatchWinCelebration: React.FC<MatchWinCelebrationProps> = ({
               className="relative"
             >
               <motion.div
-                animate={{ 
+                animate={{
                   rotate: [0, -5, 5, -5, 0],
                   scale: [1, 1.1, 1]
                 }}
-                transition={{ duration: 2, repeat: Infinity }}
+                transition={{ duration: 2, repeat: skipInfinite ? 0 : Infinity }}
               >
                 <Trophy 
                   size={100} 
@@ -166,7 +170,7 @@ export const MatchWinCelebration: React.FC<MatchWinCelebrationProps> = ({
                     `0 0 20px ${teamColor}60`
                   ]
                 }}
-                transition={{ duration: 2, repeat: Infinity }}
+                transition={{ duration: 2, repeat: skipInfinite ? 0 : Infinity }}
                 className="text-6xl font-black tracking-tight"
                 style={{ color: teamColor }}
               >
@@ -178,7 +182,7 @@ export const MatchWinCelebration: React.FC<MatchWinCelebrationProps> = ({
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.6 }}
-              className="flex items-center gap-6 bg-white/5 backdrop-blur-md rounded-2xl px-8 py-4 border border-white/10"
+              className="flex items-center gap-6 bg-white/10 backdrop-blur-sm rounded-2xl px-8 py-4 border border-white/10"
             >
               <div className="flex flex-col items-center">
                 <span className="text-4xl font-black text-white">{setsWon}</span>

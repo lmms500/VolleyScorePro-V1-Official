@@ -8,22 +8,30 @@ export type MatchSettings = GameConfig;
 export type ScoreEvent = ActionLog;
 
 export interface Match {
-  id: string;                 
-  date: string;               
-  timestamp: number;          
-  durationSeconds: number;    
+  id: string;
+  date: string;
+  timestamp: number;
+  durationSeconds: number;
   teamAName: string;
   teamBName: string;
   teamARoster?: Team;
   teamBRoster?: Team;
   setsA: number;
   setsB: number;
-  winner: TeamId | null;      
+  winner: TeamId | null;
   sets: SetHistory[];
   actionLog?: ActionLog[];
   config: MatchSettings;
   aiAnalysis?: MatchAnalysis;
   timeline?: TimelineNode[]; // Pre-calculated timeline for performance
+
+  // --- Official Match (Check-in System) ---
+  /** Whether this match was validated as official (enough checked-in players) */
+  isOfficialMatch?: boolean;
+  /** Broadcast session ID this match was played in */
+  sessionId?: string;
+  /** Firebase UIDs of all checked-in participants */
+  participantUids?: string[];
 }
 
 interface HistoryStoreState {
@@ -75,28 +83,28 @@ export const useHistoryStore = create<HistoryStoreState & HistoryStoreActions>()
       },
 
       setMatchAnalysis: (matchId, analysis) => {
-          set((state) => ({
-              matches: state.matches.map(m => m.id === matchId ? { ...m, aiAnalysis: analysis } : m)
-          }));
+        set((state) => ({
+          matches: state.matches.map(m => m.id === matchId ? { ...m, aiAnalysis: analysis } : m)
+        }));
       },
 
       mergeMatches: (newMatches) => {
-          set((state) => {
-              const currentMap = new Map<string, Match>(state.matches.map(m => [m.id, m]));
-              let changes = false;
+        set((state) => {
+          const currentMap = new Map<string, Match>(state.matches.map(m => [m.id, m]));
+          let changes = false;
 
-              newMatches.forEach(m => {
-                  if (!currentMap.has(m.id)) {
-                      currentMap.set(m.id, m);
-                      changes = true;
-                  }
-              });
-
-              if (!changes) return state;
-
-              const merged = Array.from(currentMap.values()).sort((a, b) => b.timestamp - a.timestamp);
-              return { matches: merged };
+          newMatches.forEach(m => {
+            if (!currentMap.has(m.id)) {
+              currentMap.set(m.id, m);
+              changes = true;
+            }
           });
+
+          if (!changes) return state;
+
+          const merged = Array.from(currentMap.values()).sort((a, b) => b.timestamp - a.timestamp);
+          return { matches: merged };
+        });
       },
 
       exportJSON: () => {

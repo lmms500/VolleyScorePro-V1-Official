@@ -62,12 +62,12 @@ const TimeoutDots = memo<{ count: number; teamColor: TeamColor }>(({ count, team
         return (
           <motion.div
             key={i}
-            layout
             initial={false}
             animate={{
               scale: isAvailable ? 1 : 0.8,
               opacity: isAvailable ? 1 : 0.6
             }}
+            transition={{ duration: 0.2 }}
           >
             <div
               className={`w-2 h-2 rounded-full transition-all ${!isAvailable ? 'bg-slate-400 dark:bg-slate-500' : 'ring-2 ring-white/30'}`}

@@ -153,7 +153,7 @@ export const FloatingTimeout: React.FC<FloatingTimeoutProps> = ({ secondsLeft, c
             className={`
                 fixed top-0 left-0 z-[9999]
                 rounded-full 
-                bg-slate-900/90 backdrop-blur-xl 
+                bg-slate-900/95 backdrop-blur-sm
                 border-2 ${theme.border}
                 shadow-[0_20px_40px_rgba(0,0,0,0.5),inset_0_1px_0_0_rgba(255,255,255,0.1)]
                 ring-1 ring-inset ring-white/10

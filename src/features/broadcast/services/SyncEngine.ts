@@ -1,7 +1,7 @@
 
 import { doc, onSnapshot, setDoc, serverTimestamp, DocumentSnapshot, FirestoreError, Unsubscribe, collection, deleteDoc, onSnapshot as onSnapshotQuery, writeBatch, getDocs, getDoc } from 'firebase/firestore';
 import { db, isFirebaseInitialized } from '@lib/firebase';
-import { GameState } from '@types';
+import { GameState, MatchParticipant } from '@types';
 import { SecureStorage } from '@lib/storage/SecureStorage';
 import { logger } from '@lib/utils/logger';
 
@@ -12,11 +12,27 @@ interface SyncSessionSchema {
     lastUpdate: any;
     state: GameState;
     syncLatencyMs?: number;
+    /** Whether this session has been validated as an official match */
+    isOfficialMatch?: boolean;
+    /** Number of checked-in participants (players, not spectators) */
+    participantCount?: number;
 }
 
 interface SpectatorDoc {
     joinedAt: any;
     uid: string;
+}
+
+/** Document stored in /live_matches/{sessionId}/participants/{uid} */
+interface ParticipantDoc {
+    uid: string;
+    profileId: string;
+    name: string;
+    avatar?: string;
+    team: 'A' | 'B' | 'unassigned';
+    deviceFingerprint: string;
+    checkedInAt: any;
+    role: 'host' | 'player';
 }
 
 const SYNC_QUEUE_KEY = 'sync_pending_queue';
@@ -30,6 +46,7 @@ export class SyncEngine {
     private static instance: SyncEngine;
     private activeUnsubscribe: Unsubscribe | null = null;
     private spectatorCountUnsubscribe: Unsubscribe | null = null;
+    private participantCountUnsubscribe: Unsubscribe | null = null;
     private currentHostSessionId: string | null = null;
 
     // Offline Resilience State
@@ -229,7 +246,7 @@ export class SyncEngine {
             (snapshot: DocumentSnapshot) => {
                 if (snapshot.exists()) {
                     const data = snapshot.data() as SyncSessionSchema;
-                    
+
                     if (data.status === 'finished') {
                         logger.log('[SyncEngine] Session ended by host');
                         if (onSessionEnded) {
@@ -237,7 +254,7 @@ export class SyncEngine {
                         }
                         return;
                     }
-                    
+
                     if (data && data.state) {
                         onUpdate(data.state);
                     }
@@ -367,7 +384,7 @@ export class SyncEngine {
     ): () => void {
         if (!isFirebaseInitialized || !db) {
             onUpdate(0);
-            return () => {};
+            return () => { };
         }
 
         const spectatorsCol = collection(db, 'live_matches', sessionId, 'spectators');
@@ -405,7 +422,7 @@ export class SyncEngine {
             spectatorsCol,
             async (snapshot) => {
                 const count = snapshot.size;
-                
+
                 if (this.currentHostSessionId === sessionId) {
                     try {
                         await setDoc(sessionRef, {
@@ -445,6 +462,7 @@ export class SyncEngine {
         }
 
         this.unsubscribeHostFromSpectatorCount();
+        this.unsubscribeFromParticipants();
 
         if (this.activeUnsubscribe) {
             this.activeUnsubscribe();
@@ -463,6 +481,7 @@ export class SyncEngine {
             await SecureStorage.remove(SYNC_QUEUE_KEY);
 
             await this.cleanupSpectators(sessionId);
+            await this.cleanupParticipants(sessionId);
 
             logger.log('[SyncEngine] Session ended:', sessionId);
         } catch (e) {
@@ -481,7 +500,7 @@ export class SyncEngine {
         try {
             const spectatorsCol = collection(db, 'live_matches', sessionId, 'spectators');
             const snapshot = await getDocs(spectatorsCol);
-            
+
             if (snapshot.empty) return;
 
             const batch = writeBatch(db);
@@ -493,6 +512,193 @@ export class SyncEngine {
             logger.log('[SyncEngine] Cleaned up', snapshot.size, 'spectators');
         } catch (e) {
             logger.warn('[SyncEngine] Failed to cleanup spectators:', e);
+        }
+    }
+
+    /**
+     * Removes all participant documents from a session.
+     * Called when host ends the session.
+     */
+    private async cleanupParticipants(sessionId: string): Promise<void> {
+        if (!isFirebaseInitialized || !db) return;
+
+        try {
+            const participantsCol = collection(db, 'live_matches', sessionId, 'participants');
+            const snapshot = await getDocs(participantsCol);
+
+            if (snapshot.empty) return;
+
+            const batch = writeBatch(db);
+            snapshot.docs.forEach((docSnapshot) => {
+                batch.delete(docSnapshot.ref);
+            });
+
+            await batch.commit();
+            logger.log('[SyncEngine] Cleaned up', snapshot.size, 'participants');
+        } catch (e) {
+            logger.warn('[SyncEngine] Failed to cleanup participants:', e);
+        }
+    }
+
+    // ============================
+    // PARTICIPANT MANAGEMENT
+    // (Check-in system for official match validation)
+    // ============================
+
+    /**
+     * Registers a player as a checked-in participant in the session.
+     * Unlike spectators (passive viewers), participants are active players
+     * whose check-in contributes to match validation.
+     */
+    public async joinAsParticipant(
+        sessionId: string,
+        participant: Omit<MatchParticipant, 'checkedInAt'>
+    ): Promise<void> {
+        if (!isFirebaseInitialized || !db) {
+            logger.warn('[SyncEngine] Firebase not initialized');
+            return;
+        }
+
+        const participantRef = doc(db, 'live_matches', sessionId, 'participants', participant.uid);
+        const participantDoc: ParticipantDoc = {
+            uid: participant.uid,
+            profileId: participant.profileId,
+            name: participant.name,
+            avatar: participant.avatar || null as any,
+            team: participant.team,
+            deviceFingerprint: participant.deviceFingerprint,
+            checkedInAt: serverTimestamp(),
+            role: participant.role,
+        };
+
+        try {
+            await setDoc(participantRef, participantDoc);
+            logger.log('[SyncEngine] Participant joined:', participant.name, `(${participant.uid})`);
+        } catch (e) {
+            logger.error('[SyncEngine] Failed to join as participant:', e);
+        }
+    }
+
+    /**
+     * Removes a participant from the session.
+     */
+    public async leaveParticipant(sessionId: string, uid: string): Promise<void> {
+        if (!isFirebaseInitialized || !db) return;
+
+        const participantRef = doc(db, 'live_matches', sessionId, 'participants', uid);
+
+        try {
+            await deleteDoc(participantRef);
+            logger.log('[SyncEngine] Participant left:', uid);
+        } catch (e) {
+            logger.warn('[SyncEngine] Failed to remove participant:', e);
+        }
+    }
+
+    /**
+     * Subscribes to real-time updates of participant list.
+     * Returns cleanup function.
+     */
+    public subscribeToParticipants(
+        sessionId: string,
+        onUpdate: (participants: MatchParticipant[]) => void
+    ): () => void {
+        if (!isFirebaseInitialized || !db) {
+            onUpdate([]);
+            return () => { };
+        }
+
+        const participantsCol = collection(db, 'live_matches', sessionId, 'participants');
+
+        const unsubscribe = onSnapshotQuery(
+            participantsCol,
+            (snapshot) => {
+                const participants: MatchParticipant[] = snapshot.docs.map(d => {
+                    const data = d.data() as ParticipantDoc;
+                    return {
+                        uid: data.uid,
+                        profileId: data.profileId,
+                        name: data.name,
+                        avatar: data.avatar,
+                        team: data.team,
+                        deviceFingerprint: data.deviceFingerprint,
+                        checkedInAt: data.checkedInAt?.toMillis?.() ?? Date.now(),
+                        role: data.role,
+                    };
+                });
+                onUpdate(participants);
+            },
+            (error) => {
+                logger.error('[SyncEngine] Participant subscription error:', error);
+                onUpdate([]);
+            }
+        );
+
+        this.participantCountUnsubscribe = unsubscribe;
+        return unsubscribe;
+    }
+
+    /**
+     * Unsubscribes from participant updates.
+     */
+    public unsubscribeFromParticipants(): void {
+        if (this.participantCountUnsubscribe) {
+            this.participantCountUnsubscribe();
+            this.participantCountUnsubscribe = null;
+        }
+    }
+
+    /**
+     * Updates the session's official match status.
+     * Called by the host when validation status changes.
+     */
+    public async updateOfficialStatus(
+        sessionId: string,
+        isOfficialMatch: boolean,
+        participantCount: number
+    ): Promise<void> {
+        if (!isFirebaseInitialized || !db) return;
+
+        const sessionRef = doc(db, 'live_matches', sessionId);
+
+        try {
+            await setDoc(sessionRef, {
+                isOfficialMatch,
+                participantCount,
+                lastUpdate: serverTimestamp()
+            }, { merge: true });
+            logger.log('[SyncEngine] Official status updated:', isOfficialMatch ? '🟢 Official' : '🟡 Casual');
+        } catch (e) {
+            logger.warn('[SyncEngine] Failed to update official status:', e);
+        }
+    }
+
+    /**
+     * Gets the current list of participants (one-shot read).
+     */
+    public async getParticipants(sessionId: string): Promise<MatchParticipant[]> {
+        if (!isFirebaseInitialized || !db) return [];
+
+        try {
+            const participantsCol = collection(db, 'live_matches', sessionId, 'participants');
+            const snapshot = await getDocs(participantsCol);
+
+            return snapshot.docs.map(d => {
+                const data = d.data() as ParticipantDoc;
+                return {
+                    uid: data.uid,
+                    profileId: data.profileId,
+                    name: data.name,
+                    avatar: data.avatar,
+                    team: data.team,
+                    deviceFingerprint: data.deviceFingerprint,
+                    checkedInAt: data.checkedInAt?.toMillis?.() ?? Date.now(),
+                    role: data.role,
+                };
+            });
+        } catch (e) {
+            logger.error('[SyncEngine] Failed to get participants:', e);
+            return [];
         }
     }
 

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef } from 'react';
 
 type LayoutMode = 'normal' | 'compact' | 'ultra';
 
@@ -14,12 +14,12 @@ interface LayoutState {
   safeAreaBottom: number;
   isLandscape: boolean;
   scoreCenterOffset: number;
-  colliders: ColliderRect[];
 }
 
 interface LayoutContextType extends LayoutState {
   registerElement: (id: string, width: number, height: number) => void;
   registerCollider: (id: string, element: HTMLElement | null) => void;
+  getColliders: () => ColliderRect[];
 }
 
 const LayoutContext = createContext<LayoutContextType | undefined>(undefined);
@@ -27,14 +27,13 @@ const LayoutContext = createContext<LayoutContextType | undefined>(undefined);
 export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [measurements, setMeasurements] = useState<Record<string, { w: number; h: number }>>({});
   const [windowSize, setWindowSize] = useState({ w: window.innerWidth, h: window.innerHeight });
-  const [colliders, setColliders] = useState<ColliderRect[]>([]);
+  // Store colliders in a ref — mutations don't trigger re-renders
+  const collidersRef = useRef<ColliderRect[]>([]);
 
-  // Update window size & colliders on resize/scroll
+  // Update window size on resize
   useEffect(() => {
     const handleResize = () => {
         setWindowSize({ w: window.innerWidth, h: window.innerHeight });
-        // Trigger a re-measure of colliders (this is a simplified approach, 
-        // normally we'd need refs to re-measure but components will re-register on render)
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -49,29 +48,26 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const registerCollider = useCallback((id: string, element: HTMLElement | null) => {
       if (!element) {
-          setColliders(prev => prev.filter(c => c.id !== id));
+          collidersRef.current = collidersRef.current.filter(c => c.id !== id);
           return;
       }
-      
-      // Throttle/Debounce could be added here if needed, but for now we trust effects
+
       const rect = element.getBoundingClientRect();
-      setColliders(prev => {
-          const idx = prev.findIndex(c => c.id === id);
-          if (idx !== -1) {
-              // Update existing
-              const copy = [...prev];
-              copy[idx] = { id, rect };
-              return copy;
-          }
-          return [...prev, { id, rect }];
-      });
+      const idx = collidersRef.current.findIndex(c => c.id === id);
+      if (idx !== -1) {
+          collidersRef.current[idx] = { id, rect };
+      } else {
+          collidersRef.current = [...collidersRef.current, { id, rect }];
+      }
   }, []);
+
+  const getColliders = useCallback(() => collidersRef.current, []);
 
   const layoutState = useMemo((): LayoutState => {
     const { w: winW, h: winH } = windowSize;
     const isLandscape = winW > winH;
-    
-    const safeTop = isLandscape ? 20 : 40; 
+
+    const safeTop = isLandscape ? 20 : 40;
     const safeBottom = isLandscape ? 20 : 40;
 
     const topBarH = measurements['topbar']?.h || 60;
@@ -82,7 +78,7 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const centerToTop = winH / 2;
     const centerToBottom = winH / 2;
 
-    const requiredTop = (scoreH / 2) + nameH + topBarH + (isLandscape ? 20 : 40); 
+    const requiredTop = (scoreH / 2) + nameH + topBarH + (isLandscape ? 20 : 40);
     const requiredBottom = (scoreH / 2) + controlsH + (isLandscape ? 20 : 40);
 
     let mode: LayoutMode = 'normal';
@@ -93,11 +89,11 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const compactFactor = 0.85;
         if ((requiredTop * compactFactor) > centerToTop || (requiredBottom * compactFactor) > centerToBottom) {
              mode = 'ultra';
-             const overflowRatioTop = centerToTop / (requiredTop * 0.75); 
+             const overflowRatioTop = centerToTop / (requiredTop * 0.75);
              const overflowRatioBottom = centerToBottom / (requiredBottom * 0.75);
              const worstCase = Math.min(overflowRatioTop, overflowRatioBottom);
              if (worstCase < 1) {
-                 scale = Math.max(0.6, worstCase - 0.05); 
+                 scale = Math.max(0.6, worstCase - 0.05);
              }
         }
     }
@@ -109,12 +105,16 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         safeAreaBottom: safeBottom,
         isLandscape,
         scoreCenterOffset: 0,
-        colliders
     };
 
-  }, [measurements, windowSize, colliders]);
+  }, [measurements, windowSize]);
 
-  const value = useMemo(() => ({ ...layoutState, registerElement, registerCollider }), [layoutState, registerElement, registerCollider]);
+  const value = useMemo(() => ({
+    ...layoutState,
+    registerElement,
+    registerCollider,
+    getColliders,
+  }), [layoutState, registerElement, registerCollider, getColliders]);
 
   return (
     <LayoutContext.Provider value={value}>

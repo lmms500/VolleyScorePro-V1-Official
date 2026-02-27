@@ -66,7 +66,7 @@ export const PointCelebration: React.FC<PointCelebrationProps> = ({
             className="fixed top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full pointer-events-none z-30"
             style={{
               background: `radial-gradient(ellipse, ${teamColor}40, transparent 70%)`,
-              filter: 'blur(20px)',
+              opacity: 0.8,
             }}
           />
 

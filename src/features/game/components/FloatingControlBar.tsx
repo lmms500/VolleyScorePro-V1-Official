@@ -1,6 +1,6 @@
 
 
-import React, { useEffect, useState, memo, useCallback } from 'react';
+import React, { useEffect, useState, memo, useCallback, useRef } from 'react';
 import { Undo2, ArrowLeftRight, RotateCcw, Menu, ChevronDown, ChevronUp, Mic, MicOff, Grid } from 'lucide-react';
 import { useTranslation } from '@contexts/LanguageContext';
 import { useLayoutManager } from '@contexts/LayoutContext';
@@ -52,25 +52,32 @@ export const FloatingControlBar: React.FC<FloatingControlBarProps> = memo(({
   }, [onToggleListening]);
   const { ref, width, height } = useElementSize<HTMLDivElement>();
 
-  // Reset timer on any click
-  const handleUserActivity = useCallback(() => {
-    setIsMinimized(false);
-    // We need to clear and restart the timer. The effect depends on isMinimized/isHovering.
-    // We can introduce a 'lastActivity' state to trigger effect re-run
-    setLastActivity(Date.now());
+  // Auto-hide timer managed via ref to avoid state-triggered re-renders
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const resetHideTimer = useCallback(() => {
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = setTimeout(() => setIsMinimized(true), 4000);
   }, []);
 
-  const [lastActivity, setLastActivity] = useState(Date.now());
+  const handleUserActivity = useCallback(() => {
+    setIsMinimized(false);
+    resetHideTimer();
+  }, [resetHideTimer]);
 
   useEffect(() => {
     registerElement('controls', width, height);
   }, [width, height, registerElement]);
 
+  // Start/restart hide timer when expanded or hover state changes
   useEffect(() => {
-    if (isMinimized || isHovering) return;
-    const timer = setTimeout(() => setIsMinimized(true), 4000);
-    return () => clearTimeout(timer);
-  }, [isMinimized, isHovering, lastActivity]);
+    if (isMinimized || isHovering) {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+      return;
+    }
+    resetHideTimer();
+    return () => { if (hideTimerRef.current) clearTimeout(hideTimerRef.current); };
+  }, [isMinimized, isHovering, resetHideTimer]);
 
   const glassContainer = "bg-white/90 dark:bg-slate-900/80 backdrop-blur-2xl border border-white/50 dark:border-white/10 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.15),inset_0_1px_0_0_rgba(255,255,255,0.15)] ring-1 ring-inset ring-white/10 dark:ring-white/10";
   // const buttonBase = "rounded-full transition-all duration-300 active:scale-90 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-transparent hover:bg-black/5 dark:hover:bg-white/10";

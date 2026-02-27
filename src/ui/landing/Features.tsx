@@ -33,6 +33,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, gra
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
+  const rafPending = useRef(false);
 
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -46,11 +47,19 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, gra
   const springY = useSpring(y, { stiffness: 300, damping: 30 });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    x.set((e.clientX - centerX) / 12);
-    y.set((e.clientY - centerY) / 12);
+    if (rafPending.current) return;
+    const clientX = e.clientX;
+    const clientY = e.clientY;
+    const target = e.currentTarget;
+    rafPending.current = true;
+    requestAnimationFrame(() => {
+      const rect = target.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      x.set((clientX - centerX) / 12);
+      y.set((clientY - centerY) / 12);
+      rafPending.current = false;
+    });
   };
 
   const handleMouseLeave = () => {
@@ -96,10 +105,8 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, gra
             transition={{ type: "spring", stiffness: 400, damping: 15 }}
           >
             <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-            <motion.div
-              className="absolute inset-0 rounded-xl bg-white/30 blur-xl"
-              animate={{ opacity: [0, 0.5, 0] }}
-              transition={{ duration: 2, repeat: Infinity }}
+            <div
+              className="absolute inset-0 rounded-xl bg-white/30 blur-xl animate-pulse"
             />
           </motion.div>
 
@@ -114,13 +121,8 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, gra
           </div>
 
           {/* Corner Accent */}
-          <motion.div
-            className={`absolute -top-10 -right-10 w-20 h-20 bg-gradient-to-br ${gradient} opacity-20 blur-2xl`}
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.1, 0.3, 0.1]
-            }}
-            transition={{ duration: 3, repeat: Infinity }}
+          <div
+            className={`absolute -top-10 -right-10 w-20 h-20 bg-gradient-to-br ${gradient} opacity-20 blur-2xl animate-pulse`}
           />
         </GlassSurface>
       </motion.div>
@@ -239,12 +241,9 @@ export const Features: React.FC = () => {
           className="mt-12 sm:mt-16 text-center"
         >
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500/10 to-rose-500/10 border border-white/10 rounded-full hover:border-white/20 transition-colors cursor-default">
-            <motion.div
-              animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            >
+            <div className="animate-pulse">
               <Zap className="w-4 h-4 text-amber-400" />
-            </motion.div>
+            </div>
             <span className="text-white/70 text-sm">{t('landing.features.highlight')}</span>
           </div>
         </motion.div>

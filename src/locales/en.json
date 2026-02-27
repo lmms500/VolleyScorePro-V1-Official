@@ -896,5 +896,17 @@
         "projection": "Future Projection (Predictive AI)",
         "nextSteps": "Next Steps",
         "downloadReport": "Download Technical Report"
+    },
+    "officialMatch": {
+        "badge": "Official Match",
+        "validated": "Match validated",
+        "casual": "Casual match",
+        "insufficient": "Not enough players",
+        "submittedToGlobal": "Results submitted to global ranking!",
+        "playersNeeded": "{count} players needed",
+        "checkIn": "Check In",
+        "checkedIn": "Checked In",
+        "participants": "Participants",
+        "officialMode": "Official Mode"
     }
 }

@@ -60,7 +60,7 @@ export const Confetti: React.FC<ConfettiProps> = ({
 }) => {
   const { config: perf } = usePerformanceSafe();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { colliders } = useLayoutManager();
+  const { getColliders } = useLayoutManager();
 
   // Adaptive: disable confetti if performance mode says so, or prop says so
   const enabled = enabledProp && perf.visual.confetti;
@@ -72,7 +72,7 @@ export const Confetti: React.FC<ConfettiProps> = ({
   useEffect(() => {
       if (!enabled) return;
       
-      physicsWorldRef.current = colliders.map(c => {
+      physicsWorldRef.current = getColliders().map(c => {
           const { rect, id } = c;
           let type = PHYS_FLAT;
           let xPad = 2;
@@ -104,7 +104,7 @@ export const Confetti: React.FC<ConfettiProps> = ({
               lineHeightTrim
           };
       });
-  }, [colliders, enabled]);
+  }, [getColliders, enabled]);
 
   useEffect(() => {
     if (!enabled) return;

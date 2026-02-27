@@ -39,7 +39,8 @@ const hexColorMap: Record<string, string> = {
 };
 
 // Variants for the permanent glow layer
-const isAndroidPlatform = getAnimationConfig().isAndroid;
+const platformConfig = getAnimationConfig();
+const skipInfiniteLoop = platformConfig.isAndroid || platformConfig.isLowEnd;
 
 const glowVariants = {
     idle: {
@@ -57,9 +58,9 @@ const glowVariants = {
         scale: 1.2,
         transition: { duration: 0.5, ease: "easeOut" }
     },
-    critical: isAndroidPlatform
+    critical: skipInfiniteLoop
         ? {
-            // Android: single pulse, no infinite loop (saves GPU tile rasterization)
+            // Android/low-end: single pulse, no infinite loop (saves GPU tile rasterization)
             opacity: 0.9,
             scale: 1.2,
             transition: { duration: 0.5, ease: "easeOut" }
@@ -87,22 +88,30 @@ export const HaloBackground: React.FC<HaloBackgroundProps> = memo(({
 
     // Flash via Web Animations API — no state change, no React re-render
     const flashRef = useRef<HTMLDivElement>(null);
+    const flashAnimRef = useRef<Animation | null>(null);
     const prevScoreRef = useRef<number>(score);
 
     useEffect(() => {
         if (score > prevScoreRef.current && flashRef.current) {
+            // Cancel any running flash before starting new one
+            flashAnimRef.current?.cancel();
             // Trigger flash imperatively — zero React overhead
-            flashRef.current.animate(
+            flashAnimRef.current = flashRef.current.animate(
                 [
                     { opacity: 0, transform: 'translate(-50%, -50%) scale(1)' },
                     { opacity: 0.85, transform: 'translate(-50%, -50%) scale(1.5)' },
                     { opacity: 0, transform: 'translate(-50%, -50%) scale(1.2)' },
                 ],
-                { duration: 600, easing: 'ease-out', fill: 'forwards' }
+                { duration: 600, easing: 'ease-out', fill: 'none' }
             );
         }
         prevScoreRef.current = score;
     }, [score]);
+
+    // Cleanup animation on unmount
+    useEffect(() => {
+        return () => { flashAnimRef.current?.cancel(); };
+    }, []);
 
     // Adaptive: disable halos when performance mode says so, or when lowGraphics prop is true
     const haloDisabled = lowGraphicsProp === true || !perf.visual.haloEffects;

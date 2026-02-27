@@ -60,10 +60,10 @@ export const HorizontalPagesContainer: React.FC<HorizontalPagesContainerProps> =
         >
             <motion.div
                 className="flex h-full"
-                style={{ 
+                style={{
                     x: offsetX,
                     transform: 'translateZ(0)',
-                    willChange: 'transform'
+                    willChange: isInternalDrag || !isSwipeLocked ? 'transform' : 'auto'
                 }}
                 drag={isSwipeLocked || isInternalDrag ? false : "x"}
                 dragConstraints={dragConstraints}

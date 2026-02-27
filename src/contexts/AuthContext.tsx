@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { User, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged, getRedirectResult, signInWithCredential, GoogleAuthProvider } from 'firebase/auth';
 import { auth, googleProvider, isFirebaseInitialized } from '@lib/firebase';
 import { Capacitor } from '@capacitor/core';
@@ -44,7 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = useCallback(async () => {
     // Debug checks
     if (!isFirebaseInitialized) {
       console.error("[Auth] Firebase failed to initialize.");
@@ -110,9 +110,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     if (!isFirebaseInitialized || !auth) return;
     try {
       await signOut(auth);
@@ -120,10 +120,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (e) {
       console.error("[Auth] Logout error:", e);
     }
-  };
+  }, []);
+
+  const value = useMemo(() => ({ user, loading, signInWithGoogle, logout }), [user, loading, signInWithGoogle, logout]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, signInWithGoogle, logout }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

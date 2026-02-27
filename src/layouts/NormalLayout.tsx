@@ -90,7 +90,7 @@ export const NormalLayout: React.FC<NormalLayoutProps> = ({
         if ('requestIdleCallback' in window) {
             const id = requestIdleCallback(() => {
                 setCourtMounted(true);
-            }, { timeout: 2000 });
+            }, { timeout: 1000 });
             return () => cancelIdleCallback(id);
         } else {
             // Fallback for Safari/older browsers
@@ -133,7 +133,7 @@ export const NormalLayout: React.FC<NormalLayoutProps> = ({
                 onWidthChange={setContainerWidth}
             >
                 {/* Page 0: Score Cards */}
-                <div ref={layoutContainerRef} className="relative flex-1 flex flex-col landscape:flex-row gap-2 sm:gap-4 min-h-0 my-2 sm:my-4 justify-between h-full">
+                <div ref={layoutContainerRef} className="relative flex-1 flex flex-col landscape:flex-row gap-2 sm:gap-4 min-h-0 my-2 sm:my-4 justify-between h-full" style={{ contain: 'content' }}>
                     <LayoutGroup id="score-cards">
                         <ScoreCardContainer
                             key="card-A"
